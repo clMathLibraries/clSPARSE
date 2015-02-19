@@ -35,6 +35,7 @@ src/clsparse_init.c
 src/internal/hdl_list.c
 src/internal/clsparse_internal.c
 src/simple/clsparse_simple.c
+src/spmv/clsparse_csrmv.c
 )
 
 set(LIB_HEADERS
@@ -43,6 +44,7 @@ src/clSPARSE.version.h
 src/internal/hdl_list.h
 src/internal/clsparse_internal.h
 src/internal/clsparse_sources.h
+src/internal/clsparse_validate.h
 ${ocl_kernels_file_name}
 )
 

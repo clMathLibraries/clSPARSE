@@ -12,6 +12,53 @@ cl_context ClSparseEnvironment::context = NULL;
 
 namespace po = boost::program_options;
 
+template<typename T>
+clsparseStatus generateResult(cl_mem x, cl_mem alpha,
+                              cl_mem y, cl_mem beta,
+                              cl_uint num_events_in_wait_list,
+                              const cl_event *event_wait_list,
+                              cl_event* event)
+{
+    using CSRE = CSREnvironment;
+    using CLSE = ClSparseEnvironment;
+
+    if(typeid(T) == typeid(float))
+    {
+        return clsparseScsrmv(CSRE::n_rows,
+                       CSRE::n_cols,
+                       CSRE::n_vals,
+                       alpha,
+                       CSRE::cl_row_offsets,
+                       CSRE::cl_col_indices,
+                       CSRE::cl_f_values,
+                       x,
+                       beta,
+                       y,
+                       CLSE::queue,
+                       num_events_in_wait_list,
+                       event_wait_list,
+                       event);
+
+    }
+    if(typeid(T) == typeid(double))
+    {
+       return clsparseDcsrmv(CSRE::n_rows,
+                       CSRE::n_cols,
+                       CSRE::n_vals,
+                       alpha,
+                       CSRE::cl_row_offsets,
+                       CSRE::cl_col_indices,
+                       CSRE::cl_d_values,
+                       x,
+                       beta,
+                       y,
+                       CLSE::queue,
+                       num_events_in_wait_list,
+                       event_wait_list,
+                       event);
+
+    }
+}
 
 template <typename T>
 class TestCSRMV : public ::testing::Test
@@ -64,7 +111,6 @@ public:
     }
 
 
-private:
     void generateReference (const std::vector<float>& x,
                             const float alpha,
                             std::vector<float>& y,
@@ -104,6 +150,29 @@ TYPED_TEST_CASE(TestCSRMV, TYPES);
 
 TYPED_TEST(TestCSRMV, multiply)
 {
+    clsparseStatus status =
+            generateResult<TypeParam>(this->gx,
+                                      this->galpha,
+                                      this->gy,
+                                      this->gbeta,
+                                      0, NULL, NULL);
+    EXPECT_EQ(clsparseSuccess, status);
+
+    std::vector<TypeParam> result(this->y.size());
+
+    clEnqueueReadBuffer(ClSparseEnvironment::queue,
+                        this->gy, 1, 0,
+                        result.size()*sizeof(TypeParam),
+                        result.data(), 0, NULL, NULL);
+
+    if(typeid(TypeParam) == typeid(float))
+        for(int i = 0; i < this->y.size(); i++)
+            EXPECT_NEAR(this->y[i], result[i], 1e-5);
+
+    if(typeid(TypeParam) == typeid(double))
+        for(int i = 0; i < this->y.size(); i++)
+            EXPECT_NEAR(this->y[i], result[i], 1e-14);
+
 
 }
 

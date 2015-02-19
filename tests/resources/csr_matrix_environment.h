@@ -6,7 +6,6 @@
 
 #include "matrix_market.h"
 
-
 /**
  * @brief The CSREnvironment class will keep the input parameters for tests
  * They are list of paths to matrices in csr format in mtx files.
