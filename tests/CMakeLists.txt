@@ -15,16 +15,20 @@ set(TESTS
 test_hdl_list
 test_clsparse_init
 test_kernel_simple
+test_csrmv_simple
 )
 
 #additional headers and sources
 set(src
-
+resources/csr_matrix_environment.cpp
 )
 set(headers
 resources/hdl_test_resources.h
 resources/opencl_utils.h
 resources/clsparse_environment.h
+resources/matrix_utils.h
+resources/matrix_market.h
+resources/csr_matrix_environment.h
 )
 
 foreach(test ${TESTS})
