@@ -14,6 +14,7 @@ include_directories(resources)
 set(TESTS
 test_hdl_list
 test_clsparse_init
+test_kernel_simple
 )
 
 #additional headers and sources
@@ -22,6 +23,8 @@ set(src
 )
 set(headers
 resources/hdl_test_resources.h
+resources/opencl_utils.h
+resources/clsparse_environment.h
 )
 
 foreach(test ${TESTS})

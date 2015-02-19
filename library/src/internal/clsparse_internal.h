@@ -12,8 +12,7 @@ extern int clsparseInitialized;
 extern hdl_list* program_sources;
 extern hdl_list* kernel_cache;
 
-
-//void createSourcesMap(void);
+void createSourcesMap ();
 
 #ifdef __cplusplus
 }

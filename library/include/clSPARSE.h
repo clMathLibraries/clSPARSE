@@ -71,6 +71,14 @@ clsparseSetup(void);
 clsparseStatus
 clsparseTeardown(void);
 
+// THIS IS JUST AN TEST KERNEL FOR TESTING PURPOSES
+clsparseStatus
+clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
+              cl_command_queue queue,
+              cl_uint num_events_in_wait_list,
+              const cl_event *event_wait_list,
+              cl_event *event);
+
 // SPMV
 // y = \alpha * A * x + \beta * y
 // TODO:: alpha, beta scaling is not supported yet

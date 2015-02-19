@@ -24,8 +24,13 @@ clsparseSetup(void)
         return clsparseSuccess;
     }
 
+    //program sources will keep kernel sources therefore false
     program_sources = hdl_create(false);
+
+    //kernel cache will keep the clKernel object so true
     kernel_cache = hdl_create(true);
+
+    createSourcesMap();
 
     clsparseInitialized = 1;
     return clsparseSuccess;
