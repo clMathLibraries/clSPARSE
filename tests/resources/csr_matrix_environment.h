@@ -14,19 +14,13 @@
 class CSREnvironment : public ::testing::Environment
 {
 public:
-    explicit CSREnvironment(const std::string& command_line_arg,
+    explicit CSREnvironment(const std::string& path,
+                            double alpha, double beta,
                             cl_command_queue queue,
-                            cl_context context)
-    {
-        this->context = context;
-        this->queue = queue;
-
-        file_name = command_line_arg;
-    }
-
-
-    //read the matrix file passed by command_line_arg and allocate cl_buffers;
-    void SetUp()
+                            cl_context context) :
+        file_name(path),
+        queue(queue),
+        context(context)
     {
         bool read_status = false;
         read_status = readMatrixMarketCSR(row_offsets, col_indices, f_values,
@@ -35,6 +29,15 @@ public:
         {
             exit(-3);
         }
+
+        this->alpha = alpha;
+        this->beta = beta;
+
+    }
+
+
+    void SetUp()
+    {
 
         d_values = std::vector<double>(f_values.begin(), f_values.end());
 
@@ -91,6 +94,7 @@ public:
 
     }
 
+
     static std::vector<int> row_offsets;
     static std::vector<int> col_indices;
     static std::vector<float> f_values;
@@ -102,11 +106,13 @@ public:
     static cl_mem cl_col_indices;
     static cl_mem cl_f_values;
     static cl_mem cl_d_values;
+    static double alpha, beta;
 
 private :
     cl_command_queue queue;
     cl_context context;
     std::string file_name;
+
 };
 
 #endif //_CSR_MATRIX_ENVIRONMENT_H_

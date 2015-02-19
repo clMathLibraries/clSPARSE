@@ -13,3 +13,5 @@ cl_mem CSREnvironment::cl_col_indices = NULL;
 cl_mem CSREnvironment::cl_f_values = NULL;
 cl_mem CSREnvironment::cl_d_values = NULL;
 
+double CSREnvironment::alpha = 1.0;
+double CSREnvironment::beta = 0.0;
