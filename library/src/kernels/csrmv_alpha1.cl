@@ -34,11 +34,12 @@
 // SUBWAVE_SIZE - the length of a "sub-wave", a power of 2, i.e. 1,2,4,...,WAVE_SIZE, assigned to process a single matrix row
 __kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
-void csrmv_vector (     const INDEX_TYPE num_rows,
+void csrmv_alpha1 (     const INDEX_TYPE num_rows,
                 __global const INDEX_TYPE * const row_offset,
                 __global const INDEX_TYPE * const col,
                 __global const VALUE_TYPE * const val,
                 __global const VALUE_TYPE * const x,
+                __global const VALUE_TYPE * const beta,
                 __global       VALUE_TYPE * y)
 {
     local volatile VALUE_TYPE sdata [WG_SIZE + SUBWAVE_SIZE / 2];
@@ -50,6 +51,8 @@ void csrmv_vector (     const INDEX_TYPE num_rows,
     const int vector_id   = global_id / SUBWAVE_SIZE; // global vector id
     //const int vector_lane = local_id / SUBWAVE_SIZE;  // vector id within the workgroup
     const int num_vectors = get_global_size(0) / SUBWAVE_SIZE;
+
+    const VALUE_TYPE _beta = beta[0];
 
     for(INDEX_TYPE row = vector_id; row < num_rows; row += num_vectors)
     {
@@ -70,6 +73,6 @@ void csrmv_vector (     const INDEX_TYPE num_rows,
         if (SUBWAVE_SIZE > 1)                    sum += sdata[local_id + 1];
 
         if (thread_lane == 0)
-            y[row] = sum;
+            y[row] = sum + _beta * y[row];
     }
 }

@@ -1,7 +1,8 @@
 #include "clSPARSE.h"
 #include "clSPARSE.version.h"
-
 #include "internal/clsparse_internal.h"
+
+#include <clAmdBlas.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -32,6 +33,8 @@ clsparseSetup(void)
 
     createSourcesMap();
 
+    clblasSetup();
+
     clsparseInitialized = 1;
     return clsparseSuccess;
 }
@@ -46,6 +49,8 @@ clsparseTeardown(void)
 
     hdl_destroy(&program_sources);
     hdl_destroy_with_func(&kernel_cache, &clReleaseKernel);
+
+    clblasTeardown();
 
     clsparseInitialized = 0;
     return clsparseSuccess;

@@ -118,8 +118,8 @@ void csrmv(int n_rows, int n_cols, int nnz,
         {
             sum += alpha * values[j] * x[col_indices[j]];
         }
-
         y[i] = sum + beta * y[i];
+
     }
 }
 

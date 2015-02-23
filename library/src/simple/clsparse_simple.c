@@ -60,7 +60,7 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
 
     createKey(program_name, params, &key);
 
-    cl_kernel kernel = getKernel(queue, program_name, params, key, &status);
+    cl_kernel kernel = get_kernel(queue, program_name, params, key, &status);
 
     if (status != CL_SUCCESS)
     {

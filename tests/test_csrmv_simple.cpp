@@ -78,7 +78,7 @@ public:
         y = std::vector<T>(CSRE::n_rows);
 
         std::fill(x.begin(), x.end(), T(1));
-        std::fill(x.begin(), x.end(), T(0));
+        std::fill(y.begin(), y.end(), T(2));
 
         cl_int status;
         gx = clCreateBuffer(CLSE::context,
@@ -99,11 +99,27 @@ public:
 
         ASSERT_EQ(CL_SUCCESS, status);
 
+        void* hgalpha = clEnqueueMapBuffer(CLSE::queue, galpha, true, CL_MAP_READ,
+                                                          0, sizeof(T), 0, NULL, NULL, NULL);
+        if(typeid(T) == typeid(float))
+            printf("hgalpha = %f\n", *(T*)hgalpha);
+        if(typeid(T) == typeid(double))
+            printf("hgalpha = %g\n", *(T*)hgalpha);
+        clEnqueueUnmapMemObject(CLSE::queue, galpha, hgalpha, 0, NULL, NULL);
+
+
         gbeta = clCreateBuffer(CLSE::context,
                                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                sizeof(T), &beta, &status);
 
         ASSERT_EQ(CL_SUCCESS, status);
+        void* hgbeta = clEnqueueMapBuffer(CLSE::queue, gbeta, true, CL_MAP_READ,
+                                                          0, sizeof(T), 0, NULL, NULL, NULL);
+        if(typeid(T) == typeid(float))
+            printf("hgbeta = %f\n", *(T*)hgbeta);
+        if(typeid(T) == typeid(double))
+            printf("hgbeta = %g\n", *(T*)hgbeta);
+        clEnqueueUnmapMemObject(CLSE::queue, gbeta, hgbeta, 0, NULL, NULL);
 
         generateReference(x, alpha, y, beta);
 
@@ -167,11 +183,11 @@ TYPED_TEST(TestCSRMV, multiply)
 
     if(typeid(TypeParam) == typeid(float))
         for(int i = 0; i < this->y.size(); i++)
-            EXPECT_NEAR(this->y[i], result[i], 1e-5);
+            EXPECT_NEAR(this->y[i], result[i], 5e-5);
 
     if(typeid(TypeParam) == typeid(double))
         for(int i = 0; i < this->y.size(); i++)
-            EXPECT_NEAR(this->y[i], result[i], 1e-14);
+            EXPECT_NEAR(this->y[i], result[i], 5e-14);
 
 
 }

@@ -18,5 +18,10 @@ void createSourcesMap ()
 {
     //key and sources are created during cmake procedure where program_sources are build
    hdl_insert(program_sources, scale_key, scale);
-   hdl_insert(program_sources, csrmv_vector_key, csrmv_vector);
+   hdl_insert(program_sources, csrmv_alpha1_key, csrmv_alpha1);
+   hdl_insert(program_sources, csrmv_alpha1_beta0_key, csrmv_alpha1_beta0);
+   hdl_insert(program_sources, csrmv_beta0_key, csrmv_beta0);
+   hdl_insert(program_sources, csrmv_beta1_key, csrmv_beta1);
+   hdl_insert(program_sources, csrmv_general_key, csrmv_general);
+
 }

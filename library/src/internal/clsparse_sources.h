@@ -160,7 +160,9 @@ cl_program buildProgram (cl_command_queue queue,
 
 // Assume kernel name == program name
 // gets the kernel from cache, if not in cache build and append
-cl_kernel getKernel (cl_command_queue queue,
+// exceptionaly this name of the function is written as get_kernel due
+// to conflicting symbol from getKernel from clBLAS ! nasty!
+cl_kernel get_kernel (cl_command_queue queue,
                      const char* program_name, const char* params,
                      const char* key, cl_int* status)
 {

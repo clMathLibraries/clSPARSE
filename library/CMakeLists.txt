@@ -2,6 +2,12 @@ project(library)
 
 set(lib_name clSPARSE)
 
+find_package(clBLAS)
+
+message(STATUS "clBLAS include ${clBLAS_INCLUDE_DIR}")
+message(STATUS "clBLAS lib ${clBLAS_LIB}")
+
+include_directories(${clBLAS_INCLUDE_DIR})
 
 # loading kernels
 file(GLOB kernels "src/kernels/*.cl")
@@ -52,4 +58,4 @@ list(APPEND LIB_HEADERS  ${kernels} ${ocl_kernels_file_name})
 
 add_library(${lib_name} ${LIB_SRC} ${LIB_HEADERS} ${OPENCL_INCLUDE_DIRS})
 
-target_link_libraries(${lib_name} ${OPENCL_LIBRARIES})
+target_link_libraries(${lib_name} ${OPENCL_LIBRARIES} ${clBLAS_LIB})
