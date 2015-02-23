@@ -434,6 +434,17 @@ clsparseScsrmv(const int m, const int n, const int nnz,
                           queue,
                           num_events_in_wait_list, event_wait_list, event);
     }
+    else if( *(float*)h_alpha == 0.0)
+    {
+#ifndef NDEBUG
+        printf("\n\talpha = 0, beta =/= 0 (clBlasSscale)\n\n");
+#endif
+        // y = b*y;
+        return clblasSscal(m, *(cl_float*)h_beta, y, 0, 1, 1, &queue,
+                           num_events_in_wait_list, event_wait_list, event);
+
+    }
+
     else if( *(float*)h_beta == 0.0)
     {
 #ifndef NDEBUG
@@ -447,20 +458,11 @@ clsparseScsrmv(const int m, const int n, const int nnz,
                         params, group_size, subwave_size, queue,
                         num_events_in_wait_list, event_wait_list, event);
     }
-    else if( *(float*)h_alpha == 0.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha = 0, beta =/= 0 (clBlasSscale)\n\n");
-#endif
-        // y = b*y;
-        return clblasSscal(m, *(cl_float*)h_beta, y, 0, 1, 1, &queue,
-                           num_events_in_wait_list, event_wait_list, event);
 
-    }
     else if ( *(float*)h_alpha == 1.0)
     {
 #ifndef NDEBUG
-        printf("\n\talpha = 1.0, beta =/= 0.0");
+        printf("\n\talpha = 1.0, beta =/= 0.0\n\n");
 #endif
         //y = A*x + b*y
         return csrmv_a1(m,
@@ -608,6 +610,15 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
                           queue,
                           num_events_in_wait_list, event_wait_list, event);
     }
+    else if( *(cl_double*)h_alpha == 0.0)
+    {
+#ifndef NDEBUG
+        printf("\n\talpha = 0, beta =/= 0 (clBlasDscale)\n\n");
+#endif
+        return clblasDscal(m, *(cl_double*)h_beta, y, 0, 1, 1, &queue,
+                           num_events_in_wait_list, event_wait_list, event);
+    }
+
     else if( *(cl_double*)h_beta == 0.0)
     {
 #ifndef NDEBUG
@@ -621,14 +632,7 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
                         params, group_size, subwave_size, queue,
                         num_events_in_wait_list, event_wait_list, event);
     }
-    else if( *(cl_double*)h_alpha == 0.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha = 0, beta =/= 0 (clBlasDscale)\n\n");
-#endif
-        return clblasDscal(m, *(cl_double*)h_beta, y, 0, 1, 1, &queue,
-                           num_events_in_wait_list, event_wait_list, event);
-    }
+
     else if ( *(cl_double*)h_alpha == 1.0)
     {
 #ifndef NDEBUG
