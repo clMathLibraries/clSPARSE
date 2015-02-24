@@ -21,6 +21,7 @@ test_hdl_list
 test_clsparse_init
 test_kernel_simple
 test_csrmv_simple
+test_validation
 )
 
 #additional headers and sources

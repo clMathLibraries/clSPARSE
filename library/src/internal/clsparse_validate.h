@@ -2,6 +2,7 @@
 #define _CLSPARSE_VALIDATE_H_
 
 #include "clSPARSE.h"
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +18,7 @@ validateMemObject( cl_mem mem, size_t required_size)
     {
         return clsparseInvalidMemObj;
     }
-    //check if mem object have valud required size
+    //check if mem object have valid required size
     if (required_size > 0)
     {
         size_t current_size;
