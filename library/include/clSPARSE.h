@@ -56,7 +56,8 @@ typedef enum clsparseStatus_ {
     clsparseNotImplemented         = -1024, /**< Functionality is not implemented */
     clsparseNotInitialized,                 /**< clsparse library is not initialized yet */
     clsparseInvalidSize,                    /**< Invalid size of object > */
-    clsparseInvalidMemObj                   /**< Checked obejct is no a valid cl_mem object */
+    clsparseInvalidMemObj,                  /**< Checked obejct is no a valid cl_mem object */
+    clsparseInsufficientMemory              /**< The memory object for vector is too small */
 } clsparseStatus;
 
 
@@ -93,10 +94,11 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
 clsparseStatus
 clsparseScsrmv(const int m, const int n, const int nnz,
                cl_mem alpha,
+               size_t off_alpha,
                cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x,
-               cl_mem beta,
-               cl_mem y,
+               cl_mem x, size_t off_x,
+               cl_mem beta, size_t off_beta,
+               cl_mem y, size_t off_y,
                cl_command_queue queue,
                cl_uint num_events_in_wait_list,
                const cl_event *event_wait_list,

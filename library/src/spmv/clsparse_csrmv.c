@@ -336,11 +336,11 @@ csrmv(const int m,
 
 clsparseStatus
 clsparseScsrmv(const int m, const int n, const int nnz,
-               cl_mem alpha,
+               cl_mem alpha, size_t off_alpha,
                cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x,
-               cl_mem beta,
-               cl_mem y,
+               cl_mem x, size_t off_x,
+               cl_mem beta, size_t off_beta,
+               cl_mem y, size_t off_y,
                cl_command_queue queue,
                cl_uint num_events_in_wait_list,
                const cl_event *event_wait_list,
@@ -353,6 +353,7 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 
     clsparseStatus status;
 
+    //validate cl_mem objects
     status = validateMemObject(x, sizeof(cl_float)*n);
     if(status != clsparseSuccess)
         return status;
@@ -365,6 +366,31 @@ clsparseScsrmv(const int m, const int n, const int nnz,
     status = validateMemObject(beta, sizeof(cl_float));
     if(status != clsparseSuccess)
         return status;
+
+    //validate cl_mem sizes
+    status = validateMemObjectSize(sizeof(cl_float), n, x, off_x);
+    if(status != clsparseSuccess) {
+        return status;
+    }
+
+    status = validateMemObjectSize(sizeof(cl_float), m, y, off_y);
+    if(status != clsparseSuccess) {
+        return status;
+    }
+
+    status = validateMemObjectSize(sizeof(cl_float), 1, alpha, off_alpha);
+    if(status != clsparseSuccess) {
+        return status;
+    }
+
+    status = validateMemObjectSize(sizeof(cl_float), 1, beta, off_beta);
+    if(status != clsparseSuccess) {
+        return status;
+    }
+
+
+
+
 
     //check queue
     if (queue == NULL)
