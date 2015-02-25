@@ -39,8 +39,11 @@ void csrmv_alpha1 (     const INDEX_TYPE num_rows,
                 __global const INDEX_TYPE * const col,
                 __global const VALUE_TYPE * const val,
                 __global const VALUE_TYPE * const x,
+                         const SIZE_TYPE off_x,
                 __global const VALUE_TYPE * const beta,
-                __global       VALUE_TYPE * y)
+                         const SIZE_TYPE off_beta,
+                __global       VALUE_TYPE * y,
+                         const SIZE_TYPE off_y)
 {
     local volatile VALUE_TYPE sdata [WG_SIZE + SUBWAVE_SIZE / 2];
 
@@ -52,7 +55,7 @@ void csrmv_alpha1 (     const INDEX_TYPE num_rows,
     //const int vector_lane = local_id / SUBWAVE_SIZE;  // vector id within the workgroup
     const int num_vectors = get_global_size(0) / SUBWAVE_SIZE;
 
-    const VALUE_TYPE _beta = beta[0];
+    const VALUE_TYPE _beta = beta[off_beta];
 
     for(INDEX_TYPE row = vector_id; row < num_rows; row += num_vectors)
     {
@@ -61,7 +64,7 @@ void csrmv_alpha1 (     const INDEX_TYPE num_rows,
         VALUE_TYPE sum = (VALUE_TYPE) 0;
 
         for(int j = row_start + thread_lane; j < row_end; j += SUBWAVE_SIZE)
-            sum = fma(val[j], x[col[j]], sum);//sum += val[j] * x[col[j]];
+            sum = fma(val[j], x[off_x + col[j]], sum);//sum += val[j] * x[col[j]];
 
         //parllel reduction in shared memory
         sdata[local_id] = sum;
@@ -73,6 +76,6 @@ void csrmv_alpha1 (     const INDEX_TYPE num_rows,
         if (SUBWAVE_SIZE > 1)                    sum += sdata[local_id + 1];
 
         if (thread_lane == 0)
-            y[row] = sum + _beta * y[row];
+            y[off_y + row] = sum + _beta * y[off_y + row];
     }
 }

@@ -45,13 +45,13 @@ clsparseStatus generateResult(cl_mem x, cl_mem alpha,
        return clsparseDcsrmv(CSRE::n_rows,
                        CSRE::n_cols,
                        CSRE::n_vals,
-                       alpha,
+                       alpha, 0,
                        CSRE::cl_row_offsets,
                        CSRE::cl_col_indices,
                        CSRE::cl_d_values,
-                       x,
-                       beta,
-                       y,
+                       x, 0,
+                       beta, 0,
+                       y, 0,
                        CLSE::queue,
                        num_events_in_wait_list,
                        event_wait_list,
@@ -99,13 +99,13 @@ public:
 
         ASSERT_EQ(CL_SUCCESS, status);
 
-        void* hgalpha = clEnqueueMapBuffer(CLSE::queue, galpha, true, CL_MAP_READ,
-                                                          0, sizeof(T), 0, NULL, NULL, NULL);
-        if(typeid(T) == typeid(float))
-            printf("hgalpha = %f\n", *(T*)hgalpha);
-        if(typeid(T) == typeid(double))
-            printf("hgalpha = %g\n", *(T*)hgalpha);
-        clEnqueueUnmapMemObject(CLSE::queue, galpha, hgalpha, 0, NULL, NULL);
+//        void* hgalpha = clEnqueueMapBuffer(CLSE::queue, galpha, true, CL_MAP_READ,
+//                                                          0, sizeof(T), 0, NULL, NULL, NULL);
+//        if(typeid(T) == typeid(float))
+//            printf("hgalpha = %f\n", *(T*)hgalpha);
+//        if(typeid(T) == typeid(double))
+//            printf("hgalpha = %g\n", *(T*)hgalpha);
+//        clEnqueueUnmapMemObject(CLSE::queue, galpha, hgalpha, 0, NULL, NULL);
 
 
         gbeta = clCreateBuffer(CLSE::context,
@@ -113,16 +113,15 @@ public:
                                sizeof(T), &beta, &status);
 
         ASSERT_EQ(CL_SUCCESS, status);
-        void* hgbeta = clEnqueueMapBuffer(CLSE::queue, gbeta, true, CL_MAP_READ,
-                                                          0, sizeof(T), 0, NULL, NULL, NULL);
-        if(typeid(T) == typeid(float))
-            printf("hgbeta = %f\n", *(T*)hgbeta);
-        if(typeid(T) == typeid(double))
-            printf("hgbeta = %g\n", *(T*)hgbeta);
-        clEnqueueUnmapMemObject(CLSE::queue, gbeta, hgbeta, 0, NULL, NULL);
+//        void* hgbeta = clEnqueueMapBuffer(CLSE::queue, gbeta, true, CL_MAP_READ,
+//                                                          0, sizeof(T), 0, NULL, NULL, NULL);
+//        if(typeid(T) == typeid(float))
+//            printf("hgbeta = %f\n", *(T*)hgbeta);
+//        if(typeid(T) == typeid(double))
+//            printf("hgbeta = %g\n", *(T*)hgbeta);
+//        clEnqueueUnmapMemObject(CLSE::queue, gbeta, hgbeta, 0, NULL, NULL);
 
         generateReference(x, alpha, y, beta);
-
 
     }
 
