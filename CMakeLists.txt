@@ -17,9 +17,9 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
 endif(BUILD_TESTS)
 
-#set(BUILD_BENCHMARKS 1 CAHE TYPE BOOL)
+set(BUILD_BENCHMARKS 1 CAHE TYPE BOOL)
 
-#if(BUILD_BENCHMARKS)
-#   add_subdirectory(benchmarks)
-#endif(BUILD_BENCHMARKS)
+if(BUILD_BENCHMARKS)
+   add_subdirectory(benchmarks)
+endif(BUILD_BENCHMARKS)
 

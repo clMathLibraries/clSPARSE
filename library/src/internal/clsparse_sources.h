@@ -43,7 +43,7 @@ void createKey (const char* name, const char* params, char** key)
 
 }
 
-cl_uint printBuildLog (cl_device_id device, cl_program program, const char* params)
+cl_int printBuildLog (cl_device_id device, cl_program program, const char* params)
 {
     cl_int status;
     char* log;

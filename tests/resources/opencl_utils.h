@@ -11,9 +11,9 @@
 #include <string.h>
 #include <iostream>
 
-cl_uint getPlatforms(cl_platform_id **platforms, cl_uint* num_platforms)
+cl_int getPlatforms(cl_platform_id **platforms, cl_uint* num_platforms)
 {
-    cl_uint status = CL_SUCCESS;
+    cl_int status = CL_SUCCESS;
 
     status = clGetPlatformIDs (0, NULL, num_platforms);
 
@@ -69,11 +69,11 @@ void printPlatforms(const cl_platform_id* platforms,
 
 
 //get the first available device from given platform
-cl_uint getDevice (const cl_platform_id platform,
+cl_int getDevice (const cl_platform_id platform,
                 cl_device_id* device,
                 cl_device_type type)
 {
-    cl_uint status;
+    cl_int status;
     cl_uint num_devices = 0;
 
     //get count of given device types
@@ -89,7 +89,7 @@ cl_uint getDevice (const cl_platform_id platform,
 
     *device = devices[0];
 
-    return CL_SUCCESS;
+    return status;
 }
 
 void printDeviceInfo(const cl_device_id device)

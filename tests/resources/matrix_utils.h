@@ -7,12 +7,14 @@
 #include <algorithm>
 #include <cassert>
 
+#include "matrix_utils.h"
+
 // convert row indices vector to csr row_offsets vector
 // lenght of indices == matrix nnz
 // lenght of offsets == n_rows+1;
 template<typename INDEX_TYPE>
 void indicesToOffsets(const std::vector<INDEX_TYPE>& row_indices,
-                      const uint n_rows,
+                      const INDEX_TYPE n_rows,
                       std::vector<INDEX_TYPE>& row_offsets)
 {
     INDEX_TYPE index = -1;

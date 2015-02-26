@@ -15,7 +15,7 @@ public:
     ClSparseEnvironment()
     {
         // init cl environment
-        cl_uint status = CL_SUCCESS;
+        cl_int status = CL_SUCCESS;
         cl_platform_id* platforms = NULL;
         cl_uint num_platforms = 0;
 
