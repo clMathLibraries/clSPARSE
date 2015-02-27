@@ -28,6 +28,8 @@ set(headers
 common/Timer.h
 common/Find.h
 common/MatrixUtils.h
+common/Executor.h
+common/Params.h
 )
 
 set(sources

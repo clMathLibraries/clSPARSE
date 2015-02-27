@@ -130,7 +130,6 @@ bool executeCSRMultiply(const INDEX_TYPE m, const INDEX_TYPE n, const INDEX_TYPE
 
     for (int i = 0; i < number_of_tries; i++)
     {
-        //overriding event from the input;
         cl_event event;
         clsparseStatus spmv_status;
 
