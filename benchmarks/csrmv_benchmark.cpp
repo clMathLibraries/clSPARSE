@@ -1,14 +1,4 @@
 #include <iostream>
-#include <vector>
-
-#include "clSPARSE.h"
-#include "Timer.h"
-#include "Find.h"
-#include "MatrixUtils.h"
-
-#include "opencl_utils.h"
-#include "matrix_market.h"
-
 #include <boost/program_options.hpp>
 #include "Params.h"
 #include "Executor.h"

@@ -1,11 +1,16 @@
 #ifndef __EXECUTOR_H_
 #define __EXECUTOR_H_
 
+
 #include "clSPARSE.h"
+
+#include "opencl_utils.h"
 
 #include "Params.h"
 #include "Find.h"
 #include "MatrixUtils.h"
+#include "MatrixStatistics.h"
+#include "Timer.h"
 
 namespace fs = boost::filesystem;
 
@@ -52,14 +57,15 @@ public:
 
     ~Executor()
     {
-      clsparseTeardown();
-      clReleaseCommandQueue(queue);
-      clReleaseContext(context);
+        clsparseTeardown();
+        clReleaseCommandQueue(queue);
+        clReleaseContext(context);
 
     }
 
     cl_int exec()
     {
+
         if (!findMatrices(params.root_dir, "mtx", matrix_files))
             return -100;
 
@@ -89,9 +95,9 @@ public:
             cl_mem cl_values;
 
             if (!allocateMatrix(row_offsets, col_indices, values,
-                           n_rows, n_cols,
-                           &cl_row_offsets, &cl_col_indices, &cl_values,
-                           queue, context, &status))
+                                n_rows, n_cols,
+                                &cl_row_offsets, &cl_col_indices, &cl_values,
+                                queue, context, &status))
             {
                 std::cerr << "Problem with allocating matrix "
                           << (*file).filename().native()
@@ -133,13 +139,13 @@ public:
 
             bool warmup_status =
                     executeCSRMultiply<T>(n_rows, n_cols, n_vals,
-                                  cl_alpha, 0,
-                                  cl_row_offsets, cl_col_indices, cl_values,
-                                  cl_x, 0,
-                                  cl_beta, 0,
-                                  cl_y, 0,
-                                  queue,
-                                  params.number_of_warmups);
+                                          cl_alpha, 0,
+                                          cl_row_offsets, cl_col_indices, cl_values,
+                                          cl_x, 0,
+                                          cl_beta, 0,
+                                          cl_y, 0,
+                                          queue,
+                                          params.number_of_warmups);
             if (!warmup_status)
             {
                 std::cerr << "Problem with multiply during warmup" << std::endl;
@@ -148,23 +154,38 @@ public:
                 return -103;
             }
 
-
+            CPerfCounter timer;
+            timer.Start();
             bool bench_status =
                     executeCSRMultiply<T>(n_rows, n_cols, n_vals,
-                                  cl_alpha, 0,
-                                  cl_row_offsets, cl_col_indices, cl_values,
-                                  cl_x, 0,
-                                  cl_beta, 0,
-                                  cl_y, 0,
-                                  queue,
-                                  params.number_of_tries);
+                                          cl_alpha, 0,
+                                          cl_row_offsets, cl_col_indices, cl_values,
+                                          cl_x, 0,
+                                          cl_beta, 0,
+                                          cl_y, 0,
+                                          queue,
+                                          params.number_of_tries);
+            timer.Stop();
             if (! bench_status)
             {
                 std::cerr << "Problem with multiply during bench" << std::endl;
                 std::cerr << " Problematic matrix: " <<
                              (*file).filename().native() << std::endl;
                 return -104;
-           }
+            }
+
+            double average_time = timer.GetElapsedTime() / params.number_of_tries;
+            double instr_bandwidth = 1e-9 * (2*n_vals) / average_time;
+            double memory_bandwidth = 1e-9 * (n_vals * (2 * sizeof(T) + sizeof(int)) +
+                                      n_rows * (sizeof(T) + sizeof(int)));
+            memory_bandwidth /= average_time;
+
+            MatrixStatistics m = { n_rows, n_cols, n_vals, n_vals/n_rows,
+                                   average_time,
+                                   instr_bandwidth,
+                                   memory_bandwidth,
+                                   (*file).filename().native() };
+            results.push_back(m);
 
             //release resources;
             clReleaseMemObject(cl_row_offsets);
@@ -178,7 +199,7 @@ public:
 
         }
 
-
+        printMatrixStatistics(results);
 
     }
 
@@ -191,7 +212,7 @@ private:
     cl_command_queue queue;
 
     std::vector<fs::path> matrix_files;
-
+    std::vector<MatrixStatistics> results;
 
 
 

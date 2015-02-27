@@ -30,6 +30,7 @@ common/Find.h
 common/MatrixUtils.h
 common/Executor.h
 common/Params.h
+common/MatrixStatistics.h
 )
 
 set(sources
