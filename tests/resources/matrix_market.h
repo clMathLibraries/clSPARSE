@@ -209,7 +209,7 @@ bool readMatrixMarket(std::vector<int>& rows,
 
             if (min_row_index < 1)
             {
-                std::cerr << "found invalid row index < 1"<< std::endl;
+                std::cerr << "found invalid row index < 1 " << std::endl;
                 return false;
             }
             if (min_col_index < 1)

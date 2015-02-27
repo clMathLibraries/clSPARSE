@@ -85,7 +85,9 @@ public:
             if (!readMatrixMarketCSR(row_offsets, col_indices, values,
                                      n_rows, n_cols, n_vals, path))
             {
-                return -101;
+                std::cerr << "Problem with reading matrix "
+                          << (*file).filename().native() << std::endl;
+                continue; //we did not allocated cl_mem so it should be ok
             }
 
             cl_int status;

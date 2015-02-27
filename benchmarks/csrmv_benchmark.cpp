@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
     desc.add_options()
             ("help,h", "Produce this message")
             ("root,r", po::value(&root_dir), "Matrix directory")
-            ("benchmarks,b",
+            ("benchmarks,t",
              po::value(&number_of_tries)->default_value(10),
              "Number of benchmark iterations")
             ("warmups,w",
@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
             ("dprecision,p", po::value(&prec)->default_value(true),
              "Double precision calculations")
             ("alpha,a", po::value(&alpha)->default_value(1.0),
-             "Alpha value for oper y = alpha * A * x + beta * y"),
+             "Alpha value for oper y = alpha * A * x + beta * y")
             ("beta,b", po::value(&beta)->default_value(0.0),
              "Alpha value for oper y = alpha * A * x + beta * y");
 

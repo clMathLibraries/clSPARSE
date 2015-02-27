@@ -23,21 +23,21 @@ struct MatrixStatistics
 void printMatrixStatistics(const std::vector<MatrixStatistics>& statistics)
 {
     std::cout <<
-        "<i>\t<matrix>\t\t<nrows>\t\t<ncols>\t\t<nnz>\t<npr>\t<avgTime[s]>\t<instr BW[GB/s]>\t<mem BW[GB/s]>"
+        "<i> \t<matrix> \t<nrows> \t<ncols> \t<nnz> \t<npr> \t<avgTime[s]> \t<instr BW[GB/s]> \t<mem BW[GB/s]>"
               << std::endl;
 
     int index = 0;
     for(auto& e : statistics)
     {
-        std::cout << ++index        //<< "\t"
-                  << std::setw(20) << e.name   << "\t"
-                  << std::setw(16) << e.n_rows << "\t"
-                  << std::setw(16) << e.n_cols << "\t"
-                  << std::setw(16) << e.nnz    << "\t"
-                  << e.nnz_per_row             << "\t"
-                  << std::fixed << std::setw(8) << std::setprecision(8) << e.avg_spmv_time << "\t"
-                  << std::fixed << std::setw(18) << std::setprecision(8) << e.instruction_bandwidth << "\t"
-                  << std::fixed << std::setw(18) << std::setprecision(8) << e.memory_bandwidth << "\t"
+        std::cout << ++index  << " \t"
+                  << e.name   << " \t"
+                  << e.n_rows << " \t"
+                  << e.n_cols << " \t"
+                  << e.nnz    << " \t"
+                  << e.nnz_per_row << " \t"
+                  << std::fixed << std::setprecision(8) << e.avg_spmv_time << " \t"
+                  << std::fixed << std::setprecision(8) << e.instruction_bandwidth << " \t"
+                  << std::fixed << std::setprecision(8) << e.memory_bandwidth << " \t"
                   << std::endl;
     }
 
