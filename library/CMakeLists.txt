@@ -23,9 +23,10 @@ add_custom_command(
    DEPENDS ${kernels} "${CMAKE_SOURCE_DIR}/cmake_modules/cl2c.cmake"
 )
 
-
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -std=c99)
-add_definitions(-pedantic)
+if( NOT WIN32 )
+    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -std=c99)
+    add_definitions(-pedantic)
+endif( )
 
 message(STATUS "RELEASE C FLAGS ${CMAKE_C_FLAGS_RELEASE}")
 message(STATUS "DEBUG C FLAGS ${CMAKE_C_FLAGS_DEBUG}")

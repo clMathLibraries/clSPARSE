@@ -23,7 +23,7 @@ extern "C" {
  * @param len - lenght of the string (strlen(str)) //TODO:: maybe hide len inside?
  * @return hash value
  */
-static inline unsigned int RSHash (const char* str, const int len)
+__inline static unsigned int RSHash( const char* str, const int len )
 {
     unsigned int b    = 378551;
     unsigned int a    = 63689;

@@ -14,7 +14,10 @@ find_package(clBLAS)
 message(STATUS "clBLAS include ${clBLAS_INCLUDE_DIR}")
 message(STATUS "clBLAS lib ${clBLAS_LIB}")
 
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++11)
+if( NOT WIN32 )
+    set(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} -std=c++11)
+endif( )
+
 message(STATUS "Boost libraries:" ${Boost_LIBRARIES})
 message(STATUS "OpenCL headers:" ${OPENCL_INCLUDE_DIR})
 

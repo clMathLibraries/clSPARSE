@@ -3,11 +3,23 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(GTest REQUIRED)
 
+set( Boost_USE_MULTITHREADED ON )
+if (WIN32)
+    set( Boost_USE_STATIC_LIBS   ON )
+else()
+    set( Boost_USE_STATIC_LIBS   ON )
+endif()
+set( Boost_DETAILED_FAILURE_MSG   ON )
+
+# set( Boost_DEBUG ON )
 find_package(Boost COMPONENTS
     program_options
 )
 
-set(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} -std=c++11)
+if( NOT WIN32 )
+    set(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} -std=c++11)
+endif( )
+
 message(STATUS "GTest libraries:" ${GTEST_LIBRARIES} ${GTEST_INCLUDE_DIR})
 message(STATUS "OpenCL headers:" ${OPENCL_INCLUDE_DIR})
 

@@ -7,8 +7,6 @@
 #include <algorithm>
 #include <cassert>
 
-#include "matrix_utils.h"
-
 // convert row indices vector to csr row_offsets vector
 // lenght of indices == matrix nnz
 // lenght of offsets == n_rows+1;
@@ -40,7 +38,7 @@ void indicesToOffsets(const std::vector<INDEX_TYPE>& row_indices,
 // lenght of offsets == n_rows+1;
 template<typename INDEX_TYPE>
 void offsetsToIndices(const std::vector<INDEX_TYPE>& row_offsets,
-                      const uint n_rows,
+                      const size_t n_rows,
                       std::vector<INDEX_TYPE>& row_indices)
 {
     INDEX_TYPE nnz = row_offsets[n_rows];
@@ -48,7 +46,7 @@ void offsetsToIndices(const std::vector<INDEX_TYPE>& row_offsets,
     if(row_indices.size() != nnz)
         row_indices.resize(nnz);
 
-    for (int i = 0; i < n_rows; i++)
+    for( size_t i = 0; i < n_rows; i++ )
         for (int j = row_offsets[i]; j < row_offsets[i+1]; j++)
             row_indices[j] = i;
 
@@ -64,7 +62,7 @@ void sortByRowCol(std::vector<INDEX_TYPE>& rows,
 {
     typedef std::tuple<INDEX_TYPE, INDEX_TYPE, VALUE_TYPE> Element;
 
-    uint size = vals.size();
+    size_t size = vals.size( );
 
     std::vector<Element> matrix;//(size);
 

@@ -190,7 +190,7 @@ bool readMatrixMarket(std::vector<int>& rows,
         if (num_entries_read != n_vals)
         {
             std::cerr << "Unexpected EOF while reading MatrixMarket entries "
-                      << "from file [" << file << "]" << std::endl;
+                << "from file [" << filename << "]" << std::endl;
              return false;
         }
 
