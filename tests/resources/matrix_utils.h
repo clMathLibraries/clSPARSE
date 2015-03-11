@@ -244,12 +244,12 @@ void csr_transpose(int n_rows, int n_cols, int nnz,
         {
             VALUE_TYPE v = csr_values[j];
             int k = csr_col_indices[j];
-            int l = csc_col_offsets[k] + col_nnz[j];
+            int l = csc_col_offsets[k] + col_nnz[k];
 
             csc_row_indices[l] = i;
             csc_values[l] = v;
 
-            col_nnz[j] += 1;
+            col_nnz[k] += 1;
         }
     }
 }
