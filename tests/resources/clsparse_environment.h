@@ -38,8 +38,8 @@ public:
 
         printDeviceInfo(device);
 
-        cl_context context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
-        cl_command_queue queue = clCreateCommandQueue(context, device, 0, NULL);
+        context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
+        queue = clCreateCommandQueue(context, device, 0, NULL);
 
         clsparseSetup();
 
