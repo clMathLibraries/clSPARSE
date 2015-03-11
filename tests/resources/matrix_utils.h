@@ -148,6 +148,111 @@ void coomv(int n_rows, int n_cols, int nnz,
     }
 }
 
+/*
+ * Generate A^T where A is n_rows x n_cols CSR matrix
+ *
+ */
+
+template<typename VALUE_TYPE, typename INDEX_TYPE>
+void csr_transpose(int n_rows, int n_cols, int nnz,
+                   const std::vector<INDEX_TYPE>& csr_row_offsets,
+                   const std::vector<INDEX_TYPE>& csr_col_indices,
+                   const std::vector<VALUE_TYPE>& csr_values,
+                   std::vector<INDEX_TYPE>& csc_row_indices,
+                   std::vector<INDEX_TYPE>& csc_col_offsets,
+                   std::vector<VALUE_TYPE>& csc_values)
+{
+
+    csc_col_offsets.resize(n_cols+1);
+    csc_row_indices.resize(nnz);
+    csc_values.resize(nnz);
+
+    std::vector<INDEX_TYPE> col_nnz(n_cols);
+    // need to be zeroed because we will be counting
+    std::fill(col_nnz.begin(), col_nnz.end(), 0);
+
+    //the csr_col_indices have repeating data depends on the nnz per row;
+    //data are sorted
+    /* example of col_indices vector [index] = col_indices[index]
+        0 = 0
+        1 = 1
+        2 = 2
+        3 = 3
+        4 = 4
+        5 = 11
+        6 = 12
+        7 = 40
+        8 = 41
+        9 = 49
+        10 = 50
+        ...
+        36 = 1
+        37 = 2
+        38 = 11
+        39 = 12
+        40 = 40
+        41 = 41
+        42 = 49
+        43 = 50
+        ...
+        54 = 0
+        55 = 1
+        56 = 2
+        57 = 3
+        58 = 4
+        59 = 10
+        60 = 11
+        61 = 12
+        62 = 13
+        63 = 14
+        64 = 15
+        65 = 16
+        66 = 17
+        67 = 18
+        68 = 40
+        69 = 41
+        70 = 49
+        71 = 50
+        72 = 51
+        73 = 52
+        74 = 53
+        75 = 54
+    */
+    //we have to count how many zeros, ones, twos, fours are in this vector;
+
+    //This looks like gather / reduce operation. maybe with
+    // help of row_offsets it can be done in parallel mode nicely!
+    //or reduce. but requires atomic due to indirect mem access.
+    for (int i = 0; i < nnz; i++)
+        col_nnz[csr_col_indices[i]] += 1;
+
+    //calculate col offsets; its easy since we know how many nnz in each col
+    //we have from previous loop
+    csc_col_offsets[0] = 0;
+    for (int i = 1; i <= n_cols; i++)
+    {
+        csc_col_offsets[i] = csc_col_offsets[i-1] + col_nnz[i - 1];
+        col_nnz[i - 1] = 0;
+    }
+
+    //calculate row_indices;
+    //this might look similar to the csr multiply algorithm
+    //or offsets to indices on gpu
+    for (int i = 0; i < n_rows; i++)
+    {
+        for (int j = csr_row_offsets[i]; j < csr_row_offsets[i+1]; j++)
+        {
+            VALUE_TYPE v = csr_values[j];
+            int k = csr_col_indices[j];
+            int l = csc_col_offsets[k] + col_nnz[j];
+
+            csc_row_indices[l] = i;
+            csc_values[l] = v;
+
+            col_nnz[j] += 1;
+        }
+    }
+}
 
 #endif
 

@@ -83,7 +83,6 @@ bool read_matrix_market_banner(matrix_market_banner& banner, Stream& input)
 
 
 
-
 /**
  * Read matrix in coo format
  */
@@ -351,6 +350,74 @@ bool readMatrixMarketCSR(std::vector<int>& row_offsets,
     return status;
 }
 
+/**
+  * Write matrix market
+  */
+template <typename T>
+bool writeMatrixMarket(std::vector<int>& rows,
+                       std::vector<int>& cols,
+                       std::vector<T>& vals,
+                       int n_rows,
+                       int n_cols,
+                       int n_vals,
+                       const std::string& filename)
+{
+
+    std::ofstream file(filename.c_str());
+
+    if(!file)
+    {
+        return false;
+    }
+
+    file << "%%MatrixMarket matrix coordinate real general\n";
+    file << "\t" << n_rows << "\t" << n_cols << "\t" << n_vals << "\n";
+
+    for(size_t i = 0; i < n_vals; i++)
+    {
+        file << rows[i] + 1 << " ";
+        file << cols[i] + 1 << " ";
+        file <<  vals[i];
+        file << "\n";
+    }
+
+    file.close();
+    return true;
+}
+
+template <typename T>
+bool writeMatrixMarketCOO(std::vector<int>& row_indices,
+                          std::vector<int>& col_indices,
+                          std::vector<T>& values,
+                          int n_rows,
+                          int n_cols,
+                          int n_vals,
+                          const std::string& filename)
+{
+    return writeMatrixMarket(row_indices, col_indices, values,
+                             n_rows, n_cols, n_vals, filename);
+
+}
+
+
+template <typename T>
+bool writeMatrixMarketCSR(std::vector<int>& row_offsets,
+                          std::vector<int>& col_indices,
+                          std::vector<T>&    values,
+                          int n_rows,
+                          int n_cols,
+                          int n_vals,
+                          const std::string& filename)
+{
+    std::vector<int> row_indices;
+    offsetsToIndices(row_offsets, n_rows, row_indices);
+
+    return writeMatrixMarket(row_indices, col_indices, values,
+                             n_rows, n_cols, n_vals, filename);
+
+
+
+}
 
 #endif //_MATRIX_MARKET_H_
 

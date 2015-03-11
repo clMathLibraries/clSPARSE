@@ -29,6 +29,10 @@ public:
             exit(-3);
         }
 
+        for (int i = 0; i < 100; i++)
+        {
+            std::cout << i << " = " << col_indices[i] << std::endl;
+        }
         this->alpha = alpha;
         this->beta = beta;
 

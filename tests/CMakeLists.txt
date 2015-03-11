@@ -35,6 +35,7 @@ test_kernel_simple
 test_csrmv_simple
 test_validation
 test_clsparse_spmv_ctrl
+test_resources_io
 )
 
 #additional headers and sources
