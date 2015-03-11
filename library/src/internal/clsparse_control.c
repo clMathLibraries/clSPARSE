@@ -28,6 +28,11 @@ clsparseCreateControl(cl_command_queue queue, cl_int *status)
     control->num_events_in_wait_list = 0;
     control->event_wait_list = NULL;
 
+    control->off_alpha = 0;
+    control->off_beta = 0;
+    control->off_x = 0;
+    control->off_y = 0;
+
     return control;
 }
 
@@ -46,6 +51,11 @@ clsparseReleaseControl(clsparseControl control)
     control->event_wait_list = NULL;
     control->event = NULL;
 
+    control->off_alpha = 0;
+    control->off_beta = 0;
+    control->off_x = 0;
+    control->off_y = 0;
+
     free(control);
 
     control = NULL;
@@ -56,13 +66,43 @@ clsparseReleaseControl(clsparseControl control)
 clsparseStatus
 clsparseEventsToSync(clsparseControl control, cl_uint num_events_in_wait_list, cl_event *event_wait_list, cl_event *event)
 {
+    if(control == NULL)
+    {
+        return CL_INVALID_MEM_OBJECT;
+    }
+
     control->num_events_in_wait_list = num_events_in_wait_list;
     control->event_wait_list = event_wait_list;
     control->event = event;
+
+    return CL_SUCCESS;
 }
 
 clsparseStatus
 clsparseSynchronize(clsparseControl control)
 {
+    if(control == NULL)
+    {
+        return CL_INVALID_MEM_OBJECT;
+    }
+
     return clWaitForEvents(1, control->event);
+}
+
+clsparseStatus
+clsparseSetOffsets(clsparseControl control,
+                   size_t off_alpha, size_t off_beta,
+                   size_t off_x, size_t off_y)
+{
+    if(control == NULL)
+    {
+        return CL_INVALID_MEM_OBJECT;
+    }
+
+    control->off_alpha = off_alpha;
+    control->off_beta = off_beta;
+    control->off_x = off_x;
+    control->off_y = off_y;
+
+    return CL_SUCCESS;
 }

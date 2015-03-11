@@ -1,6 +1,7 @@
 #include "clSPARSE.h"
 //#include "internal/clsparse_internal.h"
 #include "internal/clsparse_sources.h"
+#include "internal/clsparse_validate.h"
 #include "internal/clsparse_control.h"
 
 #include <string.h>
@@ -19,6 +20,13 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
     clsparseStatus status;
 
     //validate input buffers
+    status = validateMemObject(buff, sizeof(cl_float)*size);
+    if(status != clsparseSuccess)
+        return status;
+    status = validateMemObject(alpha, sizeof(cl_float));
+    if(status != clsparseSuccess)
+        return status;
+
 
     //check opencl elements
     if (control->queue == NULL)

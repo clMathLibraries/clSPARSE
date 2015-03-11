@@ -75,7 +75,7 @@ typedef struct _clsparseControl*  clsparseControl;
 //setup the control from external queue;
 clsparseControl clsparseCreateControl(cl_command_queue queue, cl_int *status);
 
-//
+//setup events to sync
 clsparseStatus
 clsparseEventsToSync(clsparseControl control,
                      cl_uint num_events_in_wait_list,
@@ -89,6 +89,12 @@ clsparseSynchronize(clsparseControl control);
 // We do not own the queue, context, etc;
 clsparseStatus
 clsparseReleaseControl(clsparseControl control);
+
+
+clsparseStatus
+clsparseSetOffsets(clsparseControl control,
+                   size_t off_alpha, size_t off_beta,
+                   size_t off_x, size_t off_y);
 
 
 clsparseStatus
@@ -140,6 +146,17 @@ clsparseScsrmv(const int m, const int n, const int nnz,
                cl_uint num_events_in_wait_list,
                const cl_event *event_wait_list,
                cl_event *event);
+
+//new possible implementation of csrmv with control object
+clsparseStatus
+clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
+               cl_mem alpha,
+               cl_mem row_offsets, cl_mem col_indices, cl_mem values,
+               cl_mem x,
+               cl_mem beta,
+               cl_mem y,
+               clsparseControl control);
+
 
 clsparseStatus
 clsparseDcsrmv(const int m, const int n, const int nnz,

@@ -7,60 +7,48 @@
 #include "resources/csr_matrix_environment.h"
 #include "resources/matrix_utils.h"
 
-clsparseControl ClSparseEnvironment::control = NULL;
-cl_command_queue ClSparseEnvironment::queue = NULL;
+
 cl_context ClSparseEnvironment::context = NULL;
+cl_command_queue ClSparseEnvironment::queue = NULL;
+
+/*
+ * In this test we will rely fully on clsparse control
+ */
+clsparseControl ClSparseEnvironment::control = NULL;
 
 namespace po = boost::program_options;
 
+//This function just call the clsparse spmv function
 template<typename T>
 clsparseStatus generateResult(cl_mem x, cl_mem alpha,
-                              cl_mem y, cl_mem beta,
-                              cl_uint num_events_in_wait_list,
-                              const cl_event *event_wait_list,
-                              cl_event* event)
+                              cl_mem y, cl_mem beta)
 {
     using CSRE = CSREnvironment;
     using CLSE = ClSparseEnvironment;
 
     if(typeid(T) == typeid(float))
     {
-        return clsparseScsrmv(CSRE::n_rows,
+        return clsparseScsrmv_ctrl(CSRE::n_rows,
                        CSRE::n_cols,
                        CSRE::n_vals,
-                       alpha, 0,
+                       alpha,
                        CSRE::cl_row_offsets,
                        CSRE::cl_col_indices,
                        CSRE::cl_f_values,
-                       x, 0,
-                       beta, 0,
-                       y, 0,
-                       CLSE::queue,
-                       num_events_in_wait_list,
-                       event_wait_list,
-                       event);
+                       x,
+                       beta,
+                       y,
+                       CLSE::control);
 
     }
     if(typeid(T) == typeid(double))
     {
-       return clsparseDcsrmv(CSRE::n_rows,
-                       CSRE::n_cols,
-                       CSRE::n_vals,
-                       alpha, 0,
-                       CSRE::cl_row_offsets,
-                       CSRE::cl_col_indices,
-                       CSRE::cl_d_values,
-                       x, 0,
-                       beta, 0,
-                       y, 0,
-                       CLSE::queue,
-                       num_events_in_wait_list,
-                       event_wait_list,
-                       event);
-
+       return clsparseNotImplemented;
     }
 }
 
+
+//Main testing class
 template <typename T>
 class TestCSRMV : public ::testing::Test
 {
@@ -100,27 +88,12 @@ public:
 
         ASSERT_EQ(CL_SUCCESS, status);
 
-//        void* hgalpha = clEnqueueMapBuffer(CLSE::queue, galpha, true, CL_MAP_READ,
-//                                                          0, sizeof(T), 0, NULL, NULL, NULL);
-//        if(typeid(T) == typeid(float))
-//            printf("hgalpha = %f\n", *(T*)hgalpha);
-//        if(typeid(T) == typeid(double))
-//            printf("hgalpha = %g\n", *(T*)hgalpha);
-//        clEnqueueUnmapMemObject(CLSE::queue, galpha, hgalpha, 0, NULL, NULL);
-
 
         gbeta = clCreateBuffer(CLSE::context,
                                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                sizeof(T), &beta, &status);
 
         ASSERT_EQ(CL_SUCCESS, status);
-//        void* hgbeta = clEnqueueMapBuffer(CLSE::queue, gbeta, true, CL_MAP_READ,
-//                                                          0, sizeof(T), 0, NULL, NULL, NULL);
-//        if(typeid(T) == typeid(float))
-//            printf("hgbeta = %f\n", *(T*)hgbeta);
-//        if(typeid(T) == typeid(double))
-//            printf("hgbeta = %g\n", *(T*)hgbeta);
-//        clEnqueueUnmapMemObject(CLSE::queue, gbeta, hgbeta, 0, NULL, NULL);
 
         generateReference(x, alpha, y, beta);
 
@@ -160,7 +133,7 @@ public:
 
 };
 
-typedef ::testing::Types<float, double> TYPES;
+typedef ::testing::Types<float> TYPES;
 TYPED_TEST_CASE(TestCSRMV, TYPES);
 
 TYPED_TEST(TestCSRMV, multiply)
@@ -169,8 +142,7 @@ TYPED_TEST(TestCSRMV, multiply)
             generateResult<TypeParam>(this->gx,
                                       this->galpha,
                                       this->gy,
-                                      this->gbeta,
-                                      0, NULL, NULL);
+                                      this->gbeta);
     EXPECT_EQ(clsparseSuccess, status);
 
     std::vector<TypeParam> result(this->y.size());
@@ -190,7 +162,6 @@ TYPED_TEST(TestCSRMV, multiply)
 
 
 }
-
 
 int main (int argc, char* argv[])
 {

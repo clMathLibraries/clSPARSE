@@ -34,6 +34,7 @@ test_clsparse_init
 test_kernel_simple
 test_csrmv_simple
 test_validation
+test_clsparse_spmv_ctrl
 )
 
 #additional headers and sources

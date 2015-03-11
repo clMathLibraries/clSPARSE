@@ -1,6 +1,7 @@
 #include "clSPARSE.h"
 #include "internal/clsparse_sources.h"
 #include "internal/clsparse_validate.h"
+#include "internal/clsparse_control.h"
 
 #include <clBLAS.h>
 
@@ -518,7 +519,7 @@ clsparseScsrmv(const int m, const int n, const int nnz,
     else if( *(float*)h_alpha == 0.0)
     {
 #ifndef NDEBUG
-        printf("\n\talpha = 0, beta =/= 0 (clBlasSscale)\n\n");
+        printf("\n\talpha = 0, (clBlasSscale)\n\n");
 #endif
         // y = b*y;
         return clblasSscal(m, *(cl_float*)h_beta, y, off_y, 1, 1, &queue,
@@ -590,6 +591,27 @@ clsparseScsrmv(const int m, const int n, const int nnz,
     return clsparseNotImplemented;
 }
 
+
+//Dummy implementation of new interface;
+clsparseStatus
+clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
+                    cl_mem alpha,
+                    cl_mem row_offsets, cl_mem col_indices, cl_mem values,
+                    cl_mem x,
+                    cl_mem beta, cl_mem y,
+                    clsparseControl control)
+{
+    return clsparseScsrmv(m, n, nnz,
+                          alpha, control->off_alpha,
+                          row_offsets, col_indices, values,
+                          x, control->off_x,
+                          beta, control->off_beta,
+                          y, control->off_beta,
+                          control->queue,
+                          control->num_events_in_wait_list,
+                          control->event_wait_list,
+                          control->event);
+}
 
 clsparseStatus
 clsparseDcsrmv(const int m, const int n, const int nnz,
@@ -715,7 +737,7 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
     else if( *(cl_double*)h_alpha == 0.0)
     {
 #ifndef NDEBUG
-        printf("\n\talpha = 0, beta =/= 0 (clBlasDscale)\n\n");
+        printf("\n\talpha = 0, (clBlasDscale)\n\n");
 #endif
         return clblasDscal(m, *(cl_double*)h_beta, y, off_y, 1, 1, &queue,
                            num_events_in_wait_list, event_wait_list, event);
