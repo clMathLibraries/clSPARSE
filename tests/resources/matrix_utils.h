@@ -155,23 +155,23 @@ void coomv(int n_rows, int n_cols, int nnz,
 
 template<typename VALUE_TYPE, typename INDEX_TYPE>
 void csr_transpose(int n_rows, int n_cols, int nnz,
-                   const std::vector<INDEX_TYPE>& csr_row_offsets,
-                   const std::vector<INDEX_TYPE>& csr_col_indices,
-                   const std::vector<VALUE_TYPE>& csr_values,
-                   std::vector<INDEX_TYPE>& csc_row_indices,
-                   std::vector<INDEX_TYPE>& csc_col_offsets,
-                   std::vector<VALUE_TYPE>& csc_values)
+                   const std::vector<INDEX_TYPE>& row_offsets,
+                   const std::vector<INDEX_TYPE>& col_indices,
+                   const std::vector<VALUE_TYPE>& values,
+                   std::vector<INDEX_TYPE>& row_offsets_t,
+                   std::vector<INDEX_TYPE>& col_indices_t,
+                   std::vector<VALUE_TYPE>& values_t)
 {
 
-    csc_col_offsets.resize(n_cols+1);
-    csc_row_indices.resize(nnz);
-    csc_values.resize(nnz);
+    row_offsets_t.resize(n_cols+1);
+    col_indices_t.resize(nnz);
+    values_t.resize(nnz);
 
     std::vector<INDEX_TYPE> col_nnz(n_cols);
     // need to be zeroed because we will be counting
     std::fill(col_nnz.begin(), col_nnz.end(), 0);
 
-    //the csr_col_indices have repeating data depends on the nnz per row;
+    //the col_indices have repeating data depends on the nnz per row;
     //data are sorted
     /* example of col_indices vector [index] = col_indices[index]
         0 = 0
@@ -224,14 +224,14 @@ void csr_transpose(int n_rows, int n_cols, int nnz,
     // help of row_offsets it can be done in parallel mode nicely!
     //or reduce. but requires atomic due to indirect mem access.
     for (int i = 0; i < nnz; i++)
-        col_nnz[csr_col_indices[i]] += 1;
+        col_nnz[col_indices[i]] += 1;
 
     //calculate col offsets; its easy since we know how many nnz in each col
     //we have from previous loop
-    csc_col_offsets[0] = 0;
+    row_offsets_t[0] = 0;
     for (int i = 1; i <= n_cols; i++)
     {
-        csc_col_offsets[i] = csc_col_offsets[i-1] + col_nnz[i - 1];
+        row_offsets_t[i] = row_offsets_t[i-1] + col_nnz[i - 1];
         col_nnz[i - 1] = 0;
     }
 
@@ -240,14 +240,14 @@ void csr_transpose(int n_rows, int n_cols, int nnz,
     //or offsets to indices on gpu
     for (int i = 0; i < n_rows; i++)
     {
-        for (int j = csr_row_offsets[i]; j < csr_row_offsets[i+1]; j++)
+        for (int j = row_offsets[i]; j < row_offsets[i+1]; j++)
         {
-            VALUE_TYPE v = csr_values[j];
-            int k = csr_col_indices[j];
-            int l = csc_col_offsets[k] + col_nnz[k];
+            VALUE_TYPE v = values[j];
+            int k = col_indices[j];
+            int l = row_offsets_t[k] + col_nnz[k];
 
-            csc_row_indices[l] = i;
-            csc_values[l] = v;
+            col_indices_t[l] = i;
+            values_t[l] = v;
 
             col_nnz[k] += 1;
         }

@@ -36,7 +36,7 @@ TEST (matrix_transpose, transpose)
 
     csr_transpose(n_rows, n_cols, n_vals,
                   row_offsets, col_indices, values,
-                  col_indices_t, row_offsets_t, values_t);
+                  row_offsets_t, col_indices_t, values_t);
 
     status = writeMatrixMarketCSR(row_offsets_t, col_indices_t, values_t,
                                  n_rows, n_cols, n_vals, out_path);
