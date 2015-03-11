@@ -38,10 +38,13 @@ public:
 
         printDeviceInfo(device);
 
-        context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
-        queue = clCreateCommandQueue(context, device, 0, NULL);
+        cl_context context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
+        cl_command_queue queue = clCreateCommandQueue(context, device, 0, NULL);
 
         clsparseSetup();
+
+        control = clsparseCreateControl(queue, NULL);
+
         free(platforms);
     }
 
@@ -56,11 +59,18 @@ public:
         //release cl structures
         clReleaseCommandQueue(queue);
         clReleaseContext(context);
+        cl_int status  = clsparseReleaseControl(control);
+        if (status != CL_SUCCESS)
+        {
+            std::cout << "Problem with releasing control object" << std::endl;
+        }
+
         clsparseTeardown();
     }
 
     static cl_context context;
     static cl_command_queue queue;
+    static clsparseControl control;
 
 };
 

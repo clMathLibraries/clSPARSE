@@ -4,13 +4,17 @@
 
 #include "resources/clsparse_environment.h"
 
-
+clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 
 TEST (simple_kernel, run)
 {
     using CLSE = ClSparseEnvironment;
+
+//    clsparseControl control;
+//    clsparseCreateControl(&control, CLSE::queue);
+
     size_t N = 1024;
 
     cl_int status;
@@ -32,9 +36,12 @@ TEST (simple_kernel, run)
     ASSERT_EQ(CL_SUCCESS, status);
 
     cl_event scale_event;
-    clsparseStatus clsp_status = clsparseScale(buff, alpha, N, CLSE::queue,
-                                               0, NULL, &scale_event);
-    status = clWaitForEvents(1, &scale_event);
+    clsparseEventsToSync(CLSE::control, 0, NULL, &scale_event);
+//    clsparseStatus clsp_status = clsparseScale(buff, alpha, N, CLSE::queue,
+//                                               0, NULL, &scale_event);
+    clsparseStatus clsp_status = clsparseScale(buff, alpha, N, CLSE::control);
+    status = clsparseSynchronize(CLSE::control);
+    //status = clWaitForEvents(1, &scale_event);
 
     ASSERT_EQ(CL_SUCCESS, status);
     ASSERT_EQ(clsparseSuccess, clsp_status);

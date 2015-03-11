@@ -7,6 +7,7 @@
 #include "resources/csr_matrix_environment.h"
 #include "resources/matrix_utils.h"
 
+clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 

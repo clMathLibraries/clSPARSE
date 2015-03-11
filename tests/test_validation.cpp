@@ -3,6 +3,7 @@
 
 using CLSE = ClSparseEnvironment;
 
+clsparseControl CLSE::control = NULL;
 cl_command_queue CLSE::queue = NULL;
 cl_context CLSE::context = NULL;
 

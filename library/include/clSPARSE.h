@@ -61,6 +61,34 @@ typedef enum clsparseStatus_ {
 } clsparseStatus;
 
 
+// clsparseControl keeps the data relevant for
+// OpenCL operations like kernel execution, mem alocation, sync.
+/* To be considered:
+    - how the allocation should look like?
+        IMO clsparseControl ctrl = clsparseControl { .queue = queue ... } is not nice
+    - if there is sth like clsparseControl how we should destroy it? in the tearDown function?
+    - if the user call the clReleaseCommandQueue the clsparseControl become invalid.
+*/
+//
+typedef struct _clsparseControl*  clsparseControl;
+
+//setup the control from external queue;
+clsparseControl clsparseCreateControl(cl_command_queue queue, cl_int *status);
+
+//
+clsparseStatus
+clsparseEventsToSync(clsparseControl control,
+                     cl_uint num_events_in_wait_list,
+                     cl_event* event_wait_list,
+                     cl_event* event);
+
+clsparseStatus
+clsparseSynchronize(clsparseControl control);
+
+// just sets the fields to 0 or Null and free allocated struc.
+// We do not own the queue, context, etc;
+clsparseStatus
+clsparseReleaseControl(clsparseControl control);
 
 
 clsparseStatus
@@ -73,12 +101,21 @@ clsparseStatus
 clsparseTeardown(void);
 
 // THIS IS JUST AN TEST KERNEL FOR TESTING PURPOSES
+
+//OLD Implementation;
+//clsparseStatus
+//clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
+//              cl_command_queue queue,
+//              cl_uint num_events_in_wait_list,
+//              const cl_event *event_wait_list,
+//              cl_event *event);
+
+//New implementation with clsparseControl structure
 clsparseStatus
 clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
-              cl_command_queue queue,
-              cl_uint num_events_in_wait_list,
-              const cl_event *event_wait_list,
-              cl_event *event);
+              clsparseControl control);
+
+
 
 // SPMV
 // y = \alpha * A * x + \beta * y
