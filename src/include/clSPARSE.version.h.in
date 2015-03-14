@@ -1,0 +1,7 @@
+
+/* the configured version and settings for clSPARSE
+ */
+#define clsparseVersionMajor @clSPARSE_VERSION_MAJOR@
+#define clsparseVersionMinor @clSPARSE_VERSION_MINOR@
+#define clsparseVersionPatch @clSPARSE_VERSION_PATCH@
+#define clsparseVersionPatch @clSPARSE_VERSION_TWEAK@
