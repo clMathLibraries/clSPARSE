@@ -64,8 +64,9 @@ endif( )
 
 set( ext.Boost_VARIANT "debug,release" CACHE STRING "Which boost variant?  debug | release | debug,release" )
 set( ext.Boost_LINK "static" CACHE STRING "Which boost link method?  static | shared | static,shared" )
+set( ext.Boost_LAYOUT "versioned" CACHE STRING "Which boost layotu method?  versioned | tagged | system" )
 
-list( APPEND Boost.Command link=${ext.Boost_LINK} variant=${ext.Boost_VARIANT} install )
+list( APPEND Boost.Command link=${ext.Boost_LINK} variant=${ext.Boost_VARIANT} --layout=${ext.Boost_LAYOUT} install )
 
 message( STATUS "Boost.Command: ${Boost.Command}" )
 

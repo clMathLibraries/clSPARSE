@@ -63,7 +63,6 @@ set( clSPARSE.Headers
 set( clSPARSE.Files ${clSPARSE.source.cpp} ${clSPARSE.Headers} ${clSPARSE.source.cl} )
 
 if( CMAKE_COMPILER_IS_GNUCC )
-    set( CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -std=c99 )
     add_definitions( -pedantic )
 endif( )
 

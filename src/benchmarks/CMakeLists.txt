@@ -1,6 +1,9 @@
+
 set( Boost_USE_MULTITHREADED ON )
 set( Boost_USE_STATIC_LIBS   ON )
 set( Boost_DETAILED_FAILURE_MSG   ON )
+set( Boost_NO_SYSTEM_PATHS ON )
+set( Boost_ADDITIONAL_VERSIONS 1.57.0 1.57 )
 # set( Boost_DEBUG ON )
 
 find_package( Boost COMPONENTS program_options filesystem system regex )
@@ -10,7 +13,7 @@ find_package( Boost COMPONENTS program_options filesystem system regex )
 find_package( OpenCL REQUIRED )
 
 if( CMAKE_COMPILER_IS_GNUCC )
-  set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
 endif( )
 
 include_directories(
@@ -42,5 +45,7 @@ set(BENCHMARKS
 foreach( benchmark ${BENCHMARKS} )
   add_executable( ${benchmark} ${benchmark}.cpp ${sources} ${headers} )
   target_link_libraries( ${benchmark} clSPARSE ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} )
+  set_target_properties( ${benchmark} PROPERTIES VERSION ${clSPARSE_VERSION} )
+  set_target_properties( ${benchmark} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
   set_property( TARGET ${benchmark} PROPERTY FOLDER "Benchmarks")
 endforeach( )

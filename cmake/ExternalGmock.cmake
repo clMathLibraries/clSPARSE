@@ -26,12 +26,12 @@ set( ext.gMock.cmake_args -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${LIB_DIR} -DCMA
 
 if( CMAKE_COMPILER_IS_GNUCC )
   if( BUILD64 )
-    set( LIB_FLAG "-m64" )
+    set( EXTRA_FLAGS "-m64 -pthread" )
   else( )
-    set( LIB_FLAG "-m32" )
+    set( EXTRA_FLAGS "-m32 -pthread" )
   endif( )
 
-  list( APPEND ext.gMock.cmake_args -DCMAKE_C_FLAGS=${LIB_FLAG} -DCMAKE_CXX_FLAGS=${LIB_FLAG} )
+  list( APPEND ext.gMock.cmake_args -DCMAKE_C_FLAGS=${EXTRA_FLAGS} -DCMAKE_CXX_FLAGS=${EXTRA_FLAGS} )
 endif( )
 
 if( MSVC )
