@@ -72,7 +72,7 @@ public:
         for ( auto file = matrix_files.begin();
               file != matrix_files.end(); file++)
         {
-            std::string path = (*file).native();
+            std::string path = (*file).string( );
 
             //host matrix definition
             std::vector<int> row_offsets;
@@ -86,7 +86,7 @@ public:
                                      n_rows, n_cols, n_vals, path))
             {
                 std::cerr << "Problem with reading matrix "
-                          << (*file).filename().native() << std::endl;
+                          << (*file).filename( ) << std::endl;
                 continue; //we did not allocated cl_mem so it should be ok
             }
 
@@ -102,7 +102,7 @@ public:
                                 queue, context, &status))
             {
                 std::cerr << "Problem with allocating matrix "
-                          << (*file).filename().native()
+                    << ( *file ).filename( )
                           <<  " OpenCL status " << status << std::endl;
                 return -102;
             }
@@ -152,7 +152,7 @@ public:
             {
                 std::cerr << "Problem with multiply during warmup" << std::endl;
                 std::cerr << " Problematic matrix: " <<
-                             (*file).filename().native() << std::endl;
+                             (*file).filename( ) << std::endl;
                 return -103;
             }
 
@@ -172,7 +172,7 @@ public:
             {
                 std::cerr << "Problem with multiply during bench" << std::endl;
                 std::cerr << " Problematic matrix: " <<
-                             (*file).filename().native() << std::endl;
+                             (*file).filename( ) << std::endl;
                 return -104;
             }
 
@@ -186,7 +186,7 @@ public:
                                    average_time,
                                    instr_bandwidth,
                                    memory_bandwidth,
-                                   (*file).filename().native() };
+                                   (*file).filename( ).string( ) };
             results.push_back(m);
 
             //release resources;

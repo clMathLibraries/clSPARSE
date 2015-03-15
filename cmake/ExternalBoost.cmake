@@ -38,11 +38,11 @@ message( STATUS "ExternalBoost detected ( " ${Cores} " ) cores to build Boost wi
 if( NOT Cores EQUAL 0 )
   # Add build thread in addition to the number of cores that we have
   math( EXPR Cores "${Cores} + 1 " )
-  list( APPEND Boost.Command -j ${Cores} --with-program_options )
 else( )
   # If we could not detect # of cores, assume 1 core and add an additional build thread
-  list( APPEND Boost.Command -j 2 --with-program_options )
+  set( Cores "2" )
 endif( )
+list( APPEND Boost.Command -j ${Cores} --with-program_options --with-filesystem --with-system --with-regex )
 
 if( BUILD64 )
   list( APPEND Boost.Command address-model=64 )

@@ -10,6 +10,11 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#if defined(__APPLE__) || defined(__MACOSX)
+    #include <OpenCL/cl.h>
+#else
+    #include <CL/cl.h>
+#endif
 
 
 #ifdef __cplusplus
@@ -68,7 +73,8 @@ typedef struct hdl_list
 } hdl_list;
 
 //type of function which will free the list elements;
-typedef void (*free_func_t) (void*);
+typedef void ( CL_API_CALL *free_clfunc_t ) ( void* );
+typedef void ( *free_func_t ) ( void* );
 
 /**
  * @brief hdl_create Create hdl_list
@@ -89,7 +95,7 @@ void hdl_destroy (hdl_list **list);
  * @param list Adrees of pointer to hdl_list
  * @param free_func free function for element values
  */
-void hdl_destroy_with_func (hdl_list ** list, free_func_t free_func);
+void hdl_destroy_with_func( hdl_list ** list, free_clfunc_t free_func );
 
 /**
  * @brief hdl_size Return the size of hdl_list

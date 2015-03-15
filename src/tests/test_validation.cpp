@@ -1,4 +1,4 @@
-#include "../library/src/internal/clsparse_validate.h"
+#include "../library/internal/clsparse_validate.h"
 #include "clsparse_environment.h"
 
 using CLSE = ClSparseEnvironment;

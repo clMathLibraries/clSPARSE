@@ -1,4 +1,4 @@
-#include "../library/src/internal/hdl_list.h"
+#include "../library/internal/hdl_list.h"
 #include "resources/hdl_test_resources.h"
 #include <gtest/gtest.h>
 

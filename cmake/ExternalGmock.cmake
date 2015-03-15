@@ -90,6 +90,8 @@ ExternalProject_Add_Step( gMockd createPackage
 set_property( TARGET gMock PROPERTY FOLDER "Externals")
 set_property( TARGET gMockd PROPERTY FOLDER "Externals")
 
+ExternalProject_Get_Property( gMock install_dir )
+
 # For use by the user of ExternalGtest.cmake
 set( GMOCK_FOUND TRUE )
-set( GMOCK_ROOT ${source_dir}/../../package )
+set( GMOCK_ROOT ${install_dir}/package )

@@ -33,7 +33,7 @@ bool findMatrices(const std::string& root,
         {
             if (fs::is_regular_file(dir_iter->status()) )
             {
-                std::string fname = dir_iter->path().filename().native();
+                std::string fname = dir_iter->path().filename().string( );
 
                 if(boost::regex_match(fname, filter))
                 {

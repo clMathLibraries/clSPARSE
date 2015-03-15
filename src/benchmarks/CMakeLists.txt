@@ -1,54 +1,46 @@
-project(benchmarks)
+set( Boost_USE_MULTITHREADED ON )
+set( Boost_USE_STATIC_LIBS   ON )
+set( Boost_DETAILED_FAILURE_MSG   ON )
+# set( Boost_DEBUG ON )
 
-cmake_minimum_required(VERSION 2.8)
+find_package( Boost COMPONENTS program_options filesystem system regex )
 
-find_package(Boost COMPONENTS
-    program_options
-    system
-    regex
-    filesystem
-)
+# Benchmarks requires OpenCL
+# A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
+find_package( OpenCL REQUIRED )
 
-find_package(clBLAS)
-
-message(STATUS "clBLAS include ${clBLAS_INCLUDE_DIR}")
-message(STATUS "clBLAS lib ${clBLAS_LIB}")
-
-if( NOT WIN32 )
-    set(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} -std=c++11)
+if( CMAKE_COMPILER_IS_GNUCC )
+  set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
 endif( )
 
-message(STATUS "Boost libraries:" ${Boost_LIBRARIES})
-message(STATUS "OpenCL headers:" ${OPENCL_INCLUDE_DIR})
-
-include_directories(${Boost_INCLUDE_DIR})
-include_directories(../library/include)
-include_directories(../tests/resources)
-include_directories(common)
-include_directories(${clBLAS_INCLUDE_DIR})
+include_directories(
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/tests/resources
+  ${PROJECT_BINARY_DIR}/library
+  common
+  ${Boost_INCLUDE_DIRS}
+  ${OPENCL_INCLUDE_DIRS}
+)
 
 set(headers
-common/Timer.h
-common/Find.h
-common/MatrixUtils.h
-common/Executor.h
-common/Params.h
-common/MatrixStatistics.h
+  common/Timer.h
+  common/Find.h
+  common/MatrixUtils.h
+  common/Executor.h
+  common/Params.h
+  common/MatrixStatistics.h
 )
 
 set(sources
-common/Timer.cpp
+  common/Timer.cpp
 )
-
 
 set(BENCHMARKS
-    csrmv_benchmark
+  csrmv_benchmark
 )
 
-foreach(benchmark ${BENCHMARKS})
-        add_executable(${benchmark} ${benchmark}.cpp ${sources} ${headers})
-        target_link_libraries(${benchmark} clSPARSE)
-        target_link_libraries(${benchmark} ${Boost_LIBRARIES})
-        target_link_libraries(${benchmark} ${clBLAS_LIB})
-
-endforeach(benchmark)
+foreach( benchmark ${BENCHMARKS} )
+  add_executable( ${benchmark} ${benchmark}.cpp ${sources} ${headers} )
+  target_link_libraries( ${benchmark} clSPARSE ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} )
+  set_property( TARGET ${benchmark} PROPERTY FOLDER "Benchmarks")
+endforeach( )
