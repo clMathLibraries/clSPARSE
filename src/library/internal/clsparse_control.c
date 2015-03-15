@@ -1,6 +1,6 @@
 #include "clSPARSE.h"
 #include "clsparse_control.h"
-
+#include <malloc.h>
 
 clsparseControl
 clsparseCreateControl(cl_command_queue queue, cl_int *status)

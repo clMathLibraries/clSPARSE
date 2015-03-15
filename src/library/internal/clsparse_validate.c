@@ -1,12 +1,4 @@
-#ifndef _CLSPARSE_VALIDATE_H_
-#define _CLSPARSE_VALIDATE_H_
-
-#include "clSPARSE.h"
-#include <stdio.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "clsparse_validate.h"
 
 clsparseStatus
 validateMemObject( cl_mem mem, size_t required_size)
@@ -72,10 +64,3 @@ validateMemObjectSize(size_t element_size,
 
     return clsparseSuccess;
 }
-
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif //_CLSPARSE_VALIDATE_H_

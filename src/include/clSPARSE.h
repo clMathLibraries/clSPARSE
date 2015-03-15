@@ -3,31 +3,13 @@
 #define _CL_SPARSE_H_
 
 #if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl.h>
+    #include <OpenCL/cl.h>
 #else
-#include <CL/cl.h>
+    #include <CL/cl.h>
 #endif
 
-/*! This preprocessor definition is the standard way of making exporting APIs
-*  from a DLL simpler. All files within this DLL are compiled with the CLSPARSE_EXPORTS
-*  symbol defined on the command line. This symbol should not be defined on any project
-*  that uses this DLL. This way any other project whose source files include this file see
-*  clsparse functions as being imported from a DLL, whereas this DLL sees symbols
-*  defined with this macro as being exported.
-*/
-#if defined( _WIN32 )
-#if !defined( __cplusplus )
-    #define inline __inline
-#endif
-
-#if defined( CLSPARSE_EXPORTS )
-    #define CLSPARSEAPI __declspec( dllexport )
-#else
-    #define CLSPARSEAPI __declspec( dllimport )
-#endif
-#else
-    #define CLSPARSEAPI
-#endif
+// CMake-generated file to define export related preprocessor macros
+#include "clsparse_export.h"
 
 // Type definitions - to be fleshed in
 //typedef enum clsparseOperation_t clsparseOperation;
@@ -73,37 +55,38 @@ typedef enum clsparseStatus_ {
 typedef struct _clsparseControl*  clsparseControl;
 
 //setup the control from external queue;
-clsparseControl clsparseCreateControl(cl_command_queue queue, cl_int *status);
+CLSPARSE_EXPORT clsparseControl 
+clsparseCreateControl( cl_command_queue queue, cl_int *status );
 
 //setup events to sync
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseEventsToSync(clsparseControl control,
                      cl_uint num_events_in_wait_list,
                      cl_event* event_wait_list,
                      cl_event* event);
 
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseSynchronize(clsparseControl control);
 
 // just sets the fields to 0 or Null and free allocated struc.
 // We do not own the queue, context, etc;
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseReleaseControl(clsparseControl control);
 
 
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseSetOffsets(clsparseControl control,
                    size_t off_alpha, size_t off_beta,
                    size_t off_x, size_t off_y);
 
 
-clsparseStatus
-clsparseGetVersion (cl_uint* major, cl_uint* minor, cl_uint* patch);
+CLSPARSE_EXPORT clsparseStatus
+clsparseGetVersion( cl_uint* major, cl_uint* minor, cl_uint* patch );
 
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseSetup(void);
 
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseTeardown(void);
 
 // THIS IS JUST AN TEST KERNEL FOR TESTING PURPOSES
@@ -117,7 +100,7 @@ clsparseTeardown(void);
 //              cl_event *event);
 
 //New implementation with clsparseControl structure
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
               clsparseControl control);
 
@@ -134,7 +117,7 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
 //        it is simple for csr  avg nnz per row = nnz / n_rows
 //        type of matrix (GENERAL, SYMMETRIC(faster spmv) etc.
 //        index based (0, 1)
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseScsrmv(const int m, const int n, const int nnz,
                cl_mem alpha,
                size_t off_alpha,
@@ -148,7 +131,7 @@ clsparseScsrmv(const int m, const int n, const int nnz,
                cl_event *event);
 
 //new possible implementation of csrmv with control object
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
                cl_mem alpha,
                cl_mem row_offsets, cl_mem col_indices, cl_mem values,
@@ -158,7 +141,7 @@ clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
                clsparseControl control);
 
 
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseDcsrmv(const int m, const int n, const int nnz,
                cl_mem alpha,
                size_t off_alpha,
@@ -172,7 +155,7 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
                cl_event *event);
 
 
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseScoomv(const cl_int m, const cl_int n, const cl_int nnz,
                cl_mem alpha,
                cl_mem row_indices, cl_mem col_indices, cl_mem values,
@@ -184,7 +167,7 @@ clsparseScoomv(const cl_int m, const cl_int n, const cl_int nnz,
                const cl_event *event_wait_list,
                cl_event *event);
 
-clsparseStatus
+CLSPARSE_EXPORT clsparseStatus
 clsparseDcoomv(const cl_int m, const cl_int n, const cl_int nnz,
                cl_mem alpha,
                cl_mem row_indices, cl_mem col_indices, cl_mem values,

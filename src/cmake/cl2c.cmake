@@ -38,7 +38,7 @@ foreach(cl ${cl_list})
   string(REPLACE "\n" "\\n\"\n\"" lines "${lines}")
 
   string(REGEX REPLACE "\"$" "" lines "${lines}") # unneeded " at the eof
-  
+
   file(APPEND ${OUTPUT} "const char* ${cl_filename}_key=\"${cl_filename}\";\n")
   file(APPEND ${OUTPUT} "const char* ${cl_filename}=\"${lines};\n")
   #file(APPEND ${OUTPUT} "hdl_insert(${PS_LIST}, ${cl_filename}_key, ${cl_filename});\n\n")

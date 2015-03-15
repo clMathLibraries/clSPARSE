@@ -36,9 +36,9 @@ else( )
 	if( NOT DEFINED clSPARSE_VERSION_TWEAK )
 		set( clSPARSE_VERSION_TWEAK 0 )
 	endif( )
-endif( )
 
-set( clSPARSE_VERSION "${clSPARSE_VERSION_MAJOR}.${clSPARSE_VERSION_MINOR}.${clSPARSE_VERSION_PATCH}.${clSPARSE_VERSION_TWEAK}")
+	set( clSPARSE_VERSION "${clSPARSE_VERSION_MAJOR}.${clSPARSE_VERSION_MINOR}.${clSPARSE_VERSION_PATCH}.${clSPARSE_VERSION_TWEAK}")
+endif( )
 
 message( STATUS "clSPARSE_VERSION_MAJOR=${clSPARSE_VERSION_MAJOR}" )
 message( STATUS "clSPARSE_VERSION_MINOR=${clSPARSE_VERSION_MINOR}" )
@@ -47,26 +47,10 @@ message( STATUS "clSPARSE_VERSION_TWEAK=${clSPARSE_VERSION_TWEAK}" )
 
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 
-# This library requires OpenCL to compile
-# A standard FindOpenCL.cmake module ships with cmake 3.1
-find_package( OpenCL REQUIRED )
-
 # On windows, it's convenient to change the default install prefix such that it does NOT point to 'program files'
 # Need to check out CMAKE_RUNTIME_OUTPUT_DIRECTORY variable, and see if that eliminates the need to modify install path
 if( WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
 	set( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/package" CACHE PATH "Install path prefix, prepended onto install directories" FORCE )
-endif( )
-
-if( DEFINED GMOCK_ROOT )
-	message( STATUS "GMOCK_ROOT=${GMOCK_ROOT}" )
-else( )
-	message( AUTHOR_WARNING "GMOCK_ROOT is not defined.  clSPARSE tests will likely not compile" )
-endif( )
-
-if( DEFINED BOOST_ROOT )
-	message( STATUS "BOOST_ROOT=${BOOST_ROOT}" )
-else( )
-	message( AUTHOR_WARNING "BOOST_ROOT is not defined.  clSPARSE tests will likely not compile" )
 endif( )
 
 if( MSVC_IDE )
@@ -75,6 +59,28 @@ if( MSVC_IDE )
 else()
 	option( clSPARSE_BUILD64 "Build a 64-bit product" ON )
 endif()
+
+# These variables are meant to contain string which should be appended to the installation paths
+# of library and executable binaries, respectively.  They are meant to be user configurable/overridable.
+set( SUFFIX_LIB_DEFAULT "" )
+set( SUFFIX_BIN_DEFAULT "" )
+
+# Modify the global find property to help us find libraries like Boost in the correct paths for 64-bit
+# Essentially, find_library calls will look for /lib64 instead of /lib; works for windows and linux
+if( clSPARSE_BUILD64 )
+	set_property( GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE )
+	message( STATUS "64bit build - FIND_LIBRARY_USE_LIB64_PATHS TRUE" )
+
+	if( NOT APPLE )
+		set( SUFFIX_LIB_DEFAULT "64" )
+	endif( )
+else( )
+	set_property( GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS FALSE )
+	message( STATUS "32bit build - FIND_LIBRARY_USE_LIB64_PATHS FALSE" )
+endif( )
+
+set( SUFFIX_LIB ${SUFFIX_LIB_DEFAULT} CACHE STRING "String to append to 'lib' install path" )
+set( SUFFIX_BIN ${SUFFIX_BIN_DEFAULT} CACHE STRING "String to append to 'bin' install path" )
 
 # Currently, linux has a problem outputing both narrow and wide characters,
 # which happens in our client because openCL only supports narrow characters
@@ -132,37 +138,6 @@ message( STATUS "CMAKE_CXX_COMPILER release flags: " ${CMAKE_CXX_FLAGS_RELEASE} 
 message( STATUS "CMAKE_CXX_COMPILER relwithdebinfo flags: " ${CMAKE_CXX_FLAGS_RELWITHDEBINFO} )
 message( STATUS "CMAKE_EXE_LINKER link flags: " ${CMAKE_EXE_LINKER_FLAGS} )
 
-# These variables are meant to contain string which should be appended to the installation paths
-# of library and executable binaries, respectively.  They are meant to be user configurable/overridable.
-set( SUFFIX_LIB_DEFAULT "" )
-set( SUFFIX_BIN_DEFAULT "" )
-
-# Modify the global find property to help us find libraries like Boost in the correct paths for 64-bit
-# Essentially, find_library calls will look for /lib64 instead of /lib; works for windows and linux
-if( clSPARSE_BUILD64 )
-	set_property( GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE )
-	message( STATUS "64bit build - FIND_LIBRARY_USE_LIB64_PATHS TRUE" )
-
-	if( NOT APPLE )
-		set( SUFFIX_LIB_DEFAULT "64" )
-	endif( )
-else( )
-	set_property( GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS FALSE )
-	message( STATUS "32bit build - FIND_LIBRARY_USE_LIB64_PATHS FALSE" )
-endif( )
-
-set( SUFFIX_LIB ${SUFFIX_LIB_DEFAULT} CACHE STRING "String to append to 'lib' install path" )
-set( SUFFIX_BIN ${SUFFIX_BIN_DEFAULT} CACHE STRING "String to append to 'bin' install path" )
-
-# Depending on whether we are building for 64 or 32 bit, construct common paths and names that subdirectories can reference for their use
-if( clSPARSE_BUILD64 )
-	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${clSPARSE_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x64" )
-	set( INCLUDE_DIR include )
-else( )
-	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${clSPARSE_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x32" )
-	set( INCLUDE_DIR include )
-endif( )
-
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
 configure_file( "${PROJECT_SOURCE_DIR}/include/clSPARSE.version.h.in" "${PROJECT_BINARY_DIR}/include/clSPARSE.version.h" )
 install( FILES
@@ -174,6 +149,15 @@ install( FILES
 # add_subdirectory( benchmarks )
 add_subdirectory( library )
 # add_subdirectory( tests )
+
+# Depending on whether we are building for 64 or 32 bit, construct common paths and names that subdirectories can reference for their use
+if( clSPARSE_BUILD64 )
+	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${clSPARSE_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x64" )
+	set( INCLUDE_DIR include )
+else( )
+	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${clSPARSE_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x32" )
+	set( INCLUDE_DIR include )
+endif( )
 
 # The following code is setting variables to control the behavior of CPack to generate our
 if( WIN32 )

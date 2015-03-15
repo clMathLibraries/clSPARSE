@@ -63,7 +63,6 @@ endif( )
 option( BUILD_clSPARSE "Setup clSPARSE to use all the external dependencies" ON )
 option( BUILD_Boost "Install Boost as an external dependency" ON )
 option( BUILD_gMock "Install googleMock as an external dependency" ON )
-option( BUILD_AppSdk "Install AMD AppSdk as an external dependency" ON )
 option( BUILD_clBLAS "Install clBLAS as an external dependency" ON )
 
 # Comment this out because this does not work yet
