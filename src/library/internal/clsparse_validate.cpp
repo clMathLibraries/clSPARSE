@@ -1,4 +1,4 @@
-#include "clsparse_validate.h"
+#include "clsparse_validate.hpp"
 
 clsparseStatus
 validateMemObject( cl_mem mem, size_t required_size)

@@ -1,8 +1,8 @@
 #include "clSPARSE.h"
 //#include "internal/clsparse_internal.h"
-#include "internal/clsparse_sources.h"
-#include "internal/clsparse_validate.h"
-#include "internal/clsparse_control.h"
+#include "internal/clsparse_sources.hpp"
+#include "internal/clsparse_validate.hpp"
+#include "internal/clsparse_control.hpp"
 
 #include <string.h>
 #include <stdio.h>
@@ -17,15 +17,16 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
         return clsparseNotInitialized;
     }
 
-    clsparseStatus status;
+    cl_int status;
+    clsparseStatus clsp_status;
 
     //validate input buffers
-    status = validateMemObject(buff, sizeof(cl_float)*size);
-    if(status != clsparseSuccess)
-        return status;
-    status = validateMemObject(alpha, sizeof(cl_float));
-    if(status != clsparseSuccess)
-        return status;
+    clsp_status = validateMemObject(buff, sizeof(cl_float)*size);
+    if(clsp_status != clsparseSuccess)
+        return clsparseInvalidMemObj;
+    clsp_status = validateMemObject(alpha, sizeof(cl_float));
+    if(clsp_status != clsparseSuccess)
+        return clsparseInvalidMemObj;
 
 
     //check opencl elements
@@ -80,15 +81,15 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
     if (status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseBuildProgramFailure;
     }
 
     status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &buff);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 2, sizeof(cl_int), &size);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
 
     size_t local[1];
     size_t global[1];
@@ -103,7 +104,7 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
     if(status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseInvalidKernelExecution;
     }
 
     free(key);

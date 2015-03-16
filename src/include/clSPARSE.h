@@ -28,18 +28,23 @@ typedef enum clsparseStatus_ {
     clsparseInvalidMemObject                = CL_INVALID_MEM_OBJECT,
     clsparseInvalidDevice                   = CL_INVALID_DEVICE,
     clsparseInvalidEventWaitList            = CL_INVALID_EVENT_WAIT_LIST,
+    clsparseInvalidEvent                    = CL_INVALID_EVENT,
     clsparseOutOfResources                  = CL_OUT_OF_RESOURCES,
     clsparseOutOfHostMemory                 = CL_OUT_OF_HOST_MEMORY,
     clsparseInvalidOperation                = CL_INVALID_OPERATION,
     clsparseCompilerNotAvailable            = CL_COMPILER_NOT_AVAILABLE,
     clsparseBuildProgramFailure             = CL_BUILD_PROGRAM_FAILURE,
+    clsparseInvalidKernelArgs                = CL_INVALID_KERNEL_ARGS,
 
     /* Extended error codes */
     clsparseNotImplemented         = -1024, /**< Functionality is not implemented */
     clsparseNotInitialized,                 /**< clsparse library is not initialized yet */
     clsparseInvalidSize,                    /**< Invalid size of object > */
     clsparseInvalidMemObj,                  /**< Checked obejct is no a valid cl_mem object */
-    clsparseInsufficientMemory              /**< The memory object for vector is too small */
+    clsparseInsufficientMemory,             /**< The memory object for vector is too small */
+    clsparseInvalidControlObject,           /**< clsparseControl object is not valid */
+    clsparseInvalidKernelExecution          /**< Problem with kenrel execution */
+
 } clsparseStatus;
 
 

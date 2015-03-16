@@ -15,11 +15,9 @@ endif( )
 # clSPARSE becomes the name of the project with a particular version
 if( POLICY CMP0048 )
 	cmake_policy( SET CMP0048 NEW )
-
 	project( clSPARSE VERSION 0.0.1.0 LANGUAGES C CXX )
 else( )
-	project( clSPARSE LANGUAGES C CXX )
-
+	project( clSPARSE C CXX )
 	# Define a version for the code
 	if( NOT DEFINED clSPARSE_VERSION_MAJOR )
 		set( clSPARSE_VERSION_MAJOR 0 )
@@ -139,6 +137,7 @@ message( STATUS "CMAKE_CXX_COMPILER relwithdebinfo flags: " ${CMAKE_CXX_FLAGS_RE
 message( STATUS "CMAKE_EXE_LINKER link flags: " ${CMAKE_EXE_LINKER_FLAGS} )
 
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
+message( STATUS "PROJECT SRC DIR = ${PROJECT_SOURCE_DIR}")
 configure_file( "${PROJECT_SOURCE_DIR}/include/clSPARSE.version.h.in" "${PROJECT_BINARY_DIR}/include/clSPARSE.version.h" )
 install( FILES
 			"${PROJECT_BINARY_DIR}/include/clSPARSE.version.h"

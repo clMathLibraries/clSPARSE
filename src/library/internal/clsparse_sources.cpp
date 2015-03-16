@@ -1,4 +1,4 @@
-#include "clsparse_sources.h"
+#include "clsparse_sources.hpp"
 
 // creates program map key by concatenating name + params
 void createKey( const char* name, const char* params, char** key )
@@ -9,7 +9,7 @@ void createKey( const char* name, const char* params, char** key )
     printf( "Creating key for %s, %s\n", name, params );
 #endif
     //char* key = malloc(key_size*sizeof(char)); // REMEMBER TO FREE IT!
-    *key = calloc( key_size, sizeof( char ) );
+    *key = (char*) calloc( key_size, sizeof( char ) );
 
     //printf("K0 = %s %lu\n", *key, strlen(*key));
     strcpy( *key, name );
@@ -38,7 +38,7 @@ cl_int printBuildLog( cl_device_id device, cl_program program, const char* param
         return status;
     }
 
-    source = malloc( source_size * sizeof( char ) );
+    source = (char*) malloc( source_size * sizeof( char ) );
 
     status = clGetProgramInfo( program, CL_PROGRAM_SOURCE, source_size, source, NULL );
     if( status != CL_SUCCESS )
@@ -54,7 +54,7 @@ cl_int printBuildLog( cl_device_id device, cl_program program, const char* param
     }
 
 
-    log = malloc( log_size * sizeof( char ) );
+    log = (char*) malloc( log_size * sizeof( char ) );
 
     status = clGetProgramBuildInfo( program, device, CL_PROGRAM_BUILD_LOG, log_size, log, NULL );
     if( status != CL_SUCCESS )
@@ -91,7 +91,7 @@ cl_program buildProgram( cl_command_queue queue,
 
     //TODO: make separate h file for keys and sources.
     //Don't want to include sources to all files!
-    const char* source = hdl_get_value_by_key( program_sources, name );
+    const char* source = (const char*) hdl_get_value_by_key( program_sources, name );
     if( source == NULL )
     {
         printf( "Problem with obtaining kenrel source.\n" );

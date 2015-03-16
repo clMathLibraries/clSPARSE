@@ -3,7 +3,7 @@
     which return const char* value;
 */
 
-#include "hdl_list.h"
+#include "hdl_list.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +12,7 @@
 
 hdl_list* hdl_create (bool clobject)
 {
-    hdl_list* list = malloc (sizeof (hdl_list));
+    hdl_list* list = (struct hdl_list*) malloc (sizeof (hdl_list));
 
     if (list == NULL) return NULL;
 
@@ -68,7 +68,7 @@ void hdl_push_front(hdl_list *list, const char* key, const void* value)
 
     if (e == NULL )  // nie znaleziono elementu o kluczu = key
     {
-        e = malloc  (sizeof (hdl_element));     // nie rzutować w C
+        e = (struct hdl_element*) malloc  (sizeof (hdl_element));     // nie rzutować w C
         e->value = (void*)value;           // przenoszę adres do listy
         e->hash = hash;             // dodajemy identyfikator
         e->prev = NULL;             // pierwszy element w liście nie posiada poprzednika;
@@ -102,7 +102,7 @@ void hdl_push_back(hdl_list *list, const char* key, const void* value)
 
     if (e == NULL )
     {
-        e = malloc (sizeof (hdl_element));
+        e = (struct hdl_element*) malloc (sizeof (hdl_element));
         e->value = (void*)value;
         e->hash = hash;
         e->next = NULL;

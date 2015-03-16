@@ -2,7 +2,7 @@
 #ifndef _CLSPARSE_SOURCES_H_
 #define _CLSPARSE_SOURCES_H_
 
-#include "clsparse_internal.h"
+#include "clsparse_internal.hpp"
 
 #include <stdio.h>
 #include <string.h>

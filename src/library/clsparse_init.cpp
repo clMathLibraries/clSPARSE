@@ -1,6 +1,6 @@
 #include "clSPARSE.h"
 #include "clSPARSE.version.h"
-#include "internal/clsparse_internal.h"
+#include "internal/clsparse_internal.hpp"
 
 #include <clAmdBlas.h>
 #include <stdlib.h>
@@ -48,7 +48,7 @@ clsparseTeardown(void)
     }
 
     hdl_destroy(&program_sources);
-    hdl_destroy_with_func(&kernel_cache, &clReleaseKernel);
+    hdl_destroy_with_func(&kernel_cache, (free_clfunc_t)(&clReleaseKernel));
 
     clblasTeardown();
 

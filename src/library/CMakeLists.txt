@@ -18,7 +18,7 @@ include_directories(
   ${OPENCL_INCLUDE_DIRS}
 )
 
-set( ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/program_sources.h )
+set( ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/program_sources.hpp )
 
 add_custom_command(
   OUTPUT "${ocl_kernels_file_name}"
@@ -39,24 +39,24 @@ set( clSPARSE.source.cl
 )
 
 set( clSPARSE.source.cpp
-  clsparse_init.c
-  internal/hdl_list.c
-  internal/clsparse_internal.c
-  internal/clsparse_control.c
-  internal/clsparse_sources.c
-  internal/clsparse_validate.c
-  simple/clsparse_simple.c
-  spmv/clsparse_csrmv.c
+  clsparse_init.cpp
+  internal/hdl_list.cpp
+  internal/clsparse_internal.cpp
+  internal/clsparse_control.cpp
+  internal/clsparse_sources.cpp
+  internal/clsparse_validate.cpp
+  simple/clsparse_simple.cpp
+  spmv/clsparse_csrmv.cpp
 )
 
 set( clSPARSE.Headers
   ../include/clSPARSE.h
   ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
-  internal/hdl_list.h
-  internal/clsparse_internal.h
-  internal/clsparse_control.h
-  internal/clsparse_sources.h
-  internal/clsparse_validate.h
+  internal/hdl_list.hpp
+  internal/clsparse_internal.hpp
+  internal/clsparse_control.hpp
+  internal/clsparse_sources.hpp
+  internal/clsparse_validate.hpp
   ${ocl_kernels_file_name}
 )
 

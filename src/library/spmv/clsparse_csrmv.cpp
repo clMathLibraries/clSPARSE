@@ -1,7 +1,7 @@
 #include "clSPARSE.h"
-#include "internal/clsparse_sources.h"
-#include "internal/clsparse_validate.h"
-#include "internal/clsparse_control.h"
+#include "internal/clsparse_sources.hpp"
+#include "internal/clsparse_validate.hpp"
+#include "internal/clsparse_control.hpp"
 
 #include <clBLAS.h>
 
@@ -29,29 +29,29 @@ csrmv_a1b0(const int m,
     if (status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseBuildProgramFailure;
     }
 
     //set kernel arguments;
     status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 2, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 5, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
 
 
     // predicted number of subwaves to be executed;
@@ -69,11 +69,11 @@ csrmv_a1b0(const int m,
     if(status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseInvalidKernelExecution;
     }
 
     free(key);
-    return status;
+    return clsparseSuccess;
 }
 
 clsparseStatus
@@ -99,38 +99,38 @@ csrmv_b0(const int m, cl_mem alpha, size_t off_alpha,
     if (status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseBuildProgramFailure;
     }
     //set kernel arguments;
     status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 2, sizeof(cl_uint), &off_alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 5, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 8, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 9, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return clsparseInvalidKernelArgs ; }
 
 
     // predicted number of subwaves to be executed;
@@ -148,11 +148,11 @@ csrmv_b0(const int m, cl_mem alpha, size_t off_alpha,
     if(status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseInvalidKernelExecution;
     }
 
     free(key);
-    return status;
+    return clsparseSuccess;
 
 }
 
@@ -181,34 +181,34 @@ csrmv_a1(const int m,
     if (status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseBuildProgramFailure;
     }
     //set kernel arguments;
     status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 2, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 5, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &beta);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_beta);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 8, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 9, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return clsparseInvalidKernelArgs ; }
 
     // predicted number of subwaves to be executed;
     // subwave takes care of each row in matrix;
@@ -225,11 +225,11 @@ csrmv_a1(const int m,
     if(status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseInvalidKernelExecution;
     }
 
     free(key);
-    return status;
+    return clsparseSuccess;
 
 }
 
@@ -258,33 +258,33 @@ csrmv_b1(const int m,
     if (status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseBuildProgramFailure;
     }
     //set kernel arguments;
     status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 2, sizeof(cl_uint), &off_alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 5, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 8, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 9, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return clsparseInvalidKernelArgs ; }
 
     // predicted number of subwaves to be executed;
     // subwave takes care of each row in matrix;
@@ -301,11 +301,11 @@ csrmv_b1(const int m,
     if(status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseInvalidKernelExecution;
     }
 
     free(key);
-    return status;
+    return clsparseSuccess;
 
 
 }
@@ -336,39 +336,39 @@ csrmv(const int m,
     if (status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseBuildProgramFailure;
     }
     //set kernel arguments;
     status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 2, sizeof(cl_uint), &off_alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 5, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 8, sizeof(cl_mem), &beta);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 9, sizeof(cl_uint), &off_beta);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return clsparseInvalidKernelArgs ; }
 
     status = clSetKernelArg(kernel, 10, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 10); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 10); return clsparseInvalidKernelArgs ; }
     status = clSetKernelArg(kernel, 11, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 11); return status ; }
+    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 11); return clsparseInvalidKernelArgs ; }
 
     // predicted number of subwaves to be executed;
     // subwave takes care of each row in matrix;
@@ -385,11 +385,11 @@ csrmv(const int m,
     if(status != CL_SUCCESS)
     {
         free(key);
-        return status;
+        return clsparseInvalidKernelExecution;
     }
 
     free(key);
-    return status;
+    return clsparseSuccess;
 
 }
 
@@ -522,8 +522,13 @@ clsparseScsrmv(const int m, const int n, const int nnz,
         printf("\n\talpha = 0, (clBlasSscale)\n\n");
 #endif
         // y = b*y;
-        return clblasSscal(m, *(cl_float*)h_beta, y, off_y, 1, 1, &queue,
+        clblasStatus clbls_status =
+                clblasSscal(m, *(cl_float*)h_beta, y, off_y, 1, 1, &queue,
                            num_events_in_wait_list, event_wait_list, event);
+        if(clbls_status != clblasSuccess)
+            return clsparseInvalidKernelExecution;
+        else
+            return clsparseSuccess;
 
     }
 
@@ -739,8 +744,13 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
 #ifndef NDEBUG
         printf("\n\talpha = 0, (clBlasDscale)\n\n");
 #endif
-        return clblasDscal(m, *(cl_double*)h_beta, y, off_y, 1, 1, &queue,
+        clblasStatus clbls_status =
+                clblasDscal(m, *(cl_double*)h_beta, y, off_y, 1, 1, &queue,
                            num_events_in_wait_list, event_wait_list, event);
+        if (clbls_status != clblasSuccess)
+            return clsparseInvalidKernelExecution;
+        else
+            return clsparseSuccess;
     }
 
     else if( *(cl_double*)h_beta == 0.0)

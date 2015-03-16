@@ -1,5 +1,5 @@
 #include "clSPARSE.h"
-#include "clsparse_control.h"
+#include "clsparse_control.hpp"
 #include <malloc.h>
 
 clsparseControl
@@ -42,7 +42,7 @@ clsparseReleaseControl(clsparseControl control)
 {
     if(control == NULL)
     {
-        return CL_INVALID_MEM_OBJECT;
+        return clsparseInvalidControlObject;
     }
 
     control->context = NULL;
@@ -60,7 +60,7 @@ clsparseReleaseControl(clsparseControl control)
 
     control = NULL;
 
-    return CL_SUCCESS;
+    return clsparseSuccess;
 }
 
 clsparseStatus
@@ -68,14 +68,14 @@ clsparseEventsToSync(clsparseControl control, cl_uint num_events_in_wait_list, c
 {
     if(control == NULL)
     {
-        return CL_INVALID_MEM_OBJECT;
+        return clsparseInvalidControlObject;
     }
 
     control->num_events_in_wait_list = num_events_in_wait_list;
     control->event_wait_list = event_wait_list;
     control->event = event;
 
-    return CL_SUCCESS;
+    return clsparseSuccess;
 }
 
 clsparseStatus
@@ -83,10 +83,16 @@ clsparseSynchronize(clsparseControl control)
 {
     if(control == NULL)
     {
-        return CL_INVALID_MEM_OBJECT;
+        return clsparseInvalidControlObject;
     }
 
-    return clWaitForEvents(1, control->event);
+    cl_int sync_status = clWaitForEvents(1, control->event);
+    if (sync_status != CL_SUCCESS)
+    {
+        return clsparseInvalidEvent;
+    }
+
+    return clsparseSuccess;
 }
 
 clsparseStatus
@@ -96,7 +102,7 @@ clsparseSetOffsets(clsparseControl control,
 {
     if(control == NULL)
     {
-        return CL_INVALID_MEM_OBJECT;
+        return clsparseInvalidControlObject;
     }
 
     control->off_alpha = off_alpha;
@@ -104,5 +110,5 @@ clsparseSetOffsets(clsparseControl control,
     control->off_x = off_x;
     control->off_y = off_y;
 
-    return CL_SUCCESS;
+    return clsparseSuccess;
 }
