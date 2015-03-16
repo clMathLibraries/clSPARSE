@@ -7,6 +7,10 @@ find_package( OpenCL REQUIRED )
 # clSPARSE library requires clBLAS
 find_package( clBLAS REQUIRED )
 
+add_definitions(
+    -std=c++11 # support for new cpp standard
+)
+
 set( clSPARSE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include )
 
 include_directories(
@@ -19,13 +23,21 @@ include_directories(
 )
 
 set( ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/program_sources.hpp )
-
 add_custom_command(
   OUTPUT "${ocl_kernels_file_name}"
   COMMAND ${CMAKE_COMMAND}
     -DCL_DIR="${CMAKE_CURRENT_SOURCE_DIR}/kernels"
     -DOUTPUT="${ocl_kernels_file_name}"
     -P "${PROJECT_SOURCE_DIR}/cmake/cl2c.cmake"
+)
+
+set(ocl_kernels_file_name2 ${PROJECT_BINARY_DIR}/include/kernels/source_provider.cpp)
+add_custom_command(
+  OUTPUT "${ocl_kernels_file_name2}"
+  COMMAND ${CMAKE_COMMAND}
+    -DCL_DIR="${CMAKE_CURRENT_SOURCE_DIR}/kernels"
+    -DOUTPUT="${ocl_kernels_file_name2}"
+    -P "${PROJECT_SOURCE_DIR}/cmake/cl2cpp.cmake"
 )
 
 # List the names of common files to compile across all platforms
@@ -45,8 +57,10 @@ set( clSPARSE.source.cpp
   internal/clsparse_control.cpp
   internal/clsparse_sources.cpp
   internal/clsparse_validate.cpp
+  internal/kernel_cache.cpp
   simple/clsparse_simple.cpp
   spmv/clsparse_csrmv.cpp
+
 )
 
 set( clSPARSE.Headers
@@ -57,7 +71,10 @@ set( clSPARSE.Headers
   internal/clsparse_control.hpp
   internal/clsparse_sources.hpp
   internal/clsparse_validate.hpp
+  internal/source_provider.hpp
+  internal/kernel_cache.hpp
   ${ocl_kernels_file_name}
+  ${ocl_kernels_file_name2}
 )
 
 set( clSPARSE.Files ${clSPARSE.source.cpp} ${clSPARSE.Headers} ${clSPARSE.source.cl} )
