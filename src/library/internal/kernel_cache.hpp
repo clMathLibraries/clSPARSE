@@ -22,22 +22,22 @@ public:
 
     static KernelCache& getInstance();
 
-    static const cl_kernel get(cl_command_queue queue,
+    static cl_kernel get(cl_command_queue& queue,
                                const std::string& name,
                                const std::string& params = "");
 
-    const cl_program getProgram(cl_command_queue queue,
+    const cl_program getProgram(cl_command_queue& queue,
                               const std::string& name,
                               const std::string& params = "");
 
-    const cl_kernel getKernel(cl_command_queue queue,
+    cl_kernel getKernel(cl_command_queue &queue,
                               const std::string& name,
                               const std::string& params = "");
 
 
 private:
 
-    cl_int getBuildLog(cl_device_id device, cl_program program, const char* params);
+    cl_int getBuildLog(cl_device_id& device, cl_program& program, const char* params);
 
     unsigned int rsHash(const std::string& key);
 

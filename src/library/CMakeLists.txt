@@ -58,6 +58,8 @@ set( clSPARSE.source.cpp
   internal/clsparse_sources.cpp
   internal/clsparse_validate.cpp
   internal/kernel_cache.cpp
+  internal/ocl_type_traits.cpp
+  internal/kernel_wrap.cpp
   simple/clsparse_simple.cpp
   spmv/clsparse_csrmv.cpp
 
@@ -73,6 +75,8 @@ set( clSPARSE.Headers
   internal/clsparse_validate.hpp
   internal/source_provider.hpp
   internal/kernel_cache.hpp
+  internal/ocl_type_traits.hpp
+  internal/kernel_wrap.hpp
   ${ocl_kernels_file_name}
   ${ocl_kernels_file_name2}
 )

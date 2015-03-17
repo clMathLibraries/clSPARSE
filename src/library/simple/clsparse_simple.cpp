@@ -3,10 +3,12 @@
 #include "internal/clsparse_sources.hpp"
 #include "internal/clsparse_validate.hpp"
 #include "internal/clsparse_control.hpp"
+#include "internal/kernel_cache.hpp"
+#include "internal/kernel_wrap.hpp"
 
-#include <string.h>
-#include <stdio.h>
-#include <assert.h>
+
+#include <iostream>
+#include <cassert>
 
 clsparseStatus
 clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
@@ -42,15 +44,6 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
         return clsparseInvalidEventWaitList;
     }
 
-//    cl_context context;
-//    cl_int ctx_status = clGetCommandQueueInfo(queue, CL_QUEUE_CONTEXT,
-//                                              sizeof(context), &context, NULL);
-//    if (ctx_status != CL_SUCCESS)
-//    {
-//        printf("Problem with obtaining context.\n");
-//        return clsparseInvalidContext;
-//    }
-
     //context is already in control structure
 
     if (control->context == NULL)
@@ -60,143 +53,44 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
     }
 
 
-    char params[90];
-    const char* format =
-            "-Werror -cl-std=CL1.2 -DINDEX_TYPE=int -DVALUE_TYPE=float -DSIZE_TYPE=int -DWG_SIZE=%u";
+    static const std::string params =
+            "-DINDEX_TYPE=int -DVALUE_TYPE=float -DSIZE_TYPE=int -DWG_SIZE=256";
 
-    sprintf(params, format, 256);
+    cl_kernel kernel = KernelCache::get(control->queue, "scale", params);
 
 #ifndef NDEBUG
-    printf("params %s\n", params);
+    std::cout << "params: " << params << std::endl;
 #endif
 
-    const char* program_name = "scale"; //maybe we can use key from program sources?
-
-    char* key = NULL;
-
-    createKey(program_name, params, &key);
-
-    cl_kernel kernel = get_kernel(control->queue, program_name, params, key, &status);
-
-    if (status != CL_SUCCESS)
+    if (kernel == nullptr)
     {
-        free(key);
+        //free(key);
         return clsparseBuildProgramFailure;
     }
 
-    status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &buff);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 2, sizeof(cl_int), &size);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
 
-    size_t local[1];
-    size_t global[1];
-    local[0] = 256;
-    global[0] = (( size / local[0] ) + 1) * local[0];
+    KernelWrap kWrapper(kernel);
 
-    status = clEnqueueNDRangeKernel(control->queue, kernel, 1,
-                                    NULL, global, local,
-                                    control->num_events_in_wait_list,
-                                    control->event_wait_list,
-                                    control->event);
-    if(status != CL_SUCCESS)
+    kWrapper << buff
+             << alpha
+             << size;
+
+    constexpr int BLOCK_SIZE = 256;
+
+    int blocksNum = (size + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    int globalSize = blocksNum * BLOCK_SIZE;
+
+    NDRange local(BLOCK_SIZE);
+    NDRange global(globalSize);
+
+
+    status = kWrapper.run(control->queue, global, local, nullptr, control->event);
+
+    if (status != CL_SUCCESS)
     {
-        free(key);
         return clsparseInvalidKernelExecution;
     }
 
-    free(key);
     return clsparseSuccess;
 
 }
-
-//clsparseStatus
-//clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
-//              cl_command_queue queue,
-//              cl_uint num_events_in_wait_list,
-//              const cl_event *event_wait_list,
-//              cl_event *event)
-//{
-//    if(!clsparseInitialized)
-//    {
-//        return clsparseNotInitialized;
-//    }
-
-//    clsparseStatus status;
-
-//    //validate input buffers
-
-//    //check opencl elements
-//    if (queue == NULL)
-//    {
-//        return clsparseInvalidCommandQueue;
-//    }
-
-//    //check event lists
-//    if ( (num_events_in_wait_list != 0) && (event_wait_list == NULL) )
-//    {
-//        return clsparseInvalidEventWaitList;
-//    }
-
-//    cl_context context;
-//    cl_int ctx_status = clGetCommandQueueInfo(queue, CL_QUEUE_CONTEXT,
-//                                              sizeof(context), &context, NULL);
-//    if (ctx_status != CL_SUCCESS)
-//    {
-//        printf("Problem with obtaining context.\n");
-//        return clsparseInvalidContext;
-//    }
-
-//    char params[90];
-//    const char* format =
-//            "-Werror -cl-std=CL1.2 -DINDEX_TYPE=int -DVALUE_TYPE=float -DSIZE_TYPE=int -DWG_SIZE=%u";
-
-//    sprintf(params, format, 256);
-
-//#ifndef NDEBUG
-//    printf("params %s\n", params);
-//#endif
-
-//    const char* program_name = "scale"; //maybe we can use key from program sources?
-
-//    char* key = NULL;
-
-//    createKey(program_name, params, &key);
-
-//    cl_kernel kernel = get_kernel(queue, program_name, params, key, &status);
-
-//    if (status != CL_SUCCESS)
-//    {
-//        free(key);
-//        return status;
-//    }
-
-//    status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &buff);
-//    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return status ; }
-//    status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &alpha);
-//    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return status ; }
-//    status = clSetKernelArg(kernel, 2, sizeof(cl_int), &size);
-//    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return status ; }
-
-//    size_t local[1];
-//    size_t global[1];
-//    local[0] = 256;
-//    global[0] = (( size / local[0] ) + 1) * local[0];
-
-//    status = clEnqueueNDRangeKernel(queue, kernel, 1,
-//                                    NULL, global, local,
-//                                    num_events_in_wait_list, event_wait_list, event);
-//    if(status != CL_SUCCESS)
-//    {
-//        free(key);
-//        return status;
-//    }
-
-//    free(key);
-//    return clsparseSuccess;
-
-//}
-
-

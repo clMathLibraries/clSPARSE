@@ -86,7 +86,9 @@ clsparseSynchronize(clsparseControl control)
         return clsparseInvalidControlObject;
     }
 
-    cl_int sync_status = clWaitForEvents(1, control->event);
+    cl_int sync_status;
+    if (control->event != NULL)
+        sync_status = clWaitForEvents(1, control->event);
     if (sync_status != CL_SUCCESS)
     {
         return clsparseInvalidEvent;

@@ -12,21 +12,23 @@ KernelCache::KernelCache()
 }
 
 
-const cl_kernel KernelCache::get(cl_command_queue queue,
+cl_kernel KernelCache::get(cl_command_queue& queue,
                                  const std::string& name,
                                  const std::string& params)
 {
     return getInstance().getKernel(queue, name, params);
 }
 
-const cl_kernel KernelCache::getKernel(cl_command_queue queue,
+cl_kernel KernelCache::getKernel(cl_command_queue& queue,
                                         const std::string& name,
                                         const std::string& params)
 {
     //!! ASSUMPTION: Kernel name == program name;
+    std::string _params = "-Werror -cl-kernel-arg-info -cl-std=CL1.2 ";
+    _params.append(params);
     std::string key;
     key.append(name);
-    key.append(params);
+    key.append(_params);
 
     auto hash = rsHash(key);
 #ifndef NDEBUG
@@ -43,7 +45,7 @@ const cl_kernel KernelCache::getKernel(cl_command_queue queue,
     }
     else //build program and compile the kernel;
     {
-        cl_program program = getProgram(queue, name, params);
+        cl_program program = getProgram(queue, name, _params);
         if (program == nullptr)
         {
             return nullptr;
@@ -67,7 +69,7 @@ const cl_kernel KernelCache::getKernel(cl_command_queue queue,
     }
 }
 
-const cl_program KernelCache::getProgram(cl_command_queue queue,
+const cl_program KernelCache::getProgram(cl_command_queue& queue,
                                          const std::string& name,
                                          const std::string& params)
 {
@@ -127,8 +129,8 @@ const cl_program KernelCache::getProgram(cl_command_queue queue,
     return program;
 }
 
-cl_int KernelCache::getBuildLog(cl_device_id device,
-                                cl_program program, const char *params)
+cl_int KernelCache::getBuildLog(cl_device_id& device,
+                                cl_program& program, const char *params)
 {
     cl_int status;
     char* log;

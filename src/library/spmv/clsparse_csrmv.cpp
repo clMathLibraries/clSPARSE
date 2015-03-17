@@ -698,7 +698,7 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
 
     char params [128];
     const char* format =
-            "-Werror -DINDEX_TYPE=uint -DVALUE_TYPE=double -DSIZE_TYPE=uint -DWG_SIZE=%u -DSUBWAVE_SIZE=%u";
+            "-Werror -cl-kernel-arg-info -DINDEX_TYPE=uint -DVALUE_TYPE=double -DSIZE_TYPE=uint -DWG_SIZE=%u -DSUBWAVE_SIZE=%u";
 
     //inprint the kernel parameters into the params;
     sprintf(params, format, group_size, subwave_size);
