@@ -1,6 +1,5 @@
 #include "clSPARSE.h"
-//#include "internal/clsparse_internal.h"
-#include "internal/clsparse_sources.hpp"
+#include "internal/clsparse_internal.hpp"
 #include "internal/clsparse_validate.hpp"
 #include "internal/clsparse_control.hpp"
 #include "internal/kernel_cache.hpp"
