@@ -47,10 +47,11 @@ clsparseTeardown(void)
         return clsparseSuccess;
     }
 
+    clblasTeardown();
+
     hdl_destroy(&program_sources);
     hdl_destroy_with_func(&kernel_cache, (free_clfunc_t)(&clReleaseKernel));
 
-    clblasTeardown();
 
     clsparseInitialized = 0;
     return clsparseSuccess;

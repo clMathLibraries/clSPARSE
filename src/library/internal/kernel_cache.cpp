@@ -11,15 +11,15 @@ KernelCache::KernelCache()
     //we can add sth here which can be shared among all kernels;
 }
 
-
-cl_kernel KernelCache::get(cl_command_queue& queue,
-                                 const std::string& name,
-                                 const std::string& params)
+cl::Kernel KernelCache::get(cl::CommandQueue& queue,
+                         const std::string& name,
+                         const std::string& params)
 {
     return getInstance().getKernel(queue, name, params);
 }
 
-cl_kernel KernelCache::getKernel(cl_command_queue& queue,
+
+cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
                                         const std::string& name,
                                         const std::string& params)
 {
@@ -45,44 +45,40 @@ cl_kernel KernelCache::getKernel(cl_command_queue& queue,
     }
     else //build program and compile the kernel;
     {
-        cl_program program = getProgram(queue, name, _params);
+        const cl::Program* program = NULL;
+        program = getProgram(queue, name, _params);
         if (program == nullptr)
         {
-            return nullptr;
+            std::cout << "Problem with getting program ["
+                      << name << "] " << std::endl;
+            delete program;
+            return cl::Kernel();
         }
 
         cl_int status;
-        cl_kernel kernel = clCreateKernel(program, name.c_str(), &status);
+        cl::Kernel kernel(*program, name.c_str(), &status);
 
         if (status != CL_SUCCESS)
         {
             std::cout << "Problem with creating kernel ["
-                      << kernel << "]" << std::endl;
-            clReleaseProgram(program);
-            return nullptr;
+                      << name << "]" << std::endl;
+            delete program;
+            return cl::Kernel();
         }
 
         kernel_map[hash] = kernel;
-
-        clReleaseProgram(program);
+        delete program;
         return kernel;
     }
 }
 
-const cl_program KernelCache::getProgram(cl_command_queue& queue,
+const cl::Program* KernelCache::getProgram(cl::CommandQueue& queue,
                                          const std::string& name,
                                          const std::string& params)
 {
-    //TODO:: Add context and decvice to the instance;
+
     cl_int status;
-    cl_context context;
-    status = clGetCommandQueueInfo(queue, CL_QUEUE_CONTEXT,
-                                   sizeof(context), &context, NULL);
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Problem with obtaining queue context" << std::endl;
-        return nullptr;
-    }
+    cl::Context context = queue.getInfo<CL_QUEUE_CONTEXT>();
 
     const char* source = SourceProvider::GetSource(name);
     if (source == nullptr)
@@ -90,91 +86,59 @@ const cl_program KernelCache::getProgram(cl_command_queue& queue,
         std::cout << "Source not found [" << name << "]" << std::endl;
         return nullptr;
     }
-
     size_t size = std::char_traits<char>::length(source);
 
-    cl_program program =
-            clCreateProgramWithSource(context, 1, &source, &size, &status);
+    cl::Program::Sources sources;
 
-    if (status != CL_SUCCESS)
+    std::pair<const char*, size_t> pair =
+            std::make_pair(source, size);
+    sources.push_back(pair);
+
+    std::vector<cl::Device> devices;
+    try
     {
-        std::cout << "Problem creating program with source";
+       auto d = queue.getInfo<CL_QUEUE_DEVICE>();
+       devices.push_back(d);
+
+    } catch (cl::Error &e)
+    {
+        std::cout << "Problem with getting device form queue: "
+                  << e.what() << " err: " << e.err() << std::endl;
+
         return nullptr;
     }
 
-    cl_device_id device;
-    status = clGetCommandQueueInfo(queue, CL_QUEUE_DEVICE,
-                                   sizeof(device), &device, NULL);
 
-    if (status != CL_SUCCESS)
+    cl::Program* program;
+
+    try {
+        program = new cl::Program(context, sources);
+        program->build(devices, params.c_str());
+
+    } catch (cl::Error& e)
     {
-        std::cout << "Problem with getting queue" << std::endl;
-        return nullptr;
-    }
 
-    status = clBuildProgram(program, 1, &device,
-                            params.c_str(), NULL, NULL);
-
-    if (status != CL_SUCCESS)
-    {
-        cl_int log_status = getBuildLog(device, program, params.c_str());
-        if (log_status != CL_SUCCESS)
+        std::cout << "#######################################" << std::endl;
+        std::cout << "sources: ";
+        for (auto& s : sources)
         {
-            std::cerr << "FATAL!: Problem with generating build log"
-                      << "for program " << name << std::endl;
+            std::cout << s.first << std::endl;
         }
+
+        std::cout << std::endl;
+
+        std::cout << "---------------------------------------" << std::endl;
+        std::cout << "parameters: " << params << std::endl;
+        std::cout << "---------------------------------------" << std::endl;
+        std::cout << program->getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
+        std::cout << "#######################################" << std::endl;
+
         return nullptr;
     }
 
     return program;
 }
 
-cl_int KernelCache::getBuildLog(cl_device_id& device,
-                                cl_program& program, const char *params)
-{
-    cl_int status;
-    char* log;
-    size_t log_size;
-    char* source;
-    size_t source_size;
-
-    status = clGetProgramInfo( program, CL_PROGRAM_SOURCE, 0, NULL, &source_size );
-    if( status != CL_SUCCESS )
-    {
-        return status;
-    }
-
-    source = (char*) malloc( source_size * sizeof( char ) );
-
-    status = clGetProgramInfo( program, CL_PROGRAM_SOURCE, source_size, source, NULL );
-    if( status != CL_SUCCESS )
-    {
-        return status;
-    }
-
-
-    status = clGetProgramBuildInfo( program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size );
-    if( status != CL_SUCCESS )
-    {
-        return status;
-    }
-
-
-    log = (char*) malloc( log_size * sizeof( char ) );
-
-    status = clGetProgramBuildInfo( program, device, CL_PROGRAM_BUILD_LOG, log_size, log, NULL );
-    if( status != CL_SUCCESS )
-    {
-        return status;
-    }
-
-    printf( "############ Build Log ############\n" );
-    printf( "Params: %s\n", params );
-    printf( "Source: \n%s\n", source );
-    printf( "ERROR: %s\n", log );
-    free( log );
-    free( source );
-}
 
 
 KernelCache& KernelCache::getInstance()

@@ -606,16 +606,16 @@ clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
                     cl_mem beta, cl_mem y,
                     clsparseControl control)
 {
-    return clsparseScsrmv(m, n, nnz,
-                          alpha, control->off_alpha,
-                          row_offsets, col_indices, values,
-                          x, control->off_x,
-                          beta, control->off_beta,
-                          y, control->off_beta,
-                          control->queue,
-                          control->num_events_in_wait_list,
-                          control->event_wait_list,
-                          control->event);
+//    return clsparseScsrmv(m, n, nnz,
+//                          alpha, control->off_alpha,
+//                          row_offsets, col_indices, values,
+//                          x, control->off_x,
+//                          beta, control->off_beta,
+//                          y, control->off_beta,
+//                          control->queue,
+//                          control->num_events_in_wait_list,
+//                          control->event_wait_list,
+//                          control->event);
 }
 
 clsparseStatus

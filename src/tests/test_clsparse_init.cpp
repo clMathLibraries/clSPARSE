@@ -1,6 +1,9 @@
 #include <clSPARSE.h>
 #include <gtest/gtest.h>
 
+#include "opencl_utils.h"
+
+
 TEST (clSparseInit, setup)
 {
     clsparseStatus status = clsparseSetup();
@@ -23,8 +26,39 @@ TEST (clSparseInit, version)
     clsparseGetVersion (&major, &minor, &patch);
 
     EXPECT_EQ (0, major);
-    EXPECT_EQ (1, minor);
-    EXPECT_EQ (0, patch);
+    EXPECT_EQ (0, minor);
+    EXPECT_EQ (1, patch);
+}
+
+TEST (clsparseInit, control)
+{
+
+    // init cl environment
+    cl_int status = CL_SUCCESS;
+    cl_platform_id* platforms = NULL;
+    cl_uint num_platforms = 0;
+
+    status = getPlatforms(&platforms, &num_platforms);
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    //printPlatforms(platforms, num_platforms);
+
+    cl_device_id device = NULL;
+    status = getDevice(platforms[0], &device, CL_DEVICE_TYPE_GPU);
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    //printDeviceInfo(device);
+
+    auto context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
+    auto queue = clCreateCommandQueue(context, device, 0, NULL);
+
+    clsparseSetup();
+
+    auto control = clsparseCreateControl(queue, NULL);
+
+    free(platforms);
+
+    clsparseTeardown();
 }
 
 int main(int argc, char* argv[])

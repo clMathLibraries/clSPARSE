@@ -35,13 +35,16 @@ TEST (simple_kernel, run)
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    cl_event scale_event;
-    clsparseEventsToSync(CLSE::control, 0, NULL, &scale_event);
-//    clsparseStatus clsp_status = clsparseScale(buff, alpha, N, CLSE::queue,
-//                                               0, NULL, &scale_event);
+    cl_event scale_event1;
+    cl_event scale_event2;
+
+    clsparseSetupEvent(CLSE::control, &scale_event1);
+
+    //TODO:: NOT WORKING!
+    //clsparseSetupEventWaitList(CLSE::control, 1, &scale_event2);
+
     clsparseStatus clsp_status = clsparseScale(buff, alpha, N, CLSE::control);
     status = clsparseSynchronize(CLSE::control);
-    //status = clWaitForEvents(1, &scale_event);
 
     ASSERT_EQ(CL_SUCCESS, status);
     ASSERT_EQ(clsparseSuccess, clsp_status);

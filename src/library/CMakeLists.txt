@@ -11,6 +11,10 @@ add_definitions(
     -std=c++11 # support for new cpp standard
 )
 
+add_definitions(
+    -D__CL_ENABLE_EXCEPTIONS
+)
+
 set( clSPARSE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include )
 
 include_directories(

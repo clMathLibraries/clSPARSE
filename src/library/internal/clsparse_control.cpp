@@ -1,37 +1,31 @@
 #include "clSPARSE.h"
 #include "clsparse_control.hpp"
+
+#include <iostream>
 #include <malloc.h>
 
 clsparseControl
-clsparseCreateControl(cl_command_queue queue, cl_int *status)
+clsparseCreateControl(cl_command_queue& queue, cl_int *status)
 {
-    clsparseControl control = (clsparseControl)malloc(sizeof(_clsparseControl));
+    //clsparseControl control = (clsparseControl)malloc(sizeof(_clsparseControl));
+    clsparseControl control = new _clsparseControl(queue);
 
     cl_int err;
     if (!control)
     {
-        control = NULL;
+        control = nullptr;
         err = clsparseOutOfHostMemory;
     }
-
-    control->queue = queue;
-
-    err = clGetCommandQueueInfo(control->queue, CL_QUEUE_CONTEXT,
-                          sizeof(control->context), &(control->context), NULL);
-
-    if (status != NULL)
-    {
-        *status = err;
-    }
-
-    control->event = NULL;
-    control->num_events_in_wait_list = 0;
-    control->event_wait_list = NULL;
 
     control->off_alpha = 0;
     control->off_beta = 0;
     control->off_x = 0;
     control->off_y = 0;
+
+    if (status != NULL)
+    {
+        *status = err;
+    }
 
     return control;
 }
@@ -44,12 +38,6 @@ clsparseReleaseControl(clsparseControl control)
     {
         return clsparseInvalidControlObject;
     }
-
-    control->context = NULL;
-    control->queue = NULL;
-    control->num_events_in_wait_list = 0;
-    control->event_wait_list = NULL;
-    control->event = NULL;
 
     control->off_alpha = 0;
     control->off_beta = 0;
@@ -64,19 +52,39 @@ clsparseReleaseControl(clsparseControl control)
 }
 
 clsparseStatus
-clsparseEventsToSync(clsparseControl control, cl_uint num_events_in_wait_list, cl_event *event_wait_list, cl_event *event)
+clsparseSetupEventWaitList(clsparseControl control,
+                           cl_uint num_events_in_wait_list,
+                           cl_event *event_wait_list)
 {
     if(control == NULL)
     {
         return clsparseInvalidControlObject;
     }
 
-    control->num_events_in_wait_list = num_events_in_wait_list;
-    control->event_wait_list = event_wait_list;
-    control->event = event;
+    control->event_wait_list.clear();
+    control->event_wait_list.resize(num_events_in_wait_list);
+    for (int i = 0; i < num_events_in_wait_list; i++)
+    {
+        control->event_wait_list[i] = event_wait_list[i];
+    }
+    control->event_wait_list.shrink_to_fit();
 
     return clsparseSuccess;
 }
+
+clsparseStatus
+clsparseSetupEvent(clsparseControl control, cl_event *event)
+{
+    if(control == NULL)
+    {
+        return clsparseInvalidControlObject;
+    }
+
+    control->event = *event;
+
+    return clsparseSuccess;
+}
+
 
 clsparseStatus
 clsparseSynchronize(clsparseControl control)
@@ -86,9 +94,15 @@ clsparseSynchronize(clsparseControl control)
         return clsparseInvalidControlObject;
     }
 
-    cl_int sync_status;
-    if (control->event != NULL)
-        sync_status = clWaitForEvents(1, control->event);
+    cl_int sync_status = CL_SUCCESS;
+    try {
+        control->event.wait();
+    } catch (cl::Error& e)
+    {
+        std::cout << "clsparseSynchronize error " << e.what() << std::endl;
+        sync_status = e.err();
+    }
+
     if (sync_status != CL_SUCCESS)
     {
         return clsparseInvalidEvent;

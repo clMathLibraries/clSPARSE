@@ -2,9 +2,9 @@
 #define _KERNEL_CAHCE_HPP_
 
 #if defined(__APPLE__) || defined(__MACOSX)
-    #include <OpenCL/cl.h>
+    #include <OpenCL/cl.hpp>
 #else
-    #include <CL/cl.h>
+    #include <CL/cl.hpp>
 #endif
 
 #include <string>
@@ -18,26 +18,25 @@ class KernelCache
 
 public:
 
-    typedef std::map<unsigned int, cl_kernel> KernelMap;
+    typedef std::map<unsigned int, cl::Kernel> KernelMap;
 
     static KernelCache& getInstance();
 
-    static cl_kernel get(cl_command_queue& queue,
-                               const std::string& name,
-                               const std::string& params = "");
+    static cl::Kernel get(cl::CommandQueue& queue,
+                         const std::string& name,
+                         const std::string& params = "");
 
-    const cl_program getProgram(cl_command_queue& queue,
+    const cl::Program* getProgram(cl::CommandQueue& queue,
                               const std::string& name,
                               const std::string& params = "");
 
-    cl_kernel getKernel(cl_command_queue &queue,
+    cl::Kernel getKernel(cl::CommandQueue &queue,
                               const std::string& name,
                               const std::string& params = "");
 
 
 private:
 
-    cl_int getBuildLog(cl_device_id& device, cl_program& program, const char* params);
 
     unsigned int rsHash(const std::string& key);
 

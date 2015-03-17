@@ -32,42 +32,28 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
 
 
     //check opencl elements
-    if (control->queue == NULL)
+    if (control == nullptr)
     {
-        return clsparseInvalidCommandQueue;
+        return clsparseInvalidControlObject;
     }
 
-    //check event lists
-    if ( (control->num_events_in_wait_list != 0)
-         && (control->event_wait_list == NULL) )
-    {
-        return clsparseInvalidEventWaitList;
-    }
+    constexpr int wg_size = 256;
 
-    //context is already in control structure
-
-    if (control->context == NULL)
-    {
-        printf("Context in control structure is null.\n");
-        return clsparseInvalidContext;
-    }
+    int blocksNum = (size + wg_size - 1) / wg_size;
+    int globalSize = blocksNum * wg_size;
 
 
-    static const std::string params =
-            "-DINDEX_TYPE=int -DVALUE_TYPE=float -DSIZE_TYPE=int -DWG_SIZE=256";
+    static const std::string params = std::string() +
+            "-DINDEX_TYPE=" + OclTypeTraits<int>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<int>::type
+            + " -DVALUE_TYPE="+ OclTypeTraits<float>::type
+            + " -DWG_SIZE=" + std::to_string(wg_size);
 
-    cl_kernel kernel = KernelCache::get(control->queue, "scale", params);
+    cl::Kernel kernel = KernelCache::get(control->queue, "scale", params);
 
 #ifndef NDEBUG
     std::cout << "params: " << params << std::endl;
 #endif
-
-    if (kernel == nullptr)
-    {
-        //free(key);
-        return clsparseBuildProgramFailure;
-    }
-
 
     KernelWrap kWrapper(kernel);
 
@@ -75,16 +61,13 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
              << alpha
              << size;
 
-    constexpr int BLOCK_SIZE = 256;
 
-    int blocksNum = (size + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    int globalSize = blocksNum * BLOCK_SIZE;
+    cl::NDRange local(wg_size);
+    cl::NDRange global(globalSize);
 
-    NDRange local(BLOCK_SIZE);
-    NDRange global(globalSize);
-
-
-    status = kWrapper.run(control->queue, global, local, nullptr, control->event);
+    status = kWrapper.run(control->queue, global, local,
+                          control->event_wait_list,
+                          control->event);
 
     if (status != CL_SUCCESS)
     {
@@ -92,5 +75,4 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
     }
 
     return clsparseSuccess;
-
 }

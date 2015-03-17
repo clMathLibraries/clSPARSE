@@ -61,14 +61,19 @@ typedef struct _clsparseControl*  clsparseControl;
 
 //setup the control from external queue;
 CLSPARSE_EXPORT clsparseControl 
-clsparseCreateControl( cl_command_queue queue, cl_int *status );
+clsparseCreateControl(cl_command_queue &queue, cl_int *status );
 
 //setup events to sync
+//TODO:: NOT WORKING! NDRange throws Failure
 CLSPARSE_EXPORT clsparseStatus
-clsparseEventsToSync(clsparseControl control,
-                     cl_uint num_events_in_wait_list,
-                     cl_event* event_wait_list,
-                     cl_event* event);
+clsparseSetupEventWaitList(clsparseControl control,
+                           cl_uint num_events_in_wait_list,
+                           cl_event* event_wait_list);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseSetupEvent(clsparseControl control,
+                   cl_event* event);
+
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseSynchronize(clsparseControl control);

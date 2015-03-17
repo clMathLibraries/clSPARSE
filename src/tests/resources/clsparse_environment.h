@@ -57,6 +57,7 @@ public:
     void TearDown()
     {
         //release cl structures
+
         clReleaseCommandQueue(queue);
         clReleaseContext(context);
         cl_int status  = clsparseReleaseControl(control);
