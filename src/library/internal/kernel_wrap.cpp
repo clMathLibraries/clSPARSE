@@ -4,10 +4,9 @@ KernelWrap::KernelWrap(cl::Kernel &kernel) : kernel(kernel), argCounter(0)
 {
 }
 
-cl_int KernelWrap::run(cl::CommandQueue &queue, const cl::NDRange global,
-                       const cl::NDRange local,
-                       const std::vector<cl::Event>& events,
-                       cl::Event& event)
+cl_int KernelWrap::run(clsparseControl control,
+                       const cl::NDRange global,
+                       const cl::NDRange local)
 {
     assert(argCounter == kernel.getInfo<CL_KERNEL_NUM_ARGS>());
 
@@ -29,13 +28,17 @@ cl_int KernelWrap::run(cl::CommandQueue &queue, const cl::NDRange global,
 //    std::vector<cl::Event> myWlist(1);
 //    myWlist[0] = myEvent;
 
+    auto& queue = control->queue;
+    auto& eventWaitList = control->event_wait_list;
+    auto event = control->event;
+
     cl_int status;
     try {
 
-        status = queue.enqueueNDRangeKernel(kernel,
-                                            cl::NullRange,
-                                            global, local,
-                                            &events, &event);
+//        status = queue.enqueueNDRangeKernel(kernel,
+//                                            cl::NullRange,
+//                                            global, local,
+//                                            &events, &event);
 
     } catch (cl::Error& e)
     {

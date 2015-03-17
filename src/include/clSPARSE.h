@@ -130,15 +130,11 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
 CLSPARSE_EXPORT clsparseStatus
 clsparseScsrmv(const int m, const int n, const int nnz,
                cl_mem alpha,
-               size_t off_alpha,
                cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x, size_t off_x,
-               cl_mem beta, size_t off_beta,
-               cl_mem y, size_t off_y,
-               cl_command_queue queue,
-               cl_uint num_events_in_wait_list,
-               const cl_event *event_wait_list,
-               cl_event *event);
+               cl_mem x,
+               cl_mem beta,
+               cl_mem y,
+               clsparseControl control);
 
 //new possible implementation of csrmv with control object
 CLSPARSE_EXPORT clsparseStatus
@@ -154,15 +150,11 @@ clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
 CLSPARSE_EXPORT clsparseStatus
 clsparseDcsrmv(const int m, const int n, const int nnz,
                cl_mem alpha,
-               size_t off_alpha,
                cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x, size_t off_x,
-               cl_mem beta, size_t off_beta,
-               cl_mem y, size_t off_y,
-               cl_command_queue queue,
-               cl_uint num_events_in_wait_list,
-               const cl_event *event_wait_list,
-               cl_event *event);
+               cl_mem x,
+               cl_mem beta,
+               cl_mem y,
+               clsparseControl control);
 
 
 CLSPARSE_EXPORT clsparseStatus

@@ -109,12 +109,12 @@ bool allocateVector(cl_mem* buffer, size_t size, VALUE_TYPE value,
 
 template<typename VALUE_TYPE, typename INDEX_TYPE>
 bool executeCSRMultiply(const INDEX_TYPE m, const INDEX_TYPE n, const INDEX_TYPE nnz,
-                        cl_mem alpha, INDEX_TYPE off_alpha,
+                        cl_mem alpha,
                         cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-                        cl_mem x, INDEX_TYPE off_x,
-                        cl_mem beta, INDEX_TYPE off_beta,
-                        cl_mem y, INDEX_TYPE off_y,
-                        cl_command_queue queue,
+                        cl_mem x,
+                        cl_mem beta,
+                        cl_mem y,
+                        clsparseControl control,
                         const int number_of_tries
                         )
 {
@@ -131,34 +131,30 @@ bool executeCSRMultiply(const INDEX_TYPE m, const INDEX_TYPE n, const INDEX_TYPE
     for (int i = 0; i < number_of_tries; i++)
     {
         cl_event event;
+        //clsparseSetupEvent(control, &event);
+
         clsparseStatus spmv_status;
 
         if (typeid(VALUE_TYPE) == typeid(cl_float))
         {
 
             spmv_status = clsparseScsrmv(m, n, nnz,
-                                         alpha, off_alpha,
+                                         alpha,
                                          row_offsets, col_indices, values,
-                                         x, off_x,
-                                         beta, off_beta,
-                                         y, off_y,
-                                         queue,
-                                         0,
-                                         NULL,
-                                         &event);
+                                         x,
+                                         beta,
+                                         y,
+                                         control);
         }
         else if(typeid(VALUE_TYPE) == typeid(cl_double))
         {
             spmv_status = clsparseDcsrmv(m, n, nnz,
-                                         alpha, off_alpha,
+                                         alpha,
                                          row_offsets, col_indices, values,
-                                         x, off_x,
-                                         beta, off_beta,
-                                         y, off_y,
-                                         queue,
-                                         0,
-                                         NULL,
-                                        &event);
+                                         x,
+                                         beta,
+                                         y,
+                                         control);
 
         }
         else
@@ -167,11 +163,11 @@ bool executeCSRMultiply(const INDEX_TYPE m, const INDEX_TYPE n, const INDEX_TYPE
             return false;
         }
 
-        cl_int event_status = CL_SUCCESS;
-        event_status = clWaitForEvents(1, &event);
+        clsparseStatus event_status = clsparseSuccess;
+       // event_status = clsparseSynchronize(control);
 
         if (spmv_status != clsparseSuccess ||
-                event_status != CL_SUCCESS)
+                event_status != clsparseSuccess)
         {
             std::cout << "status: " << spmv_status
                       << " event: " << event_status << std::endl;

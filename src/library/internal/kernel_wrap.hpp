@@ -10,9 +10,10 @@
 #include <iostream>
 #include <cassert>
 #include <vector>
-
 #include <type_traits>
 
+#include "clSPARSE.h"
+#include "clsparse_control.hpp"
 #include "ocl_type_traits.hpp"
 
 //! \brief Class interface for specifying NDRange values.
@@ -23,10 +24,8 @@ class KernelWrap
 public:
     KernelWrap(cl::Kernel &kernel);
 
-    cl_int run (cl::CommandQueue& queue, const cl::NDRange global,
-                const cl::NDRange local,
-                const std::vector<cl::Event> &events,
-                cl::Event &event);
+    cl_int run (clsparseControl control, const cl::NDRange global,
+                const cl::NDRange local);
 
     void reset()
     {
@@ -82,8 +81,11 @@ private:
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
         { \
             assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
+            auto curStr = kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter); \
+            std::cout << "curStr = " << curStr;\
             assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter) \
                                                          == TYPE_STRING); \
+            std::cout << " passed" << std::endl; \
             kernel.setArg(argCounter++, arg); \
             return *this; \
         }

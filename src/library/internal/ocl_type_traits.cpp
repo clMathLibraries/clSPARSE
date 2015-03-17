@@ -11,6 +11,7 @@ DECLARE_TYPE_STR(unsigned short, "ushort")
 DECLARE_TYPE_STR(int, "int")
 DECLARE_TYPE_STR(unsigned int, "uint")
 DECLARE_TYPE_STR(long long, "long")
-DECLARE_TYPE_STR(unsigned long long, "ulong")
+DECLARE_TYPE_STR(long unsigned int, "ulong");
+//DECLARE_TYPE_STR(unsigned long long, "ulong")
 DECLARE_TYPE_STR(float, "float")
 DECLARE_TYPE_STR(double, "double")

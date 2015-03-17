@@ -15,10 +15,7 @@ namespace po = boost::program_options;
 
 template<typename T>
 clsparseStatus generateResult(cl_mem x, cl_mem alpha,
-                              cl_mem y, cl_mem beta,
-                              cl_uint num_events_in_wait_list,
-                              const cl_event *event_wait_list,
-                              cl_event* event)
+                              cl_mem y, cl_mem beta)
 {
     using CSRE = CSREnvironment;
     using CLSE = ClSparseEnvironment;
@@ -28,17 +25,14 @@ clsparseStatus generateResult(cl_mem x, cl_mem alpha,
         return clsparseScsrmv(CSRE::n_rows,
                        CSRE::n_cols,
                        CSRE::n_vals,
-                       alpha, 0,
+                       alpha,
                        CSRE::cl_row_offsets,
                        CSRE::cl_col_indices,
                        CSRE::cl_f_values,
-                       x, 0,
-                       beta, 0,
-                       y, 0,
-                       CLSE::queue,
-                       num_events_in_wait_list,
-                       event_wait_list,
-                       event);
+                       x,
+                       beta,
+                       y,
+                       CLSE::control);
 
     }
     if(typeid(T) == typeid(double))
@@ -46,17 +40,14 @@ clsparseStatus generateResult(cl_mem x, cl_mem alpha,
        return clsparseDcsrmv(CSRE::n_rows,
                        CSRE::n_cols,
                        CSRE::n_vals,
-                       alpha, 0,
+                       alpha,
                        CSRE::cl_row_offsets,
                        CSRE::cl_col_indices,
                        CSRE::cl_d_values,
-                       x, 0,
-                       beta, 0,
-                       y, 0,
-                       CLSE::queue,
-                       num_events_in_wait_list,
-                       event_wait_list,
-                       event);
+                       x,
+                       beta,
+                       y,
+                       CLSE::control);
 
     }
 }
@@ -165,12 +156,12 @@ TYPED_TEST_CASE(TestCSRMV, TYPES);
 
 TYPED_TEST(TestCSRMV, multiply)
 {
+
     clsparseStatus status =
             generateResult<TypeParam>(this->gx,
                                       this->galpha,
                                       this->gy,
-                                      this->gbeta,
-                                      0, NULL, NULL);
+                                      this->gbeta);
     EXPECT_EQ(clsparseSuccess, status);
 
     std::vector<TypeParam> result(this->y.size());

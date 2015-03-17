@@ -17,6 +17,7 @@ clsparseCreateControl(cl_command_queue& queue, cl_int *status)
         err = clsparseOutOfHostMemory;
     }
 
+    control->event = nullptr;
     control->off_alpha = 0;
     control->off_beta = 0;
     control->off_x = 0;
@@ -37,6 +38,11 @@ clsparseReleaseControl(clsparseControl control)
     if(control == NULL)
     {
         return clsparseInvalidControlObject;
+    }
+
+    if(control->event != nullptr)
+    {
+        delete control->event;
     }
 
     control->off_alpha = 0;
@@ -80,7 +86,8 @@ clsparseSetupEvent(clsparseControl control, cl_event *event)
         return clsparseInvalidControlObject;
     }
 
-    control->event = *event;
+
+    control->event = new cl::Event(*event);
 
     return clsparseSuccess;
 }
@@ -96,7 +103,7 @@ clsparseSynchronize(clsparseControl control)
 
     cl_int sync_status = CL_SUCCESS;
     try {
-        control->event.wait();
+        control->event->wait();
     } catch (cl::Error& e)
     {
         std::cout << "clsparseSynchronize error " << e.what() << std::endl;

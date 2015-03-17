@@ -25,7 +25,7 @@ typedef struct _clsparseControl
     cl::CommandQueue queue;
 
     std::vector<cl::Event> event_wait_list;
-    cl::Event event;
+    cl::Event* event;
 
     //operation parameters
     size_t off_alpha;

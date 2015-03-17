@@ -19,6 +19,12 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
         return clsparseNotInitialized;
     }
 
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
     cl_int status;
     clsparseStatus clsp_status;
 
@@ -31,11 +37,7 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
         return clsparseInvalidMemObj;
 
 
-    //check opencl elements
-    if (control == nullptr)
-    {
-        return clsparseInvalidControlObject;
-    }
+
 
     constexpr int wg_size = 256;
 
@@ -65,9 +67,7 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
     cl::NDRange local(wg_size);
     cl::NDRange global(globalSize);
 
-    status = kWrapper.run(control->queue, global, local,
-                          control->event_wait_list,
-                          control->event);
+    status = kWrapper.run(control, global, local);
 
     if (status != CL_SUCCESS)
     {

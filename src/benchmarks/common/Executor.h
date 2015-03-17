@@ -19,7 +19,6 @@ template<typename T>
 class Executor
 {
 
-
 public:
 
     Executor(const Params<T>& params)
@@ -52,11 +51,13 @@ public:
         queue = clCreateCommandQueue(context, device, 0, NULL);
 
         clsparseSetup();
+        control = clsparseCreateControl(queue, NULL);
         free(platforms);
     }
 
     ~Executor()
     {
+        clsparseReleaseControl(control);
         clsparseTeardown();
         clReleaseCommandQueue(queue);
         clReleaseContext(context);
@@ -141,12 +142,12 @@ public:
 
             bool warmup_status =
                     executeCSRMultiply<T>(n_rows, n_cols, n_vals,
-                                          cl_alpha, 0,
+                                          cl_alpha,
                                           cl_row_offsets, cl_col_indices, cl_values,
-                                          cl_x, 0,
-                                          cl_beta, 0,
-                                          cl_y, 0,
-                                          queue,
+                                          cl_x,
+                                          cl_beta,
+                                          cl_y,
+                                          control,
                                           params.number_of_warmups);
             if (!warmup_status)
             {
@@ -160,12 +161,12 @@ public:
             timer.Start();
             bool bench_status =
                     executeCSRMultiply<T>(n_rows, n_cols, n_vals,
-                                          cl_alpha, 0,
+                                          cl_alpha,
                                           cl_row_offsets, cl_col_indices, cl_values,
-                                          cl_x, 0,
-                                          cl_beta, 0,
-                                          cl_y, 0,
-                                          queue,
+                                          cl_x,
+                                          cl_beta,
+                                          cl_y,
+                                          control,
                                           params.number_of_tries);
             timer.Stop();
             if (! bench_status)
@@ -212,6 +213,7 @@ private:
 
     cl_context context;
     cl_command_queue queue;
+    clsparseControl control;
 
     std::vector<fs::path> matrix_files;
     std::vector<MatrixStatistics> results;

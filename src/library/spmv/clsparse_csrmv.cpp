@@ -2,156 +2,82 @@
 #include "internal/clsparse_sources.hpp"
 #include "internal/clsparse_validate.hpp"
 #include "internal/clsparse_control.hpp"
+#include "internal/kernel_cache.hpp"
+#include "internal/kernel_wrap.hpp"
 
 #include <clBLAS.h>
 
 clsparseStatus
 csrmv_a1b0(const int m,
            cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-           cl_mem x, size_t off_x, cl_mem y, size_t off_y,
-           const char* params,
+           cl_mem x, cl_mem y,
+           const std::string& params,
            const cl_uint group_size,
            const cl_uint subwave_size,
-           cl_command_queue queue,
-           cl_uint num_events_in_wait_list,
-           const cl_event *event_wait_list,
-           cl_event *event)
+           clsparseControl control)
 {
-    const char* program_name = "csrmv_alpha1_beta0";
-    char* key = NULL;
+    cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "csrmv_alpha1_beta0", params);
 
-    createKey(program_name, params, &key);
+    KernelWrap kWrapper(kernel);
 
-    cl_int status;
-    // ASSUME kernel name == program name
-    cl_kernel kernel = get_kernel(queue, program_name, params, key, &status);
+    kWrapper << m
+             << row_offsets << col_indices << values
+             << x << control->off_x
+             << y << control->off_y;
+
+    // subwave takes care of each row in matrix;
+    // predicted number of subwaves to be executed;
+    cl_uint predicted = subwave_size * m;
+
+    cl::NDRange local(group_size);
+    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+
+    cl_int status = kWrapper.run(control, global, local);
 
     if (status != CL_SUCCESS)
     {
-        free(key);
-        return clsparseBuildProgramFailure;
-    }
-
-    //set kernel arguments;
-    status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 2, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 5, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
-
-
-    // predicted number of subwaves to be executed;
-    // subwave takes care of each row in matrix;
-    cl_uint predicted = subwave_size * m;
-
-    size_t local[1];
-    size_t global[1];
-    local[0] = group_size;
-    global[0] = predicted > local[0] ? predicted : local[0];
-
-    status = clEnqueueNDRangeKernel(queue, kernel, 1,
-                                    NULL, global, local,
-                                    num_events_in_wait_list, event_wait_list, event);
-    if(status != CL_SUCCESS)
-    {
-        free(key);
         return clsparseInvalidKernelExecution;
     }
 
-    free(key);
+
     return clsparseSuccess;
 }
 
 clsparseStatus
-csrmv_b0(const int m, cl_mem alpha, size_t off_alpha,
+csrmv_b0(const int m, cl_mem alpha,
          cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-         cl_mem x, size_t off_x, cl_mem y, size_t off_y,
-         const char* params,
+         cl_mem x,
+         cl_mem y,
+         const std::string& params,
          const cl_uint group_size,
          const cl_uint subwave_size,
-         cl_command_queue queue,
-         cl_uint num_events_in_wait_list,
-         const cl_event *event_wait_list,
-         cl_event *event)
+         clsparseControl control)
 {
-    const char* program_name = "csrmv_beta0";
-    char* key = NULL;
+    cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "csrmv_beta0", params);
+    KernelWrap kWrapper(kernel);
 
-    createKey(program_name, params, &key);
-    cl_int status;
-    // ASSUME kernel name == program name
-    cl_kernel kernel = get_kernel(queue, program_name, params, key, &status);
+    kWrapper << m
+             << alpha << control->off_alpha
+             << row_offsets << col_indices << values
+             << x << control->off_x
+             << y << control->off_y;
+
+    // subwave takes care of each row in matrix;
+    // predicted number of subwaves to be executed;
+    cl_uint predicted = subwave_size * m;
+
+    cl::NDRange local(group_size);
+    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+
+    cl_int status = kWrapper.run(control, global, local);
 
     if (status != CL_SUCCESS)
     {
-        free(key);
-        return clsparseBuildProgramFailure;
-    }
-    //set kernel arguments;
-    status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 2, sizeof(cl_uint), &off_alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 5, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 8, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 9, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return clsparseInvalidKernelArgs ; }
-
-
-    // predicted number of subwaves to be executed;
-    // subwave takes care of each row in matrix;
-    cl_uint predicted = subwave_size * m;
-
-    size_t local[1];
-    size_t global[1];
-    local[0] = group_size;
-    global[0] = predicted > local[0] ? predicted : local[0];
-
-    status = clEnqueueNDRangeKernel(queue, kernel, 1,
-                                    NULL, global, local,
-                                    num_events_in_wait_list, event_wait_list, event);
-    if(status != CL_SUCCESS)
-    {
-        free(key);
         return clsparseInvalidKernelExecution;
     }
 
-    free(key);
     return clsparseSuccess;
 
 }
@@ -159,152 +85,79 @@ csrmv_b0(const int m, cl_mem alpha, size_t off_alpha,
 clsparseStatus
 csrmv_a1(const int m,
          cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-         cl_mem x, size_t off_x,
-         cl_mem beta, size_t off_beta,
-         cl_mem y, size_t off_y,
-         const char* params,
+         cl_mem x,
+         cl_mem beta,
+         cl_mem y,
+         const std::string& params,
          const cl_uint group_size,
          const cl_uint subwave_size,
-         cl_command_queue queue,
-         cl_uint num_events_in_wait_list,
-         const cl_event *event_wait_list,
-         cl_event *event)
+         clsparseControl control)
 {
-    const char* program_name = "csrmv_alpha1";
-    char* key = NULL;
+    cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "csrmv_alpha1",
+                                         params);
+    KernelWrap kWrapper(kernel);
 
-    createKey(program_name, params, &key);
-    cl_int status;
-    // ASSUME kernel name == program name
-    cl_kernel kernel = get_kernel(queue, program_name, params, key, &status);
+    kWrapper << m
+             << row_offsets << col_indices << values
+             << x << control->off_x
+             << beta << control->off_beta
+             << y << control->off_y;
+
+    // subwave takes care of each row in matrix;
+    // predicted number of subwaves to be executed;
+    cl_uint predicted = subwave_size * m;
+
+    cl::NDRange local(group_size);
+    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+
+    cl_int status = kWrapper.run(control, global, local);
 
     if (status != CL_SUCCESS)
     {
-        free(key);
-        return clsparseBuildProgramFailure;
-    }
-    //set kernel arguments;
-    status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 2, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 5, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &beta);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_beta);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 8, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 9, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return clsparseInvalidKernelArgs ; }
-
-    // predicted number of subwaves to be executed;
-    // subwave takes care of each row in matrix;
-    cl_uint predicted = subwave_size * m;
-
-    size_t local[1];
-    size_t global[1];
-    local[0] = group_size;
-    global[0] = predicted > local[0] ? predicted : local[0];
-
-    status = clEnqueueNDRangeKernel(queue, kernel, 1,
-                                    NULL, global, local,
-                                    num_events_in_wait_list, event_wait_list, event);
-    if(status != CL_SUCCESS)
-    {
-        free(key);
         return clsparseInvalidKernelExecution;
     }
 
-    free(key);
     return clsparseSuccess;
 
 }
 
 clsparseStatus
 csrmv_b1(const int m,
-         cl_mem alpha, size_t off_alpha,
+         cl_mem alpha,
          cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-         cl_mem x, size_t off_x,
-         cl_mem y, size_t off_y,
-         const char* params,
+         cl_mem x,
+         cl_mem y,
+         const std::string& params,
          const cl_uint group_size,
          const cl_uint subwave_size,
-         cl_command_queue queue,
-         cl_uint num_events_in_wait_list,
-         const cl_event *event_wait_list,
-         cl_event *event)
+         clsparseControl control)
 {
-    const char* program_name = "csrmv_beta1";
-    char* key = NULL;
+    cl::Kernel kernel = KernelCache::get(control->queue, "csrmv_beta1", params);
 
-    createKey(program_name, params, &key);
-    cl_int status;
-    // ASSUME kernel name == program name
-    cl_kernel kernel = get_kernel(queue, program_name, params, key, &status);
+    KernelWrap kWrapper(kernel);
+
+    kWrapper << m
+             << alpha << control->off_alpha
+             << row_offsets << col_indices << values
+             << x << control->off_x
+             << y << control->off_y;
+
+    // subwave takes care of each row in matrix;
+    // predicted number of subwaves to be executed;
+    cl_uint predicted = subwave_size * m;
+
+    cl::NDRange local(group_size);
+    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+
+    cl_int status = kWrapper.run(control, global, local);
 
     if (status != CL_SUCCESS)
     {
-        free(key);
-        return clsparseBuildProgramFailure;
-    }
-    //set kernel arguments;
-    status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 2, sizeof(cl_uint), &off_alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 5, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 8, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 9, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return clsparseInvalidKernelArgs ; }
-
-    // predicted number of subwaves to be executed;
-    // subwave takes care of each row in matrix;
-    cl_uint predicted = subwave_size * m;
-
-    size_t local[1];
-    size_t global[1];
-    local[0] = group_size;
-    global[0] = predicted > local[0] ? predicted : local[0];
-
-    status = clEnqueueNDRangeKernel(queue, kernel, 1,
-                                    NULL, global, local,
-                                    num_events_in_wait_list, event_wait_list, event);
-    if(status != CL_SUCCESS)
-    {
-        free(key);
         return clsparseInvalidKernelExecution;
     }
 
-    free(key);
+
     return clsparseSuccess;
 
 
@@ -312,103 +165,65 @@ csrmv_b1(const int m,
 
 clsparseStatus
 csrmv(const int m,
-      cl_mem alpha, size_t off_alpha,
+      cl_mem alpha,
       cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-      cl_mem x, size_t off_x,
-      cl_mem beta, size_t off_beta,
-      cl_mem y, size_t off_y,
-      const char* params,
+      cl_mem x,
+      cl_mem beta,
+      cl_mem y,
+      const std::string& params,
       const cl_uint group_size,
       const cl_uint subwave_size,
-      cl_command_queue queue,
-      cl_uint num_events_in_wait_list,
-      const cl_event *event_wait_list,
-      cl_event *event)
+      clsparseControl control)
 {
-    const char* program_name = "csrmv_general";
-    char* key = NULL;
+    cl::Kernel kernel = KernelCache::get(control->queue, "csrmv_general", params);
 
-    createKey(program_name, params, &key);
-    cl_int status;
-    // ASSUME kernel name == program name
-    cl_kernel kernel = get_kernel(queue, program_name, params, key, &status);
+    KernelWrap kWrapper(kernel);
+
+    kWrapper << m
+             << alpha << control->off_alpha
+             << row_offsets << col_indices << values
+             << x << control->off_x
+             << beta << control->off_beta
+             << y << control->off_y;
+
+    // subwave takes care of each row in matrix;
+    // predicted number of subwaves to be executed;
+    cl_uint predicted = subwave_size * m;
+
+    cl::NDRange local(group_size);
+    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+
+    cl_int status = kWrapper.run(control, global, local);
 
     if (status != CL_SUCCESS)
     {
-        free(key);
-        return clsparseBuildProgramFailure;
-    }
-    //set kernel arguments;
-    status = clSetKernelArg(kernel, 0, sizeof(cl_int), &m);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 0); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 1); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 2, sizeof(cl_uint), &off_alpha);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 2); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 3, sizeof(cl_mem), &row_offsets);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 3); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 4, sizeof(cl_mem), &col_indices);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 4); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 5, sizeof(cl_mem), &values);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 5); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 6, sizeof(cl_mem), &x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 6); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 7, sizeof(cl_uint), &off_x);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 7); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 8, sizeof(cl_mem), &beta);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 8); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 9, sizeof(cl_uint), &off_beta);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 9); return clsparseInvalidKernelArgs ; }
-
-    status = clSetKernelArg(kernel, 10, sizeof(cl_mem), &y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 10); return clsparseInvalidKernelArgs ; }
-    status = clSetKernelArg(kernel, 11, sizeof(cl_uint), &off_y);
-    if(status != CL_SUCCESS) { printf("Problem with setting arg %d \n", 11); return clsparseInvalidKernelArgs ; }
-
-    // predicted number of subwaves to be executed;
-    // subwave takes care of each row in matrix;
-    cl_uint predicted = subwave_size * m;
-
-    size_t local[1];
-    size_t global[1];
-    local[0] = group_size;
-    global[0] = predicted > local[0] ? predicted : local[0];
-
-    status = clEnqueueNDRangeKernel(queue, kernel, 1,
-                                    NULL, global, local,
-                                    num_events_in_wait_list, event_wait_list, event);
-    if(status != CL_SUCCESS)
-    {
-        free(key);
         return clsparseInvalidKernelExecution;
     }
 
-    free(key);
+
+
     return clsparseSuccess;
 
 }
 
-
 clsparseStatus
 clsparseScsrmv(const int m, const int n, const int nnz,
-               cl_mem alpha, size_t off_alpha,
+               cl_mem alpha,
                cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x, size_t off_x,
-               cl_mem beta, size_t off_beta,
-               cl_mem y, size_t off_y,
-               cl_command_queue queue,
-               cl_uint num_events_in_wait_list,
-               const cl_event *event_wait_list,
-               cl_event *event)
+               cl_mem x,
+               cl_mem beta,
+               cl_mem y,
+               clsparseControl control)
 {
     if (!clsparseInitialized)
     {
         return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
     }
 
     clsparseStatus status;
@@ -428,36 +243,24 @@ clsparseScsrmv(const int m, const int n, const int nnz,
         return status;
 
     //validate cl_mem sizes
-    status = validateMemObjectSize(sizeof(cl_float), n, x, off_x);
+    status = validateMemObjectSize(sizeof(cl_float), n, x, control->off_x);
     if(status != clsparseSuccess) {
         return status;
     }
 
-    status = validateMemObjectSize(sizeof(cl_float), m, y, off_y);
+    status = validateMemObjectSize(sizeof(cl_float), m, y, control->off_y);
     if(status != clsparseSuccess) {
         return status;
     }
 
-    status = validateMemObjectSize(sizeof(cl_float), 1, alpha, off_alpha);
+    status = validateMemObjectSize(sizeof(cl_float), 1, alpha, control->off_alpha);
     if(status != clsparseSuccess) {
         return status;
     }
 
-    status = validateMemObjectSize(sizeof(cl_float), 1, beta, off_beta);
+    status = validateMemObjectSize(sizeof(cl_float), 1, beta, control->off_beta);
     if(status != clsparseSuccess) {
         return status;
-    }
-
-    //check queue
-    if (queue == NULL)
-    {
-        return clsparseInvalidCommandQueue;
-    }
-
-    //check event lists
-    if ( (num_events_in_wait_list != 0) && (event_wait_list == NULL) )
-    {
-        return clsparseInvalidEventWaitList;
     }
 
     cl_uint nnz_per_row = nnz / m; //average nnz per row
@@ -473,28 +276,26 @@ clsparseScsrmv(const int m, const int n, const int nnz,
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
-    char params [128];
-    const char* format =
-            "-Werror -DINDEX_TYPE=uint -DVALUE_TYPE=float -DSIZE_TYPE=uint -DWG_SIZE=%u -DSUBWAVE_SIZE=%u";
 
-    //inprint the kernel parameters into the params;
-    sprintf(params, format, group_size, subwave_size);
+    static const std::string params = std::string() +
+            "-DINDEX_TYPE=" + OclTypeTraits<int>::type
+            + " -DVALUE_TYPE=" + OclTypeTraits<float>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<ulong>::type
+            + " -DWG_SIZE=" + std::to_string(group_size)
+            + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
-#ifndef NDEBUG
-    printf("params %s\n", params);
-#endif
 
     //check alpha and beta to distinct kernel version
-    void* h_alpha = clEnqueueMapBuffer(queue, alpha, true, CL_MAP_READ,
+    void* h_alpha = clEnqueueMapBuffer(control->queue(), alpha, true, CL_MAP_READ,
                                        0, sizeof(float), 0, NULL, NULL, NULL);
-    clEnqueueUnmapMemObject(queue, alpha, h_alpha, 0, NULL, NULL);
+    clEnqueueUnmapMemObject(control->queue(), alpha, h_alpha, 0, NULL, NULL);
 
 #ifndef NDEBUG
     printf("host_alpha = %f\n", *(float*)h_alpha);
 #endif
-    void* h_beta = clEnqueueMapBuffer(queue, beta, true, CL_MAP_READ,
+    void* h_beta = clEnqueueMapBuffer(control->queue(), beta, true, CL_MAP_READ,
                                       0, sizeof(float), 0, NULL, NULL, NULL);
-    clEnqueueUnmapMemObject(queue, beta, h_beta, 0, NULL, NULL);
+    clEnqueueUnmapMemObject(control->queue(), beta, h_beta, 0, NULL, NULL);
 
 #ifndef NDEBUG
     printf("host_beta = %f\n", *(float*)h_beta);
@@ -509,12 +310,11 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 #endif
         //y = A*x
         return csrmv_a1b0(m, row_offsets, col_indices, values,
-                          x, off_x, y, off_y,
+                          x, y,
                           params,
                           group_size,
                           subwave_size,
-                          queue,
-                          num_events_in_wait_list, event_wait_list, event);
+                          control);
     }
     else if( *(float*)h_alpha == 0.0)
     {
@@ -523,8 +323,13 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 #endif
         // y = b*y;
         clblasStatus clbls_status =
-                clblasSscal(m, *(cl_float*)h_beta, y, off_y, 1, 1, &queue,
-                           num_events_in_wait_list, event_wait_list, event);
+                clblasSscal(m, *(cl_float*)h_beta, y, control->off_y, 1, 1,
+                            &control->queue(),
+                            control->event_wait_list.size(),
+                            &(control->event_wait_list.front())(),
+                            &(*control->event)());
+
+
         if(clbls_status != clblasSuccess)
             return clsparseInvalidKernelExecution;
         else
@@ -539,11 +344,11 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 #endif
         //y = alpha * A * x
         return csrmv_b0(m,
-                        alpha, off_alpha,
+                        alpha,
                         row_offsets, col_indices, values,
-                        x, off_x, y, off_y,
-                        params, group_size, subwave_size, queue,
-                        num_events_in_wait_list, event_wait_list, event);
+                        x, y,
+                        params, group_size, subwave_size,
+                        control);
     }
 
     else if ( *(float*)h_alpha == 1.0)
@@ -554,11 +359,11 @@ clsparseScsrmv(const int m, const int n, const int nnz,
         //y = A*x + b*y
         return csrmv_a1(m,
                         row_offsets, col_indices, values,
-                        x, off_x,
-                        beta, off_beta,
-                        y, off_y,
-                        params, group_size, subwave_size, queue,
-                        num_events_in_wait_list, event_wait_list, event);
+                        x,
+                        beta,
+                        y,
+                        params, group_size, subwave_size,
+                        control);
     }
 
     else if ( *(float*)h_beta == 1.0)
@@ -568,12 +373,12 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 #endif
         //y = alpha * A * x + y;
         return csrmv_b1(m,
-                        alpha, off_alpha,
+                        alpha,
                         row_offsets, col_indices, values,
-                        x, off_x,
-                        y, off_y,
-                        params, group_size, subwave_size, queue,
-                        num_events_in_wait_list, event_wait_list, event);
+                        x,
+                        y,
+                        params, group_size, subwave_size,
+                        control);
     }
 
     else {
@@ -582,15 +387,15 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 #endif
         //y = alpha * A * x + beta * y;
         return csrmv(m,
-                     alpha, off_alpha,
+                     alpha,
                      row_offsets,
                      col_indices,
                      values,
-                     x, off_x,
-                     beta, off_beta,
-                     y, off_y,
-                     params, group_size, subwave_size, queue,
-                     num_events_in_wait_list, event_wait_list, event);
+                     x,
+                     beta,
+                     y,
+                     params, group_size, subwave_size,
+                     control);
     }
 
     return clsparseNotImplemented;
@@ -606,33 +411,33 @@ clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
                     cl_mem beta, cl_mem y,
                     clsparseControl control)
 {
-//    return clsparseScsrmv(m, n, nnz,
-//                          alpha, control->off_alpha,
-//                          row_offsets, col_indices, values,
-//                          x, control->off_x,
-//                          beta, control->off_beta,
-//                          y, control->off_beta,
-//                          control->queue,
-//                          control->num_events_in_wait_list,
-//                          control->event_wait_list,
-//                          control->event);
+    return clsparseScsrmv(m, n, nnz,
+                          alpha,
+                          row_offsets, col_indices, values,
+                          x,
+                          beta,
+                          y,
+                          control);
 }
 
 clsparseStatus
 clsparseDcsrmv(const int m, const int n, const int nnz,
-               cl_mem alpha, size_t off_alpha,
+               cl_mem alpha,
                cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x, size_t off_x,
-               cl_mem beta, size_t off_beta,
-               cl_mem y, size_t off_y,
-               cl_command_queue queue,
-               cl_uint num_events_in_wait_list,
-               const cl_event *event_wait_list,
-               cl_event *event)
+               cl_mem x,
+               cl_mem beta,
+               cl_mem y,
+               clsparseControl control)
 {
     if (!clsparseInitialized)
     {
         return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
     }
 
     clsparseStatus status;
@@ -651,36 +456,24 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
         return status;
 
     //validate cl_mem sizes
-    status = validateMemObjectSize(sizeof(cl_float), n, x, off_x);
+    status = validateMemObjectSize(sizeof(cl_float), n, x, control->off_x);
     if(status != clsparseSuccess) {
         return status;
     }
 
-    status = validateMemObjectSize(sizeof(cl_float), m, y, off_y);
+    status = validateMemObjectSize(sizeof(cl_float), m, y, control->off_y);
     if(status != clsparseSuccess) {
         return status;
     }
 
-    status = validateMemObjectSize(sizeof(cl_float), 1, alpha, off_alpha);
+    status = validateMemObjectSize(sizeof(cl_float), 1, alpha, control->off_alpha);
     if(status != clsparseSuccess) {
         return status;
     }
 
-    status = validateMemObjectSize(sizeof(cl_float), 1, beta, off_beta);
+    status = validateMemObjectSize(sizeof(cl_float), 1, beta, control->off_beta);
     if(status != clsparseSuccess) {
         return status;
-    }
-
-    //check queue
-    if (queue == NULL)
-    {
-        return clsparseInvalidCommandQueue;
-    }
-
-    //check event lists
-    if ( (num_events_in_wait_list != 0) && (event_wait_list == NULL) )
-    {
-        return clsparseInvalidEventWaitList;
     }
 
     cl_uint nnz_per_row = nnz / m; //average nnz per row
@@ -696,28 +489,25 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
-    char params [128];
-    const char* format =
-            "-Werror -cl-kernel-arg-info -DINDEX_TYPE=uint -DVALUE_TYPE=double -DSIZE_TYPE=uint -DWG_SIZE=%u -DSUBWAVE_SIZE=%u";
+    static const std::string params = std::string() +
+            "-DINDEX_TYPE=" + OclTypeTraits<int>::type
+            + " -DVALUE_TYPE=" + OclTypeTraits<double>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<ulong>::type
+            + " -DWG_SIZE=" + std::to_string(group_size)
+            + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
-    //inprint the kernel parameters into the params;
-    sprintf(params, format, group_size, subwave_size);
-
-#ifndef NDEBUG
-    printf("params %s\n", params);
-#endif
 
     //check alpha and beta to distinct kernel version
-    void* h_alpha = clEnqueueMapBuffer(queue, alpha, true, CL_MAP_READ,
+    void* h_alpha = clEnqueueMapBuffer(control->queue(), alpha, true, CL_MAP_READ,
                                        0, sizeof(cl_double), 0, NULL, NULL, NULL);
-    clEnqueueUnmapMemObject(queue, alpha, h_alpha, 0, NULL, NULL);
+    clEnqueueUnmapMemObject(control->queue(), alpha, h_alpha, 0, NULL, NULL);
 
 #ifndef NDEBUG
     printf("halpha = %g\n", *(cl_double*)h_alpha);
 #endif
-    void* h_beta = clEnqueueMapBuffer(queue, beta, true, CL_MAP_READ,
+    void* h_beta = clEnqueueMapBuffer(control->queue(), beta, true, CL_MAP_READ,
                                       0, sizeof(cl_double), 0, NULL, NULL, NULL);
-    clEnqueueUnmapMemObject(queue, beta, h_beta, 0, NULL, NULL);
+    clEnqueueUnmapMemObject(control->queue(), beta, h_beta, 0, NULL, NULL);
 
 #ifndef NDEBUG
     printf("hbeta= %g\n", *(cl_double*)h_beta);
@@ -732,12 +522,11 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
 #endif
         //y = A*x
         return csrmv_a1b0(m, row_offsets, col_indices, values,
-                          x, off_x, y, off_y,
+                          x, y,
                           params,
                           group_size,
                           subwave_size,
-                          queue,
-                          num_events_in_wait_list, event_wait_list, event);
+                          control);
     }
     else if( *(cl_double*)h_alpha == 0.0)
     {
@@ -745,8 +534,12 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
         printf("\n\talpha = 0, (clBlasDscale)\n\n");
 #endif
         clblasStatus clbls_status =
-                clblasDscal(m, *(cl_double*)h_beta, y, off_y, 1, 1, &queue,
-                           num_events_in_wait_list, event_wait_list, event);
+                clblasDscal(m, *(cl_double*)h_beta, y, control->off_y, 1, 1,
+                            &control->queue(),
+                            control->event_wait_list.size(),
+                            &(control->event_wait_list.front())(),
+                            &(*control->event)());
+
         if (clbls_status != clblasSuccess)
             return clsparseInvalidKernelExecution;
         else
@@ -760,11 +553,11 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
 #endif
         //y = alpha * A * x;
         return csrmv_b0(m,
-                        alpha, off_alpha,
+                        alpha,
                         row_offsets, col_indices, values,
-                        x, off_x, y, off_y,
-                        params, group_size, subwave_size, queue,
-                        num_events_in_wait_list, event_wait_list, event);
+                        x, y,
+                        params, group_size, subwave_size,
+                        control);
     }
 
     else if ( *(cl_double*)h_alpha == 1.0)
@@ -775,11 +568,11 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
         //y = A*x + b*y
         return csrmv_a1(m,
                         row_offsets, col_indices, values,
-                        x, off_x,
-                        beta, off_beta,
-                        y, off_y,
-                        params, group_size, subwave_size, queue,
-                        num_events_in_wait_list, event_wait_list, event);
+                        x,
+                        beta,
+                        y,
+                        params, group_size, subwave_size,
+                        control);
     }
 
     else if ( *(cl_double*)h_beta == 1.0)
@@ -789,12 +582,12 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
 #endif
         //y = alpha * A * x + y;
         return csrmv_b1(m,
-                        alpha, off_alpha,
+                        alpha,
                         row_offsets, col_indices, values,
-                        x, off_x,
-                        y, off_y,
-                        params, group_size, subwave_size, queue,
-                        num_events_in_wait_list, event_wait_list, event);
+                        x,
+                        y,
+                        params, group_size, subwave_size,
+                        control);
     }
     else {
 #ifndef NDEBUG
@@ -802,15 +595,15 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
 #endif
         //y = alpha * A * x + beta * y;
         return csrmv(m,
-                     alpha, off_alpha,
+                     alpha,
                      row_offsets,
                      col_indices,
                      values,
-                     x, off_x,
-                     beta, off_beta,
-                     y, off_y,
-                     params, group_size, subwave_size, queue,
-                     num_events_in_wait_list, event_wait_list, event);
+                     x,
+                     beta,
+                     y,
+                     params, group_size, subwave_size,
+                     control);
     }
 
     return clsparseNotImplemented;

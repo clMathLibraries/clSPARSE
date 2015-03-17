@@ -26,21 +26,12 @@ include_directories(
   ${OPENCL_INCLUDE_DIRS}
 )
 
-set( ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/program_sources.hpp )
+set(ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/source_provider.cpp)
 add_custom_command(
   OUTPUT "${ocl_kernels_file_name}"
   COMMAND ${CMAKE_COMMAND}
     -DCL_DIR="${CMAKE_CURRENT_SOURCE_DIR}/kernels"
     -DOUTPUT="${ocl_kernels_file_name}"
-    -P "${PROJECT_SOURCE_DIR}/cmake/cl2c.cmake"
-)
-
-set(ocl_kernels_file_name2 ${PROJECT_BINARY_DIR}/include/kernels/source_provider.cpp)
-add_custom_command(
-  OUTPUT "${ocl_kernels_file_name2}"
-  COMMAND ${CMAKE_COMMAND}
-    -DCL_DIR="${CMAKE_CURRENT_SOURCE_DIR}/kernels"
-    -DOUTPUT="${ocl_kernels_file_name2}"
     -P "${PROJECT_SOURCE_DIR}/cmake/cl2cpp.cmake"
 )
 
@@ -56,10 +47,10 @@ set( clSPARSE.source.cl
 
 set( clSPARSE.source.cpp
   clsparse_init.cpp
-  internal/hdl_list.cpp
+  #internal/hdl_list.cpp
   internal/clsparse_internal.cpp
   internal/clsparse_control.cpp
-  internal/clsparse_sources.cpp
+  #internal/clsparse_sources.cpp
   internal/clsparse_validate.cpp
   internal/kernel_cache.cpp
   internal/ocl_type_traits.cpp
@@ -72,17 +63,16 @@ set( clSPARSE.source.cpp
 set( clSPARSE.Headers
   ../include/clSPARSE.h
   ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
-  internal/hdl_list.hpp
+  #internal/hdl_list.hpp
   internal/clsparse_internal.hpp
   internal/clsparse_control.hpp
-  internal/clsparse_sources.hpp
+  #internal/clsparse_sources.hpp
   internal/clsparse_validate.hpp
   internal/source_provider.hpp
   internal/kernel_cache.hpp
   internal/ocl_type_traits.hpp
   internal/kernel_wrap.hpp
   ${ocl_kernels_file_name}
-  ${ocl_kernels_file_name2}
 )
 
 set( clSPARSE.Files ${clSPARSE.source.cpp} ${clSPARSE.Headers} ${clSPARSE.source.cl} )

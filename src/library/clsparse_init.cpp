@@ -26,12 +26,12 @@ clsparseSetup(void)
     }
 
     //program sources will keep kernel sources therefore false
-    program_sources = hdl_create(false);
+//    program_sources = hdl_create(false);
 
     //kernel cache will keep the clKernel object so true
-    kernel_cache = hdl_create(true);
+//    kernel_cache = hdl_create(true);
 
-    createSourcesMap();
+  //  createSourcesMap();
 
     clblasSetup();
 
@@ -49,8 +49,8 @@ clsparseTeardown(void)
 
     clblasTeardown();
 
-    hdl_destroy(&program_sources);
-    hdl_destroy_with_func(&kernel_cache, (free_clfunc_t)(&clReleaseKernel));
+   // hdl_destroy(&program_sources);
+   // hdl_destroy_with_func(&kernel_cache, (free_clfunc_t)(&clReleaseKernel));
 
 
     clsparseInitialized = 0;
