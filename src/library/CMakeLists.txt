@@ -47,10 +47,7 @@ set( clSPARSE.source.cl
 
 set( clSPARSE.source.cpp
   clsparse_init.cpp
-  #internal/hdl_list.cpp
-  internal/clsparse_internal.cpp
   internal/clsparse_control.cpp
-  #internal/clsparse_sources.cpp
   internal/clsparse_validate.cpp
   internal/kernel_cache.cpp
   internal/ocl_type_traits.cpp
@@ -63,10 +60,8 @@ set( clSPARSE.source.cpp
 set( clSPARSE.Headers
   ../include/clSPARSE.h
   ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
-  #internal/hdl_list.hpp
-  internal/clsparse_internal.hpp
+   internal/clsparse_internal.hpp
   internal/clsparse_control.hpp
-  #internal/clsparse_sources.hpp
   internal/clsparse_validate.hpp
   internal/source_provider.hpp
   internal/kernel_cache.hpp

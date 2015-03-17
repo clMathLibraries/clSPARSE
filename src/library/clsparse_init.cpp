@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+int clsparseInitialized = 0;
+
 clsparseStatus
 clsparseGetVersion(cl_uint *major, cl_uint *minor, cl_uint *patch)
 {
@@ -25,14 +27,6 @@ clsparseSetup(void)
         return clsparseSuccess;
     }
 
-    //program sources will keep kernel sources therefore false
-//    program_sources = hdl_create(false);
-
-    //kernel cache will keep the clKernel object so true
-//    kernel_cache = hdl_create(true);
-
-  //  createSourcesMap();
-
     clblasSetup();
 
     clsparseInitialized = 1;
@@ -48,10 +42,6 @@ clsparseTeardown(void)
     }
 
     clblasTeardown();
-
-   // hdl_destroy(&program_sources);
-   // hdl_destroy_with_func(&kernel_cache, (free_clfunc_t)(&clReleaseKernel));
-
 
     clsparseInitialized = 0;
     return clsparseSuccess;
