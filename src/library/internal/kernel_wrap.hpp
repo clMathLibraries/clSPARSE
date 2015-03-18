@@ -81,11 +81,8 @@ private:
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
         { \
             assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
-            auto curStr = kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter); \
-            std::cout << "curStr = " << curStr;\
             assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter) \
                                                          == TYPE_STRING); \
-            std::cout << " passed" << std::endl; \
             kernel.setArg(argCounter++, arg); \
             return *this; \
         }

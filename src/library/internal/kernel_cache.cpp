@@ -38,13 +38,19 @@ cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
     auto kernel_iterator = kernel_map.find(hash);
     if (kernel_iterator != kernel_map.end())
     {
+
 #ifndef NDEBUG
-        std::cout << "kernel found" << std::endl;
+        std::cout << "kernel found: " << hash <<std::endl;
 #endif
         return kernel_iterator->second;
     }
     else //build program and compile the kernel;
     {
+
+        std::cout << "kernel not found: " << hash <<std::endl;
+#ifndef NDEBUG
+#endif
+
         const cl::Program* program = NULL;
         program = getProgram(queue, name, _params);
         if (program == nullptr)
