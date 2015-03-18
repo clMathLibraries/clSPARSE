@@ -14,6 +14,8 @@ find_package( Boost COMPONENTS program_options )
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
 find_package( OpenCL REQUIRED )
 
+add_definitions(-D__CL_ENABLE_EXCEPTIONS)
+
 if( CMAKE_COMPILER_IS_GNUCC )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
 endif( )

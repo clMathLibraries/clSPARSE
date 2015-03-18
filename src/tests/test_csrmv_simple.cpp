@@ -157,12 +157,15 @@ TYPED_TEST_CASE(TestCSRMV, TYPES);
 TYPED_TEST(TestCSRMV, multiply)
 {
 
+    cl_event event;
+    clsparseSetupEvent(ClSparseEnvironment::control, &event);
     clsparseStatus status =
             generateResult<TypeParam>(this->gx,
                                       this->galpha,
                                       this->gy,
                                       this->gbeta);
     EXPECT_EQ(clsparseSuccess, status);
+    clsparseSynchronize(ClSparseEnvironment::control);
 
     std::vector<TypeParam> result(this->y.size());
 

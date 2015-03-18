@@ -40,10 +40,10 @@ clsparseReleaseControl(clsparseControl control)
         return clsparseInvalidControlObject;
     }
 
-    if(control->event != nullptr)
-    {
-        delete control->event;
-    }
+//    if(control->event != nullptr)
+//    {
+//        delete control->event;
+//    }
 
     control->off_alpha = 0;
     control->off_beta = 0;
@@ -86,8 +86,7 @@ clsparseSetupEvent(clsparseControl control, cl_event *event)
         return clsparseInvalidControlObject;
     }
 
-
-    control->event = new cl::Event(*event);
+    control->event = event;
 
     return clsparseSuccess;
 }
@@ -103,8 +102,8 @@ clsparseSynchronize(clsparseControl control)
 
     cl_int sync_status = CL_SUCCESS;
     try {
-        control->event->wait();
-    } catch (cl::Error& e)
+        clWaitForEvents(1, control->event);
+    } catch (cl::Error e)
     {
         std::cout << "clsparseSynchronize error " << e.what() << std::endl;
         sync_status = e.err();

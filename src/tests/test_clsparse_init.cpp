@@ -56,6 +56,19 @@ TEST (clsparseInit, control)
 
     auto control = clsparseCreateControl(queue, NULL);
 
+    cl_event e1;
+    cl::Event event2;
+    try
+    {
+        std::cout << "status : " << event2.getInfo<CL_EVENT_COMMAND_EXECUTION_STATUS>() << std::endl;
+    } catch(cl::Error err)
+    {
+        std::cout << err.what() << " " << err.err() << std::endl;
+    }
+
+
+
+
     free(platforms);
 
     clsparseTeardown();

@@ -327,7 +327,7 @@ clsparseScsrmv(const int m, const int n, const int nnz,
                             &control->queue(),
                             control->event_wait_list.size(),
                             &(control->event_wait_list.front())(),
-                            &(*control->event)());
+                            control->event);
 
 
         if(clbls_status != clblasSuccess)
@@ -538,7 +538,7 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
                             &control->queue(),
                             control->event_wait_list.size(),
                             &(control->event_wait_list.front())(),
-                            &(*control->event)());
+                            control->event);
 
         if (clbls_status != clblasSuccess)
             return clsparseInvalidKernelExecution;

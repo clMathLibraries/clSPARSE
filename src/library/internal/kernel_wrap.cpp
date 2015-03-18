@@ -16,34 +16,35 @@ cl_int KernelWrap::run(clsparseControl control,
     assert (global[0] > 0);
     assert (global[0] >= local[0]);
 
-//    auto ctx = queue.getInfo<CL_QUEUE_CONTEXT>();
 
-//    cl::UserEvent myEvent(ctx, &status);
-//    if(status != CL_SUCCESS)
-//    {
-//        std::cout << "myEvent create failed" << std::endl;
-//    }
-
-//    myEvent.setStatus(CL_RUNNING);
-//    std::vector<cl::Event> myWlist(1);
-//    myWlist[0] = myEvent;
 
     auto& queue = control->queue;
-    auto& eventWaitList = control->event_wait_list;
-    auto event = control->event;
-
+    const auto& eventWaitList = control->event_wait_list;
+    cl::Event tmp;
     cl_int status;
     try {
 
-//        status = queue.enqueueNDRangeKernel(kernel,
-//                                            cl::NullRange,
-//                                            global, local,
-//                                            &events, &event);
+        status = queue.enqueueNDRangeKernel(kernel,
+                                            cl::NullRange,
+                                            global, local,
+                                            &eventWaitList, &tmp);
 
-    } catch (cl::Error& e)
+        if (control->event != NULL)
+        {
+            auto refC = tmp.getInfo<CL_EVENT_REFERENCE_COUNT>();
+            control->event = &tmp();
+        }
+        else
+        {
+            tmp.wait();
+        }
+
+    } catch (cl::Error e)
     {
         std::cout << "Kernel error: " << e.what() << std::endl;
         status = e.err();
     }
+
+
     return status;
 }
