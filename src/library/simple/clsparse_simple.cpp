@@ -38,16 +38,16 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
 
 
 
-    constexpr int wg_size = 256;
+    const int wg_size = 256;
 
     int blocksNum = (size + wg_size - 1) / wg_size;
     int globalSize = blocksNum * wg_size;
 
 
     static const std::string params = std::string() +
-            "-DINDEX_TYPE=" + OclTypeTraits<int>::type
-            + " -DSIZE_TYPE=" + OclTypeTraits<int>::type
-            + " -DVALUE_TYPE="+ OclTypeTraits<float>::type
+            "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_int>::type
+            + " -DVALUE_TYPE="+ OclTypeTraits<cl_float>::type
             + " -DWG_SIZE=" + std::to_string(wg_size);
 
     cl::Kernel kernel = KernelCache::get(control->queue, "scale", params);

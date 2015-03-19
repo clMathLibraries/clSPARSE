@@ -7,9 +7,11 @@ find_package( OpenCL REQUIRED )
 # clSPARSE library requires clBLAS
 find_package( clBLAS REQUIRED )
 
-add_definitions(
-    -std=c++11 # support for new cpp standard
-)
+if( CMAKE_COMPILER_IS_GNUCXX )
+  add_definitions(
+      -std=c++11 # support for new cpp standard
+  )
+endif( )
 
 add_definitions(
     -D__CL_ENABLE_EXCEPTIONS
