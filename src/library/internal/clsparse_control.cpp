@@ -79,7 +79,7 @@ clsparseSetupEventWaitList(clsparseControl control,
 }
 
 clsparseStatus
-clsparseSetupEvent(clsparseControl control, cl_event *event)
+clsparseSetupEvent(clsparseControl control, cl_event* event)
 {
     if(control == NULL)
     {
@@ -101,8 +101,15 @@ clsparseSynchronize(clsparseControl control)
     }
 
     cl_int sync_status = CL_SUCCESS;
-    try {
-        clWaitForEvents(1, control->event);
+    try 
+    {
+        // If the user registered an event with us 
+        if( control->event )
+        {
+            // If the event is valid
+            if( *control->event )
+                ::clWaitForEvents( 1, control->event );
+        }
     } catch (cl::Error e)
     {
         std::cout << "clsparseSynchronize error " << e.what() << std::endl;

@@ -20,23 +20,25 @@ cl_int KernelWrap::run(clsparseControl control,
 
     auto& queue = control->queue;
     const auto& eventWaitList = control->event_wait_list;
-    cl::Event tmp;
     cl_int status;
     try {
+        cl::Event tmp;
+        status = queue.enqueueNDRangeKernel( kernel,
+                                                cl::NullRange,
+                                                global, local,
+                                                &eventWaitList, &tmp );
 
-        status = queue.enqueueNDRangeKernel(kernel,
-                                            cl::NullRange,
-                                            global, local,
-                                            &eventWaitList, &tmp);
-
-        if (control->event != NULL)
+        if( control->event != NULL )
         {
-            auto refC = tmp.getInfo<CL_EVENT_REFERENCE_COUNT>();
-            control->event = &tmp();
+            // Remember the event in our control structure
+            *control->event = tmp( );
+
+            // Prevent the reference count from hitting zero when the temporary goes out of scope
+            ::clRetainEvent( *control->event );
         }
         else
         {
-            tmp.wait();
+            tmp.wait( );
         }
 
     } catch (cl::Error e)
