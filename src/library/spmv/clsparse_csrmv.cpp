@@ -277,7 +277,7 @@ clsparseScsrmv(const int m, const int n, const int nnz,
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
 
-    static const std::string params = std::string() +
+    const std::string params = std::string() +
             "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
@@ -489,7 +489,7 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
-    static const std::string params = std::string() +
+    const std::string params = std::string() +
             "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type

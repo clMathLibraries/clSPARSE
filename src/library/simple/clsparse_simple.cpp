@@ -44,7 +44,7 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
     int globalSize = blocksNum * wg_size;
 
 
-    static const std::string params = std::string() +
+    const std::string params = std::string() +
             "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE="+ OclTypeTraits<cl_float>::type
