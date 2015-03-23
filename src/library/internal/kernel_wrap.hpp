@@ -88,13 +88,13 @@ private:
         }
 
 
-KERNEL_ARG_BASE_TYPE(int, "int")
-KERNEL_ARG_BASE_TYPE(unsigned int, "uint")
-KERNEL_ARG_BASE_TYPE(short, "short")
-KERNEL_ARG_BASE_TYPE(unsigned short, "ushort")
-KERNEL_ARG_BASE_TYPE(float, "float")
-KERNEL_ARG_BASE_TYPE(double, "double")
-KERNEL_ARG_BASE_TYPE(long unsigned int, "ulong")
+KERNEL_ARG_BASE_TYPE( cl_int, "int" )
+KERNEL_ARG_BASE_TYPE( cl_uint, "uint" )
+KERNEL_ARG_BASE_TYPE( cl_short, "short" )
+KERNEL_ARG_BASE_TYPE( cl_ushort, "ushort" )
+KERNEL_ARG_BASE_TYPE( cl_float, "float" )
+KERNEL_ARG_BASE_TYPE( cl_double, "double" )
+KERNEL_ARG_BASE_TYPE( cl_ulong, "ulong" )
 
 
 #endif //_KERNEL_WRAP_HPP_

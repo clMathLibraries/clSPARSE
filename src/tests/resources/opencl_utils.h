@@ -89,6 +89,7 @@ cl_int getDevice (const cl_platform_id platform,
 
     *device = devices[0];
 
+    free( devices );
     return status;
 }
 

@@ -52,26 +52,17 @@ TEST (clsparseInit, control)
     auto context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
     auto queue = clCreateCommandQueue(context, device, 0, NULL);
 
-    clsparseSetup();
+    clsparseSetup( );
 
     auto control = clsparseCreateControl(queue, NULL);
 
-    cl_event e1;
-    cl::Event event2;
-    try
-    {
-        std::cout << "status : " << event2.getInfo<CL_EVENT_COMMAND_EXECUTION_STATUS>() << std::endl;
-    } catch(cl::Error err)
-    {
-        std::cout << err.what() << " " << err.err() << std::endl;
-    }
+    clsparseReleaseControl( control );
+    clsparseTeardown( );
+    ::clReleaseCommandQueue( queue );
+    ::clReleaseContext( context );
 
+    free( platforms );
 
-
-
-    free(platforms);
-
-    clsparseTeardown();
 }
 
 int main(int argc, char* argv[])

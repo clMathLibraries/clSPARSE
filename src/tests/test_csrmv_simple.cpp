@@ -157,8 +157,9 @@ TYPED_TEST_CASE(TestCSRMV, TYPES);
 TYPED_TEST(TestCSRMV, multiply)
 {
 
-    cl_event event;
-    clsparseSetupEvent(ClSparseEnvironment::control, &event);
+    cl_event event = NULL;
+    clsparseSetupEvent(ClSparseEnvironment::control, &event );
+
     clsparseStatus status =
             generateResult<TypeParam>(this->gx,
                                       this->galpha,
@@ -176,7 +177,7 @@ TYPED_TEST(TestCSRMV, multiply)
 
     if(typeid(TypeParam) == typeid(float))
         for(int i = 0; i < this->y.size(); i++)
-            EXPECT_NEAR(this->y[i], result[i], 5e-5);
+            EXPECT_NEAR(this->y[i], result[i], 5e-4);
 
     if(typeid(TypeParam) == typeid(double))
         for(int i = 0; i < this->y.size(); i++)

@@ -11,28 +11,30 @@
 
 typedef struct _clsparseControl
 {
-    _clsparseControl()
-    {
+    _clsparseControl( )
+    { }
 
+    _clsparseControl(const cl_command_queue& pQueue)
+        : queue( pQueue ), event_wait_list( 0 )
+    {
+        // Initializing a cl::CommandQueue from a cl_command_queue does not appear to bump the refcount
+        // Increment reference count since the library is caching a copy of the queue
+        ::clRetainCommandQueue( pQueue );
     }
 
-    _clsparseControl(const cl_command_queue& queue)
-        : queue(queue), event_wait_list(0)
-    {
-
-    }
-
+    // Destructor for queue should call release on it's own
     cl::CommandQueue queue;
 
     std::vector<cl::Event> event_wait_list;
+
     //it is better in that way;
     cl_event* event;
 
     //operation parameters
-    size_t off_alpha;
-    size_t off_beta;
-    size_t off_x;
-    size_t off_y;
+    cl_ulong off_alpha;
+    cl_ulong off_beta;
+    cl_ulong off_x;
+    cl_ulong off_y;
 
     cl::Context getContext()
     {
