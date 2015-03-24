@@ -43,7 +43,8 @@ cl_int KernelWrap::run(clsparseControl control,
 
     } catch (cl::Error e)
     {
-        std::cout << "Kernel error: " << e.what() << std::endl;
+        std::cout << "Kernel error: " << e.what()
+                  << " err: " << e.err() << std::endl;
         status = e.err();
     }
 

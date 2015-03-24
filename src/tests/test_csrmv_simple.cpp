@@ -151,7 +151,7 @@ public:
 
 };
 
-typedef ::testing::Types<float, double> TYPES;
+typedef ::testing::Types<float,double> TYPES;
 TYPED_TEST_CASE(TestCSRMV, TYPES);
 
 TYPED_TEST(TestCSRMV, multiply)
@@ -177,11 +177,11 @@ TYPED_TEST(TestCSRMV, multiply)
 
     if(typeid(TypeParam) == typeid(float))
         for(int i = 0; i < this->y.size(); i++)
-            EXPECT_NEAR(this->y[i], result[i], 5e-4);
+            ASSERT_NEAR(this->y[i], result[i], 5e-4);
 
     if(typeid(TypeParam) == typeid(double))
         for(int i = 0; i < this->y.size(); i++)
-            EXPECT_NEAR(this->y[i], result[i], 5e-14);
+            ASSERT_NEAR(this->y[i], result[i], 5e-14);
 
 
 }
@@ -220,11 +220,9 @@ int main (int argc, char* argv[])
         return false;
     }
 
-
-
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
-    ::testing::AddGlobalTestEnvironment( new CLSE());
+    ::testing::AddGlobalTestEnvironment( new CLSE(NVIDIA));
     ::testing::AddGlobalTestEnvironment( new CSRE(path, alpha, beta,
                                                   CLSE::queue, CLSE::context));
     return RUN_ALL_TESTS();

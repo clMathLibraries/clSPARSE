@@ -1,3 +1,11 @@
+#ifdef cl_khr_fp64
+    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#elif defined(cl_amd_fp64)
+    #pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#else
+    #error "Double precision floating point not supported by OpenCL implementation."
+#endif
+
 #ifndef INDEX_TYPE
 #error INDEX_TYPE undefined!
 #endif
@@ -15,11 +23,11 @@
 #endif
 
 #ifndef WAVE_SIZE
-#define WAVE_SIZE 64
+#error WAVE_SIZE undefined!
 #endif
 
 #ifndef SUBWAVE_SIZE
-#define SUBWAVE_SIZE WAVE_SIZE
+#error SUBWAVE_SIZE undefined!
 #endif
 
 #if ( (SUBWAVE_SIZE > WAVE_SIZE) || (SUBWAVE_SIZE != 2 && SUBWAVE_SIZE != 4 && SUBWAVE_SIZE != 8 && SUBWAVE_SIZE != 16 && SUBWAVE_SIZE != 32 && SUBWAVE_SIZE != 64) )
@@ -43,6 +51,7 @@ void csrmv_alpha1_beta0 (     const INDEX_TYPE num_rows,
                 __global       VALUE_TYPE * y,
                          const SIZE_TYPE off_y)
 {
+
     local volatile VALUE_TYPE sdata [WG_SIZE + SUBWAVE_SIZE / 2];
 
     //const int vectors_per_block = WG_SIZE/SUBWAVE_SIZE;

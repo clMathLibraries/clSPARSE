@@ -51,8 +51,11 @@ public:
     inline KernelWrap& operator<<(const cl::LocalSpaceArg& local)
     {
         assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>());
+        //there is no getArgInfo in OpenCL 1.1
+#if defined(CL_VERSION_1_2)
         assert(kernel.getArgInfo<CL_KERNEL_ARG_ADDRESS_QUALIFIER>(argCounter)
                == CL_KERNEL_ARG_ADDRESS_LOCAL);
+#endif
 
         kernel.setArg(argCounter++, local);
         return *this;
@@ -76,17 +79,38 @@ private:
 
 
 // support for basic types
+
+//cl 1.1 //there is no getArgInfo in OpenCL 1.1
+//kind of leap of faith if on OpenCL everyting is ok with setting the args.
+#if defined(CL_VERSION_1_1) && !defined(CL_VERSION_1_2)
 #define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
         template<> inline KernelWrap& \
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
         { \
+            std::cout << "USING CL1.1" << std::endl; \
+            assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
+            kernel.setArg(argCounter++, arg); \
+            return *this; \
+        }
+
+#elif defined(CL_VERSION_1_2)
+
+#define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
+        template<> inline KernelWrap& \
+        KernelWrap::operator<< <TYPE>(const TYPE& arg) \
+        { \
+            std::cout << "USING CL1.2" << std::endl; \
             assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
             assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter) \
                                                          == TYPE_STRING); \
             kernel.setArg(argCounter++, arg); \
             return *this; \
         }
+#else
 
+#error Minimal version of OpenCL not found
+
+#endif
 
 KERNEL_ARG_BASE_TYPE( cl_int, "int" )
 KERNEL_ARG_BASE_TYPE( cl_uint, "uint" )
