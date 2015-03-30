@@ -25,9 +25,9 @@ cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
 {
     //!! ASSUMPTION: Kernel name == program name;
 #if defined(CL_VERSION_1_2)
-    std::string _params = "-Werror -cl-kernel-arg-info -cl-std=CL1.2 ";
+    std::string _params = " -cl-kernel-arg-info -cl-std=CL1.2 ";
 #else
-    std::string _params = " -Werror -cl-std=CL1.1 ";
+    std::string _params = " -cl-std=CL1.1 ";
 #endif
     _params.append(params);
     std::string key;

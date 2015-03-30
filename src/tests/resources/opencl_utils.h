@@ -89,10 +89,15 @@ cl::Device getDevice(cl_platform_type pID, cl_uint dID)
     cl_int pIndex = -1;
     for (const auto& p : platforms)
     {
-        //p.getInfo returns null terminated char* in
+        //When using CL.1.1 the p.getInfo returns null terminated char* in
         // strange format "blabla\000" I don't know how to get rid of it :/
+        std::string name;
+#if defined(CL_VERSION_1_2)
+        name = p.getInfo<CL_PLATFORM_NAME>();
+#else
         std::string pName = p.getInfo<CL_PLATFORM_NAME>();
-        std::string name = pName.substr(0, pName.size()-1);
+        name = pName.substr(0, pName.size()-1);
+#endif
         pNames.insert(std::make_pair(name, ++pIndex));
     }
 
