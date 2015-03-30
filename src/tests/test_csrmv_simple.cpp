@@ -196,12 +196,19 @@ int main (int argc, char* argv[])
     std::string path;
     double alpha;
     double beta;
+    std::string platform;
+    cl_platform_type pID;
+    cl_uint dID;
 
     po::options_description desc("Allowed options");
 
     desc.add_options()
             ("help,h", "Produce this message.")
             ("path,p", po::value(&path)->required(), "Path to matrix in mtx format.")
+            ("platform,l", po::value(&platform)->default_value("AMD"),
+             "OpenCL platform: AMD or NVIDIA.")
+            ("device,d", po::value(&dID)->default_value(0),
+             "Device id within platform.")
             ("alpha,a", po::value(&alpha)->default_value(1.0),
              "Alpha parameter for eq: \n\ty = alpha * M * x + beta * y")
             ("beta,b", po::value(&beta)->default_value(0.0),
@@ -220,9 +227,33 @@ int main (int argc, char* argv[])
         return false;
     }
 
+
+    //check platform
+    if(vm.count("platform"))
+    {
+        if ("AMD" == platform)
+        {
+            pID = AMD;
+        }
+        else if ("NVIDIA" == platform)
+        {
+            pID = NVIDIA;
+        }
+        else
+        {
+
+            std::cout << "The platform option is missing or is ill defined!\n";
+            std::cout << "Given [" << platform << "]" << std::endl;
+            platform = "AMD";
+            pID = AMD;
+            std::cout << "Setting [" << platform << "] as default" << std::endl;
+        }
+
+    }
+
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
-    ::testing::AddGlobalTestEnvironment( new CLSE(NVIDIA));
+    ::testing::AddGlobalTestEnvironment( new CLSE(pID, dID));
     ::testing::AddGlobalTestEnvironment( new CSRE(path, alpha, beta,
                                                   CLSE::queue, CLSE::context));
     return RUN_ALL_TESTS();
