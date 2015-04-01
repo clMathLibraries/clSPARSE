@@ -1,8 +1,43 @@
 #include "clSPARSE.h"
 #include "clsparse_control.hpp"
+#include "internal/clsparse_internal.hpp"
+#include "internal/kernel_cache.hpp"
+#include "internal/kernel_wrap.hpp"
 
 #include <iostream>
 #include <malloc.h>
+//get the wavefront size and max work group size
+void collectEnvParams(clsparseControl control)
+{
+    if(!clsparseInitialized)
+    {
+        return;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return;
+    }
+
+    //Query device if necessary;
+    cl::Device device = control->queue.getInfo<CL_QUEUE_DEVICE>();
+    control->max_wg_size = device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+
+    const int wg_size = control->max_wg_size;
+
+    int blocksNum = (1 + wg_size - 1) / wg_size;
+    int globalSize = blocksNum * wg_size;
+
+    const std::string params = std::string() +
+            "-DWG_SIZE=" + std::to_string(wg_size);
+
+    cl::Kernel kernel = KernelCache::get(control->queue, "control", params);
+
+    control->wavefront_size =
+            kernel.getWorkGroupInfo<CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE>(device);
+
+}
 
 clsparseControl
 clsparseCreateControl(cl_command_queue& queue, cl_int *status)
@@ -22,6 +57,11 @@ clsparseCreateControl(cl_command_queue& queue, cl_int *status)
     control->off_beta = 0;
     control->off_x = 0;
     control->off_y = 0;
+
+    control->wavefront_size = 0;
+    control->max_wg_size = 0;
+
+    collectEnvParams(control);
 
     if (status != NULL)
     {
@@ -49,6 +89,9 @@ clsparseReleaseControl(clsparseControl control)
     control->off_beta = 0;
     control->off_x = 0;
     control->off_y = 0;
+
+    control->wavefront_size = 0;
+    control->max_wg_size = 0;
 
     free(control);
 

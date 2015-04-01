@@ -30,8 +30,16 @@ csrmv_a1b0(const int m,
     // predicted number of subwaves to be executed;
     cl_uint predicted = subwave_size * m;
 
+//    cl::NDRange local(group_size);
+//    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    // if NVIDIA is used it does not allow to run the group size
+    // which is not a multiplication of group_size. Don't know if that
+    // have an impact on performance
+    cl_uint global_work_size =
+            group_size* ((predicted + group_size - 1 ) / group_size);
     cl::NDRange local(group_size);
-    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    cl::NDRange global(global_work_size > local[0] ? global_work_size : local[0]);
 
     cl_int status = kWrapper.run(control, global, local);
 
@@ -68,8 +76,15 @@ csrmv_b0(const int m, cl_mem alpha,
     // predicted number of subwaves to be executed;
     cl_uint predicted = subwave_size * m;
 
+    // if NVIDIA is used it does not allow to run the group size
+    // which is not a multiplication of group_size. Don't know if that
+    // have an impact on performance
+    cl_uint global_work_size =
+            group_size* ((predicted + group_size - 1 ) / group_size);
     cl::NDRange local(group_size);
-    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    cl::NDRange global(global_work_size > local[0] ? global_work_size : local[0]);
+
 
     cl_int status = kWrapper.run(control, global, local);
 
@@ -108,8 +123,16 @@ csrmv_a1(const int m,
     // predicted number of subwaves to be executed;
     cl_uint predicted = subwave_size * m;
 
+//    cl::NDRange local(group_size);
+//    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    // if NVIDIA is used it does not allow to run the group size
+    // which is not a multiplication of group_size. Don't know if that
+    // have an impact on performance
+    cl_uint global_work_size =
+            group_size* ((predicted + group_size - 1 ) / group_size);
     cl::NDRange local(group_size);
-    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    cl::NDRange global(global_work_size > local[0] ? global_work_size : local[0]);
 
     cl_int status = kWrapper.run(control, global, local);
 
@@ -147,8 +170,16 @@ csrmv_b1(const int m,
     // predicted number of subwaves to be executed;
     cl_uint predicted = subwave_size * m;
 
+//    cl::NDRange local(group_size);
+//    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    // if NVIDIA is used it does not allow to run the group size
+    // which is not a multiplication of group_size. Don't know if that
+    // have an impact on performance
+    cl_uint global_work_size =
+            group_size* ((predicted + group_size - 1 ) / group_size);
     cl::NDRange local(group_size);
-    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    cl::NDRange global(global_work_size > local[0] ? global_work_size : local[0]);
 
     cl_int status = kWrapper.run(control, global, local);
 
@@ -190,8 +221,16 @@ csrmv(const int m,
     // predicted number of subwaves to be executed;
     cl_uint predicted = subwave_size * m;
 
+//    cl::NDRange local(group_size);
+//    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    // if NVIDIA is used it does not allow to run the group size
+    // which is not a multiplication of group_size. Don't know if that
+    // have an impact on performance
+    cl_uint global_work_size =
+            group_size* ((predicted + group_size - 1 ) / group_size);
     cl::NDRange local(group_size);
-    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    cl::NDRange global(global_work_size > local[0] ? global_work_size : local[0]);
 
     cl_int status = kWrapper.run(control, global, local);
 
@@ -264,13 +303,17 @@ clsparseScsrmv(const int m, const int n, const int nnz,
     }
 
     cl_uint nnz_per_row = nnz / m; //average nnz per row
-    cl_uint wave_size = 64;
-    cl_uint group_size = wave_size * 4;    // 256 gives best performance!
+    cl_uint wave_size = control->wavefront_size;
+    cl_uint group_size = 256; //wave_size * 8;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
     // each wavefron will be assigned to the row of the csr matrix
-    if (nnz_per_row < 64) {  subwave_size = 32;  }
+    if(wave_size > 32)
+    {
+        //this apply only for devices with wavefront > 32 like AMD(64)
+        if (nnz_per_row < 64) {  subwave_size = 32;  }
+    }
     if (nnz_per_row < 32) {  subwave_size = 16;  }
     if (nnz_per_row < 16) {  subwave_size = 8;  }
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
@@ -282,6 +325,7 @@ clsparseScsrmv(const int m, const int n, const int nnz,
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DWG_SIZE=" + std::to_string(group_size)
+            + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
 
@@ -477,13 +521,17 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
     }
 
     cl_uint nnz_per_row = nnz / m; //average nnz per row
-    cl_uint wave_size = 64;
+    cl_uint wave_size = control->wavefront_size;
     cl_uint group_size = wave_size * 4;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
     // each wavefron will be assigned to the row of the csr matrix
-    if (nnz_per_row < 64) {  subwave_size = 32;  }
+    if(wave_size > 32)
+    {
+        //this apply only for devices with wavefront > 32 like AMD(64)
+        if (nnz_per_row < 64) {  subwave_size = 32;  }
+    }
     if (nnz_per_row < 32) {  subwave_size = 16;  }
     if (nnz_per_row < 16) {  subwave_size = 8;  }
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
@@ -494,6 +542,7 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DWG_SIZE=" + std::to_string(group_size)
+            + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
 

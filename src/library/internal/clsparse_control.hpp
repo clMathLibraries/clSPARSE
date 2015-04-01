@@ -36,6 +36,10 @@ typedef struct _clsparseControl
     cl_ulong off_x;
     cl_ulong off_y;
 
+    //for NV(32) for AMD(64)
+    cl_uint wavefront_size;
+    cl_uint max_wg_size;
+
     cl::Context getContext()
     {
         return queue.getInfo<CL_QUEUE_CONTEXT>();

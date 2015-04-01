@@ -15,6 +15,10 @@ int main(int argc, char* argv[])
     po::options_description desc("Allowed options");
 
     std::string root_dir;
+    std::string platform;
+    cl_uint device;
+    cl_platform_type platform_type;
+
     double alpha = 1.0;
     double beta = 0.0;
     int number_of_tries;
@@ -25,6 +29,10 @@ int main(int argc, char* argv[])
     desc.add_options()
             ("help,h", "Produce this message")
             ("root,r", po::value(&root_dir), "Matrix directory")
+            ("platform,l", po::value(&platform)->default_value("AMD"),
+             "OpenCL platform: AMD or NVIDIA.")
+            ("device,d", po::value(&device)->default_value(0),
+             "Device id within platform.")
             ("benchmarks,t",
              po::value(&number_of_tries)->default_value(10),
              "Number of benchmark iterations")
@@ -65,6 +73,28 @@ int main(int argc, char* argv[])
         return false;
     }
 
+    //check platform
+    if(vm.count("platform"))
+    {
+        if ("AMD" == platform)
+        {
+            platform_type = AMD;
+        }
+        else if ("NVIDIA" == platform)
+        {
+            platform_type = NVIDIA;
+        }
+        else
+        {
+
+            std::cout << "The platform option is missing or is ill defined!\n";
+            std::cout << "Given [" << platform << "]" << std::endl;
+            platform = "AMD";
+            platform_type = AMD;
+            std::cout << "Setting [" << platform << "] as default" << std::endl;
+        }
+    }
+
     if(prec)
     {
         std::cout << "Executing benchmark in double precision" << std::endl;
@@ -74,6 +104,8 @@ int main(int argc, char* argv[])
         params.number_of_tries = number_of_tries;
         params.number_of_warmups = number_of_warmups;
         params.root_dir = root_dir;
+        params.dID = device;
+        params.pID = platform_type;
 
         Executor<double> executor(params);
         executor.exec();
@@ -87,6 +119,8 @@ int main(int argc, char* argv[])
         params.number_of_tries = number_of_tries;
         params.number_of_warmups = number_of_warmups;
         params.root_dir = root_dir;
+        params.dID = device;
+        params.pID = platform_type;
 
         Executor<float> executor(params);
         executor.exec();

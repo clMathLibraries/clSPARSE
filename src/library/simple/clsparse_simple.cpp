@@ -35,9 +35,6 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
     if(clsp_status != clsparseSuccess)
         return clsparseInvalidMemObj;
 
-
-
-
     const int wg_size = 256;
 
     int blocksNum = (size + wg_size - 1) / wg_size;

@@ -27,32 +27,15 @@ public:
 
         cl_int status = CL_SUCCESS;
 
-        cl_platform_id* platforms = NULL;
-        cl_uint num_platforms = 0;
+        cl::Device device = getDevice(params.pID, params.dID);
 
-        status = getPlatforms(&platforms, &num_platforms);
-        if (status != CL_SUCCESS)
-        {
-            std::cerr << "Problem with setting up the OpneCL platforms" << std::endl;
-        }
+        std::cout << "Using device " << device.getInfo<CL_DEVICE_NAME>() << std::endl;
 
-        printPlatforms(platforms, num_platforms);
-
-        cl_device_id device = NULL;
-        status = getDevice(platforms[0], &device, CL_DEVICE_TYPE_GPU);
-        if (status != CL_SUCCESS)
-        {
-            std::cerr << "Problem with initializing GPU device" << std::endl;
-        }
-
-        printDeviceInfo(device);
-
-        context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
-        queue = clCreateCommandQueue(context, device, 0, NULL);
+        context = clCreateContext(NULL, 1, &device(), NULL, NULL, NULL);
+        queue = clCreateCommandQueue(context, device(), 0, NULL);
 
         clsparseSetup();
         control = clsparseCreateControl(queue, NULL);
-        free(platforms);
     }
 
     ~Executor()
