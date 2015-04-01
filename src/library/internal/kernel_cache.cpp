@@ -24,7 +24,11 @@ cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
                                         const std::string& params)
 {
     //!! ASSUMPTION: Kernel name == program name;
-    std::string _params = "-Werror -cl-kernel-arg-info -cl-std=CL1.2 ";
+#if defined(CL_VERSION_1_2)
+    std::string _params = " -cl-kernel-arg-info -cl-std=CL1.2 ";
+#else
+    std::string _params = " -cl-std=CL1.1 ";
+#endif
     _params.append(params);
     std::string key;
     key.append(name);
@@ -136,7 +140,8 @@ const cl::Program* KernelCache::getProgram(cl::CommandQueue& queue,
         std::cout << "---------------------------------------" << std::endl;
         std::cout << "parameters: " << params << std::endl;
         std::cout << "---------------------------------------" << std::endl;
-        std::cout << program->getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
+        std::cout << program->getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0])
+                << std::endl;
         std::cout << "#######################################" << std::endl;
 
         return nullptr;

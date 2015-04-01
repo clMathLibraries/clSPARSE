@@ -8,8 +8,18 @@
 #include <CL/cl.hpp>
 #endif
 
-#include <string.h>
+#include <map>
+#include <string>
 #include <iostream>
+
+typedef enum _platform {
+    AMD = 0,
+    NVIDIA
+} cl_platform_type;
+
+const static std::string amd_platform_str = "AMD Accelerated Parallel Processing";
+const static std::string nvidia_platform_str = "NVIDIA CUDA";
+
 
 cl_int getPlatforms(cl_platform_id **platforms, cl_uint* num_platforms)
 {
@@ -67,6 +77,67 @@ void printPlatforms(const cl_platform_id* platforms,
 
 }
 
+cl::Device getDevice(cl_platform_type pID, cl_uint dID)
+{
+    std::vector<cl::Platform> platforms;
+    cl::Platform::get(&platforms);
+
+    assert(platforms.size() > 0);
+
+    std::map<std::string, int> pNames;
+    //search for AMD or NVIDIA
+    cl_int pIndex = -1;
+    for (const auto& p : platforms)
+    {
+        //When using CL.1.1 the p.getInfo returns null terminated char* in
+        // strange format "blabla\000" I don't know how to get rid of it :/
+        std::string name;
+#if defined(CL_VERSION_1_2)
+        name = p.getInfo<CL_PLATFORM_NAME>();
+#else
+        std::string pName = p.getInfo<CL_PLATFORM_NAME>();
+        name = pName.substr(0, pName.size()-1);
+#endif
+        pNames.insert(std::make_pair(name, ++pIndex));
+    }
+
+    //get index of desired platform;
+    std::string desired_platform_name;
+    if (pID == AMD)
+    {
+        desired_platform_name = amd_platform_str;
+    }
+    else if (pID == NVIDIA)
+    {
+        desired_platform_name = nvidia_platform_str;
+    }
+    else
+    {
+        throw std::string("No such platform pID: " + std::to_string(pID));
+    }
+
+    auto pIterator = pNames.find(desired_platform_name);
+    if (pIterator != pNames.end())
+    {
+        std::cout << pIterator->first
+                  << " " << pIterator->second << std::endl;
+        pIndex = pIterator->second;
+    }
+    else
+    {
+        throw std::string(desired_platform_name + " was not found");
+    }
+
+    std::vector<cl::Device> devices;
+    platforms[pIndex].getDevices(CL_DEVICE_TYPE_GPU, &devices);
+
+    assert(dID < devices.size());
+
+    cl::Device device = devices[dID];
+
+    return device;
+
+}
 
 //get the first available device from given platform
 cl_int getDevice (const cl_platform_id platform,

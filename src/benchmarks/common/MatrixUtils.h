@@ -79,25 +79,33 @@ bool allocateVector(cl_mem* buffer, size_t size, VALUE_TYPE value,
                     cl_context context,
                     cl_int* status)
 {
-    *buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                 size * sizeof(VALUE_TYPE),
-                                 NULL, status);
-    if (*status != CL_SUCCESS)
+    //fix for CL 1.1 support (Nvidia devices)
     {
-        return false;
+        std::vector<VALUE_TYPE> fill_vec(size, value);
+        *buffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                         size * sizeof(VALUE_TYPE),
+                                         fill_vec.data(), status);
+
     }
+//    *buffer = clCreateBuffer(context, CL_MEM_READ_WRITE,
+//                                 size * sizeof(VALUE_TYPE),
+//                                 NULL, status);
+//    if (*status != CL_SUCCESS)
+//    {
+//        return false;
+//    }
 
-    cl_event fill_event;
+//    cl_event fill_event;
 
-    *status = clEnqueueFillBuffer(queue, *buffer, &value, sizeof(VALUE_TYPE),
-                        0, size * sizeof(VALUE_TYPE), 0, NULL, &fill_event);
+//    *status = clEnqueueFillBuffer(queue, *buffer, &value, sizeof(VALUE_TYPE),
+//                        0, size * sizeof(VALUE_TYPE), 0, NULL, &fill_event);
 
-    if (*status != CL_SUCCESS)
-    {
-        return false;
-    }
+//    if (*status != CL_SUCCESS)
+//    {
+//        return false;
+//    }
 
-    *status = clWaitForEvents(1, &fill_event);
+//    *status = clWaitForEvents(1, &fill_event);
     if (*status != CL_SUCCESS)
     {
         return false;

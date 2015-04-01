@@ -44,6 +44,7 @@ set( clSPARSE.source.cl
   kernels/csrmv_beta0.cl
   kernels/csrmv_beta1.cl
   kernels/csrmv_general.cl
+  kernels/control.cl
   kernels/scale.cl
 )
 

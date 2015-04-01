@@ -100,4 +100,6 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS( OPENCL DEFAULT_MSG OPENCL_LIBRARIES OPENCL_IN
 
 if( NOT OPENCL_FOUND )
   message( STATUS "FindOpenCL looked for libraries named: OpenCL" )
+else( )
+    message(STATUS "FindOpenCL ${OPENCL_LIBRARIES}, ${OPENCL_INCLUDE_DIRS}")
 endif()
