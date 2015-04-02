@@ -31,9 +31,10 @@ cl_int KernelWrap::run(clsparseControl control,
         if (control->async)
         {
             // Remember the event in our control structure
+            // operator= takes the ownership
             control->event = tmp;
             // Prevent the reference count from hitting zero when the temporary goes out of scope
-            ::clRetainEvent( control->event( ) );
+            //::clRetainEvent( control->event( ) );
         }
         else
         {
