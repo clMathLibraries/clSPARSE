@@ -12,15 +12,17 @@ KernelCache::KernelCache()
 }
 
 cl::Kernel KernelCache::get(cl::CommandQueue& queue,
-                         const std::string& name,
+                         const std::string& program_name,
+                         const std::string& kernel_name,
                          const std::string& params)
 {
-    return getInstance().getKernel(queue, name, params);
+    return getInstance().getKernel(queue, program_name, kernel_name, params);
 }
 
 
 cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
-                                        const std::string& name,
+                                        const std::string& program_name,
+                                        const std::string& kernel_name,
                                         const std::string& params)
 {
     //!! ASSUMPTION: Kernel name == program name;
@@ -31,7 +33,7 @@ cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
 #endif
     _params.append(params);
     std::string key;
-    key.append(name);
+    key.append( "[" + program_name + "/"  + kernel_name + "]");
     key.append(_params);
 
     auto hash = rsHash(key);
@@ -56,22 +58,22 @@ cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
 #endif
 
         const cl::Program* program = NULL;
-        program = getProgram(queue, name, _params);
+        program = getProgram(queue, program_name, _params);
         if (program == nullptr)
         {
             std::cout << "Problem with getting program ["
-                      << name << "] " << std::endl;
+                      << program_name << "] " << std::endl;
             delete program;
             return cl::Kernel();
         }
 
         cl_int status;
-        cl::Kernel kernel(*program, name.c_str(), &status);
+        cl::Kernel kernel(*program, kernel_name.c_str(), &status);
 
         if (status != CL_SUCCESS)
         {
             std::cout << "Problem with creating kernel ["
-                      << name << "]" << std::endl;
+                      << kernel_name << "]" << std::endl;
             delete program;
             return cl::Kernel();
         }
@@ -83,17 +85,17 @@ cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
 }
 
 const cl::Program* KernelCache::getProgram(cl::CommandQueue& queue,
-                                         const std::string& name,
+                                         const std::string& program_name,
                                          const std::string& params)
 {
 
     cl_int status;
     cl::Context context = queue.getInfo<CL_QUEUE_CONTEXT>();
 
-    const char* source = SourceProvider::GetSource(name);
+    const char* source = SourceProvider::GetSource(program_name);
     if (source == nullptr)
     {
-        std::cout << "Source not found [" << name << "]" << std::endl;
+        std::cout << "Source not found [" << program_name << "]" << std::endl;
         return nullptr;
     }
     size_t size = std::char_traits<char>::length(source);

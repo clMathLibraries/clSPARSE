@@ -17,7 +17,9 @@ csrmv_a1b0(const int m,
            clsparseControl control)
 {
     cl::Kernel kernel = KernelCache::get(control->queue,
-                                         "csrmv_alpha1_beta0", params);
+                                         "csrmv_alpha1_beta0",
+                                         "csrmv_alpha1_beta0",
+                                         params);
 
     KernelWrap kWrapper(kernel);
 
@@ -63,7 +65,9 @@ csrmv_b0(const int m, cl_mem alpha,
          clsparseControl control)
 {
     cl::Kernel kernel = KernelCache::get(control->queue,
-                                         "csrmv_beta0", params);
+                                         "csrmv_beta0",
+                                         "csrmv_beta0",
+                                         params);
     KernelWrap kWrapper(kernel);
 
     kWrapper << m
@@ -109,6 +113,7 @@ csrmv_a1(const int m,
          clsparseControl control)
 {
     cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "csrmv_alpha1",
                                          "csrmv_alpha1",
                                          params);
     KernelWrap kWrapper(kernel);
@@ -156,7 +161,10 @@ csrmv_b1(const int m,
          const cl_uint subwave_size,
          clsparseControl control)
 {
-    cl::Kernel kernel = KernelCache::get(control->queue, "csrmv_beta1", params);
+    cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "csrmv_beta1",
+                                         "csrmv_beta1",
+                                         params);
 
     KernelWrap kWrapper(kernel);
 
@@ -206,7 +214,10 @@ csrmv(const int m,
       const cl_uint subwave_size,
       clsparseControl control)
 {
-    cl::Kernel kernel = KernelCache::get(control->queue, "csrmv_general", params);
+    cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "csrmv_general",
+                                         "csrmv_general",
+                                         params);
 
     KernelWrap kWrapper(kernel);
 
@@ -371,7 +382,7 @@ clsparseScsrmv(const int m, const int n, const int nnz,
                             &control->queue(),
                             control->event_wait_list.size(),
                             &(control->event_wait_list.front())(),
-                            control->event);
+                            &control->event( ));
 
 
         if(clbls_status != clblasSuccess)
@@ -587,7 +598,7 @@ clsparseDcsrmv(const int m, const int n, const int nnz,
                             &control->queue(),
                             control->event_wait_list.size(),
                             &(control->event_wait_list.front())(),
-                            control->event);
+                            &control->event());
 
         if (clbls_status != clblasSuccess)
             return clsparseInvalidKernelExecution;

@@ -34,7 +34,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND}
     -DCL_DIR="${CMAKE_CURRENT_SOURCE_DIR}/kernels"
     -DOUTPUT="${ocl_kernels_file_name}"
-    -P "${PROJECT_SOURCE_DIR}/cmake/cl2cpp.cmake"
+    -P "${PROJECT_SOURCE_DIR}/cmake/cl2cpp_raw.cmake"
 )
 
 # List the names of common files to compile across all platforms

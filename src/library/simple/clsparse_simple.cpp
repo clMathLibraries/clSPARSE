@@ -47,7 +47,9 @@ clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
             + " -DVALUE_TYPE="+ OclTypeTraits<cl_float>::type
             + " -DWG_SIZE=" + std::to_string(wg_size);
 
-    cl::Kernel kernel = KernelCache::get(control->queue, "scale", params);
+    cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "scale", "scale",
+                                         params);
 
 #ifndef NDEBUG
     std::cout << "params: " << params << std::endl;

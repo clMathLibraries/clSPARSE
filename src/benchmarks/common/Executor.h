@@ -36,6 +36,7 @@ public:
 
         clsparseSetup();
         control = clsparseCreateControl(queue, NULL);
+        clsparseEnableAsync(control, true);
     }
 
     ~Executor()
