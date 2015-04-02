@@ -9,7 +9,7 @@
 #endif
 
 
-typedef struct _clsparseControl
+struct _clsparseControl
 {
     _clsparseControl( )
     { }
@@ -45,6 +45,6 @@ typedef struct _clsparseControl
         return queue.getInfo<CL_QUEUE_CONTEXT>();
     }
 
-} _clsparseControl;
+};
 
 #endif //_CLSPARSE_CONTROL_H_

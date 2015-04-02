@@ -448,20 +448,31 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 
 //Dummy implementation of new interface;
 clsparseStatus
-clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
-                    cl_mem alpha,
-                    cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-                    cl_mem x,
-                    cl_mem beta, cl_mem y,
-                    clsparseControl control)
+clsparseScsrmv_adaptive( clsparseScalar* alpha,
+            clsparseCsrMatrix* matx,
+            clsparseVector* x,
+            clsparseScalar* beta,
+            clsparseVector* y,
+            clsparseControl control )
 {
-    return clsparseScsrmv(m, n, nnz,
-                          alpha,
-                          row_offsets, col_indices, values,
-                          x,
-                          beta,
-                          y,
-                          control);
+    if( matx->rowBlocks == nullptr )
+    {
+        // Call non-adaptive CSR kernels
+        return clsparseScsrmv( matx->m, matx->n, matx->nnz,
+                               alpha->value,
+                               matx->rowOffsets, matx->colIndices, matx->values,
+                               x->values,
+                               beta->value,
+                               y->values,
+                               control );
+    }
+    else
+    {
+        // Call adaptive CSR kernels
+        return clsparseSuccess;
+    }
+
+    return clsparseNotImplemented;
 }
 
 clsparseStatus

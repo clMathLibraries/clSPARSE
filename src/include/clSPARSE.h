@@ -91,7 +91,7 @@ clsparseSetOffsets(clsparseControl control,
 
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseGetVersion( cl_uint* major, cl_uint* minor, cl_uint* patch );
+clsparseGetVersion( cl_uint *major, cl_uint *minor, cl_uint *patch, cl_uint *tweak );
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseSetup(void);
@@ -114,7 +114,77 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
               clsparseControl control);
 
+struct clsparseScalar
+{
+    // OpenCL state
+    cl_mem value;
 
+    //OpenCL meta
+    cl_ulong offValue;
+};
+
+struct clsparseVector
+{
+    // Matrix meta
+    cl_int n;
+
+    // OpenCL state
+    cl_mem values;
+
+    //OpenCL meta
+    cl_ulong offValues;
+};
+
+struct clsparseCsrMatrix
+{
+    // Matrix meta
+    cl_int m;
+    cl_int n;
+    cl_int nnz;
+
+    // OpenCL state
+    cl_mem values;
+    cl_mem colIndices;
+    cl_mem rowOffsets;
+    cl_mem rowBlocks;      // It is possible that this pointer may be NULL
+
+    //OpenCL meta
+    cl_ulong offValues;
+    cl_ulong offColInd;
+    cl_ulong offRowOff;
+    cl_ulong offRowBlocks;
+};
+
+struct clsparseCooMatrix
+{
+    // Matrix meta
+    cl_int m;
+    cl_int n;
+    cl_int nnz;
+
+    // OpenCL state
+    cl_mem values;
+    cl_mem colIndices;
+    cl_mem rowIndices;
+
+    //OpenCL meta
+    cl_ulong offValues;
+    cl_ulong offColInd;
+    cl_ulong offRowInd;
+};
+
+// Convenience sparse matrix construction functions
+CLSPARSE_EXPORT clsparseStatus
+clsparseInitCooMatrix( clsparseCooMatrix* cooMatx );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseInitCsrMatrix( clsparseCsrMatrix* csrMatx );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseCoo2Csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx );
 
 // SPMV
 // y = \alpha * A * x + \beta * y
@@ -138,14 +208,20 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 
 //new possible implementation of csrmv with control object
 CLSPARSE_EXPORT clsparseStatus
-clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
-               cl_mem alpha,
-               cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x,
-               cl_mem beta,
-               cl_mem y,
-               clsparseControl control);
+clsparseScsrmv_adaptive( clsparseScalar* alpha,
+                clsparseCsrMatrix* matx,
+                clsparseVector* x,
+                clsparseScalar* beta,
+                clsparseVector* y,
+                clsparseControl control );
 
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsrmv_adaptive_scalar( float alpha,
+            clsparseCsrMatrix* matx,
+            clsparseVector* x,
+            float beta,
+            clsparseVector* y,
+            clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseDcsrmv(const int m, const int n, const int nnz,

@@ -21,13 +21,14 @@ TEST (clSparseInit, teardown)
 
 TEST (clSparseInit, version)
 {
-    cl_uint major = 3, minor = 3, patch = 3;
+    cl_uint major = 3, minor = 3, patch = 3, tweak = 3;
 
-    clsparseGetVersion (&major, &minor, &patch);
+    clsparseGetVersion (&major, &minor, &patch, &tweak );
 
     EXPECT_EQ (0, major);
     EXPECT_EQ (0, minor);
     EXPECT_EQ (1, patch);
+    EXPECT_EQ( 0, patch );
 }
 
 TEST (clsparseInit, control)
