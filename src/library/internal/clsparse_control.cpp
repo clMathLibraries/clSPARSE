@@ -32,7 +32,10 @@ void collectEnvParams(clsparseControl control)
     const std::string params = std::string() +
             "-DWG_SIZE=" + std::to_string(wg_size);
 
-    cl::Kernel kernel = KernelCache::get(control->queue, "control", params);
+    cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "control",
+                                         "control",
+                                         params);
 
     control->wavefront_size =
             kernel.getWorkGroupInfo<CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE>(device);
