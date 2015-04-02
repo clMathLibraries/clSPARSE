@@ -63,6 +63,7 @@ clsparseCreateControl(cl_command_queue& queue, cl_int *status)
 
     control->wavefront_size = 0;
     control->max_wg_size = 0;
+    control->async = false;
 
     collectEnvParams(control);
 
@@ -74,6 +75,17 @@ clsparseCreateControl(cl_command_queue& queue, cl_int *status)
     return control;
 }
 
+clsparseStatus
+clsparseEnableAsync(clsparseControl control, cl_bool async)
+{
+    if(control == NULL)
+    {
+        return clsparseInvalidControlObject;
+    }
+
+    control->async = async;
+    return clsparseSuccess;
+}
 
 clsparseStatus
 clsparseReleaseControl(clsparseControl control)
@@ -95,6 +107,7 @@ clsparseReleaseControl(clsparseControl control)
 
     control->wavefront_size = 0;
     control->max_wg_size = 0;
+    control->async = false;
 
     free(control);
 
@@ -125,50 +138,63 @@ clsparseSetupEventWaitList(clsparseControl control,
 }
 
 clsparseStatus
-clsparseSetupEvent(clsparseControl control, cl_event* event)
+clsparseGetEvent(clsparseControl control, cl_event *event)
 {
     if(control == NULL)
     {
         return clsparseInvalidControlObject;
     }
 
-    control->event = event;
-
+    *event = control->event( );
     return clsparseSuccess;
+
 }
 
+//clsparseStatus
+//clsparseSetupEvent(clsparseControl control, cl_event* event)
+//{
+//    if(control == NULL)
+//    {
+//        return clsparseInvalidControlObject;
+//    }
 
-clsparseStatus
-clsparseSynchronize(clsparseControl control)
-{
-    if(control == NULL)
-    {
-        return clsparseInvalidControlObject;
-    }
+//    control->event = event;
 
-    cl_int sync_status = CL_SUCCESS;
-    try 
-    {
-        // If the user registered an event with us 
-        if( control->event )
-        {
-            // If the event is valid
-            if( *control->event )
-                ::clWaitForEvents( 1, control->event );
-        }
-    } catch (cl::Error e)
-    {
-        std::cout << "clsparseSynchronize error " << e.what() << std::endl;
-        sync_status = e.err();
-    }
+//    return clsparseSuccess;
+//}
 
-    if (sync_status != CL_SUCCESS)
-    {
-        return clsparseInvalidEvent;
-    }
 
-    return clsparseSuccess;
-}
+//clsparseStatus
+//clsparseSynchronize(clsparseControl control)
+//{
+//    if(control == NULL)
+//    {
+//        return clsparseInvalidControlObject;
+//    }
+
+//    cl_int sync_status = CL_SUCCESS;
+//    try
+//    {
+//        // If the user registered an event with us
+//        if( control->event )
+//        {
+//            // If the event is valid
+//            if( *control->event )
+//                ::clWaitForEvents( 1, control->event );
+//        }
+//    } catch (cl::Error e)
+//    {
+//        std::cout << "clsparseSynchronize error " << e.what() << std::endl;
+//        sync_status = e.err();
+//    }
+
+//    if (sync_status != CL_SUCCESS)
+//    {
+//        return clsparseInvalidEvent;
+//    }
+
+//    return clsparseSuccess;
+//}
 
 clsparseStatus
 clsparseSetOffsets(clsparseControl control,

@@ -28,7 +28,7 @@ typedef struct _clsparseControl
     std::vector<cl::Event> event_wait_list;
 
     //it is better in that way;
-    cl_event* event;
+    cl::Event event;
 
     //operation parameters
     cl_ulong off_alpha;
@@ -39,6 +39,10 @@ typedef struct _clsparseControl
     //for NV(32) for AMD(64)
     cl_uint wavefront_size;
     cl_uint max_wg_size;
+
+    //clSPARSE async execution; if true user is responsible to call for WaitForEvent;
+    //otherwise after every kernel call we are syncing internally;
+    cl_bool async;
 
     cl::Context getContext()
     {
