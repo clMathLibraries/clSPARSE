@@ -145,7 +145,11 @@ clsparseGetEvent(clsparseControl control, cl_event *event)
         return clsparseInvalidControlObject;
     }
 
+    //keeps the event valid on the user side
+    ::clRetainEvent(control->event( ));
+
     *event = control->event( );
+
     return clsparseSuccess;
 
 }
