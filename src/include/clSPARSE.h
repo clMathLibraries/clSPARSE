@@ -63,6 +63,11 @@ typedef struct _clsparseControl*  clsparseControl;
 CLSPARSE_EXPORT clsparseControl 
 clsparseCreateControl(cl_command_queue &queue, cl_int *status );
 
+//enable/disable asynchronous behavior for clSPARSE;
+CLSPARSE_EXPORT clsparseStatus
+clsparseEnableAsync(clsparseControl control, cl_bool async);
+
+
 //setup events to sync
 //TODO:: NOT WORKING! NDRange throws Failure
 CLSPARSE_EXPORT clsparseStatus
@@ -70,13 +75,18 @@ clsparseSetupEventWaitList(clsparseControl control,
                            cl_uint num_events_in_wait_list,
                            cl_event* event_wait_list);
 
+//get the event from the last kernel execution
 CLSPARSE_EXPORT clsparseStatus
-clsparseSetupEvent(clsparseControl control,
-                   cl_event* event);
+clsparseGetEvent(clsparseControl control, cl_event* event);
 
 
-CLSPARSE_EXPORT clsparseStatus
-clsparseSynchronize(clsparseControl control);
+//CLSPARSE_EXPORT clsparseStatus
+//clsparseSetupEvent(clsparseControl control,
+//                   cl_event* event);
+
+
+//CLSPARSE_EXPORT clsparseStatus
+//clsparseSynchronize(clsparseControl control);
 
 // just sets the fields to 0 or Null and free allocated struc.
 // We do not own the queue, context, etc;
