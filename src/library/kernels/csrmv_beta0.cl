@@ -1,3 +1,4 @@
+R"(
 #ifdef cl_khr_fp64
     #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 #elif defined(cl_amd_fp64)
@@ -88,3 +89,4 @@ void csrmv_beta0 (     const INDEX_TYPE num_rows,
             y[off_y + row] = sum;
     }
 }
+)"

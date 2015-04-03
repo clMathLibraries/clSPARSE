@@ -1,3 +1,4 @@
+R"(
 //TEST KERNEL
 
 #ifdef cl_khr_fp64
@@ -33,3 +34,4 @@ void scale ( __global VALUE_TYPE* v,
 
     v[i] = v[i]* alpha[0];
 }
+)"

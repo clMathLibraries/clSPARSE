@@ -23,16 +23,18 @@ public:
     static KernelCache& getInstance();
 
     static cl::Kernel get(cl::CommandQueue& queue,
-                         const std::string& name,
+                         const std::string& program_name,
+                         const std::string& kernel_name,
                          const std::string& params = "");
 
     const cl::Program* getProgram(cl::CommandQueue& queue,
-                              const std::string& name,
+                              const std::string& program_name,
                               const std::string& params = "");
 
     cl::Kernel getKernel(cl::CommandQueue &queue,
-                              const std::string& name,
-                              const std::string& params = "");
+                         const std::string& program_name,
+                         const std::string& kernel_name,
+                         const std::string& params = "");
 
 
 private:

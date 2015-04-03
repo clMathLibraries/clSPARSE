@@ -18,7 +18,7 @@ TEST (simple_kernel, run)
 //    clsparseControl control;
 //    clsparseCreateControl(&control, CLSE::queue);
 
-    size_t N = 1024;
+    size_t N = 1e7;
 
     cl_int status;
     cl_mem buff;
@@ -46,17 +46,13 @@ TEST (simple_kernel, run)
     ASSERT_EQ(CL_SUCCESS, status);
 
     cl_event scale_event1;
-    cl_event scale_event2;
-
-    clsparseSetupEvent(CLSE::control, &scale_event1);
-
-    //TODO:: NOT WORKING!
-    //clsparseSetupEventWaitList(CLSE::control, 1, &scale_event2);
+    clsparseEnableAsync(CLSE::control, true);
 
     clsparseStatus clsp_status = clsparseScale(buff, alpha, N, CLSE::control);
-    status = clsparseSynchronize(CLSE::control);
+    clsparseGetEvent(CLSE::control, &scale_event1);
+    clWaitForEvents(1, &scale_event1);
 
-    ASSERT_EQ(CL_SUCCESS, status);
+
     ASSERT_EQ(clsparseSuccess, clsp_status);
 
 

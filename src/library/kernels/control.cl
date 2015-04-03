@@ -1,3 +1,4 @@
+R"(
 //do not remove. This kernel is used to measure some parameters of the device
 #ifdef cl_khr_fp64
     #pragma OPENCL EXTENSION cl_khr_fp64 : enable
@@ -17,3 +18,4 @@ void control(void)
 {
     return;
 }
+)"
