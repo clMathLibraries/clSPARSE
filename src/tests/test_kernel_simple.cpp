@@ -51,9 +51,8 @@ TEST (simple_kernel, run)
     clsparseStatus clsp_status = clsparseScale(buff, alpha, N, CLSE::control);
     clsparseGetEvent(CLSE::control, &scale_event1);
     clWaitForEvents(1, &scale_event1);
-
-
     ASSERT_EQ(clsparseSuccess, clsp_status);
+    ::clReleaseEvent( scale_event1 );
 
 
     std::vector<float> hbuff(N);

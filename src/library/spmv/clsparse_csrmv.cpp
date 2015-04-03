@@ -459,12 +459,12 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 
 //Dummy implementation of new interface;
 clsparseStatus
-clsparseScsrmv_adaptive( clsparseScalar* alpha,
-            clsparseCsrMatrix* matx,
-            clsparseVector* x,
-            clsparseScalar* beta,
+clsparseScsrmv_adaptive( const clsparseScalar* alpha,
+            const clsparseCsrMatrix* matx,
+            const clsparseVector* x,
+            const clsparseScalar* beta,
             clsparseVector* y,
-            clsparseControl control )
+            const clsparseControl control )
 {
     if( matx->rowBlocks == nullptr )
     {

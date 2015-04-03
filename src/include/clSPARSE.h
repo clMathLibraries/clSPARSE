@@ -61,7 +61,7 @@ typedef struct _clsparseControl*  clsparseControl;
 
 //setup the control from external queue;
 CLSPARSE_EXPORT clsparseControl 
-clsparseCreateControl(cl_command_queue &queue, cl_int *status );
+clsparseCreateControl( cl_command_queue queue, cl_int *status );
 
 //enable/disable asynchronous behavior for clSPARSE;
 CLSPARSE_EXPORT clsparseStatus
@@ -78,15 +78,6 @@ clsparseSetupEventWaitList(clsparseControl control,
 //get the event from the last kernel execution
 CLSPARSE_EXPORT clsparseStatus
 clsparseGetEvent(clsparseControl control, cl_event* event);
-
-
-//CLSPARSE_EXPORT clsparseStatus
-//clsparseSetupEvent(clsparseControl control,
-//                   cl_event* event);
-
-
-//CLSPARSE_EXPORT clsparseStatus
-//clsparseSynchronize(clsparseControl control);
 
 // just sets the fields to 0 or Null and free allocated struc.
 // We do not own the queue, context, etc;
@@ -124,16 +115,21 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
               clsparseControl control);
 
-struct clsparseScalar
+// Data types used to pass OpenCL objects into the clSPARSE library
+// These are plain PoD containers; no methods defined
+// Users are responsible for creating and destroying the OpenCL objects
+// Helper functions may be provided to assist users in creating and 
+// destroying these objects
+typedef struct clsparseScalar_
 {
     // OpenCL state
     cl_mem value;
 
     //OpenCL meta
     cl_ulong offValue;
-};
+} clsparseScalar;
 
-struct clsparseVector
+typedef struct clsparseVector_
 {
     // Matrix meta
     cl_int n;
@@ -143,9 +139,9 @@ struct clsparseVector
 
     //OpenCL meta
     cl_ulong offValues;
-};
+} clsparseVector;
 
-struct clsparseCsrMatrix
+typedef struct clsparseCsrMatrix_
 {
     // Matrix meta
     cl_int m;
@@ -163,9 +159,9 @@ struct clsparseCsrMatrix
     cl_ulong offColInd;
     cl_ulong offRowOff;
     cl_ulong offRowBlocks;
-};
+} clsparseCsrMatrix;
 
-struct clsparseCooMatrix
+typedef struct clsparseCooMatrix_
 {
     // Matrix meta
     cl_int m;
@@ -181,9 +177,15 @@ struct clsparseCooMatrix
     cl_ulong offValues;
     cl_ulong offColInd;
     cl_ulong offRowInd;
-};
+} clsparseCooMatrix;
 
 // Convenience sparse matrix construction functions
+CLSPARSE_EXPORT clsparseStatus
+clsparseInitScalar( clsparseScalar* scalar );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseInitVector( clsparseVector* vec );
+
 CLSPARSE_EXPORT clsparseStatus
 clsparseInitCooMatrix( clsparseCooMatrix* cooMatx );
 
@@ -218,19 +220,19 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 
 //new possible implementation of csrmv with control object
 CLSPARSE_EXPORT clsparseStatus
-clsparseScsrmv_adaptive( clsparseScalar* alpha,
-                clsparseCsrMatrix* matx,
-                clsparseVector* x,
-                clsparseScalar* beta,
+clsparseScsrmv_adaptive( const clsparseScalar* alpha,
+                const clsparseCsrMatrix* matx,
+                const clsparseVector* x,
+                const clsparseScalar* beta,
                 clsparseVector* y,
-                clsparseControl control );
+                const clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseScsrmv_adaptive_scalar( float alpha,
-            clsparseCsrMatrix* matx,
-            clsparseVector* x,
+            const clsparseCsrMatrix* matx,
+            const clsparseVector* x,
             float beta,
-            clsparseVector* y,
+            const clsparseVector* y,
             clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus

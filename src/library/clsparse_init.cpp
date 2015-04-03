@@ -50,6 +50,27 @@ clsparseTeardown(void)
 
 // Convenience sparse matrix construction functions
 clsparseStatus
+clsparseInitScalar( clsparseScalar* scalar )
+{
+    scalar->value = nullptr;
+
+    scalar->offValue = 0;
+
+    return clsparseSuccess;
+};
+
+clsparseStatus
+clsparseInitVector( clsparseVector* vec )
+{
+    vec->n = 0;
+
+    vec->values = nullptr;
+    vec->offValues = 0;
+
+    return clsparseSuccess;
+};
+
+clsparseStatus
 clsparseInitCooMatrix( clsparseCooMatrix* cooMatx )
 {
     cooMatx->m = 0;
