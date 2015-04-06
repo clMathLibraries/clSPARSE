@@ -1,10 +1,18 @@
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "clSPARSE.h"
 #include "clSPARSE.version.h"
 #include "internal/clsparse_internal.hpp"
 
+// Include appropriate data type definitions appropriate to the cl version supported
+#if defined( CL_VERSION_2_0 )
+    #include "include/clSPARSE_2x.hpp"
+#else
+    #include "include/clSPARSE_1x.hpp"
+#endif
+
 #include <clAmdBlas.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 int clsparseInitialized = 0;
 
@@ -52,9 +60,8 @@ clsparseTeardown(void)
 clsparseStatus
 clsparseInitScalar( clsparseScalar* scalar )
 {
-    scalar->value = nullptr;
-
-    scalar->offValue = 0;
+    clsparseScalarPrivate* pScalar = static_cast<clsparseScalarPrivate*>( scalar );
+    pScalar->clear( );
 
     return clsparseSuccess;
 };
@@ -62,10 +69,8 @@ clsparseInitScalar( clsparseScalar* scalar )
 clsparseStatus
 clsparseInitVector( clsparseVector* vec )
 {
-    vec->n = 0;
-
-    vec->values = nullptr;
-    vec->offValues = 0;
+    clsparseVectorPrivate* pVec = static_cast<clsparseVectorPrivate*>( vec );
+    pVec->clear( );
 
     return clsparseSuccess;
 };
@@ -73,16 +78,8 @@ clsparseInitVector( clsparseVector* vec )
 clsparseStatus
 clsparseInitCooMatrix( clsparseCooMatrix* cooMatx )
 {
-    cooMatx->m = 0;
-    cooMatx->n = 0;
-    cooMatx->nnz = 0;
-
-    cooMatx->values = nullptr;
-    cooMatx->colIndices = nullptr;
-    cooMatx->rowIndices = nullptr;
-    cooMatx->offValues = 0;
-    cooMatx->offColInd = 0;
-    cooMatx->offRowInd = 0;
+    clsparseCooMatrixPrivate* pCooMatx = static_cast<clsparseCooMatrixPrivate*>( cooMatx );
+    pCooMatx->clear( );
 
     return clsparseSuccess;
 };
@@ -90,18 +87,8 @@ clsparseInitCooMatrix( clsparseCooMatrix* cooMatx )
 clsparseStatus
 clsparseInitCsrMatrix( clsparseCsrMatrix* csrMatx )
 {
-    csrMatx->m = 0;
-    csrMatx->n = 0;
-    csrMatx->nnz = 0;
-
-    csrMatx->values = nullptr;
-    csrMatx->colIndices = nullptr;
-    csrMatx->rowOffsets = nullptr;
-    csrMatx->rowBlocks = nullptr;
-    csrMatx->offValues = 0;
-    csrMatx->offColInd = 0;
-    csrMatx->offRowBlocks = 0;
-    csrMatx->offRowOff = 0;
+    clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
+    pCsrMatx->clear( );
 
     return clsparseSuccess;
 };

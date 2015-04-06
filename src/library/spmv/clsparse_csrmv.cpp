@@ -5,6 +5,13 @@
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 
+// Include appropriate data type definitions appropriate to the cl version supported
+#if defined( CL_VERSION_2_0 )
+    #include "include/clSPARSE_2x.hpp"
+#else
+    #include "include/clSPARSE_1x.hpp"
+#endif
+
 #include <clBLAS.h>
 
 clsparseStatus
@@ -278,6 +285,7 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 
     clsparseStatus status;
 
+#if defined ( _DEBUG )
     //validate cl_mem objects
     status = validateMemObject(x, sizeof(cl_float)*n);
     if(status != clsparseSuccess)
@@ -312,6 +320,7 @@ clsparseScsrmv(const int m, const int n, const int nnz,
     if(status != clsparseSuccess) {
         return status;
     }
+#endif
 
     cl_uint nnz_per_row = nnz / m; //average nnz per row
     cl_uint wave_size = control->wavefront_size;
@@ -466,16 +475,15 @@ clsparseScsrmv_adaptive( const clsparseScalar* alpha,
             clsparseVector* y,
             const clsparseControl control )
 {
+    const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*>( alpha );
+    const clsparseCsrMatrixPrivate* pMatx = static_cast<const clsparseCsrMatrixPrivate*>( matx );
+    const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*>( x );
+    const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*>( beta );
+    clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*>( y );
+
     if( matx->rowBlocks == nullptr )
     {
         // Call non-adaptive CSR kernels
-        return clsparseScsrmv( matx->m, matx->n, matx->nnz,
-                               alpha->value,
-                               matx->rowOffsets, matx->colIndices, matx->values,
-                               x->values,
-                               beta->value,
-                               y->values,
-                               control );
     }
     else
     {

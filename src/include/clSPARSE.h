@@ -11,14 +11,20 @@
 // CMake-generated file to define export related preprocessor macros
 #include "clsparse_export.h"
 
-// Type definitions - to be fleshed in
-//typedef enum clsparseOperation_t clsparseOperation;
-//typedef enum clsparseMatDescr_t clsparseMatDescr;
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// Include appropriate data type definitions appropriate to the cl version supported
+#if defined( CL_VERSION_2_0 )
+    #include "clSPARSE_2x.h"
+#else
+    #include "clSPARSE_1x.h"
+#endif
+
+// Type definitions - to be fleshed in
+//typedef enum clsparseOperation_t clsparseOperation;
+//typedef enum clsparseMatDescr_t clsparseMatDescr;
 
 typedef enum clsparseStatus_ {
     clsparseSuccess                         = CL_SUCCESS,
@@ -114,70 +120,6 @@ clsparseTeardown(void);
 CLSPARSE_EXPORT clsparseStatus
 clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
               clsparseControl control);
-
-// Data types used to pass OpenCL objects into the clSPARSE library
-// These are plain PoD containers; no methods defined
-// Users are responsible for creating and destroying the OpenCL objects
-// Helper functions may be provided to assist users in creating and 
-// destroying these objects
-typedef struct clsparseScalar_
-{
-    // OpenCL state
-    cl_mem value;
-
-    //OpenCL meta
-    cl_ulong offValue;
-} clsparseScalar;
-
-typedef struct clsparseVector_
-{
-    // Matrix meta
-    cl_int n;
-
-    // OpenCL state
-    cl_mem values;
-
-    //OpenCL meta
-    cl_ulong offValues;
-} clsparseVector;
-
-typedef struct clsparseCsrMatrix_
-{
-    // Matrix meta
-    cl_int m;
-    cl_int n;
-    cl_int nnz;
-
-    // OpenCL state
-    cl_mem values;
-    cl_mem colIndices;
-    cl_mem rowOffsets;
-    cl_mem rowBlocks;      // It is possible that this pointer may be NULL
-
-    //OpenCL meta
-    cl_ulong offValues;
-    cl_ulong offColInd;
-    cl_ulong offRowOff;
-    cl_ulong offRowBlocks;
-} clsparseCsrMatrix;
-
-typedef struct clsparseCooMatrix_
-{
-    // Matrix meta
-    cl_int m;
-    cl_int n;
-    cl_int nnz;
-
-    // OpenCL state
-    cl_mem values;
-    cl_mem colIndices;
-    cl_mem rowIndices;
-
-    //OpenCL meta
-    cl_ulong offValues;
-    cl_ulong offColInd;
-    cl_ulong offRowInd;
-} clsparseCooMatrix;
 
 // Convenience sparse matrix construction functions
 CLSPARSE_EXPORT clsparseStatus
