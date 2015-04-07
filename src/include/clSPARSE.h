@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 // Include appropriate data type definitions appropriate to the cl version supported
-#if defined( CL_VERSION_2_0 )
+#if( BUILD_CLVERSION >= 200 )
     #include "clSPARSE_2x.h"
 #else
     #include "clSPARSE_1x.h"

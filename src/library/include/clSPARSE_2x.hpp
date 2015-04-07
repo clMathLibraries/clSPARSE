@@ -2,6 +2,7 @@
 #ifndef _CL_SPARSE_2x_HPP_
 #define _CL_SPARSE_2x_HPP_
 
+#include <type_traits>
 #include "clSPARSE_2x.h"
 
 // C++ wrapper classes that inherit from the extenrally visible C classes, 
@@ -48,5 +49,11 @@ public:
         values = colIndices = rowIndices = nullptr;
     }
 };
+
+// Check that it is OK to static_cast a C struct pointer to a C++ class pointer
+static_assert( std::is_standard_layout< clsparseScalarPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
+static_assert( std::is_standard_layout< clsparseVectorPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
+static_assert( std::is_standard_layout< clsparseCsrMatrixPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
+static_assert( std::is_standard_layout< clsparseCooMatrixPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
 
 #endif

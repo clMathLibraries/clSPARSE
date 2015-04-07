@@ -6,7 +6,7 @@
 #include "internal/kernel_wrap.hpp"
 
 // Include appropriate data type definitions appropriate to the cl version supported
-#if defined( CL_VERSION_2_0 )
+#if( BUILD_CLVERSION >= 200 )
     #include "include/clSPARSE_2x.hpp"
 #else
     #include "include/clSPARSE_1x.hpp"
