@@ -29,17 +29,18 @@ include_directories(
   ${OPENCL_INCLUDE_DIRS}
   )
 
-set( TESTS
-#  test_hdl_list
+set( TESTS_CPP
   test_clsparse_init
   test_kernel_simple
   test_csrmv_simple
-#  test_validation
-#  test_clsparse_spmv_ctrl
   test_resources_io
   test_clsparse_transpose
 )
 
+set( TESTS_C
+  test_interface_c
+  )
+  
 #additional headers and sources
 set( src
   resources/csr_matrix_environment.cpp
@@ -54,8 +55,19 @@ set( headers
   resources/csr_matrix_environment.h
 )
 
-foreach( test ${TESTS} )
+foreach( test ${TESTS_CPP} )
   add_executable( ${test} ${test}.cpp ${src} ${headers} )
+  target_link_libraries( ${test} clSPARSE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} )
+  if( CMAKE_COMPILER_IS_GNUCC )
+    target_link_libraries( ${test} pthread ) #gtest on linux brings this dependency
+  endif( )
+  set_target_properties( ${test} PROPERTIES VERSION ${clSPARSE_VERSION} )
+  set_target_properties( ${test} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+  set_property( TARGET ${test} PROPERTY FOLDER "Tests" )
+endforeach( )
+
+foreach( test ${TESTS_C} )
+  add_executable( ${test} ${test}.c ${src} ${headers} )
   target_link_libraries( ${test} clSPARSE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} )
   if( CMAKE_COMPILER_IS_GNUCC )
     target_link_libraries( ${test} pthread ) #gtest on linux brings this dependency

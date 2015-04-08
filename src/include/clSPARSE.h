@@ -11,14 +11,20 @@
 // CMake-generated file to define export related preprocessor macros
 #include "clsparse_export.h"
 
-// Type definitions - to be fleshed in
-//typedef enum clsparseOperation_t clsparseOperation;
-//typedef enum clsparseMatDescr_t clsparseMatDescr;
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// Include appropriate data type definitions appropriate to the cl version supported
+#if( BUILD_CLVERSION >= 200 )
+    #include "clSPARSE_2x.h"
+#else
+    #include "clSPARSE_1x.h"
+#endif
+
+// Type definitions - to be fleshed in
+//typedef enum clsparseOperation_t clsparseOperation;
+//typedef enum clsparseMatDescr_t clsparseMatDescr;
 
 typedef enum clsparseStatus_ {
     clsparseSuccess                         = CL_SUCCESS,
@@ -61,7 +67,7 @@ typedef struct _clsparseControl*  clsparseControl;
 
 //setup the control from external queue;
 CLSPARSE_EXPORT clsparseControl 
-clsparseCreateControl(cl_command_queue &queue, cl_int *status );
+clsparseCreateControl( cl_command_queue queue, cl_int *status );
 
 //enable/disable asynchronous behavior for clSPARSE;
 CLSPARSE_EXPORT clsparseStatus
@@ -79,15 +85,6 @@ clsparseSetupEventWaitList(clsparseControl control,
 CLSPARSE_EXPORT clsparseStatus
 clsparseGetEvent(clsparseControl control, cl_event* event);
 
-
-//CLSPARSE_EXPORT clsparseStatus
-//clsparseSetupEvent(clsparseControl control,
-//                   cl_event* event);
-
-
-//CLSPARSE_EXPORT clsparseStatus
-//clsparseSynchronize(clsparseControl control);
-
 // just sets the fields to 0 or Null and free allocated struc.
 // We do not own the queue, context, etc;
 CLSPARSE_EXPORT clsparseStatus
@@ -101,7 +98,7 @@ clsparseSetOffsets(clsparseControl control,
 
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseGetVersion( cl_uint* major, cl_uint* minor, cl_uint* patch );
+clsparseGetVersion( cl_uint *major, cl_uint *minor, cl_uint *patch, cl_uint *tweak );
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseSetup(void);
@@ -124,7 +121,24 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
               clsparseControl control);
 
+// Convenience sparse matrix construction functions
+CLSPARSE_EXPORT clsparseStatus
+clsparseInitScalar( clsparseScalar* scalar );
 
+CLSPARSE_EXPORT clsparseStatus
+clsparseInitVector( clsparseVector* vec );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseInitCooMatrix( clsparseCooMatrix* cooMatx );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseInitCsrMatrix( clsparseCsrMatrix* csrMatx );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseCoo2Csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx );
 
 // SPMV
 // y = \alpha * A * x + \beta * y
@@ -148,14 +162,20 @@ clsparseScsrmv(const int m, const int n, const int nnz,
 
 //new possible implementation of csrmv with control object
 CLSPARSE_EXPORT clsparseStatus
-clsparseScsrmv_ctrl(const int m, const int n, const int nnz,
-               cl_mem alpha,
-               cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x,
-               cl_mem beta,
-               cl_mem y,
-               clsparseControl control);
+clsparseScsrmv_adaptive( const clsparseScalar* alpha,
+                const clsparseCsrMatrix* matx,
+                const clsparseVector* x,
+                const clsparseScalar* beta,
+                clsparseVector* y,
+                const clsparseControl control );
 
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsrmv_adaptive_scalar( float alpha,
+            const clsparseCsrMatrix* matx,
+            const clsparseVector* x,
+            float beta,
+            const clsparseVector* y,
+            clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseDcsrmv(const int m, const int n, const int nnz,

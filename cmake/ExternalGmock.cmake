@@ -26,16 +26,33 @@ set( ext.gMock.cmake_args -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${LIB_DIR} -DCMA
 
 if( CMAKE_COMPILER_IS_GNUCC )
   if( BUILD64 )
-    set( EXTRA_FLAGS "-m64 -pthread" )
+    set( EXTRA_FLAGS "-m64" )
   else( )
-    set( EXTRA_FLAGS "-m32 -pthread" )
+    set( EXTRA_FLAGS "-m32" )
   endif( )
 
   list( APPEND ext.gMock.cmake_args -DCMAKE_C_FLAGS=${EXTRA_FLAGS} -DCMAKE_CXX_FLAGS=${EXTRA_FLAGS} )
 endif( )
 
-if( MSVC )
+if( UNIX )
+  # Add build thread in addition to the number of cores that we have
+  include( ProcessorCount )
+  ProcessorCount( Cores )
+  message( STATUS "ExternalclBLAS detected ( " ${Cores} " ) cores to build clBLAS with" )
+
+  set( ext.gMock.Make "make" )
+  if( NOT Cores EQUAL 0 )
+    math( EXPR Cores "${Cores} + 1 " )
+    list( APPEND ext.gMock.Make -j ${Cores} )
+  else( )
+    # If we could not detect # of cores, assume 1 core and add an additional build thread
+    list( APPEND ext.gMock.Make -j 2 )
+  endif( )
+else( )
   list( APPEND ext.gMock.cmake_args -Dgtest_force_shared_crt=ON )
+  set( ext.gMock.Make 
+        COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
+        COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Debug )
 endif( )
 
 # Add external project for googleMock
@@ -43,53 +60,42 @@ ExternalProject_Add(
   gMock
   URL ${ext.gMock_URL}
   URL_MD5 073b984d8798ea1594f5e44d85b20d66
-  CMAKE_ARGS ${ext.gMock.cmake_args}
+  CMAKE_ARGS ${ext.gMock.cmake_args} -DCMAKE_DEBUG_POSTFIX=d
+  BUILD_COMMAND ${ext.gMock.Make}
   INSTALL_COMMAND ""
 )
 
 ExternalProject_Get_Property( gMock source_dir )
 
-# FindGTest.cmake assumes that debug gtest libraries end with a 'd' postfix.  The official gtest cmakelist files do not add this postfix,
-# but luckily cmake allows us to specify a postfix through the CMAKE_DEBUG_POSTFIX variable.
-ExternalProject_Add(
-  gMockd
-  DEPENDS gMock
-  URL ${source_dir}
-  CMAKE_ARGS ${ext.gMock.cmake_args} -DCMAKE_DEBUG_POSTFIX=d
-  INSTALL_COMMAND ""
-)
-
 # For visual studio, the path 'debug' is hardcoded because that is the default VS configuration for a build.
 # Doesn't matter if its the gMock or gMockd project above
+set( packageDir "<INSTALL_DIR>/package" )
+
+set( gMockLibDir "<BINARY_DIR>/${LIB_DIR}" )
+set( gTestLibDir "<BINARY_DIR>/gtest/${LIB_DIR}" )
 if( MSVC )
-  set( gMockLibDir "<BINARY_DIR>/${LIB_DIR}/Debug" )
-  set( gTestLibDir "<BINARY_DIR>/gtest/${LIB_DIR}/Debug" )
+    # Create a package by bundling libraries and header files
+    ExternalProject_Add_Step( gMock createPackage
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${gMockLibDir}/Debug ${packageDir}/${LIB_DIR}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${gMockLibDir}/Release ${packageDir}/${LIB_DIR}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${gTestLibDir}/Debug ${packageDir}/${LIB_DIR}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${gTestLibDir}/Release ${packageDir}/${LIB_DIR}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${packageDir}/include
+      COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/gtest/include/gtest ${packageDir}/include/gtest
+      DEPENDEES install
+    )
 else( )
-  set( gMockLibDir "<BINARY_DIR>/${LIB_DIR}" )
-  set( gTestLibDir "<BINARY_DIR>/gtest/${LIB_DIR}" )
+    # Create a package by bundling libraries and header files
+    ExternalProject_Add_Step( gMock createPackage
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${gMockLibDir} ${packageDir}/${LIB_DIR}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${gTestLibDir} ${packageDir}/${LIB_DIR}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${packageDir}/include
+      COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/gtest/include/gtest ${packageDir}/include/gtest
+      DEPENDEES install
+    )
 endif( )
 
-set( packageDir "<SOURCE_DIR>/../../package" )
-
-# Create a package by bundling libraries and header files
-ExternalProject_Add_Step( gMock createPackage
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${gMockLibDir} ${packageDir}/${LIB_DIR}
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${gTestLibDir} ${packageDir}/${LIB_DIR}
-  COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include ${packageDir}/include
-  COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/gtest/include/gtest ${packageDir}/include/gtest
-  DEPENDEES install
-)
-
-# Header file are the same and can be excluded
-ExternalProject_Add_Step( gMockd createPackage
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${gMockLibDir} ${packageDir}/${LIB_DIR}
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${gTestLibDir} ${packageDir}/${LIB_DIR}
-  DEPENDEES install
-)
-
 set_property( TARGET gMock PROPERTY FOLDER "Externals")
-set_property( TARGET gMockd PROPERTY FOLDER "Externals")
-
 ExternalProject_Get_Property( gMock install_dir )
 
 # For use by the user of ExternalGtest.cmake

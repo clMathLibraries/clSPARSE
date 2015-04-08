@@ -142,6 +142,8 @@ configure_file( "${PROJECT_SOURCE_DIR}/include/clSPARSE.version.h.in" "${PROJECT
 install( FILES
 			"${PROJECT_BINARY_DIR}/include/clSPARSE.version.h"
 			"include/clSPARSE.h"
+			"include/clSPARSE_1x.h"
+			"include/clSPARSE_2x.h"
 		DESTINATION
 			"./include" )
 

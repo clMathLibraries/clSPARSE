@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2013 Advanced Micro Devices, Inc.
+# Copyright 2015 Advanced Micro Devices, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@
 #    target_link_libraries(foo ${OPENCL_LIBRARIES})
 #
 #-----------------------
+include( CheckSymbolExists )
+include( CMakePushCheckState )
 
 find_path(OPENCL_INCLUDE_DIRS
   NAMES OpenCL/cl.h CL/cl.h
@@ -59,6 +61,30 @@ find_path(OPENCL_INCLUDE_DIRS
   DOC "OpenCL header file path"
 )
 mark_as_advanced( OPENCL_INCLUDE_DIRS )
+
+set( OpenCL_VERSION "0.0" )
+
+cmake_push_check_state( RESET )
+set( CMAKE_REQUIRED_INCLUDES "${OPENCL_INCLUDE_DIRS}" )
+
+# Bug in check_symbol_exists prevents us from specifying a list of files, so we loop
+# Only 1 of these files will exist on a system, so the other file will not clobber the output variable
+foreach( CL_HEADER_FILE CL/cl.h OpenCL/cl.h )
+    check_symbol_exists( CL_VERSION_2_0 ${CL_HEADER_FILE} HAVE_CL_2_0 )
+    check_symbol_exists( CL_VERSION_1_2 ${CL_HEADER_FILE} HAVE_CL_1_2 )
+    check_symbol_exists( CL_VERSION_1_1 ${CL_HEADER_FILE} HAVE_CL_1_1 )
+
+    # set OpenCL_VERSION to the highest detected version
+    if( HAVE_CL_2_0 )
+        set( OpenCL_VERSION "2.0" )
+    elseif( HAVE_CL_1_2 )
+        set( OpenCL_VERSION "1.2" )
+    elseif( HAVE_CL_1_1 )
+        set( OpenCL_VERSION "1.1" )
+    endif( )
+endforeach( )
+
+cmake_pop_check_state( )
 
 # Search for 64bit libs if FIND_LIBRARY_USE_LIB64_PATHS is set to true in the global environment, 32bit libs else
 get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )
@@ -95,11 +121,24 @@ else( )
 endif( )
 mark_as_advanced( OPENCL_LIBRARIES )
 
+# message( STATUS "OpenCL_FIND_VERSION: ${OpenCL_FIND_VERSION}" )
+if( OpenCL_VERSION VERSION_LESS OpenCL_FIND_VERSION )
+    message( FATAL_ERROR "Requested OpenCL version: ${OpenCL_FIND_VERSION}, Found OpenCL version: ${OpenCL_VERSION}" ) 
+endif( )
+
+# If we asked for OpenCL 1.1, and we found a version installed greater than that, pass the 'use deprecated' flag
+if( (OpenCL_FIND_VERSION VERSION_EQUAL "1.1") AND (OpenCL_VERSION VERSION_GREATER OpenCL_FIND_VERSION) )
+    add_definitions( -DCL_USE_DEPRECATED_OPENCL_1_1_APIS )
+endif( )
+
 include( FindPackageHandleStandardArgs )
-FIND_PACKAGE_HANDLE_STANDARD_ARGS( OPENCL DEFAULT_MSG OPENCL_LIBRARIES OPENCL_INCLUDE_DIRS )
+FIND_PACKAGE_HANDLE_STANDARD_ARGS( OPENCL 
+    REQUIRED_VARS OPENCL_LIBRARIES OPENCL_INCLUDE_DIRS
+    VERSION_VAR OpenCL_VERSION
+    )
 
 if( NOT OPENCL_FOUND )
-  message( STATUS "FindOpenCL looked for libraries named: OpenCL" )
+    message( STATUS "FindOpenCL looked for libraries named: OpenCL" )
 else( )
     message(STATUS "FindOpenCL ${OPENCL_LIBRARIES}, ${OPENCL_INCLUDE_DIRS}")
 endif()

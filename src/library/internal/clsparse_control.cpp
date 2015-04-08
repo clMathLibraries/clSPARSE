@@ -43,9 +43,8 @@ void collectEnvParams(clsparseControl control)
 }
 
 clsparseControl
-clsparseCreateControl(cl_command_queue& queue, cl_int *status)
+clsparseCreateControl( cl_command_queue queue, cl_int *status )
 {
-    //clsparseControl control = (clsparseControl)malloc(sizeof(_clsparseControl));
     clsparseControl control = new _clsparseControl(queue);
 
     cl_int err;
@@ -109,7 +108,7 @@ clsparseReleaseControl(clsparseControl control)
     control->max_wg_size = 0;
     control->async = false;
 
-    free(control);
+    delete control;
 
     control = NULL;
 
