@@ -82,7 +82,7 @@ private:
 
 //cl 1.1 //there is no getArgInfo in OpenCL 1.1
 //kind of leap of faith if on OpenCL everyting is ok with setting the args.
-#if defined(CL_VERSION_1_1) && !defined(CL_VERSION_1_2)
+#if (BUILD_CLVERSION < 120)
 #define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
         template<> inline KernelWrap& \
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
@@ -93,7 +93,7 @@ private:
             return *this; \
         }
 
-#elif defined(CL_VERSION_1_2)
+#else
 
 #define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
         template<> inline KernelWrap& \
@@ -106,10 +106,6 @@ private:
             kernel.setArg(argCounter++, arg); \
             return *this; \
         }
-#else
-
-#error Minimal version of OpenCL not found
-
 #endif
 
 KERNEL_ARG_BASE_TYPE( cl_int, "int" )
