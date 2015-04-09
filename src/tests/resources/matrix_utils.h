@@ -254,5 +254,31 @@ void csr_transpose(int n_rows, int n_cols, int nnz,
     }
 }
 
+//simple spmv for csr matrix to obtain reference results;
+template<typename VALUE_TYPE, typename INDEX_TYPE>
+void csr2dense(int n_rows, int n_cols, int nnz,
+               const std::vector<INDEX_TYPE>& row_offsets,
+               const std::vector<INDEX_TYPE>& col_indices,
+               const std::vector<VALUE_TYPE>& values,
+               std::vector<VALUE_TYPE>& dense)
+{
+
+    assert(row_offsets.size() == n_rows + 1);
+    assert(row_offsets[n_rows] == nnz);
+    assert(col_indices.size() == nnz);
+    assert(values.size() == nnz);
+
+
+    for (int i = 0; i < n_rows; i++)
+    {
+        for(int j = row_offsets[i]; j < row_offsets[i+1]; j++)
+        {
+            dense[i * n_cols + col_indices[j]] = values[j];
+        }
+
+    }
+}
+
+
 #endif
 

@@ -1,3 +1,13 @@
+R"(
+
+#ifdef cl_khr_fp64
+    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#elif defined(cl_amd_fp64)
+    #pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#else
+    #error "Double precision floating point not supported by OpenCL implementation."
+#endif
+
 #ifndef INDEX_TYPE
 #error INDEX_TYPE undefined!
 #endif
@@ -15,16 +25,17 @@
 #endif
 
 #ifndef WAVE_SIZE
-#define WAVE_SIZE 64
+#error WAVE_SIZE undefined!
 #endif
 
 #ifndef SUBWAVE_SIZE
-#define SUBWAVE_SIZE WAVE_SIZE
+#error SUBWAVE_SIZE undefined!
 #endif
 
 #if ( (SUBWAVE_SIZE > WAVE_SIZE) || (SUBWAVE_SIZE != 2 && SUBWAVE_SIZE != 4 && SUBWAVE_SIZE != 8 && SUBWAVE_SIZE != 16 && SUBWAVE_SIZE != 32 && SUBWAVE_SIZE != 64) )
 # error SUBWAVE_SIZE is not  a power of two!
 #endif
+
 
 // Uses macro constants:
 // WAVE_SIZE  - "warp size", typically 64 (AMD) or 32 (NV)
@@ -57,3 +68,4 @@ void csr2dense ( const INDEX_TYPE num_rows,
             A[row * num_cols + col[j]] = val[j];
     }
 }
+)"

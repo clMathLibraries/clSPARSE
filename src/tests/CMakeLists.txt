@@ -38,6 +38,7 @@ set( TESTS
 #  test_clsparse_spmv_ctrl
   test_resources_io
   test_clsparse_transpose
+  test_clsparse_csr2dense
 )
 
 #additional headers and sources

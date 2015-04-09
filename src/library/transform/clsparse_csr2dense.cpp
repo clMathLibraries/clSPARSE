@@ -16,7 +16,7 @@ csr2dense_transform(const int m, const int n,
                     const cl_uint subwave_size,
                     clsparseControl control)
 {
-    cl::Kernel kernel = KernelCache::get(control->queue,"csr2dense", params);
+    cl::Kernel kernel = KernelCache::get(control->queue,"csr2dense", "csr2dense", params);
 
     KernelWrap kWrapper(kernel);
 
@@ -28,8 +28,13 @@ csr2dense_transform(const int m, const int n,
     // predicted number of subwaves to be executed;
     cl_uint predicted = subwave_size * m;
 
+    //cl::NDRange local(group_size);
+    //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+
+    cl_uint global_work_size =
+            group_size* ((predicted + group_size - 1 ) / group_size);
     cl::NDRange local(group_size);
-    cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    cl::NDRange global(global_work_size > local[0] ? global_work_size : local[0]);
 
     cl_int status = kWrapper.run(control, global, local);
 
@@ -68,25 +73,30 @@ clsparseScsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
 
     //validate cl_mem sizes
     //TODO: ask about validateMemObjectSize
-
     cl_uint nnz_per_row = nnz / m; //average nnz per row
-    cl_uint wave_size = 64;
-    cl_uint group_size = wave_size * 4;    // 256 gives best performance!
+    cl_uint wave_size = control->wavefront_size;
+    cl_uint group_size = 256; //wave_size * 8;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
     // each wavefron will be assigned to the row of the csr matrix
-    if (nnz_per_row < 64) {  subwave_size = 32;  }
+    if(wave_size > 32)
+    {
+        //this apply only for devices with wavefront > 32 like AMD(64)
+        if (nnz_per_row < 64) {  subwave_size = 32;  }
+    }
     if (nnz_per_row < 32) {  subwave_size = 16;  }
     if (nnz_per_row < 16) {  subwave_size = 8;  }
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
+
 
     const std::string params = std::string() +
             "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DWG_SIZE=" + std::to_string(group_size)
+            + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
     //fill the buffer A with zeros
@@ -132,13 +142,17 @@ clsparseDcsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
     //TODO: ask about validateMemObjectSize
 
     cl_uint nnz_per_row = nnz / m; //average nnz per row
-    cl_uint wave_size = 64;
+    cl_uint wave_size = control->wavefront_size;
     cl_uint group_size = wave_size * 4;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
     // each wavefron will be assigned to the row of the csr matrix
-    if (nnz_per_row < 64) {  subwave_size = 32;  }
+    if(wave_size > 32)
+    {
+        //this apply only for devices with wavefront > 32 like AMD(64)
+        if (nnz_per_row < 64) {  subwave_size = 32;  }
+    }
     if (nnz_per_row < 32) {  subwave_size = 16;  }
     if (nnz_per_row < 16) {  subwave_size = 8;  }
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
@@ -149,6 +163,7 @@ clsparseDcsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DWG_SIZE=" + std::to_string(group_size)
+            + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
     //fill the buffer A with zeros
