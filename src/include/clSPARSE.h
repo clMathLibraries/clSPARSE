@@ -211,6 +211,20 @@ clsparseDcoomv(const cl_int m, const cl_int n, const cl_int nnz,
                const cl_event *event_wait_list,
                cl_event *event);
 
+//CSR <--> Dense transformation routines
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
+                   cl_mem row_indices, cl_mem col_indices, cl_mem values,
+                   cl_mem A,
+                   clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
+                   cl_mem row_indices, cl_mem col_indices, cl_mem values,
+                   cl_mem A,
+                   clsparseControl control);
+
+
 #ifdef __cplusplus
 }      // extern C
 #endif
