@@ -187,5 +187,68 @@ bool executeCSRMultiply(const INDEX_TYPE m, const INDEX_TYPE n, const INDEX_TYPE
     return true;
 }
 
+template<typename VALUE_TYPE, typename INDEX_TYPE>
+bool executeCSR2DENSE(const INDEX_TYPE m, const INDEX_TYPE n, const INDEX_TYPE nnz,
+                      cl_mem row_offsets, cl_mem col_indices, cl_mem values,
+                      cl_mem A,
+                      clsparseControl control,
+                      const int number_of_tries
+                      )
+{
+    const std::type_info& type_desc = typeid(VALUE_TYPE);
+
+    if (typeid(VALUE_TYPE) != typeid(cl_float)
+            && typeid(VALUE_TYPE) != typeid(cl_double))
+    {
+        std::cout << "[execCsrmv] Not implemented for this type "
+                  << type_desc.name() <<std::endl;
+        return false;
+    }
+
+    for (int i = 0; i < number_of_tries; i++)
+    {
+        cl_event event;
+        //clsparseSetupEvent(control, &event);
+
+        clsparseStatus spmv_status;
+
+        if (typeid(VALUE_TYPE) == typeid(cl_float))
+        {
+
+            spmv_status = clsparseScsr2dense(m, n, nnz,
+                                         row_offsets, col_indices, values,
+                                         A,
+                                         control);
+        }
+        else if(typeid(VALUE_TYPE) == typeid(cl_double))
+        {
+            spmv_status = clsparseDcsr2dense(m, n, nnz,
+                                         row_offsets, col_indices, values,
+                                         A,
+                                         control);
+
+        }
+        else
+        {
+            std::cout << "Unknown error" << std::endl;
+            return false;
+        }
+
+        clsparseStatus event_status = clsparseSuccess;
+       // event_status = clsparseSynchronize(control);
+
+        if (spmv_status != clsparseSuccess ||
+                event_status != clsparseSuccess)
+        {
+            std::cout << "status: " << spmv_status
+                      << " event: " << event_status << std::endl;
+
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 #endif //__MATRIX_UTILS_H__
