@@ -146,23 +146,30 @@ bool executeCSRMultiply(const INDEX_TYPE m, const INDEX_TYPE n, const INDEX_TYPE
         if (typeid(VALUE_TYPE) == typeid(cl_float))
         {
 
-            spmv_status = clsparseScsrmv(m, n, nnz,
-                                         alpha,
-                                         row_offsets, col_indices, values,
-                                         x,
-                                         beta,
-                                         y,
-                                         control);
+            /*
+             * TODO: change matrix and vector definition
+             */
+
+//            spmv_status = clsparseScsrmv(m, n, nnz,
+//                                         alpha,
+//                                         row_offsets, col_indices, values,
+//                                         x,
+//                                         beta,
+//                                         y,
+//                                         control);
         }
         else if(typeid(VALUE_TYPE) == typeid(cl_double))
         {
-            spmv_status = clsparseDcsrmv(m, n, nnz,
-                                         alpha,
-                                         row_offsets, col_indices, values,
-                                         x,
-                                         beta,
-                                         y,
-                                         control);
+            /*
+             * TODO: change matrix and vector definition
+             */
+//            spmv_status = clsparseDcsrmv(m, n, nnz,
+//                                         alpha,
+//                                         row_offsets, col_indices, values,
+//                                         x,
+//                                         beta,
+//                                         y,
+//                                         control);
 
         }
         else

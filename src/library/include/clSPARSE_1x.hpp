@@ -41,6 +41,12 @@ public:
         values = colIndices = rowOffsets = rowBlocks = nullptr;
         offValues = offColInd = offRowOff = offRowBlocks = 0;
     }
+
+    cl_uint nnz_per_row() const
+    {
+        return nnz/m;
+    }
+
 };
 
 class clsparseCooMatrixPrivate: public clsparseCooMatrix

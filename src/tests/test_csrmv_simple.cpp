@@ -22,32 +22,40 @@ clsparseStatus generateResult(cl_mem x, cl_mem alpha,
 
     if(typeid(T) == typeid(float))
     {
-        return clsparseScsrmv(CSRE::n_rows,
-                       CSRE::n_cols,
-                       CSRE::n_vals,
-                       alpha,
-                       CSRE::cl_row_offsets,
-                       CSRE::cl_col_indices,
-                       CSRE::cl_f_values,
-                       x,
-                       beta,
-                       y,
-                       CLSE::control);
+        return clsparseNotImplemented;
+        /*
+         * TODO: change matrix and vector definition
+         */
+//                clsparseScsrmv(CSRE::n_rows,
+//                       CSRE::n_cols,
+//                       CSRE::n_vals,
+//                       alpha,
+//                       CSRE::cl_row_offsets,
+//                       CSRE::cl_col_indices,
+//                       CSRE::cl_f_values,
+//                       x,
+//                       beta,
+//                       y,
+//                       CLSE::control);
 
     }
     if(typeid(T) == typeid(double))
     {
-       return clsparseDcsrmv(CSRE::n_rows,
-                       CSRE::n_cols,
-                       CSRE::n_vals,
-                       alpha,
-                       CSRE::cl_row_offsets,
-                       CSRE::cl_col_indices,
-                       CSRE::cl_d_values,
-                       x,
-                       beta,
-                       y,
-                       CLSE::control);
+       return clsparseNotImplemented;
+       /*
+        * TODO: change matrix and vector definition
+        */
+//       clsparseDcsrmv(CSRE::n_rows,
+//                       CSRE::n_cols,
+//                       CSRE::n_vals,
+//                       alpha,
+//                       CSRE::cl_row_offsets,
+//                       CSRE::cl_col_indices,
+//                       CSRE::cl_d_values,
+//                       x,
+//                       beta,
+//                       y,
+//                       CLSE::control);
 
     }
 }

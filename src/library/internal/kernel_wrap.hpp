@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _KERNEL_WRAP_HPP_
 #define _KERNEL_WRAP_HPP_
 

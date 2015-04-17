@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _KERNEL_CAHCE_HPP_
 #define _KERNEL_CAHCE_HPP_
 
