@@ -7,10 +7,17 @@
 
 #include <clBLAS.h>
 
+// Include appropriate data type definitions appropriate to the cl version supported
+#if( BUILD_CLVERSION >= 200 )
+    #include "include/clSPARSE_2x.hpp"
+#else
+    #include "include/clSPARSE_1x.hpp"
+#endif
+
+
 clsparseStatus
-csr2dense_transform(const int m, const int n,
-                    cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-                    cl_mem A,
+csr2dense_transform(const clsparseCsrMatrixPrivate* pCsr,
+                    clsparseDenseMatrixPrivate* pA,
                     const std::string& params,
                     const cl_uint group_size,
                     const cl_uint subwave_size,
@@ -20,13 +27,13 @@ csr2dense_transform(const int m, const int n,
 
     KernelWrap kWrapper(kernel);
 
-    kWrapper << m << n
-             << row_offsets << col_indices << values
-             << A;
+    kWrapper << pCsr->m << pCsr->n
+             << pCsr->rowOffsets << pCsr->colIndices << pCsr->values
+             << pA->values;
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
-    cl_uint predicted = subwave_size * m;
+    cl_uint predicted = subwave_size * pCsr->m;
 
     //cl::NDRange local(group_size);
     //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
@@ -43,16 +50,21 @@ csr2dense_transform(const int m, const int n,
         return clsparseInvalidKernelExecution;
     }
 
+    pA->m = pCsr->m;
+    pA->n = pCsr->n;
+
     return clsparseSuccess;
  
 }
 
 clsparseStatus
-clsparseScsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
-                  cl_mem row_indices, cl_mem col_indices, cl_mem values,
-                  cl_mem A,
-                  clsparseControl control)
+clsparseScsr2dense(const clsparseCsrMatrix* csr,
+                  clsparseDenseMatrix* A,
+                  const clsparseControl control)
 {
+    const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
+    clsparseDenseMatrixPrivate* pA = static_cast<clsparseDenseMatrixPrivate*>(A);
+
     if (!clsparseInitialized)
     {
         return clsparseNotInitialized;
@@ -67,13 +79,13 @@ clsparseScsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
     clsparseStatus status; 
 
     //validate cl_mem objects
-    status = validateMemObject(A, sizeof(cl_float)*n*m);
+    status = validateMemObject(pA->values, sizeof(cl_float)*pCsr->n*pCsr->m);
     if(status != clsparseSuccess)
         return status;
 
     //validate cl_mem sizes
     //TODO: ask about validateMemObjectSize
-    cl_uint nnz_per_row = nnz / m; //average nnz per row
+    cl_uint nnz_per_row = pCsr->nnz_per_row(); //average nnz per row
     cl_uint wave_size = control->wavefront_size;
     cl_uint group_size = 256; //wave_size * 8;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
@@ -101,12 +113,11 @@ clsparseScsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
 
     //fill the buffer A with zeros
     cl_float pattern = 0.0f; 
-    clEnqueueFillBuffer(control->queue(), A, &pattern, sizeof(cl_float), 0, 
-                        sizeof(cl_float) * m * n, NULL, NULL, NULL);
+    clEnqueueFillBuffer(control->queue(), pA->values, &pattern, sizeof(cl_float), 0,
+                        sizeof(cl_float) * pCsr->m * pCsr->n, NULL, NULL, NULL);
 
-    return csr2dense_transform(m, n, 
-                               row_indices, col_indices, values,
-                               A,
+    return csr2dense_transform(pCsr,
+                               pA,
                                params,
                                group_size,
                                subwave_size,
@@ -115,11 +126,13 @@ clsparseScsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
 }
 
 clsparseStatus
-clsparseDcsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
-                  cl_mem row_indices, cl_mem col_indices, cl_mem values,
-                  cl_mem A,
-                  clsparseControl control)
+clsparseDcsr2dense(const clsparseCsrMatrix* csr,
+                   clsparseDenseMatrix* A,
+                   const clsparseControl control)
 {
+    const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
+    clsparseDenseMatrixPrivate* pA = static_cast<clsparseDenseMatrixPrivate*>(A);
+
     if (!clsparseInitialized)
     {
         return clsparseNotInitialized;
@@ -134,14 +147,14 @@ clsparseDcsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
     clsparseStatus status;
 
     //validate cl_mem objects
-    status = validateMemObject(A, sizeof(cl_double)*n*m);
+    status = validateMemObject(pA->values, sizeof(cl_double)*pCsr->n*pCsr->m);
     if(status != clsparseSuccess)
         return status;
 
     //validate cl_mem sizes
     //TODO: ask about validateMemObjectSize
 
-    cl_uint nnz_per_row = nnz / m; //average nnz per row
+    cl_uint nnz_per_row = pCsr->nnz_per_row(); //average nnz per row
     cl_uint wave_size = control->wavefront_size;
     cl_uint group_size = wave_size * 4;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
@@ -168,12 +181,11 @@ clsparseDcsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
 
     //fill the buffer A with zeros
     cl_double pattern = 0.0f;
-    clEnqueueFillBuffer(control->queue(), A, &pattern, sizeof(cl_double), 0,
-                        sizeof(cl_double) * m * n, NULL, NULL, NULL);
+    clEnqueueFillBuffer(control->queue(), pA->values, &pattern, sizeof(cl_double), 0,
+                        sizeof(cl_double) * pCsr->m * pCsr->n, NULL, NULL, NULL);
 
-    return csr2dense_transform(m, n,
-                               row_indices, col_indices, values,
-                               A,
+    return csr2dense_transform(pCsr,
+                               pA,
                                params,
                                group_size,
                                subwave_size,

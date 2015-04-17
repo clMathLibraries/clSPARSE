@@ -15,14 +15,6 @@
 #endif
 
 
-//clsparseStatus
-//clsparseScsrmv_vector(const int m, const int n, const int nnz,
-//               cl_mem alpha,
-//               cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-//               cl_mem x,
-//               cl_mem beta,
-//               cl_mem y,
-//               clsparseControl control)
 clsparseStatus
 clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
                        const clsparseCsrMatrixPrivate* pMatx,
@@ -214,7 +206,7 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
 
 
 clsparseStatus
-clsparseSDsrmv_vector(const clsparseScalarPrivate* pAlpha,
+clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
                       const clsparseCsrMatrixPrivate* pMatx,
                       const clsparseVectorPrivate* pX,
                       const clsparseScalarPrivate* pBeta,
@@ -393,11 +385,5 @@ clsparseSDsrmv_vector(const clsparseScalarPrivate* pAlpha,
 
     return clsparseNotImplemented;
 }
-
-
-
-
-
-
 
 #endif //_CLSPARSE_CSRMV_VECTOR_HPP_

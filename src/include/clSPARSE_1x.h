@@ -66,4 +66,13 @@ typedef struct clsparseCooMatrix_
     cl_ulong offRowInd;
 } clsparseCooMatrix;
 
+//for sake of clarity in the interface
+typedef struct clsparseDenseMatrix_
+{
+    cl_int m;
+    cl_int n;
+
+    cl_mem values;
+} clsparseDenseMatrix;
+
 #endif

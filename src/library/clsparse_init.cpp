@@ -93,6 +93,15 @@ clsparseInitCsrMatrix( clsparseCsrMatrix* csrMatx )
     return clsparseSuccess;
 };
 
+clsparseStatus
+clsparseInitDenseMatrix (clsparseDenseMatrix *denseMatx)
+{
+    clsparseDenseMatrixPrivate* pDenseMatx = static_cast<clsparseDenseMatrixPrivate*> ( denseMatx );
+    pDenseMatx->clear();
+
+    return clsparseSuccess;
+}
+
 CLSPARSE_EXPORT clsparseStatus
 clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath )
 {

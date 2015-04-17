@@ -76,15 +76,14 @@ public:
             }
 
             cl_int status;
-            //gpu matrix definition
-            cl_mem cl_row_offsets;
-            cl_mem cl_col_indices;
-            cl_mem cl_values;
 
-            if (!allocateMatrix(row_offsets, col_indices, values,
-                                n_rows, n_cols,
-                                &cl_row_offsets, &cl_col_indices, &cl_values,
-                                queue, context, &status))
+            //gpu matrix definition
+            clsparseCsrMatrix csrMatx;
+            clsparseInitCsrMatrix(&csrMatx);
+
+
+            if (!allocateMatrix(row_offsets, col_indices, values, n_rows, n_cols,
+                                csrMatx, queue, context, &status))
             {
                 std::cerr << "Problem with allocating matrix "
                     << ( *file ).filename( )
@@ -93,31 +92,35 @@ public:
             }
 
             //TODO:: remember about offsets;
-            cl_mem cl_alpha;
-            cl_mem cl_beta;
+            clsparseScalar cl_alpha;
+            clsparseInitScalar(&cl_alpha);
+            clsparseScalar cl_beta;
+            clsparseInitScalar(&cl_beta);
 
-            cl_mem cl_x;
-            cl_mem cl_y;
+            clsparseVector cl_x;
+            clsparseInitVector(&cl_x);
+            clsparseVector cl_y;
+            clsparseInitVector(&cl_y);
 
-            if (!allocateVector<T>(&cl_alpha, 1, params.alpha, queue, context, &status))
+            if (!allocateScalar<T>(cl_alpha, 1, params.alpha, queue, context, &status))
             {
                 std::cerr << "Problem with allocation alpha " << status << std::endl;
                 return status;
             }
 
-            if (!allocateVector<T>(&cl_beta, 1 , params.beta, queue, context, &status))
+            if (!allocateScalar<T>(cl_beta, 1 , params.beta, queue, context, &status))
             {
                 std::cerr << "Problem with allocation beta " << status << std::endl;
                 return status;
             }
 
-            if (!allocateVector<T>(&cl_x, n_cols , 1, queue, context, &status))
+            if (!allocateVector<T>(cl_x, n_cols , 1, queue, context, &status))
             {
                 std::cerr << "Problem with allocation beta " << status << std::endl;
                 return status;
             }
 
-            if (!allocateVector<T>(&cl_y, n_rows , 0, queue, context, &status))
+            if (!allocateVector<T>(cl_y, n_rows , 0, queue, context, &status))
             {
                 std::cerr << "Problem with allocation beta " << status << std::endl;
                 return status;
@@ -125,14 +128,8 @@ public:
 
 
             bool warmup_status =
-                    executeCSRMultiply<T>(n_rows, n_cols, n_vals,
-                                          cl_alpha,
-                                          cl_row_offsets, cl_col_indices, cl_values,
-                                          cl_x,
-                                          cl_beta,
-                                          cl_y,
-                                          control,
-                                          params.number_of_warmups);
+                    executeCSRMultiply<T>(cl_alpha, csrMatx, cl_x, cl_beta, cl_y,
+                                          control, params.number_of_warmups);
             if (!warmup_status)
             {
                 std::cerr << "Problem with multiply during warmup" << std::endl;
@@ -144,14 +141,8 @@ public:
             CPerfCounter timer;
             timer.Start();
             bool bench_status =
-                    executeCSRMultiply<T>(n_rows, n_cols, n_vals,
-                                          cl_alpha,
-                                          cl_row_offsets, cl_col_indices, cl_values,
-                                          cl_x,
-                                          cl_beta,
-                                          cl_y,
-                                          control,
-                                          params.number_of_tries);
+                    executeCSRMultiply<T>(cl_alpha, csrMatx, cl_x, cl_beta, cl_y,
+                                          control, params.number_of_warmups);
             timer.Stop();
             if (! bench_status)
             {
@@ -175,13 +166,13 @@ public:
             results.push_back(m);
 
             //release resources;
-            clReleaseMemObject(cl_row_offsets);
-            clReleaseMemObject(cl_col_indices);
-            clReleaseMemObject(cl_values);
-            clReleaseMemObject(cl_x);
-            clReleaseMemObject(cl_y);
-            clReleaseMemObject(cl_alpha);
-            clReleaseMemObject(cl_beta);
+            clReleaseMemObject(csrMatx.colIndices);
+            clReleaseMemObject(csrMatx.rowOffsets);
+            clReleaseMemObject(csrMatx.values);
+            clReleaseMemObject(cl_x.values);
+            clReleaseMemObject(cl_y.values);
+            clReleaseMemObject(cl_alpha.value);
+            clReleaseMemObject(cl_beta.value);
 
 
         }

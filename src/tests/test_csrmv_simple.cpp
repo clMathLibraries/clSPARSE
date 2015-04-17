@@ -13,52 +13,32 @@ cl_context ClSparseEnvironment::context = NULL;
 
 namespace po = boost::program_options;
 
+
 template<typename T>
-clsparseStatus generateResult(cl_mem x, cl_mem alpha,
-                              cl_mem y, cl_mem beta)
+clsparseStatus generateResult(clsparseVector& x, clsparseScalar& alpha,
+                              clsparseVector& y, clsparseScalar& beta)
 {
     using CSRE = CSREnvironment;
     using CLSE = ClSparseEnvironment;
 
     if(typeid(T) == typeid(float))
     {
-        return clsparseNotImplemented;
-        /*
-         * TODO: change matrix and vector definition
-         */
-//                clsparseScsrmv(CSRE::n_rows,
-//                       CSRE::n_cols,
-//                       CSRE::n_vals,
-//                       alpha,
-//                       CSRE::cl_row_offsets,
-//                       CSRE::cl_col_indices,
-//                       CSRE::cl_f_values,
-//                       x,
-//                       beta,
-//                       y,
-//                       CLSE::control);
+
+        return clsparseScsrmv(&alpha, &CSRE::csrSMatrix, &x,
+                              &beta, &y, CLSE::control);
+
 
     }
     if(typeid(T) == typeid(double))
     {
-       return clsparseNotImplemented;
-       /*
-        * TODO: change matrix and vector definition
-        */
-//       clsparseDcsrmv(CSRE::n_rows,
-//                       CSRE::n_cols,
-//                       CSRE::n_vals,
-//                       alpha,
-//                       CSRE::cl_row_offsets,
-//                       CSRE::cl_col_indices,
-//                       CSRE::cl_d_values,
-//                       x,
-//                       beta,
-//                       y,
-//                       CLSE::control);
+        return clsparseDcsrmv(&alpha, &CSRE::csrDMatrix, &x,
+                              &beta, &y, CLSE::control);
 
     }
+
 }
+
+
 
 template <typename T>
 class TestCSRMV : public ::testing::Test
@@ -70,7 +50,12 @@ public:
 
     void SetUp()
     {
-        //TODO:: take the values from cmdline;
+        clsparseInitScalar(&gAlpha);
+        clsparseInitScalar(&gBeta);
+
+        clsparseInitVector(&vx);
+        clsparseInitVector(&vy);
+
         alpha = T(CSRE::alpha);
         beta = T(CSRE::beta);
 
@@ -81,45 +66,35 @@ public:
         std::fill(y.begin(), y.end(), T(2));
 
         cl_int status;
-        gx = clCreateBuffer(CLSE::context,
-                            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                            x.size() * sizeof(T), x.data(), &status);
-
-        ASSERT_EQ(CL_SUCCESS, status); //is it wise to use this here?
-
-        gy = clCreateBuffer(CLSE::context,
-                            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                            y.size() * sizeof(T), y.data(), &status);
+        vx.values = clCreateBuffer(CLSE::context,
+                                   CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                   x.size() * sizeof(T), x.data(), &status);
+        vx.n = x.size();
 
         ASSERT_EQ(CL_SUCCESS, status);
 
-        galpha = clCreateBuffer(CLSE::context,
-                                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                                sizeof(T), &alpha, &status);
+
+        vy.values = clCreateBuffer(CLSE::context,
+                                   CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                   y.size() * sizeof(T), y.data(), &status);
+
+        vy.n = y.size();
 
         ASSERT_EQ(CL_SUCCESS, status);
 
-//        void* hgalpha = clEnqueueMapBuffer(CLSE::queue, galpha, true, CL_MAP_READ,
-//                                                          0, sizeof(T), 0, NULL, NULL, NULL);
-//        if(typeid(T) == typeid(float))
-//            printf("hgalpha = %f\n", *(T*)hgalpha);
-//        if(typeid(T) == typeid(double))
-//            printf("hgalpha = %g\n", *(T*)hgalpha);
-//        clEnqueueUnmapMemObject(CLSE::queue, galpha, hgalpha, 0, NULL, NULL);
 
-
-        gbeta = clCreateBuffer(CLSE::context,
-                               CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                               sizeof(T), &beta, &status);
+        gAlpha.value = clCreateBuffer(CLSE::context,
+                                      CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                      sizeof(T), &alpha, &status);
 
         ASSERT_EQ(CL_SUCCESS, status);
-//        void* hgbeta = clEnqueueMapBuffer(CLSE::queue, gbeta, true, CL_MAP_READ,
-//                                                          0, sizeof(T), 0, NULL, NULL, NULL);
-//        if(typeid(T) == typeid(float))
-//            printf("hgbeta = %f\n", *(T*)hgbeta);
-//        if(typeid(T) == typeid(double))
-//            printf("hgbeta = %g\n", *(T*)hgbeta);
-//        clEnqueueUnmapMemObject(CLSE::queue, gbeta, hgbeta, 0, NULL, NULL);
+
+
+        gBeta.value = clCreateBuffer(CLSE::context,
+                                     CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                     sizeof(T), &beta, &status);
+        ASSERT_EQ(CL_SUCCESS, status);
+
 
         generateReference(x, alpha, y, beta);
 
@@ -131,9 +106,9 @@ public:
                             std::vector<float>& y,
                             const float beta)
     {
-            csrmv(CSRE::n_rows, CSRE::n_cols, CSRE::n_vals,
-                CSRE::row_offsets, CSRE::col_indices, CSRE::f_values,
-                  x, alpha, y, beta);
+        csrmv(CSRE::n_rows, CSRE::n_cols, CSRE::n_vals,
+              CSRE::row_offsets, CSRE::col_indices, CSRE::f_values,
+              x, alpha, y, beta);
     }
 
     void generateReference (const std::vector<double>& x,
@@ -141,21 +116,23 @@ public:
                             std::vector<double>& y,
                             const double beta)
     {
-            csrmv(CSRE::n_rows, CSRE::n_cols, CSRE::n_vals,
-                CSRE::row_offsets, CSRE::col_indices, CSRE::d_values,
-                  x, alpha, y, beta);
+        csrmv(CSRE::n_rows, CSRE::n_cols, CSRE::n_vals,
+              CSRE::row_offsets, CSRE::col_indices, CSRE::d_values,
+              x, alpha, y, beta);
     }
 
-    cl_mem gx;
-    cl_mem gy;
     std::vector<T> x;
     std::vector<T> y;
+
+    clsparseVector vx;
+    clsparseVector vy;
 
     T alpha;
     T beta;
 
-    cl_mem galpha;
-    cl_mem gbeta;
+    clsparseScalar gAlpha;
+    clsparseScalar gBeta;
+
 
 };
 
@@ -167,23 +144,21 @@ TYPED_TEST(TestCSRMV, multiply)
 
     cl::Event event;
     clsparseEnableAsync(ClSparseEnvironment::control, true);
-    //clsparseSetupEvent(ClSparseEnvironment::control, &event );
 
     //control object is global and it is updated here;
     clsparseStatus status =
-            generateResult<TypeParam>(this->gx,
-                                      this->galpha,
-                                      this->gy,
-                                      this->gbeta);
+            generateResult<TypeParam>(this->vx, this->gAlpha,
+                                     this->vy, this->gBeta);
+
     EXPECT_EQ(clsparseSuccess, status);
-    //clsparseSynchronize(ClSparseEnvironment::control);
+
     clsparseGetEvent(ClSparseEnvironment::control, &event());
     event.wait();
 
     std::vector<TypeParam> result(this->y.size());
 
     clEnqueueReadBuffer(ClSparseEnvironment::queue,
-                        this->gy, 1, 0,
+                        this->vy.values, 1, 0,
                         result.size()*sizeof(TypeParam),
                         result.data(), 0, NULL, NULL);
 

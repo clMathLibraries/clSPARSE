@@ -49,4 +49,13 @@ typedef struct clsparseCooMatrix_
     void* rowIndices;
 } clsparseCooMatrix;
 
+typedef struct clsparseDenseMatrix_
+{
+    cl_int m;
+    cl_int n;
+
+    void* values;
+
+} clsparseDenseMatrix;
+
 #endif

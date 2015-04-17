@@ -91,10 +91,11 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseReleaseControl(clsparseControl control);
 
 
-CLSPARSE_EXPORT clsparseStatus
-clsparseSetOffsets(clsparseControl control,
-                   size_t off_alpha, size_t off_beta,
-                   size_t off_x, size_t off_y);
+//Deprecated: offsets are hidden in type structures.
+//CLSPARSE_EXPORT clsparseStatus
+//clsparseSetOffsets(clsparseControl control,
+//                   size_t off_alpha, size_t off_beta,
+//                   size_t off_x, size_t off_y);
 
 
 CLSPARSE_EXPORT clsparseStatus
@@ -107,15 +108,6 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseTeardown(void);
 
 // THIS IS JUST AN TEST KERNEL FOR TESTING PURPOSES
-
-//OLD Implementation;
-//clsparseStatus
-//clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
-//              cl_command_queue queue,
-//              cl_uint num_events_in_wait_list,
-//              const cl_event *event_wait_list,
-//              cl_event *event);
-
 //New implementation with clsparseControl structure
 CLSPARSE_EXPORT clsparseStatus
 clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
@@ -135,6 +127,9 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseInitCsrMatrix( clsparseCsrMatrix* csrMatx );
 
 CLSPARSE_EXPORT clsparseStatus
+clsparseInitDenseMatrix( clsparseDenseMatrix* denseMatx );
+
+CLSPARSE_EXPORT clsparseStatus
 clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath );
 
 CLSPARSE_EXPORT clsparseStatus
@@ -142,86 +137,66 @@ clsparseCoo2Csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx );
 
 // SPMV
 // y = \alpha * A * x + \beta * y
-// TODO:: alpha, beta scaling is not supported yet
-// TODO:: alpha, beta should be cl_mem
-// TODO:: add offsets for alpha and beta cl_mems
-// TODO:: here only one queue is supported. Do we need more?
+// TODO:: alpha, beta should we provide them as cl_mem buffers?
 // TODO:: add matrixDescriptor for particular matrix properties
 //        like avg nnz per row which help to determine kernel scalar vector,
 //        it is simple for csr  avg nnz per row = nnz / n_rows
 //        type of matrix (GENERAL, SYMMETRIC(faster spmv) etc.
 //        index based (0, 1)
-CLSPARSE_EXPORT clsparseStatus
-clsparseScsrmv(const int m, const int n, const int nnz,
-               cl_mem alpha,
-               cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x,
-               cl_mem beta,
-               cl_mem y,
-               clsparseControl control);
 
 //new possible implementation of csrmv with control object
 CLSPARSE_EXPORT clsparseStatus
-clsparseScsrmv_adaptive( const clsparseScalar* alpha,
+clsparseScsrmv( const clsparseScalar* alpha,
                 const clsparseCsrMatrix* matx,
                 const clsparseVector* x,
                 const clsparseScalar* beta,
                 clsparseVector* y,
                 const clsparseControl control );
 
+//What is it for?
 CLSPARSE_EXPORT clsparseStatus
 clsparseScsrmv_adaptive_scalar( float alpha,
             const clsparseCsrMatrix* matx,
             const clsparseVector* x,
             float beta,
             const clsparseVector* y,
-            clsparseControl control );
-
-CLSPARSE_EXPORT clsparseStatus
-clsparseDcsrmv(const int m, const int n, const int nnz,
-               cl_mem alpha,
-               cl_mem row_offsets, cl_mem col_indices, cl_mem values,
-               cl_mem x,
-               cl_mem beta,
-               cl_mem y,
-               clsparseControl control);
+            const clsparseControl control );
 
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseScoomv(const cl_int m, const cl_int n, const cl_int nnz,
-               cl_mem alpha,
-               cl_mem row_indices, cl_mem col_indices, cl_mem values,
-               cl_mem x,
-               cl_mem beta,
-               cl_mem y,
-               cl_command_queue queue,
-               cl_uint num_events_in_wait_list,
-               const cl_event *event_wait_list,
-               cl_event *event);
+clsparseDcsrmv( const clsparseScalar* alpha,
+                const clsparseCsrMatrix* matx,
+                const clsparseVector* x,
+                const clsparseScalar* beta,
+                clsparseVector* y,
+                const clsparseControl control );
+
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseDcoomv(const cl_int m, const cl_int n, const cl_int nnz,
-               cl_mem alpha,
-               cl_mem row_indices, cl_mem col_indices, cl_mem values,
-               cl_mem x,
-               cl_mem beta,
-               cl_mem y,
-               cl_command_queue queue,
-               cl_uint num_events_in_wait_list,
-               const cl_event *event_wait_list,
-               cl_event *event);
+clsparseScoomv(const clsparseScalar* alpha,
+               const clsparseCooMatrix* matx,
+               const clsparseVector* x,
+               const clsparseScalar* beta,
+               clsparseVector* y,
+               const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcoomv(const clsparseScalar* alpha,
+               const clsparseCooMatrix* matx,
+               const clsparseVector* x,
+               const clsparseScalar* beta,
+               clsparseVector* y,
+               const clsparseControl control);
 
 //CSR <--> Dense transformation routines
 CLSPARSE_EXPORT clsparseStatus
-clsparseScsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
-                   cl_mem row_indices, cl_mem col_indices, cl_mem values,
-                   cl_mem A,
-                   clsparseControl control);
+clsparseScsr2dense(const clsparseCsrMatrix* csr,
+                   clsparseDenseMatrix* A,
+                   const clsparseControl control);
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseDcsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
-                   cl_mem row_indices, cl_mem col_indices, cl_mem values,
-                   cl_mem A,
+clsparseDcsr2dense(const clsparseCsrMatrix* csr,
+                   clsparseDenseMatrix* A,
                    clsparseControl control);
 
 
