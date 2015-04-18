@@ -36,6 +36,7 @@ set( TESTS_CPP
   test_resources_io
   test_clsparse_transpose
   test_clsparse_csr2dense
+  test_clsparse_csr2coo
 )
 
 set( TESTS_C

@@ -58,6 +58,7 @@ set( clSPARSE.source.cl
   kernels/control.cl
   kernels/scale.cl
   kernels/csr2dense.cl
+  kernels/csr2coo.cl
 )
 
 set( clSPARSE.source.cpp
@@ -70,6 +71,7 @@ set( clSPARSE.source.cpp
   simple/clsparse_simple.cpp
   spmv/clsparse_csrmv.cpp
   transform/clsparse_csr2dense.cpp
+  transform/clsparse_csr2coo.cpp
 )
 
 set( clSPARSE.Headers
