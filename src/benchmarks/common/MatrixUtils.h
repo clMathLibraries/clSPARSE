@@ -210,19 +210,19 @@ bool executeCSR2DENSE(const INDEX_TYPE m, const INDEX_TYPE n, const INDEX_TYPE n
         cl_event event;
         //clsparseSetupEvent(control, &event);
 
-        clsparseStatus spmv_status;
+        clsparseStatus csr2dense_status;
 
         if (typeid(VALUE_TYPE) == typeid(cl_float))
         {
 
-            spmv_status = clsparseScsr2dense(m, n, nnz,
+            csr2dense_status = clsparseScsr2dense(m, n, nnz,
                                          row_offsets, col_indices, values,
                                          A,
                                          control);
         }
         else if(typeid(VALUE_TYPE) == typeid(cl_double))
         {
-            spmv_status = clsparseDcsr2dense(m, n, nnz,
+            csr2dense_status = clsparseDcsr2dense(m, n, nnz,
                                          row_offsets, col_indices, values,
                                          A,
                                          control);
@@ -237,10 +237,10 @@ bool executeCSR2DENSE(const INDEX_TYPE m, const INDEX_TYPE n, const INDEX_TYPE n
         clsparseStatus event_status = clsparseSuccess;
        // event_status = clsparseSynchronize(control);
 
-        if (spmv_status != clsparseSuccess ||
+        if (csr2dense_status != clsparseSuccess ||
                 event_status != clsparseSuccess)
         {
-            std::cout << "status: " << spmv_status
+            std::cout << "status: " << csr2dense_status
                       << " event: " << event_status << std::endl;
 
             return false;

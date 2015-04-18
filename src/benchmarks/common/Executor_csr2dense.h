@@ -132,7 +132,7 @@ public:
                                         params.number_of_warmups);
             if (!warmup_status)
             {
-                std::cerr << "Problem with multiply during warmup" << std::endl;
+                std::cerr << "Problem with csr2dense during warmup" << std::endl;
                 std::cerr << " Problematic matrix: " <<
                              (*file).filename( ) << std::endl;
                 return -103;
@@ -149,7 +149,7 @@ public:
             timer.Stop();
             if (! bench_status)
             {
-                std::cerr << "Problem with multiply during bench" << std::endl;
+                std::cerr << "Problem with csr2dense during bench" << std::endl;
                 std::cerr << " Problematic matrix: " <<
                              (*file).filename( ) << std::endl;
                 return -104;
