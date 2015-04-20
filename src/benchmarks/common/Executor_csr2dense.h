@@ -1,6 +1,6 @@
-#ifndef __EXECUTOR_H_
-#define __EXECUTOR_H_
-
+#pragma once
+#ifndef __DENSE_EXECUTOR_H_
+#define __DENSE_EXECUTOR_H_
 
 #include "clSPARSE.h"
 
@@ -202,4 +202,4 @@ private:
 };
 
 
-#endif //__EXECUTOR
+#endif //__DENSE_EXECUTOR_H_
