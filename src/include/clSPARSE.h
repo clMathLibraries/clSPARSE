@@ -224,6 +224,20 @@ clsparseDcsr2dense(const cl_int m, const cl_int n, const cl_int nnz,
                    cl_mem A,
                    clsparseControl control);
 
+//CSR <--> COO transformation routines
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
+                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
+                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
+                 clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
+                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
+                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
+                 clsparseControl control);
+
+
 
 #ifdef __cplusplus
 }      // extern C
