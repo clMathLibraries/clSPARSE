@@ -18,6 +18,12 @@ public:
     {
         value = nullptr;
     }
+
+    cl_ulong offset () const
+    {
+        return 0;
+    }
+
 };
 
 class clsparseVectorPrivate: public clsparseVector
@@ -28,6 +34,12 @@ public:
         n = 0;
         values = nullptr;
     }
+
+    cl_ulong offset () const
+    {
+        return 0;
+    }
+
 };
 
 class clsparseCsrMatrixPrivate: public clsparseCsrMatrix
@@ -37,6 +49,26 @@ public:
     {
         m = n = nnz = 0;
         values = colIndices = rowOffsets = rowBlocks = nullptr;
+    }
+
+    cl_uint nnz_per_row() const
+    {
+        return nnz/m;
+    }
+
+    cl_ulong valOffset () const
+    {
+        return 0;
+    }
+
+    cl_ulong colIndOffset () const
+    {
+        return 0;
+    }
+
+    cl_ulong rowOffOffset () const
+    {
+        return 0;
     }
 };
 

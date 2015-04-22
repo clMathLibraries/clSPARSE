@@ -14,10 +14,17 @@
 class clsparseScalarPrivate: public clsparseScalar
 {
 public:
+    typedef cl_mem value_type;
+
     void clear( )
     {
         value = nullptr;
         offValue = 0;
+    }
+
+    cl_ulong offset () const
+    {
+        return offValue;
     }
 };
 
@@ -29,6 +36,11 @@ public:
         n = 0;
         values = nullptr;
         offValues = 0;
+    }
+
+    cl_ulong offset () const
+    {
+        return offValues;
     }
 };
 
@@ -46,6 +58,22 @@ public:
     {
         return nnz/m;
     }
+
+    cl_ulong valOffset () const
+    {
+        return offValues;
+    }
+
+    cl_ulong colIndOffset () const
+    {
+        return offColInd;
+    }
+
+    cl_ulong rowOffOffset () const
+    {
+        return offRowOff;
+    }
+
 
 };
 

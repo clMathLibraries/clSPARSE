@@ -1,4 +1,26 @@
 #include "clsparse_validate.hpp"
+#include "ocl_type_traits.hpp"
+#include <iostream>
+
+clsparseStatus
+validateMemObject(clsparseScalarPrivate &scalar, size_t required_size)
+{
+#if (BUILD_CLVERSION >= 200)
+    std::cout << "Don't know how to validate SVM void* buffer" << std::endl;
+#else
+    return validateMemObject(scalar.value, required_size);
+#endif
+}
+
+clsparseStatus
+validateMemObject(clsparseVector &vector, size_t required_size)
+{
+#if (BUILD_CLVERSION >= 200)
+    std::cout << "Don't know how to validate SVM void* buffer" << std::endl;
+#else
+    return validateMemObject(vector.values, required_size);
+#endif
+}
 
 clsparseStatus
 validateMemObject( cl_mem mem, size_t required_size)

@@ -111,25 +111,46 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
 
 
     //check alpha and beta to distinct kernel version
-    void* h_alpha = clEnqueueMapBuffer(control->queue(), pAlpha->value, true, CL_MAP_READ,
+    cl_float h_alpha;
+    cl_float h_beta;
+
+#if( BUILD_CLVERSION >= 200 )
+    int svm_map_status = clEnqueueSVMMap(control->queue(), CL_TRUE, CL_MAP_READ,
+                              pAlpha->value, sizeof(cl_float),
+                              0, NULL, NULL);
+    if(svm_map_status != CL_SUCCESS)
+    {
+        return clsparseInvalidValue;
+    }
+
+    h_alpha = *(cl_float*)pAlpha->value;
+
+    svm_map_status = clEnqueueSVMUnmap(control->queue(), pAlpha->value,
+                                       0, NULL, NULL);
+    if(svm_map_status != CL_SUCCESS)
+    {
+        return clsparseInvalidValue;
+    }
+#else
+    void* t_alpha = clEnqueueMapBuffer(control->queue(), pAlpha->value, true, CL_MAP_READ,
                                        0, sizeof(cl_float), 0, NULL, NULL, NULL);
-    clEnqueueUnmapMemObject(control->queue(), pAlpha->value, h_alpha, 0, NULL, NULL);
+    h_alpha = *(cl_float*)t_alpha;
+    clEnqueueUnmapMemObject(control->queue(), pAlpha->value, t_alpha, 0, NULL, NULL);
 
-#ifndef NDEBUG
-    printf("host_alpha = %f\n", *(cl_float*)h_alpha);
-#endif
-    //TODO: Cover it with some nice function which can take CL1.x and CL2.x structures
-    void* h_beta = clEnqueueMapBuffer(control->queue(), pBeta->value, true, CL_MAP_READ,
+    void* t_beta = clEnqueueMapBuffer(control->queue(), pBeta->value, true, CL_MAP_READ,
                                       0, sizeof(cl_float), 0, NULL, NULL, NULL);
-    clEnqueueUnmapMemObject(control->queue(), pBeta->value, h_beta, 0, NULL, NULL);
+    h_beta = *(cl_float*)t_beta;
+    clEnqueueUnmapMemObject(control->queue(), pBeta->value, t_beta, 0, NULL, NULL);
+#endif
 
 #ifndef NDEBUG
-    printf("host_beta = %f\n", *(cl_float*)h_beta);
+    std::cout << "h_alpha = " << h_alpha << " h_beta = " << h_beta << std::endl;
 #endif
+
 
     // this functionallity can be implemented in one kernel by using ifdefs
     // passed in parmeters but this way i found more clear;
-    if(*(float*)h_alpha == 1.0f && *(cl_float*)h_beta == 0.0)
+    if(h_alpha == 1.0f && h_beta == 0.0)
     {
 #ifndef NDEBUG
         printf("\n\talpha = 1, beta = 0\n\n");
@@ -138,7 +159,7 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
         return csrmv_a1b0(pMatx, pX, pY,
                           params, group_size, subwave_size, control);
     }
-    else if( *(cl_float*)h_alpha == 0.0)
+    else if( h_alpha == 0.0)
     {
 #ifndef NDEBUG
         printf("\n\talpha = 0, (clBlasSscale)\n\n");
@@ -147,13 +168,13 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
         //      data pointers as arguments. Inside of it call original clblas or
         //      cl2.x implementation
         // y = b*y;
-        clblasStatus clbls_status =
-                clblasSscal(pMatx->m, *(cl_float*)h_beta, pY->values, pY->offValues,
-                            1, 1,
-                            &control->queue(),
-                            control->event_wait_list.size(),
-                            &(control->event_wait_list.front())(),
-                            &control->event( ));
+        clblasStatus clbls_status = clblasNotImplemented;
+//                clblasSscal(pMatx->m, h_beta, pY->values, pY->offset(),
+//                            1, 1,
+//                            &control->queue(),
+//                            control->event_wait_list.size(),
+//                            &(control->event_wait_list.front())(),
+//                            &control->event( ));
 
         if(clbls_status != clblasSuccess)
             return clsparseInvalidKernelExecution;
@@ -162,7 +183,7 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
 
     }
 
-    else if( *(cl_float*)h_beta == 0.0)
+    else if(h_beta == 0.0)
     {
 #ifndef NDEBUG
         printf("\n\nalpha =/= 0, beta = 0\n\n");
@@ -172,7 +193,7 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
                         params, group_size, subwave_size, control);
     }
 
-    else if ( *(float*)h_alpha == 1.0)
+    else if (h_alpha == 1.0)
     {
 #ifndef NDEBUG
         printf("\n\talpha = 1.0, beta =/= 0.0\n\n");
@@ -182,7 +203,7 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
                         params, group_size, subwave_size, control);
     }
 
-    else if ( *(cl_float*)h_beta == 1.0)
+    else if (h_beta == 1.0)
     {
 #ifndef NDEBUG
         printf("\n\talpha =/= 0, beta = 1.0\n\n");
@@ -300,24 +321,45 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
      * TODO: take care of the offsets for scalars !!!
      */
     //check alpha and beta to distinct kernel version
-    void* h_alpha = clEnqueueMapBuffer(control->queue(), pAlpha->value, true, CL_MAP_READ,
+    cl_double h_alpha;
+    cl_double h_beta;
+
+#if( BUILD_CLVERSION >= 200 )
+    int svm_map_status = clEnqueueSVMMap(control->queue(), CL_TRUE, CL_MAP_READ,
+                              pAlpha->value, sizeof(cl_double),
+                              0, NULL, NULL);
+    if(svm_map_status != CL_SUCCESS)
+    {
+        return clsparseInvalidValue;
+    }
+
+    h_alpha = *(cl_double*)pAlpha->value;
+
+    svm_map_status = clEnqueueSVMUnmap(control->queue(), pAlpha->value,
+                                       0, NULL, NULL);
+    if(svm_map_status != CL_SUCCESS)
+    {
+        return clsparseInvalidValue;
+    }
+#else
+    void* t_alpha = clEnqueueMapBuffer(control->queue(), pAlpha->value, true, CL_MAP_READ,
                                        0, sizeof(cl_double), 0, NULL, NULL, NULL);
-    clEnqueueUnmapMemObject(control->queue(), pAlpha->value, h_alpha, 0, NULL, NULL);
+    h_alpha = *(cl_double*)t_alpha;
 
-#ifndef NDEBUG
-    printf("halpha = %g\n", *(cl_double*)h_alpha);
-#endif
-    void* h_beta = clEnqueueMapBuffer(control->queue(), pBeta->value, true, CL_MAP_READ,
+    clEnqueueUnmapMemObject(control->queue(), pAlpha->value, t_alpha, 0, NULL, NULL);
+
+    void* t_beta = clEnqueueMapBuffer(control->queue(), pBeta->value, true, CL_MAP_READ,
                                       0, sizeof(cl_double), 0, NULL, NULL, NULL);
-    clEnqueueUnmapMemObject(control->queue(), pBeta->value, h_beta, 0, NULL, NULL);
-
-#ifndef NDEBUG
-    printf("hbeta= %g\n", *(cl_double*)h_beta);
+    h_beta = *(cl_double*)t_beta;
+    clEnqueueUnmapMemObject(control->queue(), pBeta->value, t_beta, 0, NULL, NULL);
 #endif
 
+#ifndef NDEBUG
+    std::cout << "h_alpha = " << h_alpha << " h_beta = " << h_beta << std::endl;
+#endif
     // this functionallity can be implemented in one kernel by using ifdefs
     // passed in parmeters but this way i found more clear;
-    if(*(cl_double*)h_alpha == 1.0 && *(cl_double*)h_beta == 0.0)
+    if(h_alpha == 1.0 && h_beta == 0.0)
     {
 #ifndef NDEBUG
         printf("\n\talpha = 1, beta = 0\n\n");
@@ -326,18 +368,18 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
         return csrmv_a1b0(pMatx, pX, pY,
                           params, group_size, subwave_size, control);
     }
-    else if( *(cl_double*)h_alpha == 0.0)
+    else if(h_alpha == 0.0)
     {
 #ifndef NDEBUG
         printf("\n\talpha = 0, (clBlasDscale)\n\n");
 #endif
-        clblasStatus clbls_status =
-                clblasDscal(pMatx->m, *(cl_double*)h_beta, pY->values,
-                            pY->offValues, 1, 1,
-                            &control->queue(),
-                            control->event_wait_list.size(),
-                            &(control->event_wait_list.front())(),
-                            &control->event());
+        clblasStatus clbls_status = clblasNotImplemented;
+//                clblasDscal(pMatx->m, h_beta, pY->values,
+//                            pY->offset(), 1, 1,
+//                            &control->queue(),
+//                            control->event_wait_list.size(),
+//                            &(control->event_wait_list.front())(),
+//                            &control->event());
 
         if (clbls_status != clblasSuccess)
             return clsparseInvalidKernelExecution;
@@ -345,7 +387,7 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
             return clsparseSuccess;
     }
 
-    else if( *(cl_double*)h_beta == 0.0)
+    else if(h_beta == 0.0)
     {
 #ifndef NDEBUG
         printf("\n\talpha =/= 0, beta = 0\n\n");
@@ -355,7 +397,7 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
                         params, group_size, subwave_size, control);
     }
 
-    else if ( *(cl_double*)h_alpha == 1.0)
+    else if (h_alpha == 1.0)
     {
 #ifndef NDEBUG
         printf("\n\talpha = 1.0, beta =/= 0.0\n\n");
@@ -365,7 +407,7 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
                         params, group_size, subwave_size, control);
     }
 
-    else if ( *(cl_double*)h_beta == 1.0)
+    else if (h_beta == 1.0)
     {
 #ifndef NDEBUG
         printf("\n\talpha =/= 0, beta = 1.0\n\n");

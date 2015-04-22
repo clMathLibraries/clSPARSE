@@ -1,6 +1,8 @@
 #ifndef OCL_TYPE_TRAITS_HPP_
 #define OCL_TYPE_TRAITS_HPP_
 
+#include <type_traits>
+
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl.h>
 #else
@@ -8,7 +10,7 @@
 #endif
 
 #define DECLARE_TYPE(TYPE) template<> struct OclTypeTraits<TYPE> \
-    { static const char* type;};
+{ static const char* type;};
 
 template<typename T>
 struct OclTypeTraits
@@ -25,5 +27,17 @@ DECLARE_TYPE( cl_long )
 DECLARE_TYPE( cl_ulong )
 DECLARE_TYPE( cl_float )
 DECLARE_TYPE( cl_double )
+
+
+//cl_mem is pointer to non fundamental type _cl_mem
+//is_clmem returns true for T = cl_mem
+template <typename T>
+struct is_clmem
+{
+    static bool const value =
+        (std::is_pointer<T>::value &&
+        !std::is_fundamental<typename std::remove_pointer<T>::type>::value);
+};
+
 
 #endif // OCL_TYPE_TRAITS_HPP_

@@ -83,7 +83,7 @@ private:
 
 //cl 1.1 //there is no getArgInfo in OpenCL 1.1
 //kind of leap of faith if on OpenCL everyting is ok with setting the args.
-#if (BUILD_CLVERSION < 120)
+#if (BUILD_CLVERSION == 110)
 #define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
         template<> inline KernelWrap& \
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
@@ -94,7 +94,7 @@ private:
             return *this; \
         }
 
-#else
+#elif (BUILD_CLVERSION == 120)
 
 #define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
         template<> inline KernelWrap& \
@@ -105,6 +105,20 @@ private:
             assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter) \
                                                          == TYPE_STRING); \
             kernel.setArg(argCounter++, arg); \
+            return *this; \
+        }
+#else (BUILD_CLVERSION == 200)
+#define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
+        template<> inline KernelWrap& \
+        KernelWrap::operator<< <TYPE>(const TYPE& arg) \
+        { \
+            std::cout << "USING CL2.0" << std::endl; \
+            assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
+            assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter) \
+                                                         == TYPE_STRING); \
+            int status =  clSetKernelArgSVMPointer(kernel(), \
+                          argCounter++, \
+                          (void *)(&arg)); \
             return *this; \
         }
 #endif

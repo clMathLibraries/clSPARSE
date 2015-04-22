@@ -34,8 +34,8 @@ csrmv_a1b0 (const clsparseCsrMatrixPrivate* pMatx,
              << pMatx->rowOffsets
              << pMatx->colIndices
              << pMatx->values
-             << pX->values << pX->offValues
-             << pY->values << pY->offValues;
+             << pX->values << pX->offset()
+             << pY->values << pX->offset();
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
@@ -77,12 +77,12 @@ csrmv_b0 (const clsparseScalarPrivate* pAlpha,
     KernelWrap kWrapper(kernel);
 
     kWrapper << pMatx->m
-             << pAlpha->value << pAlpha->offValue
+             << pAlpha->value << pAlpha->offset()
              << pMatx->rowOffsets
              << pMatx->colIndices
              << pMatx->values
-             << pX->values << pX->offValues
-             << pY->values << pY->offValues;
+             << pX->values << pX->offset()
+             << pY->values << pY->offset();
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
@@ -129,9 +129,9 @@ csrmv_a1 (const clsparseCsrMatrixPrivate* pMat,
              << pMat->rowOffsets
              << pMat->colIndices
              << pMat->values
-             << pX->values << pX->offValues
-             << pBeta->value << pBeta->offValue
-             << pY->values << pY->offValues;
+             << pX->values << pX->offset()
+             << pBeta->value << pBeta->offset()
+             << pY->values << pY->offset();
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
@@ -158,7 +158,7 @@ csrmv_a1 (const clsparseCsrMatrixPrivate* pMat,
 }
 
 clsparseStatus
-csrmv_b1 (const clsparseScalar* pAlpha,
+csrmv_b1 (const clsparseScalarPrivate* pAlpha,
           const clsparseCsrMatrixPrivate* pMatx,
           const clsparseVectorPrivate* pX,
           clsparseVectorPrivate* pY,
@@ -175,12 +175,12 @@ csrmv_b1 (const clsparseScalar* pAlpha,
     KernelWrap kWrapper(kernel);
 
     kWrapper << pMatx->m
-             << pAlpha->value << pAlpha->offValue
+             << pAlpha->value << pAlpha->offset()
              << pMatx->rowOffsets
              << pMatx->colIndices
              << pMatx->values
-             << pX->values << pX->offValues
-             << pY->values << pY->offValues;
+             << pX->values << pX->offset()
+             << pY->values << pY->offset();
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
@@ -223,13 +223,13 @@ csrmv (const clsparseScalarPrivate* pAlpha,
     KernelWrap kWrapper(kernel);
 
     kWrapper << pMatx->m
-             << pAlpha->value << pAlpha->offValue
+             << pAlpha->value << pAlpha->offset()
              << pMatx->rowOffsets
              << pMatx->colIndices
              << pMatx->values
-             << pX->values << pX->offValues
-             << pBeta->value << pBeta->offValue
-             << pY->values << pY->offValues;
+             << pX->values << pX->offset()
+             << pBeta->value << pBeta->offset()
+             << pY->values << pY->offset();
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;

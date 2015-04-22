@@ -113,8 +113,13 @@ clsparseScsr2dense(const clsparseCsrMatrix* csr,
 
     //fill the buffer A with zeros
     cl_float pattern = 0.0f; 
+#if (BUILD_CLVERSION >= 200)
+    clEnqueueSVMMemFill(control->queue(), pA->values, &pattern, sizeof(cl_float),
+                        sizeof(cl_float) * pCsr->m * pCsr->n, 0, NULL, NULL);
+#else
     clEnqueueFillBuffer(control->queue(), pA->values, &pattern, sizeof(cl_float), 0,
-                        sizeof(cl_float) * pCsr->m * pCsr->n, NULL, NULL, NULL);
+                        sizeof(cl_float) * pCsr->m * pCsr->n, 0, NULL, NULL);
+#endif
 
     return csr2dense_transform(pCsr,
                                pA,
@@ -181,9 +186,14 @@ clsparseDcsr2dense(const clsparseCsrMatrix* csr,
 
     //fill the buffer A with zeros
     cl_double pattern = 0.0f;
-    clEnqueueFillBuffer(control->queue(), pA->values, &pattern, sizeof(cl_double), 0,
-                        sizeof(cl_double) * pCsr->m * pCsr->n, NULL, NULL, NULL);
 
+#if (BUILD_CLVERSION >= 200)
+    clEnqueueSVMMemFill(control->queue(), pA->values, &pattern, sizeof(cl_double),
+                        sizeof(cl_double) * pCsr->m * pCsr->n, 0, NULL, NULL);
+#else
+    clEnqueueFillBuffer(control->queue(), pA->values, &pattern, sizeof(cl_double), 0,
+                        sizeof(cl_double) * pCsr->m * pCsr->n, 0, NULL, NULL);
+#endif
     return csr2dense_transform(pCsr,
                                pA,
                                params,
