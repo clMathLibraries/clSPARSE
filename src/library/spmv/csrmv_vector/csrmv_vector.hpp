@@ -5,7 +5,7 @@
 #include "internal/clsparse_validate.hpp"
 #include "internal/clsparse_internal.hpp"
 #include "spmv/csrmv_vector/csrmv_vector_impl.hpp"
-#include <clBLAS.h>
+#include "scale/clsparse_scale.hpp"
 
 // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION >= 200 )
@@ -162,25 +162,10 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
     else if( h_alpha == 0.0)
     {
 #ifndef NDEBUG
-        printf("\n\talpha = 0, (clBlasSscale)\n\n");
+        printf("\n\talpha = 0, (clsparseSscale)\n\n");
 #endif
-        //TODO: write internal scale function which will takes clsparse[]Private
-        //      data pointers as arguments. Inside of it call original clblas or
-        //      cl2.x implementation
         // y = b*y;
-        clblasStatus clbls_status = clblasNotImplemented;
-//                clblasSscal(pMatx->m, h_beta, pY->values, pY->offset(),
-//                            1, 1,
-//                            &control->queue(),
-//                            control->event_wait_list.size(),
-//                            &(control->event_wait_list.front())(),
-//                            &control->event( ));
-
-        if(clbls_status != clblasSuccess)
-            return clsparseInvalidKernelExecution;
-        else
-            return clsparseSuccess;
-
+        return clsparseSscale(pMatx->m, h_beta, pBeta, pY, control);
     }
 
     else if(h_beta == 0.0)
@@ -371,20 +356,9 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
     else if(h_alpha == 0.0)
     {
 #ifndef NDEBUG
-        printf("\n\talpha = 0, (clBlasDscale)\n\n");
+        printf("\n\talpha = 0, (clsparseDscale)\n\n");
 #endif
-        clblasStatus clbls_status = clblasNotImplemented;
-//                clblasDscal(pMatx->m, h_beta, pY->values,
-//                            pY->offset(), 1, 1,
-//                            &control->queue(),
-//                            control->event_wait_list.size(),
-//                            &(control->event_wait_list.front())(),
-//                            &control->event());
-
-        if (clbls_status != clblasSuccess)
-            return clsparseInvalidKernelExecution;
-        else
-            return clsparseSuccess;
+        return clsparseDscale(pMatx->m, h_beta, pBeta, pY, control);
     }
 
     else if(h_beta == 0.0)
