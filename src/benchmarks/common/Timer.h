@@ -1,10 +1,10 @@
 /**********************************************************************
-Copyright ©2014 Advanced Micro Devices, Inc. All rights reserved.
+Copyright 2014 Advanced Micro Devices, Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-•	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-•	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
+*	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+*	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
  other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -31,13 +31,17 @@ typedef long long i64;
 #else
 typedef __int64 i64;
 #endif
-#else
+#elif __linux__
 /**
  * \typedef long long i64
  * \brief Maps the linux 64 bit integer to a uniform name
  */
 typedef long long i64;
+#elif defined(__APPLE__) || defined(__MACOSX)
+#include <mach/mach_time.h>
+typedef uint64_t i64;
 #endif
+
 
 /**
  * \class CPerfCounter
@@ -84,10 +88,14 @@ public:
 
 private:
 
-    i64 _freq;
+#if defined(__APPLE__) || defined(__MACOSX)
+    mach_timebase_info_data_t _freq;
+#else
+   i64 _freq;
+#endif
+
     i64 _clocks;
     i64 _start;
 };
 
 #endif // _TIMER_H_
-

@@ -12,10 +12,8 @@ find_package( OpenCL ${BUILD_CLVERSION} REQUIRED )
 # clSPARSE library requires clBLAS
 find_package( clBLAS REQUIRED )
 
-if( CMAKE_COMPILER_IS_GNUCXX )
-  add_definitions(
-      -std=c++11 # support for new cpp standard
-  )
+if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
+  add_definitions( -std=c++11 )
 endif( )
 
 if( BUILD_CLVERSION VERSION_EQUAL "2.0" )

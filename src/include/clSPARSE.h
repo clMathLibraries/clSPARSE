@@ -66,7 +66,7 @@ typedef enum clsparseStatus_ {
 typedef struct _clsparseControl*  clsparseControl;
 
 //setup the control from external queue;
-CLSPARSE_EXPORT clsparseControl 
+CLSPARSE_EXPORT clsparseControl
 clsparseCreateControl( cl_command_queue queue, cl_int *status );
 
 //enable/disable asynchronous behavior for clSPARSE;

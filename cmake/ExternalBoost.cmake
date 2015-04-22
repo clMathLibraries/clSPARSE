@@ -64,7 +64,12 @@ endif( )
 
 set( ext.Boost_VARIANT "debug,release" CACHE STRING "Which boost variant?  debug | release | debug,release" )
 set( ext.Boost_LINK "static" CACHE STRING "Which boost link method?  static | shared | static,shared" )
-set( ext.Boost_LAYOUT "versioned" CACHE STRING "Which boost layotu method?  versioned | tagged | system" )
+
+if( WIN32 )
+   set( ext.Boost_LAYOUT "versioned" CACHE STRING "Which boost layout method?  versioned | tagged | system" )
+else( )
+   set( ext.Boost_LAYOUT "tagged" CACHE STRING "Which boost layout method?  versioned | tagged | system" )
+endif( )
 
 list( APPEND Boost.Command link=${ext.Boost_LINK} variant=${ext.Boost_VARIANT} --layout=${ext.Boost_LAYOUT} install )
 

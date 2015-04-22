@@ -5,7 +5,7 @@
 #include "internal/kernel_wrap.hpp"
 
 #include <iostream>
-#include <malloc.h>
+
 //get the wavefront size and max work group size
 void collectEnvParams(clsparseControl control)
 {
