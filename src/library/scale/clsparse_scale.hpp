@@ -59,12 +59,12 @@ scale(cl_int size,
 clsparseStatus
 clsparseSscale (cl_int size,
                 cl_float halpha,      //I don't want to map alpha on host twice;
-                const clsparseScalar* pAlpha,
+                const clsparseScalarPrivate* pAlpha,
                 clsparseVectorPrivate* pVector,
                 clsparseControl control)
 {
 
-#if( BUILD_CLVERSION <= 200 )
+#if( BUILD_CLVERSION < 200 )
 
     clblasStatus status =
             clblasSscal(size, halpha, pVector->values, pVector->offset(),
@@ -98,12 +98,12 @@ clsparseSscale (cl_int size,
 clsparseStatus
 clsparseDscale (cl_int size,
                 cl_double halpha,      //I don't want to map alpha on host twice;
-                const clsparseScalar* pAlpha,
+                const clsparseScalarPrivate* pAlpha,
                 clsparseVectorPrivate* pVector,
                 clsparseControl control)
 {
 
-#if( BUILD_CLVERSION <= 200 )
+#if( BUILD_CLVERSION < 200 )
 
     clblasStatus status =
             clblasDscal(size, halpha, pVector->values, pVector->offset(),

@@ -23,6 +23,12 @@ validateMemObject(clsparseVector &vector, size_t required_size)
 }
 
 clsparseStatus
+validateMemObject(void* mem, size_t required_size)
+{
+    std::cout << "validateMemObject void* buffer" << std::endl;
+}
+
+clsparseStatus
 validateMemObject( cl_mem mem, size_t required_size)
 {
     //check if valid mem object,
