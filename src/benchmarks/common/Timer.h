@@ -91,7 +91,7 @@ private:
 #if defined(__APPLE__) || defined(__MACOSX)
     mach_timebase_info_data_t _freq;
 #else
-   i64 _freq;
+    i64 _freq;
 #endif
 
     i64 _clocks;
