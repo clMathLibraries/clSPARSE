@@ -14,7 +14,6 @@
 class clsparseScalarPrivate: public clsparseScalar
 {
 public:
-    typedef cl_mem value_type;
 
     void clear( )
     {

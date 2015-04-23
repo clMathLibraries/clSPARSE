@@ -32,11 +32,11 @@ DECLARE_TYPE( cl_double )
 //cl_mem is pointer to non fundamental type _cl_mem
 //is_clmem returns true for T = cl_mem
 template <typename T>
-struct is_clmem
+struct is_pointer_fundamental
 {
     static bool const value =
         (std::is_pointer<T>::value &&
-        !std::is_fundamental<typename std::remove_pointer<T>::type>::value);
+        std::is_fundamental<typename std::remove_pointer<T>::type>::value);
 };
 
 
