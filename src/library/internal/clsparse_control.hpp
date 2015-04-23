@@ -31,10 +31,10 @@ struct _clsparseControl
     cl::Event event;
 
     //operation parameters
-    cl_ulong off_alpha;
-    cl_ulong off_beta;
-    cl_ulong off_x;
-    cl_ulong off_y;
+//    cl_ulong off_alpha;
+//    cl_ulong off_beta;
+//    cl_ulong off_x;
+//    cl_ulong off_y;
 
     //for NV(32) for AMD(64)
     cl_uint wavefront_size;

@@ -8,6 +8,9 @@ int CSREnvironment::n_rows = 0;
 int CSREnvironment::n_cols = 0;
 int CSREnvironment::n_vals = 0;
 
+clsparseCsrMatrix CSREnvironment::csrSMatrix = clsparseCsrMatrix();
+clsparseCsrMatrix CSREnvironment::csrDMatrix = clsparseCsrMatrix();
+
 cl_mem CSREnvironment::cl_row_offsets = NULL;
 cl_mem CSREnvironment::cl_col_indices = NULL;
 cl_mem CSREnvironment::cl_f_values = NULL;

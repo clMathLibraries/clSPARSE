@@ -28,7 +28,7 @@ TEST (clSparseInit, version)
     EXPECT_EQ (0, major);
     EXPECT_EQ (0, minor);
     EXPECT_EQ (1, patch);
-    EXPECT_EQ( 0, patch );
+    EXPECT_EQ( 0, tweak );
 }
 
 TEST (clsparseInit, control)
@@ -68,7 +68,8 @@ TEST (clsparseInit, control)
 
 int main(int argc, char* argv[])
 {
-    ::testing::InitGoogleTest(&argc, argv);
 
+    ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+

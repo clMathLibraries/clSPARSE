@@ -29,6 +29,18 @@ public:
             exit(-3);
         }
 
+        clsparseInitCsrMatrix(&csrSMatrix);
+        clsparseInitCsrMatrix(&csrDMatrix);
+        csrSMatrix.m = n_rows;
+        csrSMatrix.n = n_cols;
+        csrSMatrix.nnz = n_vals;
+
+        csrDMatrix.m = n_rows;
+        csrDMatrix.n = n_cols;
+        csrDMatrix.nnz = n_vals;
+
+
+
         this->alpha = alpha;
         this->beta = beta;
 
@@ -80,6 +92,15 @@ public:
             TearDown();
             exit(-5);
         }
+
+        csrSMatrix.colIndices = cl_col_indices;
+        csrSMatrix.rowOffsets = cl_row_offsets;
+        csrSMatrix.values = cl_f_values;
+
+        csrDMatrix.colIndices = cl_col_indices;
+        csrDMatrix.rowOffsets = cl_row_offsets;
+        csrDMatrix.values = cl_d_values;
+
     }
 
     //cleanup
@@ -91,6 +112,10 @@ public:
         clReleaseMemObject(cl_f_values);
         clReleaseMemObject(cl_d_values);
 
+        //bring csrSMatrix csrDMatrix to its initial state
+        clsparseInitCsrMatrix(&csrSMatrix);
+        clsparseInitCsrMatrix(&csrDMatrix);
+
     }
 
 
@@ -101,10 +126,17 @@ public:
     static int n_rows, n_cols, n_vals;
 
     //cl buffers for above matrix definition;
+
+    static clsparseCsrMatrix csrSMatrix;
+    static clsparseCsrMatrix csrDMatrix;
+
+    //matrix indexes are shared among csrSMatrix and csrDMatrix
     static cl_mem cl_row_offsets;
     static cl_mem cl_col_indices;
+
     static cl_mem cl_f_values;
     static cl_mem cl_d_values;
+
     static double alpha, beta;
 
 private :

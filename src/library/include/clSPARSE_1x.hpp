@@ -14,10 +14,16 @@
 class clsparseScalarPrivate: public clsparseScalar
 {
 public:
+
     void clear( )
     {
         value = nullptr;
         offValue = 0;
+    }
+
+    cl_ulong offset () const
+    {
+        return offValue;
     }
 };
 
@@ -30,6 +36,11 @@ public:
         values = nullptr;
         offValues = 0;
     }
+
+    cl_ulong offset () const
+    {
+        return offValues;
+    }
 };
 
 class clsparseCsrMatrixPrivate: public clsparseCsrMatrix
@@ -41,6 +52,28 @@ public:
         values = colIndices = rowOffsets = rowBlocks = nullptr;
         offValues = offColInd = offRowOff = offRowBlocks = 0;
     }
+
+    cl_uint nnz_per_row() const
+    {
+        return nnz/m;
+    }
+
+    cl_ulong valOffset () const
+    {
+        return offValues;
+    }
+
+    cl_ulong colIndOffset () const
+    {
+        return offColInd;
+    }
+
+    cl_ulong rowOffOffset () const
+    {
+        return offRowOff;
+    }
+
+
 };
 
 class clsparseCooMatrixPrivate: public clsparseCooMatrix
@@ -54,10 +87,21 @@ public:
     }
 };
 
+class clsparseDenseMatrixPrivate: public clsparseDenseMatrix
+{
+public:
+    void clear( )
+    {
+        m = n = 0;
+        values = nullptr;
+    }
+};
+
 // Check that it is OK to static_cast a C struct pointer to a C++ class pointer
 static_assert( std::is_standard_layout< clsparseScalarPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
 static_assert( std::is_standard_layout< clsparseVectorPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
 static_assert( std::is_standard_layout< clsparseCsrMatrixPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
 static_assert( std::is_standard_layout< clsparseCooMatrixPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
+static_assert( std::is_standard_layout< clsparseDenseMatrixPrivate>::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
 
 #endif

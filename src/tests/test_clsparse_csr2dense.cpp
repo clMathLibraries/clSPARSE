@@ -14,33 +14,23 @@ cl_context ClSparseEnvironment::context = NULL;
 namespace po = boost::program_options;
 
 template<typename T>
-clsparseStatus generateResult(cl_mem g_dense)
+clsparseStatus generateResult(clsparseDenseMatrix& A)
 {
     using CSRE = CSREnvironment;
     using CLSE = ClSparseEnvironment;
 
     if(typeid(T) == typeid(float))
     {
-        return clsparseScsr2dense(CSRE::n_rows,
-                                  CSRE::n_cols,
-                                  CSRE::n_vals,
-                                  CSRE::cl_row_offsets,
-                                  CSRE::cl_col_indices,
-                                  CSRE::cl_f_values,
-                                  g_dense,
+        return clsparseScsr2dense(&CSRE::csrSMatrix,
+                                  &A,
                                   CLSE::control);
 
     }
 
     if(typeid(T) == typeid(double))
     {
-       return clsparseDcsr2dense(CSRE::n_rows,
-                                 CSRE::n_cols,
-                                 CSRE::n_vals,
-                                 CSRE::cl_row_offsets,
-                                 CSRE::cl_col_indices,
-                                 CSRE::cl_d_values,
-                                 g_dense,
+       return clsparseDcsr2dense(&CSRE::csrDMatrix,
+                                 &A,
                                  CLSE::control);
 
     }
@@ -57,14 +47,14 @@ public:
 
     void SetUp()
     {
-        //TODO:: take the values from cmdline;
+        clsparseInitDenseMatrix(&A);
 
         dense = std::vector<T>(CSRE::n_cols * CSRE::n_rows, 0);
 
         cl_int status;
-        g_dense = clCreateBuffer(CLSE::context,
-                                 CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                                 dense.size() * sizeof(T), dense.data(), &status);
+        A.values = clCreateBuffer(CLSE::context,
+                                  CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                  dense.size() * sizeof(T), dense.data(), &status);
 
         ASSERT_EQ(CL_SUCCESS, status); //is it wise to use this here?
 
@@ -79,14 +69,6 @@ public:
             csr2dense(CSRE::n_rows, CSRE::n_cols, CSRE::n_vals,
                       CSRE::row_offsets, CSRE::col_indices, CSRE::f_values,
                       dense);
-            
-            //std::cout << "print out matrix" << std::endl; 
-            //for(int i = 0; i < CSRE::n_rows; i++){
-            //   for(int j = 0; j < CSRE::n_cols; j++){
-            //       std::cout << dense[i * CSRE::n_cols + j] << " ";
-            //   }
-            //   std::cout <<std:: endl;
-            //}
     }
 
     void generateReference (std::vector<double>& dense)
@@ -96,7 +78,7 @@ public:
                       dense);
     }
 
-    cl_mem g_dense;
+    clsparseDenseMatrix A;
     std::vector<T> dense;
 
 };
@@ -108,18 +90,16 @@ TYPED_TEST(TestCSR2DENSE, transform)
 {
 
     cl_event event = NULL;
-    //clsparseSetupEvent(ClSparseEnvironment::control, &event );
 
     clsparseStatus status =
-            generateResult<TypeParam>(this->g_dense);
+            generateResult<TypeParam>(this->A);
 
     EXPECT_EQ(clsparseSuccess, status);
-    //clsparseSynchronize(ClSparseEnvironment::control);
 
     std::vector<TypeParam> result(this->dense.size());
 
     clEnqueueReadBuffer(ClSparseEnvironment::queue,
-                        this->g_dense, 1, 0,
+                        this->A.values, 1, 0,
                         result.size()*sizeof(TypeParam),
                         result.data(), 0, NULL, NULL);
 

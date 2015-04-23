@@ -1,5 +1,4 @@
 R"(
-//TEST KERNEL
 
 #ifdef cl_khr_fp64
     #pragma OPENCL EXTENSION cl_khr_fp64 : enable

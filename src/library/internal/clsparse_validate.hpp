@@ -4,12 +4,26 @@
 #include "clSPARSE.h"
 #include <stdio.h>
 
-#ifdef __cplusplus
-extern "C" {
+#if( BUILD_CLVERSION >= 200 )
+#include "include/clSPARSE_2x.hpp"
+#else
+#include "include/clSPARSE_1x.hpp"
 #endif
 
 clsparseStatus
-    validateMemObject( cl_mem mem, size_t required_size );
+validateMemObject(clsparseScalarPrivate& scalar, size_t required_size);
+
+clsparseStatus
+validateMemObject(clsparseVectorPrivate& vector, size_t required_size);
+
+
+clsparseStatus
+validateMemObject( cl_mem mem, size_t required_size );
+
+clsparseStatus
+validateMemObject(void* mem, size_t required_size);
+
+
 /*
 * Validate cl_mem buffers regarding required size including offset;
 * element_size - size of vector element in bytes, sizeof(T)
@@ -23,8 +37,5 @@ clsparseStatus
     cl_mem mem,
     size_t off_mem );
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif //_CLSPARSE_VALIDATE_H_

@@ -82,6 +82,10 @@ set( clSPARSE.Headers
   internal/kernel_cache.hpp
   internal/ocl_type_traits.hpp
   internal/kernel_wrap.hpp
+  spmv/csrmv_vector/csrmv_vector.hpp
+  spmv/csrmv_vector/csrmv_vector_impl.hpp
+  spmv/csrmv_adaptive/csrmv_adaptive.hpp
+  scale/clsparse_scale.hpp
   ${ocl_kernels_file_name}
 )
 
