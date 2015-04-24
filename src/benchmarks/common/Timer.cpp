@@ -1,10 +1,10 @@
 /**********************************************************************
-Copyright ©2014 Advanced Micro Devices, Inc. All rights reserved.
+Copyright 2014 Advanced Micro Devices, Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-•	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-•	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
+*	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+*	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
  other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -18,9 +18,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #ifdef _WIN32
 #include <windows.h>
-#else
+#elif __linux__
 #include <sys/time.h>
 #include <time.h>
+#elif defined(__APPLE__) || defined(__MACOSX)
+#include <CoreServices/CoreServices.h>
+#include <mach/mach.h>
 #endif
 
 CPerfCounter::CPerfCounter() : _clocks(0), _start(0)
@@ -28,8 +31,10 @@ CPerfCounter::CPerfCounter() : _clocks(0), _start(0)
 
 #ifdef _WIN32
     QueryPerformanceFrequency((LARGE_INTEGER *)&_freq);
-#else
+#elif __linux__
     _freq = 1000;
+#elif defined(__APPLE__) || defined(__MACOSX)
+   mach_timebase_info( &_freq );
 #endif
 
 }
@@ -45,10 +50,12 @@ CPerfCounter::Start(void)
 
 #ifdef _WIN32
     QueryPerformanceCounter((LARGE_INTEGER *)&_start);
-#else
+#elif __linux__
     struct timespec s;
     clock_gettime( CLOCK_REALTIME, &s );
     _start = (i64)s.tv_sec * 1e9 + (i64)s.tv_nsec;
+#elif defined(__APPLE__) || defined(__MACOSX)
+   _start = mach_absolute_time( );
 #endif
 
 }
@@ -60,10 +67,12 @@ CPerfCounter::Stop(void)
 
 #ifdef _WIN32
     QueryPerformanceCounter((LARGE_INTEGER *)&n);
-#else
+#elif __linux__
     struct timespec s;
     clock_gettime( CLOCK_REALTIME, &s );
     n = (i64)s.tv_sec * 1e9 + (i64)s.tv_nsec;
+#elif defined(__APPLE__) || defined(__MACOSX)
+   n = mach_absolute_time( );
 #endif
 
     n -= _start;
@@ -83,9 +92,10 @@ CPerfCounter::GetElapsedTime(void)
 {
 #if _WIN32
     return (double)_clocks / (double) _freq;
-#else
+#elif __linux__
     return (double)_clocks / (double) 1e9;
+#elif defined(__APPLE__) || defined(__MACOSX)
+   return (double)_clocks * (double)_freq.numer / _freq.denom;
 #endif
 
 }
-

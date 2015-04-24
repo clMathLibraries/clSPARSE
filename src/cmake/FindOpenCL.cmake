@@ -61,6 +61,7 @@ find_path(OPENCL_INCLUDE_DIRS
   DOC "OpenCL header file path"
 )
 mark_as_advanced( OPENCL_INCLUDE_DIRS )
+message( STATUS "OPENCL_INCLUDE_DIRS: ${OPENCL_INCLUDE_DIRS}" )
 
 set( OpenCL_VERSION "0.0" )
 
@@ -69,20 +70,27 @@ set( CMAKE_REQUIRED_INCLUDES "${OPENCL_INCLUDE_DIRS}" )
 
 # Bug in check_symbol_exists prevents us from specifying a list of files, so we loop
 # Only 1 of these files will exist on a system, so the other file will not clobber the output variable
-foreach( CL_HEADER_FILE CL/cl.h OpenCL/cl.h )
-    check_symbol_exists( CL_VERSION_2_0 ${CL_HEADER_FILE} HAVE_CL_2_0 )
-    check_symbol_exists( CL_VERSION_1_2 ${CL_HEADER_FILE} HAVE_CL_1_2 )
-    check_symbol_exists( CL_VERSION_1_1 ${CL_HEADER_FILE} HAVE_CL_1_1 )
+if( APPLE )
+   set( CL_HEADER_FILE "OpenCL/cl.h" )
+else( )
+   set( CL_HEADER_FILE "CL/cl.h" )
+endif( )
 
-    # set OpenCL_VERSION to the highest detected version
-    if( HAVE_CL_2_0 )
-        set( OpenCL_VERSION "2.0" )
-    elseif( HAVE_CL_1_2 )
-        set( OpenCL_VERSION "1.2" )
-    elseif( HAVE_CL_1_1 )
-        set( OpenCL_VERSION "1.1" )
-    endif( )
-endforeach( )
+check_symbol_exists( CL_VERSION_2_0 ${CL_HEADER_FILE} HAVE_CL_2_0 )
+check_symbol_exists( CL_VERSION_1_2 ${CL_HEADER_FILE} HAVE_CL_1_2 )
+check_symbol_exists( CL_VERSION_1_1 ${CL_HEADER_FILE} HAVE_CL_1_1 )
+# message( STATUS "HAVE_CL_2_0: ${HAVE_CL_2_0}" )
+# message( STATUS "HAVE_CL_1_2: ${HAVE_CL_1_2}" )
+# message( STATUS "HAVE_CL_1_1: ${HAVE_CL_1_1}" )
+
+# set OpenCL_VERSION to the highest detected version
+if( HAVE_CL_2_0 )
+  set( OpenCL_VERSION "2.0" )
+elseif( HAVE_CL_1_2 )
+  set( OpenCL_VERSION "1.2" )
+elseif( HAVE_CL_1_1 )
+  set( OpenCL_VERSION "1.1" )
+endif( )
 
 cmake_pop_check_state( )
 
@@ -123,7 +131,7 @@ mark_as_advanced( OPENCL_LIBRARIES )
 
 # message( STATUS "OpenCL_FIND_VERSION: ${OpenCL_FIND_VERSION}" )
 if( OpenCL_VERSION VERSION_LESS OpenCL_FIND_VERSION )
-    message( FATAL_ERROR "Requested OpenCL version: ${OpenCL_FIND_VERSION}, Found OpenCL version: ${OpenCL_VERSION}" ) 
+    message( FATAL_ERROR "Requested OpenCL version: ${OpenCL_FIND_VERSION}, Found OpenCL version: ${OpenCL_VERSION}" )
 endif( )
 
 # If we asked for OpenCL 1.1, and we found a version installed greater than that, pass the 'use deprecated' flag
@@ -132,7 +140,7 @@ if( (OpenCL_FIND_VERSION VERSION_EQUAL "1.1") AND (OpenCL_VERSION VERSION_GREATE
 endif( )
 
 include( FindPackageHandleStandardArgs )
-FIND_PACKAGE_HANDLE_STANDARD_ARGS( OPENCL 
+FIND_PACKAGE_HANDLE_STANDARD_ARGS( OPENCL
     REQUIRED_VARS OPENCL_LIBRARIES OPENCL_INCLUDE_DIRS
     VERSION_VAR OpenCL_VERSION
     )

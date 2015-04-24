@@ -1,7 +1,12 @@
 #include <clSPARSE.h>
 
 #include <assert.h>
+
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <malloc/malloc.h>
+#else
 #include <malloc.h>
+#endif
 
 int main( int argc, char* argv[ ] )
 {

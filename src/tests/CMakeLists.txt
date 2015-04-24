@@ -16,10 +16,6 @@ find_package( OpenCL REQUIRED )
 
 add_definitions(-D__CL_ENABLE_EXCEPTIONS)
 
-if( CMAKE_COMPILER_IS_GNUCC )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
-endif( )
-
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_BINARY_DIR}/library
@@ -42,7 +38,7 @@ set( TESTS_CPP
 set( TESTS_C
   test_interface_c
   )
-  
+
 #additional headers and sources
 set( src
   resources/csr_matrix_environment.cpp
@@ -60,8 +56,11 @@ set( headers
 foreach( test ${TESTS_CPP} )
   add_executable( ${test} ${test}.cpp ${src} ${headers} )
   target_link_libraries( ${test} clSPARSE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} )
-  if( CMAKE_COMPILER_IS_GNUCC )
-    target_link_libraries( ${test} pthread ) #gtest on linux brings this dependency
+  if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
+   target_compile_options( ${test} PUBLIC -std=c++11 )
+   if( CMAKE_COMPILER_IS_GNUCXX )
+     target_link_libraries( ${test} pthread ) #gtest on linux brings this dependency
+   endif( )
   endif( )
   set_target_properties( ${test} PROPERTIES VERSION ${clSPARSE_VERSION} )
   set_target_properties( ${test} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
@@ -69,7 +68,7 @@ foreach( test ${TESTS_CPP} )
 endforeach( )
 
 foreach( test ${TESTS_C} )
-  add_executable( ${test} ${test}.c ${src} ${headers} )
+  add_executable( ${test} ${test}.c ${headers} )
   target_link_libraries( ${test} clSPARSE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} )
   if( CMAKE_COMPILER_IS_GNUCC )
     target_link_libraries( ${test} pthread ) #gtest on linux brings this dependency

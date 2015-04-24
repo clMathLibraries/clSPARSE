@@ -4,7 +4,7 @@ set( Boost_USE_STATIC_LIBS   ON )
 set( Boost_DETAILED_FAILURE_MSG   ON )
 set( Boost_NO_SYSTEM_PATHS ON )
 set( Boost_ADDITIONAL_VERSIONS 1.57.0 1.57 )
-# set( Boost_DEBUG ON )
+set( Boost_DEBUG ON )
 
 find_package( Boost COMPONENTS program_options filesystem system regex )
 
@@ -12,8 +12,8 @@ find_package( Boost COMPONENTS program_options filesystem system regex )
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
 find_package( OpenCL REQUIRED )
 
-if( CMAKE_COMPILER_IS_GNUCC )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
+if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
+  add_definitions( -std=c++11 )
 endif( )
 
 include_directories(
