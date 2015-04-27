@@ -53,6 +53,7 @@ set( clSPARSE.source.cl
   kernels/csrmv_beta0.cl
   kernels/csrmv_beta1.cl
   kernels/csrmv_general.cl
+  kernels/csrmv_adaptive.cl
   kernels/control.cl
   kernels/scale.cl
   kernels/csr2dense.cl
@@ -68,10 +69,17 @@ set( clSPARSE.source.cpp
   simple/clsparse_simple.cpp
   spmv/clsparse_csrmv.cpp
   transform/clsparse_csr2dense.cpp
+  matrixMarket/mm_reader.cpp
+  transform/clsparse_coo2csr.cpp
 )
 
 set( clSPARSE.Headers
   ../include/clSPARSE.h
+  ../include/clSPARSE_1x.h
+  ../include/clSPARSE_2x.h
+  include/clSPARSE-private.hpp
+  include/clSPARSE_1x.hpp
+  include/clSPARSE_2x.hpp
   ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
    internal/clsparse_internal.hpp
   internal/clsparse_control.hpp

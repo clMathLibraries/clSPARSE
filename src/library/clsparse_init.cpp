@@ -1,16 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "clSPARSE.h"
-#include "clSPARSE.version.h"
+#include "include/clSPARSE-private.hpp"
 #include "internal/clsparse_internal.hpp"
-
-// Include appropriate data type definitions appropriate to the cl version supported
-#if( BUILD_CLVERSION >= 200 )
-    #include "include/clSPARSE_2x.hpp"
-#else
-    #include "include/clSPARSE_1x.hpp"
-#endif
+#include "clSPARSE.version.h"
 
 #include <clAmdBlas.h>
 
@@ -100,17 +93,6 @@ clsparseInitDenseMatrix (clsparseDenseMatrix *denseMatx)
     pDenseMatx->clear();
 
     return clsparseSuccess;
-}
-
-CLSPARSE_EXPORT clsparseStatus
-clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath )
-{
-    // There should be logic here to read matrix market files
-    // First, it reads data from file into CPU buffer
-    // Then, it transfers the data from CPU buffer to GPU buffers
-    // Ponder:  should we suppose the usecase of allocating 1 cl_mem buffer (values == colIndices == rowIndices )
-    // with all data addressed with offsets ( offValues != offColInd != offRowInd != 0 )?
-    return clsparseInitCooMatrix( cooMatx );
 }
 
 CLSPARSE_EXPORT clsparseStatus
