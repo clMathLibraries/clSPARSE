@@ -57,6 +57,7 @@ set( clSPARSE.source.cl
   kernels/control.cl
   kernels/scale.cl
   kernels/csr2dense.cl
+  kernels/csr2coo.cl
 )
 
 set( clSPARSE.source.cpp
@@ -71,6 +72,7 @@ set( clSPARSE.source.cpp
   transform/clsparse_csr2dense.cpp
   matrixMarket/mm_reader.cpp
   transform/clsparse_coo2csr.cpp
+  transform/clsparse_csr2coo.cpp
 )
 
 set( clSPARSE.Headers
