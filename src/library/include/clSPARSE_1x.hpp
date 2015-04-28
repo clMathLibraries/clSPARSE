@@ -23,14 +23,14 @@
 //}
 
 template< typename pType >
-class clMapMemRIAA
+class clMemRAII
 {
     cl_command_queue clQueue;
     cl_mem clBuff;
     pType* clMem;
 
 public:
-    clMapMemRIAA( const cl_command_queue cl_queue, const cl_mem cl_buff ): clMem( nullptr )
+    clMemRAII( const cl_command_queue cl_queue, const cl_mem cl_buff ): clMem( nullptr )
     {
         clQueue = cl_queue;
         clBuff = cl_buff;
@@ -51,7 +51,16 @@ public:
         return clMem;
     }
 
-    ~clMapMemRIAA( )
+    void clWriteMem( cl_bool clBlocking, const size_t clOff, const size_t clSize, const void* hostMem )
+    {
+        // Right now, we don't support returning an event to wait on
+        clBlocking = CL_TRUE;
+
+        cl_int clStatus = ::clEnqueueWriteBuffer( clQueue, clBuff, clBlocking, clOff,
+                                                  clSize * sizeof( pType ), hostMem, 0, NULL, NULL );
+    }
+
+    ~clMemRAII( )
     {
         if( clMem )
             ::clEnqueueUnmapMemObject( clQueue, clBuff, clMem, 0, NULL, NULL );
@@ -122,6 +131,12 @@ public:
     {
         return offRowOff;
     }
+
+    cl_ulong rowBlocksOffset( ) const
+    {
+        return offRowBlocks;
+    }
+
 };
 
 class clsparseCooMatrixPrivate: public clsparseCooMatrix

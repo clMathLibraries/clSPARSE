@@ -453,9 +453,9 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cls
     pCooMatx->nnz = mm_reader.GetNumNonZeroes( );
 
     // Transfers data from CPU buffer to GPU buffers
-    clMapMemRIAA< cl_float > rCooValues( control->queue( ), pCooMatx->values );
-    clMapMemRIAA< cl_int > rCooColIndices( control->queue( ), pCooMatx->colIndices );
-    clMapMemRIAA< cl_int > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
+    clMemRAII< cl_float > rCooValues( control->queue( ), pCooMatx->values );
+    clMemRAII< cl_int > rCooColIndices( control->queue( ), pCooMatx->colIndices );
+    clMemRAII< cl_int > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
 
     cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->valOffset( ), pCooMatx->nnz );
     cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->colIndOffset( ), pCooMatx->nnz );
@@ -512,9 +512,9 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, con
 #endif
 
     // Transfers data from CPU buffer to GPU buffers
-    clMapMemRIAA< cl_float > rCooValues( clAlloc.queue, pCooMatx->values );
-    clMapMemRIAA< cl_int > rCooColIndices( clAlloc.queue, pCooMatx->colIndices );
-    clMapMemRIAA< cl_int > rCooRowIndices( clAlloc.queue, pCooMatx->rowIndices );
+    clMemRAII< cl_float > rCooValues( clAlloc.queue, pCooMatx->values );
+    clMemRAII< cl_int > rCooColIndices( clAlloc.queue, pCooMatx->colIndices );
+    clMemRAII< cl_int > rCooRowIndices( clAlloc.queue, pCooMatx->rowIndices );
 
     cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->valOffset( ), pCooMatx->nnz );
     cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->colIndOffset( ), pCooMatx->nnz );

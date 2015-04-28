@@ -42,7 +42,6 @@ typedef struct clsparseCsrMatrix_
     void* rowBlocks;      // It is possible that this pointer may be NULL
 
     size_t rowBlockSize;
-
 } clsparseCsrMatrix;
 
 typedef struct clsparseCooMatrix_

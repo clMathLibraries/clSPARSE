@@ -73,8 +73,8 @@ clsparseScsrmv_adaptive( const clsparseScalarPrivate& alpha,
     //cl_float h_beta;
 
     //{
-    //    clMapMemRIAA< cl_float > rAlpha( control->queue( ), alpha.value );
-    //    clMapMemRIAA< cl_float > rBeta( control->queue( ), beta.value );
+    //    clMemRAII< cl_float > rAlpha( control->queue( ), alpha.value );
+    //    clMemRAII< cl_float > rBeta( control->queue( ), beta.value );
     //    cl_float* pAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, alpha.offset( ), 1 );
     //    cl_float* pBeta = rBeta.clMapMem( CL_TRUE, CL_MAP_READ, beta.offset( ), 1 );
     //    h_alpha = *pAlpha;

@@ -73,7 +73,7 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control )
         return clsparseOutOfResources;
     }
 
-    clMapMemRIAA< cl_int > rCooRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+    clMemRAII< cl_int > rCooRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
     cl_int* rowDelimiters = rCooRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
 
     for( i = 1; i <= pCsrMatx->m; i++ )
@@ -144,7 +144,7 @@ clsparseCsrComputeMeta( clsparseCsrMatrix* csrMatx, clsparseControl control )
         return clsparseOutOfResources;
     }
 
-    clMapMemRIAA< cl_int > rCooRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+    clMemRAII< cl_int > rCooRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
     cl_int* rowDelimiters = rCooRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
 
     for( i = 1; i <= pCsrMatx->m; i++ )
@@ -193,7 +193,8 @@ clsparseCsrComputeMeta( clsparseCsrMatrix* csrMatx, clsparseControl control )
 
     rowBlocks.push_back( static_cast< cl_ulong >( pCsrMatx->m ) << ROW_BITS );
 
-    ::clEnqueueWriteBuffer( control->queue( ), pCsrMatx->rowBlocks, CL_TRUE, pCsrMatx->offRowBlocks, pCsrMatx->rowBlockSize * sizeof( cl_ulong ), &rowBlocks[ 0 ], 0, NULL, NULL );
+    clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
+    rRowBlocks.clWriteMem( CL_TRUE, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize, rowBlocks.data( ) );
 
     return clsparseSuccess;
 }
@@ -221,12 +222,12 @@ clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, 
     pCsrMatx->n = pCooMatx->n;
     pCsrMatx->nnz = pCooMatx->nnz;
 
-    clMapMemRIAA< cl_float > rCooValues( control->queue( ), pCooMatx->values );
-    clMapMemRIAA< cl_int > rCooColIndices( control->queue( ), pCooMatx->colIndices );
-    clMapMemRIAA< cl_int > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
-    clMapMemRIAA< cl_float > rCsrValues( control->queue( ), pCsrMatx->values );
-    clMapMemRIAA< cl_int > rCsrColIndices( control->queue( ), pCsrMatx->colIndices );
-    clMapMemRIAA< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+    clMemRAII< cl_float > rCooValues( control->queue( ), pCooMatx->values );
+    clMemRAII< cl_int > rCooColIndices( control->queue( ), pCooMatx->colIndices );
+    clMemRAII< cl_int > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
+    clMemRAII< cl_float > rCsrValues( control->queue( ), pCsrMatx->values );
+    clMemRAII< cl_int > rCsrColIndices( control->queue( ), pCsrMatx->colIndices );
+    clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
 
     cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_READ, pCooMatx->valOffset( ), pCooMatx->nnz );
     cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_READ, pCooMatx->colIndOffset( ), pCooMatx->nnz );

@@ -23,13 +23,13 @@
 //}
 
 template< typename pType >
-class clMapMemRIAA
+class clMemRAII
 {
     cl_command_queue clQueue;
     pType* clMem;
 
 public:
-    clMapMemRIAA( const cl_command_queue cl_queue, void* cl_malloc ): clMem( nullptr )
+    clMemRAII( const cl_command_queue cl_queue, void* cl_malloc ): clMem( nullptr )
     {
         clQueue = cl_queue;
         clMem = static_cast< pType* >( cl_malloc );
@@ -47,7 +47,16 @@ public:
         return clMem;
     }
 
-    ~clMapMemRIAA( )
+    void clWriteMem( cl_bool clBlocking, const size_t clOff, const size_t clSize, const void* srcPtr )
+    {
+        // Right now, we don't support returning an event to wait on
+        clBlocking = CL_TRUE;
+
+        cl_int clStatus = ::clEnqueueSVMMemcpy( clQueue, clBlocking, clMem, srcPtr,
+                                                  clSize * sizeof( pType ), 0, NULL, NULL );
+    }
+
+    ~clMemRAII( )
     {
         if( clMem )
             ::clEnqueueSVMUnmap( clQueue, clMem, 0, NULL, NULL );
@@ -113,6 +122,11 @@ public:
     }
 
     cl_ulong rowOffOffset () const
+    {
+        return 0;
+    }
+
+    cl_ulong rowBlocksOffset( ) const
     {
         return 0;
     }
