@@ -279,6 +279,39 @@ void csr2dense(int n_rows, int n_cols, int nnz,
     }
 }
 
+//simple spmv for csr matrix to obtain reference results;
+template<typename VALUE_TYPE, typename INDEX_TYPE>
+void csr2coo(int n_rows, int n_cols, int nnz,
+             const std::vector<INDEX_TYPE>& csr_row_offsets,
+             const std::vector<INDEX_TYPE>& csr_col_indices,
+             const std::vector<VALUE_TYPE>& csr_values,
+             std::vector<INDEX_TYPE>& coo_row_indices,
+             std::vector<INDEX_TYPE>& coo_col_indices,
+             std::vector<VALUE_TYPE>& coo_values
+             )
+{
+
+    assert(csr_row_offsets.size() == n_rows + 1);
+    assert(csr_row_offsets[n_rows] == nnz);
+    assert(csr_col_indices.size() == nnz);
+    assert(csr_values.size() == nnz);
+
+    assert(coo_row_indices.size() == nnz);
+    assert(coo_col_indices.size() == nnz);
+    assert(coo_values.size() == nnz);
+
+    copy(csr_col_indices.begin(), csr_col_indices.end(), coo_col_indices.begin());
+    copy(csr_values.begin(), csr_values.end(), coo_values.begin());
+
+    for (int i = 0; i < n_rows; i++)
+    {
+        for(int j = csr_row_offsets[i]; j < csr_row_offsets[i+1]; j++)
+        {
+            coo_row_indices[j] = i;
+        }
+
+    }
+}
 
 #endif
 
