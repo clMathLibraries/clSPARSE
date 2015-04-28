@@ -1,14 +1,8 @@
 #ifndef _CLSPARSE_VALIDATE_H_
 #define _CLSPARSE_VALIDATE_H_
 
-#include "clSPARSE.h"
+#include "include/clSPARSE-private.hpp"
 #include <stdio.h>
-
-#if( BUILD_CLVERSION >= 200 )
-#include "include/clSPARSE_2x.hpp"
-#else
-#include "include/clSPARSE_1x.hpp"
-#endif
 
 clsparseStatus
 validateMemObject(clsparseScalarPrivate& scalar, size_t required_size);

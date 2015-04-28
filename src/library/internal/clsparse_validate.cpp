@@ -26,6 +26,8 @@ clsparseStatus
 validateMemObject(void* mem, size_t required_size)
 {
     std::cout << "validateMemObject void* buffer" << std::endl;
+
+    return clsparseSuccess;
 }
 
 clsparseStatus

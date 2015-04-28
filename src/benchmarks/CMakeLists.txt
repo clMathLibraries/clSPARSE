@@ -4,7 +4,7 @@ set( Boost_USE_STATIC_LIBS   ON )
 set( Boost_DETAILED_FAILURE_MSG   ON )
 set( Boost_NO_SYSTEM_PATHS ON )
 set( Boost_ADDITIONAL_VERSIONS 1.57.0 1.57 )
-set( Boost_DEBUG ON )
+# set( Boost_DEBUG ON )
 
 find_package( Boost COMPONENTS program_options filesystem system regex )
 

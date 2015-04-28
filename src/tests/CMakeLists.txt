@@ -33,12 +33,13 @@ set( TESTS_CPP
   test_clsparse_transpose
   test_clsparse_csr2dense
   test_cl_traits
+  test_readMMcoo
 )
 
 set( TESTS_C
   test_interface_c
   )
-
+  
 #additional headers and sources
 set( src
   resources/csr_matrix_environment.cpp
@@ -59,8 +60,8 @@ foreach( test ${TESTS_CPP} )
   if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
    target_compile_options( ${test} PUBLIC -std=c++11 )
    if( CMAKE_COMPILER_IS_GNUCXX )
-     target_link_libraries( ${test} pthread ) #gtest on linux brings this dependency
-   endif( )
+    target_link_libraries( ${test} pthread ) #gtest on linux brings this dependency
+  endif( )
   endif( )
   set_target_properties( ${test} PROPERTIES VERSION ${clSPARSE_VERSION} )
   set_target_properties( ${test} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )

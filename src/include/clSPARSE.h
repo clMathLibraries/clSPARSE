@@ -2,12 +2,6 @@
 #ifndef _CL_SPARSE_H_
 #define _CL_SPARSE_H_
 
-#if defined(__APPLE__) || defined(__MACOSX)
-    #include <OpenCL/cl.h>
-#else
-    #include <CL/cl.h>
-#endif
-
 // CMake-generated file to define export related preprocessor macros
 #include "clsparse_export.h"
 
@@ -16,10 +10,10 @@ extern "C" {
 #endif
 
 // Include appropriate data type definitions appropriate to the cl version supported
-#if( BUILD_CLVERSION >= 200 )
-    #include "clSPARSE_2x.h"
-#else
+#if( BUILD_CLVERSION < 200 )
     #include "clSPARSE_1x.h"
+#else
+    #include "clSPARSE_2x.h"
 #endif
 
 // Type definitions - to be fleshed in
@@ -45,10 +39,13 @@ typedef enum clsparseStatus_ {
     /* Extended error codes */
     clsparseNotImplemented         = -1024, /**< Functionality is not implemented */
     clsparseNotInitialized,                 /**< clsparse library is not initialized yet */
+    clsparseStructInvalid,                 /**< clsparse library is not initialized yet */
     clsparseInvalidSize,                    /**< Invalid size of object > */
     clsparseInvalidMemObj,                  /**< Checked obejct is no a valid cl_mem object */
     clsparseInsufficientMemory,             /**< The memory object for vector is too small */
     clsparseInvalidControlObject,           /**< clsparseControl object is not valid */
+    clsparseInvalidFile,                    /**< Error reading the sparse matrix file */
+    clsparseInvalidFileFormat,              /**< Only specific documented sparse matrix files supported */
     clsparseInvalidKernelExecution          /**< Problem with kenrel execution */
 
 } clsparseStatus;
@@ -66,7 +63,7 @@ typedef enum clsparseStatus_ {
 typedef struct _clsparseControl*  clsparseControl;
 
 //setup the control from external queue;
-CLSPARSE_EXPORT clsparseControl
+CLSPARSE_EXPORT clsparseControl 
 clsparseCreateControl( cl_command_queue queue, cl_int *status );
 
 //enable/disable asynchronous behavior for clSPARSE;
@@ -130,10 +127,19 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseInitDenseMatrix( clsparseDenseMatrix* denseMatx );
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath );
+clsparseCooHeaderfromFile( clsparseCooMatrix* cooMatx, const char* filePath );
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseCoo2Csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx );
+clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseCsrComputeMeta( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
 // SPMV
 // y = \alpha * A * x + \beta * y

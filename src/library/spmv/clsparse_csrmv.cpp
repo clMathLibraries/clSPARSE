@@ -1,16 +1,7 @@
-#include "clSPARSE.h"
-
+#include "include/clSPARSE-private.hpp"
 #include "internal/clsparse_control.hpp"
+#include "spmv/csrmv_adaptive/csrmv_adaptive.hpp"
 #include "spmv/csrmv_vector/csrmv_vector.hpp"
-
-// Include appropriate data type definitions appropriate to the cl version supported
-#if( BUILD_CLVERSION >= 200 )
-    #include "include/clSPARSE_2x.hpp"
-#else
-    #include "include/clSPARSE_1x.hpp"
-#endif
-
-
 
 //Dummy implementation of new interface;
 clsparseStatus
@@ -22,22 +13,28 @@ clsparseScsrmv( const clsparseScalar* alpha,
             const clsparseControl control )
 {
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*>( alpha );
-    const clsparseCsrMatrixPrivate* pMatx = static_cast<const clsparseCsrMatrixPrivate*>( matx );
+    const clsparseCsrMatrixPrivate* pCsrMatx = static_cast<const clsparseCsrMatrixPrivate*>( matx );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*>( x );
     const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*>( beta );
     clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*>( y );
 
-    if( matx->rowBlocks == nullptr )
+    if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
     {
-        return clsparseScsrmv_vector(pAlpha, pMatx, pX, pBeta, pY, control);
+        return clsparseScsrmv_vector( pAlpha, pCsrMatx, pX, pBeta, pY, control );
     }
     else
     {
+        if( ( pCsrMatx->rowBlocks == nullptr ) || ( pCsrMatx->rowBlockSize == 0 ) )
+        {
+            // rowBlockSize varible is not zero but no pointer
+            return clsparseStructInvalid;
+        }
+
         // Call adaptive CSR kernels
-        return clsparseNotImplemented;
+        return clsparseScsrmv_adaptive( *pAlpha, *pCsrMatx, *pX, *pBeta, *pY, control );
     }
 
-    return clsparseNotImplemented;
+    return clsparseSuccess;
 }
 
 clsparseStatus
@@ -64,5 +61,5 @@ clsparseDcsrmv( const clsparseScalar* alpha,
         return clsparseNotImplemented;
     }
 
-    return clsparseNotImplemented;
+    return clsparseSuccess;
 }

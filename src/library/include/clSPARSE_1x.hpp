@@ -11,6 +11,56 @@
 // Users are responsible for creating and destroying the OpenCL objects
 // Helper functions may be provided to assist users in creating and 
 // destroying these objects
+
+//inline cl_mem clAllocateMem( cl_context cl_ctx, size_t size, cl_mem_flags flags, void* hostBuffer )
+//{
+//    cl_mem buf;
+//    cl_int status;
+//
+//    buf = clCreateBuffer( cl_ctx, flags, size, hostBuffer, &status );
+//
+//    return buf;
+//}
+
+template< typename pType >
+class clMapMemRIAA
+{
+    cl_command_queue clQueue;
+    cl_mem clBuff;
+    pType* clMem;
+
+public:
+    clMapMemRIAA( const cl_command_queue cl_queue, const cl_mem cl_buff ): clMem( nullptr )
+    {
+        clQueue = cl_queue;
+        clBuff = cl_buff;
+
+        ::clRetainCommandQueue( clQueue );
+        ::clRetainMemObject( clBuff );
+    }
+
+    pType* clMapMem( cl_bool clBlocking, const cl_map_flags clFlags, const size_t clOff, const size_t clSize )
+    {
+        // Right now, we don't support returning an event to wait on
+        clBlocking = CL_TRUE;
+        cl_int clStatus = 0;
+
+        clMem = static_cast< pType* >( ::clEnqueueMapBuffer( clQueue, clBuff, clBlocking, clFlags, clOff, 
+            clSize * sizeof( pType ), 0, NULL, NULL, &clStatus ) );
+
+        return clMem;
+    }
+
+    ~clMapMemRIAA( )
+    {
+        if( clMem )
+            ::clEnqueueUnmapMemObject( clQueue, clBuff, clMem, 0, NULL, NULL );
+
+        ::clReleaseCommandQueue( clQueue );
+        ::clReleaseMemObject( clBuff );
+    }
+};
+
 class clsparseScalarPrivate: public clsparseScalar
 {
 public:
@@ -50,7 +100,7 @@ public:
     {
         m = n = nnz = 0;
         values = colIndices = rowOffsets = rowBlocks = nullptr;
-        offValues = offColInd = offRowOff = offRowBlocks = 0;
+        offValues = offColInd = offRowOff = offRowBlocks = rowBlockSize = 0;
     }
 
     cl_uint nnz_per_row() const
@@ -72,8 +122,6 @@ public:
     {
         return offRowOff;
     }
-
-
 };
 
 class clsparseCooMatrixPrivate: public clsparseCooMatrix
@@ -84,6 +132,26 @@ public:
         m = n = nnz = 0;
         values = colIndices = rowIndices = nullptr;
         offValues = offColInd = offRowInd = 0;
+    }
+
+    cl_uint nnz_per_row( ) const
+    {
+        return nnz / m;
+    }
+
+    cl_ulong valOffset( ) const
+    {
+        return offValues;
+    }
+
+    cl_ulong colIndOffset( ) const
+    {
+        return offColInd;
+    }
+
+    cl_ulong rowOffOffset( ) const
+    {
+        return offRowInd;
     }
 };
 

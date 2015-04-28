@@ -5,12 +5,57 @@
 #include <type_traits>
 #include "clSPARSE_2x.h"
 
-// C++ wrapper classes that inherit from the extenrally visible C classes, 
+// C++ wrapper classes that inherit from the externally visible C classes, 
 // for the purpose of providing convenience methods to abstract away the 
 // differences between cl1.2 and cl2.0
 // Users are responsible for creating and destroying the OpenCL objects
 // Helper functions may be provided to assist users in creating and 
 // destroying these objects
+
+//inline void* clAllocateMem( cl_context cl_ctx, size_t size, cl_svm_mem_flags flags, void* hostBuffer )
+//{
+//    void* buf;
+//    cl_int status;
+//
+//    buf = clSVMAlloc( cl_ctx, flags, size, 0 );
+//
+//    return buf;
+//}
+
+template< typename pType >
+class clMapMemRIAA
+{
+    cl_command_queue clQueue;
+    pType* clMem;
+
+public:
+    clMapMemRIAA( const cl_command_queue cl_queue, void* cl_malloc ): clMem( nullptr )
+    {
+        clQueue = cl_queue;
+        clMem = static_cast< pType* >( cl_malloc );
+
+        ::clRetainCommandQueue( clQueue );
+    }
+
+    pType* clMapMem( cl_bool clBlocking, const cl_map_flags clFlags, const size_t clOff, const size_t clSize )
+    {
+        // Right now, we don't support returning an event to wait on
+        clBlocking = CL_TRUE;
+
+        cl_int clStatus = ::clEnqueueSVMMap( clQueue, clBlocking, clFlags, clMem, clSize * sizeof( pType ), 0, NULL, NULL );
+
+        return clMem;
+    }
+
+    ~clMapMemRIAA( )
+    {
+        if( clMem )
+            ::clEnqueueSVMUnmap( clQueue, clMem, 0, NULL, NULL );
+
+        ::clReleaseCommandQueue( clQueue );
+    }
+};
+
 class clsparseScalarPrivate : public clsparseScalar
 {
 public:
@@ -49,6 +94,7 @@ public:
     {
         m = n = nnz = 0;
         values = colIndices = rowOffsets = rowBlocks = nullptr;
+        rowBlockSize = 0;
     }
 
     cl_uint nnz_per_row() const
@@ -79,6 +125,26 @@ public:
     {
         m = n = nnz = 0;
         values = colIndices = rowIndices = nullptr;
+    }
+
+    cl_uint nnz_per_row( ) const
+    {
+        return nnz / m;
+    }
+
+    cl_ulong valOffset( ) const
+    {
+        return 0;
+    }
+
+    cl_ulong colIndOffset( ) const
+    {
+        return 0;
+    }
+
+    cl_ulong rowOffOffset( ) const
+    {
+        return 0;
     }
 };
 

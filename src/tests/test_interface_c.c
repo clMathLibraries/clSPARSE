@@ -43,10 +43,10 @@ int main( int argc, char* argv[ ] )
     clsparseCooMatrix myCooMatx;
     clsparseInitCooMatrix( &myCooMatx );
 
-    clsparseCooMatrixfromFile( &myCooMatx, "/some/random/path" );
+    // clsparseCooMatrixfromFile( &myCooMatx, "/some/random/path" );
 
     clsparseCsrMatrix myCsrMatx;
-    clsparseCoo2Csr( &myCsrMatx, &myCooMatx );
+    clsparseScoo2csr( &myCsrMatx, &myCooMatx, control );
 
     // Library termination
     clsparseReleaseControl( control );

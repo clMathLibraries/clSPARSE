@@ -40,47 +40,47 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
      */
 #if defined(_DEBUG)
 
-    //validate cl_mem objects
-    status = validateMemObject(x, sizeof(cl_float)*n);
-    if(status != clsparseSuccess)
-        return status;
-    status = validateMemObject(y, sizeof(cl_float)*m);
-    if(status != clsparseSuccess)
-        return status;
+    ////validate cl_mem objects
+    //status = validateMemObject(x, sizeof(cl_float)*n);
+    //if(status != clsparseSuccess)
+    //    return status;
+    //status = validateMemObject(y, sizeof(cl_float)*m);
+    //if(status != clsparseSuccess)
+    //    return status;
 
-    /*
-     * TODO: take care of the offsets !!!
-     */
-    status = validateMemObject(alpha, sizeof(cl_float));
-    if(status != clsparseSuccess)
-        return status;
-    status = validateMemObject(beta, sizeof(cl_float));
-    if(status != clsparseSuccess)
-        return status;
+    ///*
+    // * TODO: take care of the offsets !!!
+    // */
+    //status = validateMemObject(alpha, sizeof(cl_float));
+    //if(status != clsparseSuccess)
+    //    return status;
+    //status = validateMemObject(beta, sizeof(cl_float));
+    //if(status != clsparseSuccess)
+    //    return status;
 
-    //validate cl_mem sizes
-    status = validateMemObjectSize(sizeof(cl_float), n, x, control->off_x);
-    if(status != clsparseSuccess) {
-        return status;
-    }
+    ////validate cl_mem sizes
+    //status = validateMemObjectSize(sizeof(cl_float), n, x, control->off_x);
+    //if(status != clsparseSuccess) {
+    //    return status;
+    //}
 
-    status = validateMemObjectSize(sizeof(cl_float), m, y, control->off_y);
-    if(status != clsparseSuccess) {
-        return status;
-    }
+    //status = validateMemObjectSize(sizeof(cl_float), m, y, control->off_y);
+    //if(status != clsparseSuccess) {
+    //    return status;
+    //}
 
-    /*
-     * TODO: take care of the offsets !!!
-     */
-    status = validateMemObjectSize(sizeof(cl_float), 1, alpha, control->off_alpha);
-    if(status != clsparseSuccess) {
-        return status;
-    }
+    ///*
+    // * TODO: take care of the offsets !!!
+    // */
+    //status = validateMemObjectSize(sizeof(cl_float), 1, alpha, control->off_alpha);
+    //if(status != clsparseSuccess) {
+    //    return status;
+    //}
 
-    status = validateMemObjectSize(sizeof(cl_float), 1, beta, control->off_beta);
-    if(status != clsparseSuccess) {
-        return status;
-    }
+    //status = validateMemObjectSize(sizeof(cl_float), 1, beta, control->off_beta);
+    //if(status != clsparseSuccess) {
+    //    return status;
+    //}
 #endif
 
     cl_uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
@@ -234,47 +234,47 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
 
     /*TODO: make it work for CL1.x and CL2.x
      */
-#if defined(_DEBUG)
-    status = validateMemObject(x, sizeof(cl_double)*n);
-    if(status != clsparseSuccess)
-        return status;
-    status = validateMemObject(y, sizeof(cl_double)*m);
-    if(status != clsparseSuccess)
-        return status;
-    /*
-     * TODO: take care of the offsets !!!
-     */
-    status = validateMemObject(alpha, sizeof(cl_double));
-    if(status != clsparseSuccess)
-        return status;
-    status = validateMemObject(beta, sizeof(cl_double));
-    if(status != clsparseSuccess)
-        return status;
-
-    //validate cl_mem sizes
-    status = validateMemObjectSize(sizeof(cl_float), n, x, control->off_x);
-    if(status != clsparseSuccess) {
-        return status;
-    }
-
-    status = validateMemObjectSize(sizeof(cl_float), m, y, control->off_y);
-    if(status != clsparseSuccess) {
-        return status;
-    }
-
-    /*
-     * TODO: take care of the offsets !!!
-     */
-    status = validateMemObjectSize(sizeof(cl_float), 1, alpha, control->off_alpha);
-    if(status != clsparseSuccess) {
-        return status;
-    }
-
-    status = validateMemObjectSize(sizeof(cl_float), 1, beta, control->off_beta);
-    if(status != clsparseSuccess) {
-        return status;
-    }
-#endif
+//#if defined(_DEBUG)
+//    status = validateMemObject(x, sizeof(cl_double)*n);
+//    if(status != clsparseSuccess)
+//        return status;
+//    status = validateMemObject(y, sizeof(cl_double)*m);
+//    if(status != clsparseSuccess)
+//        return status;
+//    /*
+//     * TODO: take care of the offsets !!!
+//     */
+//    status = validateMemObject(alpha, sizeof(cl_double));
+//    if(status != clsparseSuccess)
+//        return status;
+//    status = validateMemObject(beta, sizeof(cl_double));
+//    if(status != clsparseSuccess)
+//        return status;
+//
+//    //validate cl_mem sizes
+//    status = validateMemObjectSize(sizeof(cl_float), n, x, control->off_x);
+//    if(status != clsparseSuccess) {
+//        return status;
+//    }
+//
+//    status = validateMemObjectSize(sizeof(cl_float), m, y, control->off_y);
+//    if(status != clsparseSuccess) {
+//        return status;
+//    }
+//
+//    /*
+//     * TODO: take care of the offsets !!!
+//     */
+//    status = validateMemObjectSize(sizeof(cl_float), 1, alpha, control->off_alpha);
+//    if(status != clsparseSuccess) {
+//        return status;
+//    }
+//
+//    status = validateMemObjectSize(sizeof(cl_float), 1, beta, control->off_beta);
+//    if(status != clsparseSuccess) {
+//        return status;
+//    }
+//#endif
 
     cl_uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
     cl_uint wave_size = control->wavefront_size;
