@@ -52,7 +52,7 @@ clsparseSscale (clsparseVector* y,
     cl_float* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, alpha->offValue, 1);
 
 
-#if( BUILD_CLVERSION >= 200 )
+#if( BUILD_CLVERSION < 200 )
 
 
     clblasStatus status =
@@ -112,10 +112,7 @@ clsparseDscale (clsparseVector* y,
     clMemRAII<cl_double> rAlpha (control->queue(), alpha->value);
     cl_double* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, alpha->offValue, 1);
 
-#if( BUILD_CLVERSION > 200 )
-
-    clMemRAII<cl_double> rAlpha (control->queue(), pAlpha->value);
-    cl_double* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offValue, 1);
+#if( BUILD_CLVERSION < 200 )
 
     clblasStatus status =
             clblasDscal(y->n, *fAlpha, y->values, y->offValues,
