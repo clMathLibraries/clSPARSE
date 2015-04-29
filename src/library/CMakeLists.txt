@@ -73,6 +73,7 @@ set( clSPARSE.source.cpp
   transform/clsparse_coo2csr.cpp
   transform/clsparse_csr2coo.cpp
   blas1/clsparse_axpy.cpp
+  blas1/clsparse_axpby.cpp
   blas1/clsparse_scale.cpp
 )
 

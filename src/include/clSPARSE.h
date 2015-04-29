@@ -160,6 +160,18 @@ clsparseDaxpy(clsparseVector* y,
               const clsparseScalar* alpha, const clsparseVector* x,
               const clsparseControl control);
 
+/* AXPY: y = alpha*x + beta*y*/
+CLSPARSE_EXPORT clsparseStatus
+clsparseSaxpby(clsparseVector* y,
+              const clsparseScalar* alpha, const clsparseVector* x,
+              const clsparseScalar* beta,
+              const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDaxpby(clsparseVector* y,
+              const clsparseScalar* alpha, const clsparseVector* x,
+              const clsparseScalar* beta,
+              const clsparseControl control);
 
 
 /* BLAS 2 routines */

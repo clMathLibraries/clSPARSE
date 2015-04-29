@@ -3,7 +3,8 @@
 #include "internal/kernel_wrap.hpp"
 
 clsparseStatus
-axpy(clsparseVectorPrivate* pY,
+axpy(cl_ulong size,
+     clsparseVectorPrivate* pY,
      const clsparseScalarPrivate* pAlpha,
      const clsparseVectorPrivate* pX,
      const std::string& params,
@@ -15,9 +16,7 @@ axpy(clsparseVectorPrivate* pY,
 
     KernelWrap kWrapper(kernel);
 
-    cl_ulong pXsize = pX->n - pX->offset();
-
-    kWrapper << pXsize
+    kWrapper << size
              << pY->values
              << pY->offset()
              << pAlpha->value
@@ -25,7 +24,7 @@ axpy(clsparseVectorPrivate* pY,
              << pX->values
              << pX->offset();
 
-    int blocksNum = (pXsize + group_size - 1) / group_size;
+    int blocksNum = (size + group_size - 1) / group_size;
     int globalSize = blocksNum * group_size;
 
     cl::NDRange local(group_size);
@@ -60,9 +59,13 @@ clsparseSaxpy(clsparseVector *y,
      //nothing to do
      if (*fAlpha == 0) return clsparseSuccess;
 
-     //pY->n is the main dimmension. W can allow that part of the pY will be updated;
-     //kernel will iterate over pX;
-    assert((pY->n - pY->offValues) >= (pX->n - pX->offValues));
+     //leading dimmension is the shorter lenght
+     cl_ulong y_size = pY->n - pY->offValues;
+     cl_ulong x_size = pX->n - pX->offValues;
+
+     cl_ulong size = (x_size >= y_size) ? y_size : x_size;
+
+     if(size == 0) return clsparseSuccess;
 
 
     const std::string params = std::string()
@@ -70,7 +73,7 @@ clsparseSaxpy(clsparseVector *y,
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
             + " -DWG_SIZE=" + std::to_string( group_size );
 
-    return axpy(pY, pAlpha, pX, params, group_size, control);
+    return axpy(size, pY, pAlpha, pX, params, group_size, control);
 }
 
 clsparseStatus
@@ -90,16 +93,18 @@ clsparseDaxpy(clsparseVector *y,
      //nothing to do
      if (*fAlpha == 0) return clsparseSuccess;
 
-     //TODO: validate object sizes;
+     //leading dimmension is the shorter lenght
+     cl_ulong y_size = pY->n - pY->offValues;
+     cl_ulong x_size = pX->n - pX->offValues;
 
-     //pY->n is the main dimmension. W can allow that part of the pY will be updated;
-     //kernel will iterate over pX;
-     assert((pY->n - pY->offValues) >= (pX->n - pX->offValues));
+     cl_ulong size = (x_size >= y_size) ? y_size : x_size;
+
+     if(size == 0) return clsparseSuccess;
 
      const std::string params = std::string()
              + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
              + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
              + " -DWG_SIZE=" + std::to_string( group_size );
 
-    return axpy(pY, pAlpha, pX, params, group_size, control);
+    return axpy(size, pY, pAlpha, pX, params, group_size, control);
 }

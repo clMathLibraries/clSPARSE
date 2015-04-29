@@ -24,7 +24,7 @@ R"(
 R"(
 __kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
-void axpy(const SIZE_TYPE pXsize,
+void axpy(const SIZE_TYPE size,
           __global VALUE_TYPE* pY,
           const SIZE_TYPE pYOffset,
           __global const VALUE_TYPE* pAlpha,
@@ -35,11 +35,36 @@ void axpy(const SIZE_TYPE pXsize,
 
     const int index = get_global_id(0);
 
-    if (index >= pXsize) return;
+    if (index >= size) return;
 
     const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
 
     pY[index + pYOffset] = alpha * pX[index + pXOffset] + pY[index + pYOffset];
+}
+)"
+
+R"(
+__kernel
+__attribute__((reqd_work_group_size(WG_SIZE,1,1)))
+void axpby(const SIZE_TYPE size,
+          __global VALUE_TYPE* pY,
+          const SIZE_TYPE pYOffset,
+          __global const VALUE_TYPE* pAlpha,
+         const SIZE_TYPE pAlphaOffset,
+          __global const VALUE_TYPE* pX,
+          const SIZE_TYPE pXOffset,
+          __global const VALUE_TYPE* pBeta,
+          const SIZE_TYPE pBetaOffset)
+{
+
+    const int index = get_global_id(0);
+
+    if (index >= size) return;
+
+    const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
+    const VALUE_TYPE beta = *(pBeta + pBetaOffset);
+
+    pY[index + pYOffset] = alpha * pX[index + pXOffset] + beta * pY[index + pYOffset];
 }
 )"
 

@@ -35,6 +35,7 @@ set( TESTS_CPP
   test_readMMcoo
   test_clsparse_csr2coo
   test_cl_axpy
+  test_cl_axpby
   test_cl_scale
 )
 
