@@ -41,5 +41,23 @@ void axpy(const SIZE_TYPE pXsize,
 
     pY[index + pYOffset] = alpha * pX[index + pXOffset] + pY[index + pYOffset];
 }
+)"
 
+R"(
+__kernel
+__attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))
+void scale (const SIZE_TYPE pYSize,
+            __global VALUE_TYPE* pY,
+            const SIZE_TYPE pYOffset,
+             __global const VALUE_TYPE* pAlpha,
+            const SIZE_TYPE pAlphaOffset)
+{
+    const int i = get_global_id(0);
+
+    if (i >= pYSize) return;
+
+    const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
+
+    pY[i + pYOffset] = pY[i + pYOffset]* alpha;
+}
 )"

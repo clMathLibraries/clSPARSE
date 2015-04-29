@@ -97,7 +97,7 @@ clsparseDaxpy(clsparseVector *y,
      assert((pY->n - pY->offValues) >= (pX->n - pX->offValues));
 
      const std::string params = std::string()
-             + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type
+             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
              + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
              + " -DWG_SIZE=" + std::to_string( group_size );
 

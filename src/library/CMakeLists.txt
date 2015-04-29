@@ -55,7 +55,6 @@ set( clSPARSE.source.cl
   kernels/csrmv_general.cl
   kernels/csrmv_adaptive.cl
   kernels/control.cl
-  kernels/scale.cl
   kernels/csr2dense.cl
   kernels/csr2coo.cl
   kernels/blas1.cl
@@ -68,13 +67,13 @@ set( clSPARSE.source.cpp
   internal/kernel_cache.cpp
   internal/ocl_type_traits.cpp
   internal/kernel_wrap.cpp
-  simple/clsparse_simple.cpp
   spmv/clsparse_csrmv.cpp
   transform/clsparse_csr2dense.cpp
   matrixMarket/mm_reader.cpp
   transform/clsparse_coo2csr.cpp
   transform/clsparse_csr2coo.cpp
   blas1/clsparse_axpy.cpp
+  blas1/clsparse_scale.cpp
 )
 
 set( clSPARSE.Headers
@@ -95,7 +94,6 @@ set( clSPARSE.Headers
   spmv/csrmv_vector/csrmv_vector.hpp
   spmv/csrmv_vector/csrmv_vector_impl.hpp
   spmv/csrmv_adaptive/csrmv_adaptive.hpp
-  scale/clsparse_scale.hpp
   ${ocl_kernels_file_name}
 )
 

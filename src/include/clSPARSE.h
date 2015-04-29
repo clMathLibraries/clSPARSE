@@ -104,12 +104,6 @@ clsparseSetup(void);
 CLSPARSE_EXPORT clsparseStatus
 clsparseTeardown(void);
 
-// THIS IS JUST AN TEST KERNEL FOR TESTING PURPOSES
-//New implementation with clsparseControl structure
-CLSPARSE_EXPORT clsparseStatus
-clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
-              clsparseControl control);
-
 // Convenience sparse matrix construction functions
 CLSPARSE_EXPORT clsparseStatus
 clsparseInitScalar( clsparseScalar* scalar );
@@ -142,6 +136,18 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseCsrComputeMeta( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
 /* BLAS 1 routines */
+
+/* SCALE y = alpha * y */
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseSscale( clsparseVector* y,
+                const clsparseScalar* alpha,
+                const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDscale(clsparseVector* y,
+                const clsparseScalar* alpha,
+                const clsparseControl control);
 
 /* AXPY: y = alpha*x + y*/
 CLSPARSE_EXPORT clsparseStatus

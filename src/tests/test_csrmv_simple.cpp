@@ -152,7 +152,8 @@ TYPED_TEST(TestCSRMV, multiply)
 
     EXPECT_EQ(clsparseSuccess, status);
 
-    clsparseGetEvent(ClSparseEnvironment::control, &event());
+    status = clsparseGetEvent(ClSparseEnvironment::control, &event());
+    EXPECT_EQ(clsparseSuccess, status);
     event.wait();
 
     std::vector<TypeParam> result(this->y.size());

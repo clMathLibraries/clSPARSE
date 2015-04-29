@@ -69,6 +69,185 @@ TEST (AXPY, float_simple)
     }
 }
 
+TEST (AXPY, double_simple)
+{
+    using CLSE = ClSparseEnvironment;
+
+    cl_uint size = 1000;
+    std::vector<cl_double> y(size, 1.0f);
+    std::vector<cl_double> x(size, 1.0f);
+    cl_double hAlpha = 2.0f;
+
+    clsparseVector gX;
+    clsparseVector gY;
+    clsparseScalar gAlpha;
+    clsparseInitVector(&gX);
+    clsparseInitVector(&gY);
+    clsparseInitScalar(&gAlpha);
+
+    cl_int status;
+    gAlpha.value = ::clCreateBuffer(CLSE::context,
+                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                  sizeof(cl_double), &hAlpha, &status);
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    gX.values = ::clCreateBuffer(CLSE::context,
+                                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 x.size() * sizeof(cl_double), x.data(), &status);
+    gX.n = x.size();
+
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    gY.values = ::clCreateBuffer(CLSE::context,
+                                 CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 y.size() * sizeof(cl_double), y.data(), &status);
+    gY.n = y.size();
+
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    status = clsparseDaxpy(&gY, &gAlpha, &gX, CLSE::control);
+
+    ASSERT_EQ(clsparseSuccess, status);
+
+    for (int i = 0; i < size; i++)
+    {
+        y[i] = hAlpha * x[i] + y[i];
+    }
+
+    std::vector<cl_double> result(size);
+
+    clEnqueueReadBuffer(CLSE::queue,
+                        gY.values, 1, 0,
+                        size*sizeof(cl_double),
+                        result.data(), 0, NULL, NULL);
+
+    for (int i = 0; i < size; i++)
+    {
+        ASSERT_NEAR(y[i], result[i], 5e-8);
+    }
+}
+
+TEST (AXPY, float_xOffset)
+{
+    using CLSE = ClSparseEnvironment;
+
+    cl_uint size = 1000;
+    cl_uint xOffset = 500;
+
+    std::vector<cl_float> y(size, 1.0f);
+    std::vector<cl_float> x(size, 1.0f);
+    cl_float hAlpha = 2.0f;
+
+    clsparseVector gX;
+    clsparseVector gY;
+    clsparseScalar gAlpha;
+    clsparseInitVector(&gX);
+    clsparseInitVector(&gY);
+    clsparseInitScalar(&gAlpha);
+
+    cl_int status;
+    gAlpha.value = ::clCreateBuffer(CLSE::context,
+                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                  sizeof(cl_float), &hAlpha, &status);
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    gX.values = ::clCreateBuffer(CLSE::context,
+                                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 x.size() * sizeof(cl_float), x.data(), &status);
+    gX.n = x.size();
+    gX.offValues = xOffset;
+
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    gY.values = ::clCreateBuffer(CLSE::context,
+                                 CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 y.size() * sizeof(cl_float), y.data(), &status);
+    gY.n = y.size();
+
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    status = clsparseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
+
+    ASSERT_EQ(clsparseSuccess, status);
+
+    for (int i = xOffset; i < size; i++)
+    {
+        y[i-xOffset] = hAlpha * x[i] + y[i-xOffset];
+    }
+
+    std::vector<cl_float> result(size);
+
+    clEnqueueReadBuffer(CLSE::queue,
+                        gY.values, 1, 0,
+                        size*sizeof(cl_float),
+                        result.data(), 0, NULL, NULL);
+
+    for (int i = 0; i < size; i++)
+    {
+        ASSERT_NEAR(y[i], result[i], 5e-8);
+    }
+}
+
+TEST (AXPY, float_different_sizes)
+{
+    using CLSE = ClSparseEnvironment;
+
+    cl_uint size = 1000;
+    cl_uint xsize = 500;
+
+    std::vector<cl_float> y(size, 1.0f);
+    std::vector<cl_float> x(xsize, 1.0f);
+    cl_float hAlpha = 2.0f;
+
+    clsparseVector gX;
+    clsparseVector gY;
+    clsparseScalar gAlpha;
+    clsparseInitVector(&gX);
+    clsparseInitVector(&gY);
+    clsparseInitScalar(&gAlpha);
+
+    cl_int status;
+    gAlpha.value = ::clCreateBuffer(CLSE::context,
+                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                  sizeof(cl_float), &hAlpha, &status);
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    gX.values = ::clCreateBuffer(CLSE::context,
+                                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 x.size() * sizeof(cl_float), x.data(), &status);
+    gX.n = x.size();
+
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    gY.values = ::clCreateBuffer(CLSE::context,
+                                 CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 y.size() * sizeof(cl_float), y.data(), &status);
+    gY.n = y.size();
+
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    status = clsparseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
+
+    ASSERT_EQ(clsparseSuccess, status);
+
+    for (int i = 0; i < xsize; i++)
+    {
+        y[i] = hAlpha * x[i] + y[i];
+    }
+
+    std::vector<cl_float> result(size);
+
+    clEnqueueReadBuffer(CLSE::queue,
+                        gY.values, 1, 0,
+                        size*sizeof(cl_float),
+                        result.data(), 0, NULL, NULL);
+
+    for (int i = 0; i < size; i++)
+    {
+        ASSERT_NEAR(y[i], result[i], 5e-8);
+    }
+}
+
 int main (int argc, char* argv[])
 {
 

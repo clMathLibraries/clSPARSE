@@ -5,7 +5,6 @@
 #include "internal/clsparse_validate.hpp"
 #include "internal/clsparse_internal.hpp"
 #include "spmv/csrmv_vector/csrmv_vector_impl.hpp"
-#include "scale/clsparse_scale.hpp"
 
 // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION >= 200 )
@@ -165,7 +164,7 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
         printf("\n\talpha = 0, (clsparseSscale)\n\n");
 #endif
         // y = b*y;
-        return clsparseSscale(pMatx->m, h_beta, pBeta, pY, control);
+        return clsparseSscale(pY, pBeta, control);
     }
 
     else if(h_beta == 0.0)
@@ -358,7 +357,7 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
 #ifndef NDEBUG
         printf("\n\talpha = 0, (clsparseDscale)\n\n");
 #endif
-        return clsparseDscale(pMatx->m, h_beta, pBeta, pY, control);
+        return clsparseDscale(pY, pBeta, control);
     }
 
     else if(h_beta == 0.0)

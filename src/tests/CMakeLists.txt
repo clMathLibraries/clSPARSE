@@ -27,7 +27,6 @@ include_directories(
 
 set( TESTS_CPP
   test_clsparse_init
-  test_kernel_simple
   test_csrmv_simple
   test_resources_io
   test_clsparse_transpose
@@ -36,6 +35,7 @@ set( TESTS_CPP
   test_readMMcoo
   test_clsparse_csr2coo
   test_cl_axpy
+  test_cl_scale
 )
 
 set( TESTS_C
