@@ -20,6 +20,10 @@ R"(
 #error SIZE_TYPE undefined!
 #endif
 
+#ifndef WG_SIZE
+#error WG_SIZE undefined!
+#endif
+
 // v = v*alpha
 __kernel
 __attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))

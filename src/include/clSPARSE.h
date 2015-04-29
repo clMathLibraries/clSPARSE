@@ -141,6 +141,22 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control );
 CLSPARSE_EXPORT clsparseStatus
 clsparseCsrComputeMeta( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
+/* BLAS 1 routines */
+
+/* AXPY: y = alpha*x + y*/
+CLSPARSE_EXPORT clsparseStatus
+clsparseSaxpy(clsparseVector* y,
+              const clsparseScalar* alpha, const clsparseVector* x,
+              const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDaxpy(clsparseVector* y,
+              const clsparseScalar* alpha, const clsparseVector* x,
+              const clsparseControl control);
+
+
+
+/* BLAS 2 routines */
 // SPMV
 // y = \alpha * A * x + \beta * y
 // TODO:: alpha, beta should we provide them as cl_mem buffers?

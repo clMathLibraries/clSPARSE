@@ -35,6 +35,7 @@ set( TESTS_CPP
   test_cl_traits
   test_readMMcoo
   test_clsparse_csr2coo
+  test_cl_axpy
 )
 
 set( TESTS_C

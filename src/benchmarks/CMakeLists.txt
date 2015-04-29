@@ -40,7 +40,7 @@ set(sources
 
 set(BENCHMARKS
   csrmv_benchmark
-  csr2dense_benchmark
+  #csr2dense_benchmark
 )
 
 foreach( benchmark ${BENCHMARKS} )

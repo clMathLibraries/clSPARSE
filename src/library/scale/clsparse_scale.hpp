@@ -2,17 +2,11 @@
 #ifndef _CLSPARSE_SCALE_HPP_
 #define _CLSPARSE_SCALE_HPP_
 
+#include "include/clSPARSE-private.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 #include <clBLAS.h>
 
-
-// Include appropriate data type definitions appropriate to the cl version supported
-#if( BUILD_CLVERSION >= 200 )
-#include "include/clSPARSE_2x.hpp"
-#else
-#include "include/clSPARSE_1x.hpp"
-#endif
 
 //Scale kernel for internal use.
 //Assumes that parameters are validated!

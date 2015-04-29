@@ -3,7 +3,7 @@
 #include "spmv/csrmv_adaptive/csrmv_adaptive.hpp"
 #include "spmv/csrmv_vector/csrmv_vector.hpp"
 
-//Dummy implementation of new interface;
+
 clsparseStatus
 clsparseScsrmv( const clsparseScalar* alpha,
             const clsparseCsrMatrix* matx,
