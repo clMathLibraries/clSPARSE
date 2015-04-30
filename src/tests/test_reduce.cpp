@@ -56,6 +56,51 @@ TEST (REDUCE, float_simple)
 
 }
 
+TEST (REDUCE, double_simple)
+{
+    using CLSE = ClSparseEnvironment;
+
+    cl_uint size = 4096;
+    std::vector<cl_double> y(size, 1.0f);
+
+    cl_double zero = 0.0;
+
+    clsparseScalar sum;
+    clsparseInitScalar(&sum);
+
+
+    clsparseVector gY;
+    clsparseInitVector(&gY);
+
+    cl_int status;
+    gY.values = ::clCreateBuffer(CLSE::context,
+                                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 y.size() * sizeof(cl_double), y.data(), &status);
+    gY.n = y.size();
+
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    sum.value = ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
+                               sizeof(cl_double), NULL, &status);
+    ASSERT_EQ(CL_SUCCESS, status);
+
+    status = clsparseDreduce(&sum, &gY, CLSE::control);
+
+    ASSERT_EQ(clsparseSuccess, status);
+
+    cl_double ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
+
+    cl_double host_sum = 0.0f;
+
+    clEnqueueReadBuffer(CLSE::queue,
+                        sum.value, 1, 0,
+                        sizeof(cl_double),
+                        &host_sum, 0, NULL, NULL);
+
+    ASSERT_NEAR(ref_sum, host_sum, 5e-8);
+
+}
+
 int main (int argc, char* argv[])
 {
 
