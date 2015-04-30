@@ -37,6 +37,7 @@ set( TESTS_CPP
   test_cl_axpy
   test_cl_axpby
   test_cl_scale
+  test_reduce
 )
 
 set( TESTS_C

@@ -173,6 +173,18 @@ clsparseDaxpby(clsparseVector* y,
               const clsparseScalar* beta,
               const clsparseControl control);
 
+/* Reduce (sum) */
+CLSPARSE_EXPORT clsparseStatus
+clsparseSreduce(clsparseScalar* sum,
+             const clsparseVector* x,
+             const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDreduce(clsparseScalar* sum,
+             const clsparseVector* x,
+             const clsparseControl control);
+
+
 
 /* BLAS 2 routines */
 // SPMV
@@ -180,7 +192,7 @@ clsparseDaxpby(clsparseVector* y,
 // TODO:: alpha, beta should we provide them as cl_mem buffers?
 // TODO:: add matrixDescriptor for particular matrix properties
 //        like avg nnz per row which help to determine kernel scalar vector,
-//        it is simple for csr  avg nnz per row = nnz / n_rows
+//        it is simple  for csr  avg nnz per row = nnz / n_rows
 //        type of matrix (GENERAL, SYMMETRIC(faster spmv) etc.
 //        index based (0, 1)
 

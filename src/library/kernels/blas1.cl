@@ -86,3 +86,22 @@ void scale (const SIZE_TYPE pYSize,
     pY[i + pYOffset] = pY[i + pYOffset]* alpha;
 }
 )"
+//default kernel which multiply operation as binary op
+R"(
+__kernel
+__attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))
+void element_wise_multiply (const SIZE_TYPE size,
+                         __global VALUE_TYPE* pR,
+                         __global const VALUE_TYPE* pX,
+                            const SIZE_TYPE pXOffset,
+                        __global const VALUE_TYPE* pY,
+                            const SIZE_TYPE pYOffset)
+{
+    const int i = get_global_id(0);
+
+    if(i >= size) return;
+
+    pR[i] = pX[i + pXOffset] * pY[i + pYOffset];
+}
+
+)"
