@@ -86,7 +86,7 @@ void scale (const SIZE_TYPE pYSize,
     pY[i + pYOffset] = pY[i + pYOffset]* alpha;
 }
 )"
-//default kernel which multiply operation as binary op
+//Not used yet
 R"(
 __kernel
 __attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))

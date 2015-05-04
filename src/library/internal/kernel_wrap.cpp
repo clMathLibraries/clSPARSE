@@ -21,33 +21,40 @@ cl_int KernelWrap::run(clsparseControl control,
     auto& queue = control->queue;
     const auto& eventWaitList = control->event_wait_list;
     cl_int status;
-    try {
-        cl::Event tmp;
-        status = queue.enqueueNDRangeKernel( kernel,
-                                                cl::NullRange,
-                                                global, local,
-                                                &eventWaitList, &tmp );
 
-        if (control->async)
-        {
-            // Remember the event in our control structure
-            // operator= takes the ownership
-            control->event = tmp;
-            // Prevent the reference count from hitting zero when the temporary goes out of scope
-            //::clRetainEvent( control->event( ) );
-        }
-        else
-        {
-            tmp.wait( );
-        }
-
-    } catch (cl::Error e)
+    cl::Event tmp;
+    status = queue.enqueueNDRangeKernel( kernel,
+                                         cl::NullRange,
+                                         global, local,
+                                         &eventWaitList, &tmp );
+    if ( status != CL_SUCCESS)
     {
-        std::cout << "Kernel error: " << e.what()
-                  << " err: " << e.err() << std::endl;
-        status = e.err();
+
+        std::cerr << "clSPARSE kernel execution failure:"
+                  << status
+                  << std::endl;
+        return status;
     }
 
+    if (control->async)
+    {
+        // Remember the event in our control structure
+        // operator= takes the ownership
+        control->event = tmp;
+        // Prevent the reference count from hitting zero when the temporary goes out of scope
+        //::clRetainEvent( control->event( ) );
+    }
+    else
+    {
+        status = tmp.wait( );
+        if (status != CL_SUCCESS)
+        {
+            std::cerr << "clSPARSE event wait failure: "
+                      << status
+                      << std::endl;
+            return status;
+        }
+    }
 
     return status;
 }

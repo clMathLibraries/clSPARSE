@@ -107,27 +107,24 @@ const cl::Program* KernelCache::getProgram(cl::CommandQueue& queue,
     sources.push_back(pair);
 
     std::vector<cl::Device> devices;
-    try
-    {
-       auto d = queue.getInfo<CL_QUEUE_DEVICE>();
-       devices.push_back(d);
 
-    } catch (cl::Error &e)
+    auto d = queue.getInfo<CL_QUEUE_DEVICE>(&status);
+
+    if (status != CL_SUCCESS)
     {
         std::cout << "Problem with getting device form queue: "
-                  << e.what() << " err: " << e.err() << std::endl;
+                  << status << std::endl;
 
         return nullptr;
     }
-
+    devices.push_back(d);
 
     cl::Program* program;
 
-    try {
-        program = new cl::Program(context, sources);
-        program->build(devices, params.c_str());
+    program = new cl::Program(context, sources);
+    status = program->build(devices, params.c_str());
 
-    } catch (cl::Error& e)
+    if (status != CL_SUCCESS)
     {
 
         std::cout << "#######################################" << std::endl;

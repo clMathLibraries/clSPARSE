@@ -24,7 +24,7 @@ elseif( BUILD_CLVERSION VERSION_EQUAL "1.1" )
     add_definitions( -DBUILD_CLVERSION=110 )
 endif( )
 
-add_definitions( -D__CL_ENABLE_EXCEPTIONS )
+#add_definitions( -D__CL_ENABLE_EXCEPTIONS )
 
 set( clSPARSE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include )
 

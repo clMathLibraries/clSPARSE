@@ -14,7 +14,7 @@ find_package( Boost COMPONENTS program_options )
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
 find_package( OpenCL REQUIRED )
 
-add_definitions(-D__CL_ENABLE_EXCEPTIONS)
+#add_definitions(-D__CL_ENABLE_EXCEPTIONS)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include

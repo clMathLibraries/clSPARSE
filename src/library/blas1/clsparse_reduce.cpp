@@ -58,17 +58,16 @@ clsparseSreduce(clsparseScalar *sum,
         //vector for partial sums of X;
         clsparseVectorPrivate partialSum;
         clsparseInitVector( &partialSum );
+#if (BUILD_CLVERSION < 200)
         partialSum.values = ::clCreateBuffer(context(), CL_MEM_READ_WRITE,
                                               REDUCE_BLOCKS_NUMBER * sizeof(cl_float),
                                               NULL, &status);
+#else
+        partialSum.values = ::clSVMAlloc(context(), CL_MEM_READ_WRITE,
+                                        REDUCE_BLOCKS_NUMBER * sizeof(cl_float),
+                                        0);
+#endif
         partialSum.n = REDUCE_BLOCKS_NUMBER;
-        clMemRAII<cl_float> rPartialSum (control->queue(), partialSum.values);
-
-
-        if (status != CL_SUCCESS)
-        {
-            return clsparseInvalidMemObj;
-        }
 
         cl_ulong nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
 
@@ -81,7 +80,16 @@ clsparseSreduce(clsparseScalar *sum,
 
         reduce(pX, &partialSum, REDUCE_BLOCKS_NUMBER, REDUCE_BLOCK_SIZE, params, control);
 
-        cl_float* hPartialSum = rPartialSum.clMapMem(CL_TRUE, CL_MAP_READ, partialSum.offset(), partialSum.n);
+        //reduce 32 elements on host
+        clMemRAII<cl_float> rPartialSum (control->queue(), partialSum.values);
+        if (status != CL_SUCCESS)
+        {
+            return clsparseInvalidMemObj;
+        }
+
+        cl_float* hPartialSum = rPartialSum.clMapMem(CL_TRUE, CL_MAP_READ,
+                                                     partialSum.offset(),
+                                                     partialSum.n);
 
         *fSum = std::accumulate(hPartialSum, hPartialSum + partialSum.n, 0.0f);
 
@@ -113,11 +121,17 @@ clsparseDreduce(clsparseScalar *sum,
         //vector for partial sums of X;
         clsparseVectorPrivate partialSum;
         clsparseInitVector( &partialSum );
+
+#if (BUILD_CLVERSION < 200)
         partialSum.values = ::clCreateBuffer(context(), CL_MEM_READ_WRITE,
                                               REDUCE_BLOCKS_NUMBER * sizeof(cl_double),
                                               NULL, &status);
+#else
+        partialSum.values = ::clSVMAlloc(context(), CL_MEM_READ_WRITE,
+                                        REDUCE_BLOCKS_NUMBER * sizeof(cl_double),
+                                        0);
+#endif
         partialSum.n = REDUCE_BLOCKS_NUMBER;
-        clMemRAII<cl_double> rPartialSum (control->queue(), partialSum.values);
 
 
         if (status != CL_SUCCESS)
@@ -136,10 +150,13 @@ clsparseDreduce(clsparseScalar *sum,
 
         reduce(pX, &partialSum, REDUCE_BLOCKS_NUMBER, REDUCE_BLOCK_SIZE, params, control);
 
-        cl_double* hPartialSum = rPartialSum.clMapMem(CL_TRUE, CL_MAP_READ, partialSum.offset(), partialSum.n);
+        clMemRAII<cl_double> rPartialSum (control->queue(), partialSum.values);
+
+        cl_double* hPartialSum = rPartialSum.clMapMem(CL_TRUE, CL_MAP_READ,
+                                                      partialSum.offset(),
+                                                      partialSum.n);
 
         *fSum = std::accumulate(hPartialSum, hPartialSum + partialSum.n, 0.0);
-
     }
 
 }
