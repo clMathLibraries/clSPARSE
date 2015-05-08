@@ -40,6 +40,9 @@ void collectEnvParams(clsparseControl control)
     control->wavefront_size =
             kernel.getWorkGroupInfo<CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE>(device);
 
+    control->max_compute_units =
+            device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
+
 }
 
 clsparseControl

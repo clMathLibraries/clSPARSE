@@ -15,7 +15,7 @@ TEST (REDUCE, float_simple)
 {
     using CLSE = ClSparseEnvironment;
 
-    cl_uint size = 1000;
+    cl_uint size = 2546872;
     std::vector<cl_float> y(size, 1.0f);
 
     cl_float zero = 0.f;
@@ -60,7 +60,7 @@ TEST (REDUCE, double_simple)
 {
     using CLSE = ClSparseEnvironment;
 
-    cl_uint size = 4096;
+    cl_uint size = 2144096;
     std::vector<cl_double> y(size, 1.0f);
 
     cl_double zero = 0.0;
@@ -82,6 +82,7 @@ TEST (REDUCE, double_simple)
 
     sum.value = ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
                                sizeof(cl_double), NULL, &status);
+
     ASSERT_EQ(CL_SUCCESS, status);
 
     status = clsparseDreduce(&sum, &gY, CLSE::control);
@@ -90,12 +91,14 @@ TEST (REDUCE, double_simple)
 
     cl_double ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
 
-    cl_double host_sum = 0.0f;
+    cl_double host_sum = 0.0;
 
-    clEnqueueReadBuffer(CLSE::queue,
-                        sum.value, 1, 0,
-                        sizeof(cl_double),
+    status = clEnqueueReadBuffer(CLSE::queue,
+                        sum.value, CL_TRUE, 0,
+                        1 * sizeof(cl_double),
                         &host_sum, 0, NULL, NULL);
+
+    ASSERT_EQ(CL_SUCCESS, status);
 
     ASSERT_NEAR(ref_sum, host_sum, 5e-8);
 

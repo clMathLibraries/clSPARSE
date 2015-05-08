@@ -7,6 +7,9 @@ R"(
     #error "Double precision floating point not supported by OpenCL implementation."
 #endif
 
+#pragma OPENCL EXTENSION cl_khr_int64_base_atomics: enable
+#pragma OPENCL EXTENSION cl_khr_int64_extended_atomics: enable
+
 #ifndef VALUE_TYPE
 #error VALUE_TYPE undefined!
 #endif
@@ -27,6 +30,31 @@ R"(
 #error N_THREADS undefined!
 #endif
 
+
+void atomic_add_float (global VALUE_TYPE *ptr, VALUE_TYPE temp)
+{
+#ifdef ATOMIC_DOUBLE
+        unsigned long newVal;
+        unsigned long prevVal;
+        do
+        {
+                prevVal = as_ulong(*ptr);
+                newVal = as_ulong(temp + *ptr);
+        } while (atom_cmpxchg((global unsigned long *)ptr, prevVal, newVal) != prevVal);
+
+#elif ATOMIC_FLOAT
+        unsigned int newVal;
+        unsigned int prevVal;
+        do
+        {
+                prevVal = as_uint(*ptr);
+                newVal = as_uint(temp + *ptr);
+        } while (atomic_cmpxchg((global unsigned int *)ptr, prevVal, newVal) != prevVal);
+#endif
+}
+)"
+
+R"(
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 __kernel
 void reduce_block (const SIZE_TYPE size,
@@ -64,5 +92,22 @@ void reduce_block (const SIZE_TYPE size,
 
         pSum[ block_idx ] = sum;
     }
+}
+)"
+
+R"(
+__attribute__((reqd_work_group_size(WG_SIZE,1,1)))
+__kernel
+void xxx (const SIZE_TYPE size,
+          __global const VALUE_TYPE* pX,
+          __global VALUE_TYPE* pSum)
+{
+
+
+    SIZE_TYPE idx = get_global_id(0);
+
+    if (idx >= size) return;
+
+    atomic_add_float(&pSum[0], pX[idx]);
 }
 )"
