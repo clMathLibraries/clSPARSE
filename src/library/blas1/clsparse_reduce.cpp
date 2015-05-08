@@ -69,7 +69,7 @@ reduce_final (const clsparseVectorPrivate* pX,
 
 
 clsparseStatus
-clsparseSreduce(clsparseScalar *sum,
+cldenseSreduce(clsparseScalar *sum,
                 const clsparseVector *x,
                 const clsparseControl control)
 {
@@ -91,9 +91,13 @@ clsparseSreduce(clsparseScalar *sum,
 
     clMemRAII<cl_float> rSum (control->queue(), pSum->value);
 
-    cl_float* fSum = rSum.clMapMem( CL_TRUE, CL_MAP_WRITE, pSum->offset(), 1);
+    cl_float value = -1000.0f;
+    rSum.clWriteMem(CL_TRUE, 0, 1, &value);
 
-    *fSum = -100.0f;
+
+    //cl_float* fSum = rSum.clMapMem( CL_TRUE, CL_MAP_WRITE, pSum->offset(), 1);
+
+    //*fSum = -100000.0f;
 
 
     cl_int status;
@@ -172,7 +176,7 @@ clsparseSreduce(clsparseScalar *sum,
 }
 
 clsparseStatus
-clsparseDreduce(clsparseScalar *sum,
+cldenseDreduce(clsparseScalar *sum,
                 const clsparseVector *x,
                 const clsparseControl control)
 {
@@ -195,7 +199,7 @@ clsparseDreduce(clsparseScalar *sum,
         clMemRAII<cl_double> rSum (control->queue(), pSum->value);
 
         cl_double* fSum = rSum.clMapMem( CL_TRUE, CL_MAP_WRITE, pSum->offset(), 1);
-        *fSum = 0.0;
+        *fSum = -100.0;
     }
 
 
@@ -257,7 +261,34 @@ clsparseDreduce(clsparseScalar *sum,
                 + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
                 + " -DN_THREADS=" + std::to_string(nthreads);
 
+        clMemRAII<cl_double> rpvec (control->queue(), partialSum.values);
+        cl_double* hpvec = rpvec.clMapMem( CL_TRUE, CL_MAP_WRITE, partialSum.offset(), partialSum.n);
+        {
+            for(int i = 0; i < partialSum.n; i++)
+            {
+                std::cout << i << " \t = " << hpvec[i] << std::endl;
+            }
+        }
+
+        {
+            clMemRAII<cl_double> rSum (control->queue(), pSum->value);
+
+            cl_double* fSum = rSum.clMapMem( CL_TRUE, CL_MAP_READ, pSum->offset(), 1);
+
+            std::cout << "fSum = " << *fSum << std::endl;
+        }
+
+
         status = reduce_final(&partialSum, pSum, REDUCE_BLOCK_SIZE, params, control);
+
+
+        {
+            clMemRAII<cl_double> rSum (control->queue(), pSum->value);
+
+            cl_double* fSum = rSum.clMapMem( CL_TRUE, CL_MAP_READ, pSum->offset(), 1);
+
+            std::cout << "fSum after = " << *fSum << std::endl;
+        }
 
         // free temp data
 #if (BUILD_CLVERSION < 200)

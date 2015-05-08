@@ -164,7 +164,7 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
         printf("\n\talpha = 0, (clsparseSscale)\n\n");
 #endif
         // y = b*y;
-        return clsparseSscale(pY, pBeta, control);
+        return cldenseSscale(pY, pBeta, control);
     }
 
     else if(h_beta == 0.0)
@@ -357,7 +357,7 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
 #ifndef NDEBUG
         printf("\n\talpha = 0, (clsparseDscale)\n\n");
 #endif
-        return clsparseDscale(pY, pBeta, control);
+        return cldenseDscale(pY, pBeta, control);
     }
 
     else if(h_beta == 0.0)

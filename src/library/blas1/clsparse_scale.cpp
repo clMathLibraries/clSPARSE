@@ -43,7 +43,7 @@ scale(clsparseVectorPrivate* pVector,
 
 
 clsparseStatus
-clsparseSscale (clsparseVector* y,
+cldenseSscale (clsparseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control)
 {
@@ -105,7 +105,7 @@ clsparseSscale (clsparseVector* y,
 }
 
 clsparseStatus
-clsparseDscale (clsparseVector* y,
+cldenseDscale (clsparseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control)
 {

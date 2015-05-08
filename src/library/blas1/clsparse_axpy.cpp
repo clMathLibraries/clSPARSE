@@ -41,7 +41,7 @@ axpy(cl_ulong size,
 }
 
 clsparseStatus
-clsparseSaxpy(clsparseVector *y,
+cldenseSaxpy(clsparseVector *y,
               const clsparseScalar *alpha,
               const clsparseVector *x,
               const clsparseControl control)
@@ -77,7 +77,7 @@ clsparseSaxpy(clsparseVector *y,
 }
 
 clsparseStatus
-clsparseDaxpy(clsparseVector *y,
+cldenseDaxpy(clsparseVector *y,
               const clsparseScalar *alpha, const clsparseVector *x,
               const clsparseControl control)
 {

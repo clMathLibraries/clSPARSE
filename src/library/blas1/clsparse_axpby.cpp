@@ -45,7 +45,7 @@ axpby(cl_ulong size,
 
 
 clsparseStatus
-clsparseSaxpby(clsparseVector *y,
+cldenseSaxpby(clsparseVector *y,
                const clsparseScalar *alpha,
                const clsparseVector *x,
                const clsparseScalar *beta,
@@ -86,7 +86,7 @@ clsparseSaxpby(clsparseVector *y,
 }
 
 clsparseStatus
-clsparseDaxpby(clsparseVector *y,
+cldenseDaxpby(clsparseVector *y,
                const clsparseScalar *alpha,
                const clsparseVector *x,
                const clsparseScalar *beta,

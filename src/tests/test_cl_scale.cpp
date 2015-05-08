@@ -39,7 +39,7 @@ TEST (SCALE, float_simple)
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = clsparseSscale(&gY, &gAlpha, CLSE::control);
+    status = cldenseSscale(&gY, &gAlpha, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
@@ -88,7 +88,7 @@ TEST (SCALE, double_simple)
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = clsparseDscale(&gY, &gAlpha, CLSE::control);
+    status = cldenseDscale(&gY, &gAlpha, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 

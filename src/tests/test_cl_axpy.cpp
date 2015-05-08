@@ -47,7 +47,7 @@ TEST (AXPY, float_simple)
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = clsparseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
+    status = cldenseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
@@ -105,7 +105,7 @@ TEST (AXPY, double_simple)
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = clsparseDaxpy(&gY, &gAlpha, &gX, CLSE::control);
+    status = cldenseDaxpy(&gY, &gAlpha, &gX, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
@@ -166,7 +166,7 @@ TEST (AXPY, float_xOffset)
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = clsparseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
+    status = cldenseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
@@ -226,7 +226,7 @@ TEST (AXPY, float_different_sizes)
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = clsparseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
+    status = cldenseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 

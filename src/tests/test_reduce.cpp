@@ -39,7 +39,7 @@ TEST (REDUCE, float_simple)
                                sizeof(cl_float), NULL, &status);
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = clsparseSreduce(&sum, &gY, CLSE::control);
+    status = cldenseSreduce(&sum, &gY, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
@@ -60,8 +60,8 @@ TEST (REDUCE, double_simple)
 {
     using CLSE = ClSparseEnvironment;
 
-    cl_uint size = 2144096;
-    std::vector<cl_double> y(size, 1.0f);
+    cl_uint size = 512*256;
+    std::vector<cl_double> y(size, 2.0f);
 
     cl_double zero = 0.0;
 
@@ -85,13 +85,13 @@ TEST (REDUCE, double_simple)
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = clsparseDreduce(&sum, &gY, CLSE::control);
+    status = cldenseDreduce(&sum, &gY, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
     cl_double ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
 
-    cl_double host_sum = 0.0;
+    cl_double host_sum = 12.0;
 
     status = clEnqueueReadBuffer(CLSE::queue,
                         sum.value, CL_TRUE, 0,

@@ -135,52 +135,52 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control );
 CLSPARSE_EXPORT clsparseStatus
 clsparseCsrComputeMeta( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
-/* BLAS 1 routines */
+/* BLAS 1 routines for dense vector*/
 
 /* SCALE y = alpha * y */
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseSscale( clsparseVector* y,
+cldenseSscale( clsparseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control);
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseDscale(clsparseVector* y,
+cldenseDscale(clsparseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control);
 
 /* AXPY: y = alpha*x + y*/
 CLSPARSE_EXPORT clsparseStatus
-clsparseSaxpy(clsparseVector* y,
+cldenseSaxpy(clsparseVector* y,
               const clsparseScalar* alpha, const clsparseVector* x,
               const clsparseControl control);
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseDaxpy(clsparseVector* y,
+cldenseDaxpy(clsparseVector* y,
               const clsparseScalar* alpha, const clsparseVector* x,
               const clsparseControl control);
 
 /* AXPY: y = alpha*x + beta*y*/
 CLSPARSE_EXPORT clsparseStatus
-clsparseSaxpby(clsparseVector* y,
+cldenseSaxpby(clsparseVector* y,
               const clsparseScalar* alpha, const clsparseVector* x,
               const clsparseScalar* beta,
               const clsparseControl control);
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseDaxpby(clsparseVector* y,
+cldenseDaxpby(clsparseVector* y,
               const clsparseScalar* alpha, const clsparseVector* x,
               const clsparseScalar* beta,
               const clsparseControl control);
 
 /* Reduce (sum) */
 CLSPARSE_EXPORT clsparseStatus
-clsparseSreduce(clsparseScalar* sum,
+cldenseSreduce(clsparseScalar* sum,
              const clsparseVector* x,
              const clsparseControl control);
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseDreduce(clsparseScalar* sum,
+cldenseDreduce(clsparseScalar* sum,
              const clsparseVector* x,
              const clsparseControl control);
 
