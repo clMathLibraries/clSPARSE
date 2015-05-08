@@ -91,7 +91,7 @@ TEST (REDUCE, double_simple)
 
     cl_double ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
 
-    cl_double host_sum = 12.0;
+    cl_double host_sum = 0.0;
 
     status = clEnqueueReadBuffer(CLSE::queue,
                         sum.value, CL_TRUE, 0,

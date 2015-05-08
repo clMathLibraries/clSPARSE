@@ -73,10 +73,10 @@ set( clSPARSE.source.cpp
   matrixMarket/mm_reader.cpp
   transform/clsparse_coo2csr.cpp
   transform/clsparse_csr2coo.cpp
-  blas1/clsparse_axpy.cpp
-  blas1/clsparse_axpby.cpp
-  blas1/clsparse_scale.cpp
-  blas1/clsparse_reduce.cpp
+  blas1/cldense_axpy.cpp
+  blas1/cldense_axpby.cpp
+  blas1/cldense_scale.cpp
+  blas1/cldense_reduce.cpp
 )
 
 set( clSPARSE.Headers

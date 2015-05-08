@@ -98,7 +98,7 @@ void reduce_block (const SIZE_TYPE size,
 R"(
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 __kernel
-void xxx (const SIZE_TYPE size,
+void reduce_final (const SIZE_TYPE size,
           __global const VALUE_TYPE* pX,
           __global VALUE_TYPE* pSum)
 {
