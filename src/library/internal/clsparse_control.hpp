@@ -36,9 +36,14 @@ struct _clsparseControl
 //    cl_ulong off_x;
 //    cl_ulong off_y;
 
-    //for NV(32) for AMD(64)
+    // for NV(32) for AMD(64)
     cl_uint wavefront_size;
+
+    // max workgroup size
     cl_uint max_wg_size;
+
+    // current device max compute units;
+    cl_uint max_compute_units;
 
     //clSPARSE async execution; if true user is responsible to call for WaitForEvent;
     //otherwise after every kernel call we are syncing internally;

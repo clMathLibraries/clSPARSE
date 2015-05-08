@@ -24,7 +24,7 @@ elseif( BUILD_CLVERSION VERSION_EQUAL "1.1" )
     add_definitions( -DBUILD_CLVERSION=110 )
 endif( )
 
-add_definitions( -D__CL_ENABLE_EXCEPTIONS )
+#add_definitions( -D__CL_ENABLE_EXCEPTIONS )
 
 set( clSPARSE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include )
 
@@ -55,9 +55,10 @@ set( clSPARSE.source.cl
   kernels/csrmv_general.cl
   kernels/csrmv_adaptive.cl
   kernels/control.cl
-  kernels/scale.cl
   kernels/csr2dense.cl
   kernels/csr2coo.cl
+  kernels/blas1.cl
+  kernels/reduce.cl
 )
 
 set( clSPARSE.source.cpp
@@ -67,12 +68,15 @@ set( clSPARSE.source.cpp
   internal/kernel_cache.cpp
   internal/ocl_type_traits.cpp
   internal/kernel_wrap.cpp
-  simple/clsparse_simple.cpp
   spmv/clsparse_csrmv.cpp
   transform/clsparse_csr2dense.cpp
   matrixMarket/mm_reader.cpp
   transform/clsparse_coo2csr.cpp
   transform/clsparse_csr2coo.cpp
+  blas1/cldense_axpy.cpp
+  blas1/cldense_axpby.cpp
+  blas1/cldense_scale.cpp
+  blas1/cldense_reduce.cpp
 )
 
 set( clSPARSE.Headers
@@ -83,7 +87,7 @@ set( clSPARSE.Headers
   include/clSPARSE_1x.hpp
   include/clSPARSE_2x.hpp
   ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
-   internal/clsparse_internal.hpp
+  internal/clsparse_internal.hpp
   internal/clsparse_control.hpp
   internal/clsparse_validate.hpp
   internal/source_provider.hpp
@@ -93,7 +97,6 @@ set( clSPARSE.Headers
   spmv/csrmv_vector/csrmv_vector.hpp
   spmv/csrmv_vector/csrmv_vector_impl.hpp
   spmv/csrmv_adaptive/csrmv_adaptive.hpp
-  scale/clsparse_scale.hpp
   ${ocl_kernels_file_name}
 )
 

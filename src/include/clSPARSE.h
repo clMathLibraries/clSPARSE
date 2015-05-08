@@ -104,12 +104,6 @@ clsparseSetup(void);
 CLSPARSE_EXPORT clsparseStatus
 clsparseTeardown(void);
 
-// THIS IS JUST AN TEST KERNEL FOR TESTING PURPOSES
-//New implementation with clsparseControl structure
-CLSPARSE_EXPORT clsparseStatus
-clsparseScale(cl_mem buff, cl_mem alpha, cl_int size,
-              clsparseControl control);
-
 // Convenience sparse matrix construction functions
 CLSPARSE_EXPORT clsparseStatus
 clsparseInitScalar( clsparseScalar* scalar );
@@ -141,12 +135,64 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control );
 CLSPARSE_EXPORT clsparseStatus
 clsparseCsrComputeMeta( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
+/* BLAS 1 routines for dense vector*/
+
+/* SCALE y = alpha * y */
+
+CLSPARSE_EXPORT clsparseStatus
+cldenseSscale( clsparseVector* y,
+                const clsparseScalar* alpha,
+                const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+cldenseDscale(clsparseVector* y,
+                const clsparseScalar* alpha,
+                const clsparseControl control);
+
+/* AXPY: y = alpha*x + y*/
+CLSPARSE_EXPORT clsparseStatus
+cldenseSaxpy(clsparseVector* y,
+              const clsparseScalar* alpha, const clsparseVector* x,
+              const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+cldenseDaxpy(clsparseVector* y,
+              const clsparseScalar* alpha, const clsparseVector* x,
+              const clsparseControl control);
+
+/* AXPY: y = alpha*x + beta*y*/
+CLSPARSE_EXPORT clsparseStatus
+cldenseSaxpby(clsparseVector* y,
+              const clsparseScalar* alpha, const clsparseVector* x,
+              const clsparseScalar* beta,
+              const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+cldenseDaxpby(clsparseVector* y,
+              const clsparseScalar* alpha, const clsparseVector* x,
+              const clsparseScalar* beta,
+              const clsparseControl control);
+
+/* Reduce (sum) */
+CLSPARSE_EXPORT clsparseStatus
+cldenseSreduce(clsparseScalar* sum,
+             const clsparseVector* x,
+             const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+cldenseDreduce(clsparseScalar* sum,
+             const clsparseVector* x,
+             const clsparseControl control);
+
+
+
+/* BLAS 2 routines */
 // SPMV
 // y = \alpha * A * x + \beta * y
 // TODO:: alpha, beta should we provide them as cl_mem buffers?
 // TODO:: add matrixDescriptor for particular matrix properties
 //        like avg nnz per row which help to determine kernel scalar vector,
-//        it is simple for csr  avg nnz per row = nnz / n_rows
+//        it is simple  for csr  avg nnz per row = nnz / n_rows
 //        type of matrix (GENERAL, SYMMETRIC(faster spmv) etc.
 //        index based (0, 1)
 

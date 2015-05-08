@@ -107,7 +107,7 @@ private:
             kernel.setArg(argCounter++, arg); \
             return *this; \
         }
-#else (BUILD_CLVERSION == 200)
+#else // (BUILD_CLVERSION == 200)
 #define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
         template<> inline KernelWrap& \
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \

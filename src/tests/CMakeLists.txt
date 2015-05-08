@@ -14,7 +14,7 @@ find_package( Boost COMPONENTS program_options )
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
 find_package( OpenCL REQUIRED )
 
-add_definitions(-D__CL_ENABLE_EXCEPTIONS)
+#add_definitions(-D__CL_ENABLE_EXCEPTIONS)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
@@ -27,7 +27,6 @@ include_directories(
 
 set( TESTS_CPP
   test_clsparse_init
-  test_kernel_simple
   test_csrmv_simple
   test_resources_io
   test_clsparse_transpose
@@ -35,6 +34,10 @@ set( TESTS_CPP
   test_cl_traits
   test_readMMcoo
   test_clsparse_csr2coo
+  test_cl_axpy
+  test_cl_axpby
+  test_cl_scale
+  test_reduce
 )
 
 set( TESTS_C
