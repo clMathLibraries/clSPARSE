@@ -2,23 +2,25 @@
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 
-#include <algorithm>
-
 clsparseStatus
-reduce (const clsparseVectorPrivate* pX, clsparseVectorPrivate* partialSum,
-        cl_ulong REDUCE_BLOCKS_NUMBER, cl_ulong REDUCE_BLOCK_SIZE,
-        const std::string& params,
-        const clsparseControl control)
+dot (clsparseVectorPrivate* partial,
+     const clsparseVectorPrivate* pX,
+     const clsparseVectorPrivate* pY,
+     const cl_ulong size,
+     const cl_ulong REDUCE_BLOCKS_NUMBER,
+     const cl_ulong REDUCE_BLOCK_SIZE,
+     const std::string& params,
+     const clsparseControl control)
 {
-
     cl::Kernel kernel = KernelCache::get(control->queue,
-                                         "reduce", "reduce_block", params);
+                                         "dot", "dot_block", params);
 
     KernelWrap kWrapper(kernel);
 
-    kWrapper << (cl_ulong)pX->n
+    kWrapper << size
+             << partial->values
              << pX->values
-             << partialSum->values;
+             << pY->values;
 
     cl::NDRange local(REDUCE_BLOCK_SIZE);
     cl::NDRange global(REDUCE_BLOCKS_NUMBER * REDUCE_BLOCK_SIZE);
@@ -32,18 +34,17 @@ reduce (const clsparseVectorPrivate* pX, clsparseVectorPrivate* partialSum,
     }
 
     return clsparseSuccess;
-
 }
 
 clsparseStatus
-reduce_final (const clsparseVectorPrivate* pX,
-              clsparseScalarPrivate* pR,
-              const cl_ulong group_size,
-              const std::string& params,
-              const clsparseControl control)
+dot_final (clsparseScalarPrivate* pR,
+           const clsparseVectorPrivate* pX,
+           const cl_ulong group_size,
+           const std::string& params,
+           const clsparseControl control)
 {
     cl::Kernel kernel = KernelCache::get(control->queue,
-                                         "reduce", "reduce_final", params);
+                                         "dot", "dot_final", params);
 
     KernelWrap kWrapper(kernel);
     kWrapper << (cl_ulong)pX->n
@@ -64,16 +65,25 @@ reduce_final (const clsparseVectorPrivate* pX,
     }
 
     return clsparseSuccess;
+
 }
 
 
 clsparseStatus
-cldenseSreduce(clsparseScalar *s,
-               const clsparseVector *x,
-               const clsparseControl control)
+cldenseSdot (clsparseScalar* r,
+             const clsparseVector* x,
+             const clsparseVector* y,
+             const clsparseControl control)
 {
-    clsparseScalarPrivate* pSum = static_cast<clsparseScalarPrivate*> ( s );
+    clsparseScalarPrivate* pDot = static_cast<clsparseScalarPrivate*>( r );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+    const clsparseVectorPrivate* pY = static_cast<const clsparseVectorPrivate*> ( y );
+
+    {
+        clMemRAII<cl_float> rDot (control->queue(), pDot->value);
+        cl_float* fDot = rDot.clMapMem( CL_TRUE, CL_MAP_WRITE, pDot->offset(), 1);
+        *fDot = 0.0f;
+    }
 
     // with REDUCE_BLOCKS_NUMBER = 256 final reduction can be performed
     // within one block;
@@ -84,47 +94,48 @@ cldenseSreduce(clsparseScalar *s,
     const cl_uint  WG_PER_CU = 64;
     const cl_ulong REDUCE_BLOCKS_NUMBER = control->max_compute_units * WG_PER_CU;
     */
-
     const cl_ulong REDUCE_BLOCK_SIZE = 256;
 
-    {
-        clMemRAII<cl_float> rSum (control->queue(), pSum->value);
-        cl_float* fSum = rSum.clMapMem( CL_TRUE, CL_MAP_WRITE, pSum->offset(), 1);
-        *fSum = 0.0f;
-    }
+    cl_ulong xSize = pX->n - pX->offset();
+    cl_ulong ySize = pY->n - pY->offset();
+
+    assert (xSize == ySize);
+
+    cl_ulong size = xSize;
 
     cl_int status;
-    if (pX->n > 0)
-    {
 
+    if (size > 0)
+    {
         cl::Context context = control->getContext();
 
-        //vector for partial sums of X;
-        clsparseVectorPrivate partialSum;
-        clsparseInitVector( &partialSum );
+        //partial result
+        clsparseVectorPrivate partialDot;
+        clsparseInitVector (&partialDot);
+
 #if (BUILD_CLVERSION < 200)
-        partialSum.values = ::clCreateBuffer(context(), CL_MEM_READ_WRITE,
+        partialDot.values = ::clCreateBuffer(context(), CL_MEM_READ_WRITE,
                                              REDUCE_BLOCKS_NUMBER * sizeof(cl_float),
                                              NULL, &status);
         if (status != CL_SUCCESS)
         {
-            std::cout << "Error: Problem with allocating partialSum vector: "
+            std::cout << "Error: Problem with allocating paritalDot vector: "
                       << status << std::endl;
-            return clsparseInvalidMemObj;
+            return clsparseInvalidMemObject;
         }
 #else
-        partialSum.values = ::clSVMAlloc(context(), CL_MEM_READ_WRITE,
+        partialDot.values = ::clSVMAlloc(context(), CL_MEM_READ_WRITE,
                                          REDUCE_BLOCKS_NUMBER * sizeof(cl_float),
                                          0);
-        if (partialSum.values == nullptr)
+        if (partialDot.values == nullptr)
         {
-            std::cout << "Error: Problem with allocating partialSum vector: "
+            std::cout << "Error: Problem with allocating partialDot vector: "
                       << status << std::endl;
             return clsparseInvalidMemObj;
-
         }
 #endif
-        partialSum.n = REDUCE_BLOCKS_NUMBER;
+
+        partialDot.n  = REDUCE_BLOCKS_NUMBER;
 
         cl_ulong nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
 
@@ -135,14 +146,16 @@ cldenseSreduce(clsparseScalar *s,
                 + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
                 + " -DN_THREADS=" + std::to_string(nthreads);
 
-        status = reduce(pX, &partialSum, REDUCE_BLOCKS_NUMBER, REDUCE_BLOCK_SIZE, params, control);
+        status = dot (&partialDot, pX, pY, size,
+                      REDUCE_BLOCKS_NUMBER, REDUCE_BLOCK_SIZE,
+                      params, control);
 
-        if (status != CL_SUCCESS)
+        if (status != clsparseSuccess)
         {
 #if (BUILD_CLVERSION < 200)
-            ::clReleaseMemObject(partialSum.values);
+            ::clReleaseMemObject(partialDot.values);
 #else
-            ::clSVMFree(context(), partialSum.values)
+            ::clSVMFree(context(), partialDot.values)
 #endif
             return clsparseInvalidKernelExecution;
         }
@@ -157,31 +170,39 @@ cldenseSreduce(clsparseScalar *s,
                 + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
                 + " -DN_THREADS=" + std::to_string(nthreads);
 
-        status = reduce_final(&partialSum, pSum, REDUCE_BLOCK_SIZE, params, control);
+        status = dot_final(pDot, &partialDot, REDUCE_BLOCK_SIZE, params, control);
 
         // free temp data
 #if (BUILD_CLVERSION < 200)
-        ::clReleaseMemObject(partialSum.values);
-
+        ::clReleaseMemObject(partialDot.values);
 #else
-        ::clSVMFree(context(), partialSum.values)
+        ::clSVMFree(context(), partialDot.values)
 #endif
         if (status != CL_SUCCESS)
         {
             return clsparseInvalidKernelExecution;
         }
-    } // pX->n > 0
+    }
 
     return clsparseSuccess;
+
 }
 
 clsparseStatus
-cldenseDreduce(clsparseScalar *s,
-               const clsparseVector *x,
-               const clsparseControl control)
+cldenseDdot (clsparseScalar* r,
+             const clsparseVector* x,
+             const clsparseVector* y,
+             const clsparseControl control)
 {
-    clsparseScalarPrivate* pSum = static_cast<clsparseScalarPrivate*> ( s );
+    clsparseScalarPrivate* pDot = static_cast<clsparseScalarPrivate*>( r );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+    const clsparseVectorPrivate* pY = static_cast<const clsparseVectorPrivate*> ( y );
+
+    {
+        clMemRAII<cl_double> rDot (control->queue(), pDot->value);
+        cl_double* fDot = rDot.clMapMem( CL_TRUE, CL_MAP_WRITE, pDot->offset(), 1);
+        *fDot = 0.0;
+    }
 
     // with REDUCE_BLOCKS_NUMBER = 256 final reduction can be performed
     // within one block;
@@ -192,41 +213,48 @@ cldenseDreduce(clsparseScalar *s,
     const cl_uint  WG_PER_CU = 64;
     const cl_ulong REDUCE_BLOCKS_NUMBER = control->max_compute_units * WG_PER_CU;
     */
-
     const cl_ulong REDUCE_BLOCK_SIZE = 256;
 
-    {
-        clMemRAII<cl_double> rSum (control->queue(), pSum->value);
-        cl_double* fSum = rSum.clMapMem( CL_TRUE, CL_MAP_WRITE, pSum->offset(), 1);
-        *fSum = 0.0;
-    }
+    cl_ulong xSize = pX->n - pX->offset();
+    cl_ulong ySize = pY->n - pY->offset();
 
+    assert (xSize == ySize);
+
+    cl_ulong size = xSize;
 
     cl_int status;
-    if (pX->n > 0)
+
+    if (size > 0)
     {
         cl::Context context = control->getContext();
 
-        //vector for partial sums of X;
-        clsparseVectorPrivate partialSum;
-        clsparseInitVector( &partialSum );
+        //partial result
+        clsparseVectorPrivate partialDot;
+        clsparseInitVector (&partialDot);
 
 #if (BUILD_CLVERSION < 200)
-        partialSum.values = ::clCreateBuffer(context(), CL_MEM_READ_WRITE,
+        partialDot.values = ::clCreateBuffer(context(), CL_MEM_READ_WRITE,
                                              REDUCE_BLOCKS_NUMBER * sizeof(cl_double),
                                              NULL, &status);
-#else
-        partialSum.values = ::clSVMAlloc(context(), CL_MEM_READ_WRITE,
-                                         REDUCE_BLOCKS_NUMBER * sizeof(cl_double),
-                                         0);
-#endif
-        partialSum.n = REDUCE_BLOCKS_NUMBER;
-
-
         if (status != CL_SUCCESS)
         {
+            std::cout << "Error: Problem with allocating paritalDot vector: "
+                      << status << std::endl;
+            return clsparseInvalidMemObject;
+        }
+#else
+        partialDot.values = ::clSVMAlloc(context(), CL_MEM_READ_WRITE,
+                                         REDUCE_BLOCKS_NUMBER * sizeof(cl_double),
+                                         0);
+        if (partialDot.values == nullptr)
+        {
+            std::cout << "Error: Problem with allocating partialDot vector: "
+                      << status << std::endl;
             return clsparseInvalidMemObj;
         }
+#endif
+
+        partialDot.n  = REDUCE_BLOCKS_NUMBER;
 
         cl_ulong nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
 
@@ -237,16 +265,17 @@ cldenseDreduce(clsparseScalar *s,
                 + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
                 + " -DN_THREADS=" + std::to_string(nthreads);
 
-        status = reduce(pX, &partialSum, REDUCE_BLOCKS_NUMBER, REDUCE_BLOCK_SIZE, params, control);
+        status = dot (&partialDot, pX, pY, size,
+                      REDUCE_BLOCKS_NUMBER, REDUCE_BLOCK_SIZE,
+                      params, control);
 
-        if (status != CL_SUCCESS)
+        if (status != clsparseSuccess)
         {
 #if (BUILD_CLVERSION < 200)
-            ::clReleaseMemObject(partialSum.values);
-
+            ::clReleaseMemObject(partialDot.values);
 #else
-            ::clSVMFree(context(), partialSum.values)
-        #endif
+            ::clSVMFree(context(), partialDot.values)
+#endif
             return clsparseInvalidKernelExecution;
         }
 
@@ -260,20 +289,19 @@ cldenseDreduce(clsparseScalar *s,
                 + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
                 + " -DN_THREADS=" + std::to_string(nthreads);
 
-        status = reduce_final(&partialSum, pSum, REDUCE_BLOCK_SIZE, params, control);
+        status = dot_final(pDot, &partialDot, REDUCE_BLOCK_SIZE, params, control);
 
         // free temp data
 #if (BUILD_CLVERSION < 200)
-        ::clReleaseMemObject(partialSum.values);
-
+        ::clReleaseMemObject(partialDot.values);
 #else
-        ::clSVMFree(context(), partialSum.values)
-        #endif
+        ::clSVMFree(context(), partialDot.values)
+#endif
         if (status != CL_SUCCESS)
         {
             return clsparseInvalidKernelExecution;
         }
-    } // pX->n > 0
+    }
 
     return clsparseSuccess;
 }

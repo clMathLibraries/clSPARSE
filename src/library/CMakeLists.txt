@@ -59,6 +59,7 @@ set( clSPARSE.source.cl
   kernels/csr2coo.cl
   kernels/blas1.cl
   kernels/reduce.cl
+  kernels/dot.cl
 )
 
 set( clSPARSE.source.cpp
@@ -77,6 +78,7 @@ set( clSPARSE.source.cpp
   blas1/cldense_axpby.cpp
   blas1/cldense_scale.cpp
   blas1/cldense_reduce.cpp
+  blas1/cldense_dot.cpp
 )
 
 set( clSPARSE.Headers

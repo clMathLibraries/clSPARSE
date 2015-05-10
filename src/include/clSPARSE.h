@@ -175,16 +175,27 @@ cldenseDaxpby(clsparseVector* y,
 
 /* Reduce (sum) */
 CLSPARSE_EXPORT clsparseStatus
-cldenseSreduce(clsparseScalar* sum,
+cldenseSreduce(clsparseScalar* s,
              const clsparseVector* x,
              const clsparseControl control);
 
 CLSPARSE_EXPORT clsparseStatus
-cldenseDreduce(clsparseScalar* sum,
+cldenseDreduce(clsparseScalar* s,
              const clsparseVector* x,
              const clsparseControl control);
 
+/* dot product */
+CLSPARSE_EXPORT clsparseStatus
+cldenseSdot (clsparseScalar* r,
+             const clsparseVector* x,
+             const clsparseVector* y,
+             const clsparseControl control);
 
+CLSPARSE_EXPORT clsparseStatus
+cldenseDdot (clsparseScalar* r,
+             const clsparseVector* x,
+             const clsparseVector* y,
+             const clsparseControl control);
 
 /* BLAS 2 routines */
 // SPMV
