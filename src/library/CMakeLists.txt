@@ -60,6 +60,7 @@ set( clSPARSE.source.cl
   kernels/blas1.cl
   kernels/reduce.cl
   kernels/dot.cl
+  kernels/atomic_reduce.cl
 )
 
 set( clSPARSE.source.cpp
@@ -99,6 +100,7 @@ set( clSPARSE.Headers
   spmv/csrmv_vector/csrmv_vector.hpp
   spmv/csrmv_vector/csrmv_vector_impl.hpp
   spmv/csrmv_adaptive/csrmv_adaptive.hpp
+  blas1/atomic_reduce.hpp
   ${ocl_kernels_file_name}
 )
 

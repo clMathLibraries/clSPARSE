@@ -2,6 +2,8 @@
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 
+#include "atomic_reduce.hpp"
+
 clsparseStatus
 dot (clsparseVectorPrivate* partial,
      const clsparseVectorPrivate* pX,
@@ -13,7 +15,7 @@ dot (clsparseVectorPrivate* partial,
      const clsparseControl control)
 {
     cl::Kernel kernel = KernelCache::get(control->queue,
-                                         "dot", "dot_block", params);
+                                         "dot", "inner_product", params);
 
     KernelWrap kWrapper(kernel);
 
@@ -34,38 +36,6 @@ dot (clsparseVectorPrivate* partial,
     }
 
     return clsparseSuccess;
-}
-
-clsparseStatus
-dot_final (clsparseScalarPrivate* pR,
-           const clsparseVectorPrivate* pX,
-           const cl_ulong group_size,
-           const std::string& params,
-           const clsparseControl control)
-{
-    cl::Kernel kernel = KernelCache::get(control->queue,
-                                         "dot", "dot_final", params);
-
-    KernelWrap kWrapper(kernel);
-    kWrapper << (cl_ulong)pX->n
-             << pX->values
-             << pR->value;
-
-    int blocksNum = (pX->n + group_size - 1) / group_size;
-    int globalSize = blocksNum * group_size;
-
-    cl::NDRange local(group_size);
-    cl::NDRange global(globalSize);
-
-    cl_int status = kWrapper.run(control, global, local);
-
-    if (status != CL_SUCCESS)
-    {
-        return clsparseInvalidKernelExecution;
-    }
-
-    return clsparseSuccess;
-
 }
 
 
@@ -160,17 +130,7 @@ cldenseSdot (clsparseScalar* r,
             return clsparseInvalidKernelExecution;
         }
 
-        params = std::string()
-                + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-                + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
-                + " -DATOMIC_FLOAT"
-                + " -DWG_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
-                // not used but necessary to have to compile the program.
-                // I dont want to create new file for this simple kernel;
-                + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
-                + " -DN_THREADS=" + std::to_string(nthreads);
-
-        status = dot_final(pDot, &partialDot, REDUCE_BLOCK_SIZE, params, control);
+       status = atomic_reduce<FLOAT>(pDot, &partialDot, REDUCE_BLOCK_SIZE, control);
 
         // free temp data
 #if (BUILD_CLVERSION < 200)
@@ -279,17 +239,7 @@ cldenseDdot (clsparseScalar* r,
             return clsparseInvalidKernelExecution;
         }
 
-        params = std::string()
-                + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-                + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
-                + " -DATOMIC_DOUBLE"
-                + " -DWG_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
-                // not used but necessary to have to compile the program.
-                // I dont want to create new file for this simple kernel;
-                + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
-                + " -DN_THREADS=" + std::to_string(nthreads);
-
-        status = dot_final(pDot, &partialDot, REDUCE_BLOCK_SIZE, params, control);
+       status = atomic_reduce<DOUBLE>(pDot, &partialDot, REDUCE_BLOCK_SIZE, control);
 
         // free temp data
 #if (BUILD_CLVERSION < 200)
