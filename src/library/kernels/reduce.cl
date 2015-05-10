@@ -36,7 +36,7 @@ VALUE_TYPE operation(VALUE_TYPE A, VALUE_TYPE B)
 #elif OP_SQR
     return A + (B*B);
 #elif OP_FABS
-    return A + FABS(B);
+    return A + fabs(B);
 #else
     return A;
 #endif

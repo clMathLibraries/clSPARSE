@@ -81,6 +81,8 @@ set( clSPARSE.source.cpp
   blas1/cldense_reduce.cpp
   blas1/cldense_dot.cpp
   blas1/reduce_operators.cpp
+  blas1/cldense_nrm1.cpp
+  blas1/cldense_nrm2.cpp
 )
 
 set( clSPARSE.Headers

@@ -184,6 +184,30 @@ cldenseDreduce(clsparseScalar* s,
              const clsparseVector* x,
              const clsparseControl control);
 
+/* norms */
+
+/* L1 norm */
+CLSPARSE_EXPORT clsparseStatus
+cldenseSnrm1(clsparseScalar* s,
+             const clsparseVector* x,
+             const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+cldenseDnrm1(clsparseScalar *s,
+             const clsparseVector* x,
+             const clsparseControl control);
+
+/* L2 norm */
+CLSPARSE_EXPORT clsparseStatus
+cldenseSnrm2(clsparseScalar* s,
+             const clsparseVector* x,
+             const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+cldenseDnrm2(clsparseScalar* s,
+             const clsparseVector* x,
+             const clsparseControl control);
+
 /* dot product */
 CLSPARSE_EXPORT clsparseStatus
 cldenseSdot (clsparseScalar* r,

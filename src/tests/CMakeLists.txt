@@ -39,6 +39,8 @@ set( TESTS_CPP
   test_cl_scale
   test_reduce
   test_dot
+  test_norm1
+  test_norm2
 )
 
 set( TESTS_C
