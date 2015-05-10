@@ -1,10 +1,11 @@
 #pragma once
-#ifndef _ATOMIC_REDUCE_HPP_
-#define _ATOMIC_REDUCE_HPP_
+#ifndef _CLSPARSE_ATOMIC_REDUCE_HPP_
+#define _CLSPARSE_ATOMIC_REDUCE_HPP_
 
 #include "include/clSPARSE-private.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
+#include "reduce_operators.hpp"
 
 /* Helper function used in reduce type operations
  * pR = \sum pX
@@ -19,7 +20,7 @@ enum PRECISION{
     DOUBLE
 } ;
 
-template<PRECISION P>
+template<PRECISION FPTYPE, ReduceOperator OP = DUMMY>
 clsparseStatus
 atomic_reduce(clsparseScalarPrivate* pR,
               const clsparseVectorPrivate* pX,
@@ -30,15 +31,17 @@ atomic_reduce(clsparseScalarPrivate* pR,
 
     std::string params = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DWG_SIZE=" + std::to_string(wg_size);
-    if (P == FLOAT)
+            + " -DWG_SIZE=" + std::to_string(wg_size)
+            + " -D" + ReduceOperatorTrait<OP>::operation;
+
+    if (FPTYPE == FLOAT)
     {
         std::string options = std::string()
                 + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
                 + " -DATOMIC_FLOAT";
         params.append(options);
     }
-    else if (P == DOUBLE)
+    else if (FPTYPE == DOUBLE)
     {
         std::string options = std::string()
                 + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
@@ -71,4 +74,4 @@ atomic_reduce(clsparseScalarPrivate* pR,
 }
 
 
-#endif //_ATOMIC_REDUCE_HPP_
+#endif //_CLSPARSE_ATOMIC_REDUCE_HPP_

@@ -29,6 +29,21 @@ R"(
 )"
 
 R"(
+VALUE_TYPE operation(VALUE_TYPE A, VALUE_TYPE B)
+{
+#ifdef OP_PLUS
+    return A + B;
+#elif OP_SQR
+    return A + (B*B);
+#elif OP_FABS
+    return A + FABS(B);
+#else
+    return A;
+#endif
+}
+)"
+
+R"(
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 __kernel
 void reduce(const SIZE_TYPE size,
@@ -47,7 +62,7 @@ void reduce(const SIZE_TYPE size,
     VALUE_TYPE sum = 0;
     while(eidx < size)
     {
-        sum += pX[eidx];
+        sum = operation(sum, pX[eidx]);
         eidx += N_THREADS;
     }
 
