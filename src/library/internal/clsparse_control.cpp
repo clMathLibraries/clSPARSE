@@ -3,42 +3,44 @@
 #include "internal/clsparse_internal.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
+#include "loadDynamicLibrary.hpp"
+#include "clsparseTimer.extern.hpp"
 
 #include <iostream>
 
 //get the wavefront size and max work group size
-void collectEnvParams(clsparseControl control)
+void collectEnvParams( clsparseControl control )
 {
-    if(!clsparseInitialized)
+    if( !clsparseInitialized )
     {
         return;
     }
 
     //check opencl elements
-    if (control == nullptr)
+    if( control == nullptr )
     {
         return;
     }
 
     //Query device if necessary;
-    cl::Device device = control->queue.getInfo<CL_QUEUE_DEVICE>();
-    control->max_wg_size = device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>();
+    cl::Device device = control->queue.getInfo<CL_QUEUE_DEVICE>( );
+    control->max_wg_size = device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>( );
 
-    const int wg_size = control->max_wg_size;
+    const size_t wg_size = control->max_wg_size;
 
-    int blocksNum = (1 + wg_size - 1) / wg_size;
-    int globalSize = blocksNum * wg_size;
+    size_t blocksNum = ( 1 + wg_size - 1 ) / wg_size;
+    size_t globalSize = blocksNum * wg_size;
 
-    const std::string params = std::string() +
-            "-DWG_SIZE=" + std::to_string(wg_size);
+    const std::string params = std::string( ) +
+        "-DWG_SIZE=" + std::to_string( wg_size );
 
-    cl::Kernel kernel = KernelCache::get(control->queue,
-                                         "control",
-                                         "control",
-                                         params);
+    cl::Kernel kernel = KernelCache::get( control->queue,
+        "control",
+        "control",
+        params );
 
     control->wavefront_size =
-            kernel.getWorkGroupInfo<CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE>(device);
+        kernel.getWorkGroupInfo<CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE>( device );
 
     control->max_compute_units =
             device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
@@ -48,28 +50,40 @@ void collectEnvParams(clsparseControl control)
 clsparseControl
 clsparseCreateControl( cl_command_queue queue, cl_int *status )
 {
-    clsparseControl control = new _clsparseControl(queue);
+    clsparseControl control = new _clsparseControl( queue );
 
     cl_int err;
-    if (!control)
+    if( !control )
     {
         control = nullptr;
         err = clsparseOutOfHostMemory;
     }
 
     control->event = nullptr;
-//    control->off_alpha = 0;
-//    control->off_beta = 0;
-//    control->off_x = 0;
-//    control->off_y = 0;
-
     control->wavefront_size = 0;
     control->max_wg_size = 0;
     control->async = false;
 
-    collectEnvParams(control);
+    collectEnvParams( control );
 
-    if (status != NULL)
+    //	Discover and load the timer module if present
+    void* timerLibHandle = LoadSharedLibrary( "lib", "clsparseTimer", false );
+    if( timerLibHandle )
+    {
+        //	Timer module discovered and loaded successfully
+        //	Initialize function pointers to call into the shared module
+        // PFCLSPARSETIMER pfclsparseTimer = static_cast<PFCLSPARSETIMER> ( LoadFunctionAddr( timerLibHandle, "clsparseGetTimer" ) );
+        void* funcPtr = LoadFunctionAddr( timerLibHandle, "clsparseGetTimer" );
+        PFCLSPARSETIMER pfclsparseTimer = *static_cast<PFCLSPARSETIMER*>( static_cast<void*>( &funcPtr ) );
+
+        //	Create and initialize our timer class, if the external timer shared library loaded
+        if( pfclsparseTimer )
+        {
+            control->pDeviceTimer = static_cast<clsparseDeviceTimer*> ( pfclsparseTimer( CLSPARSE_GPU ) );
+        }
+    }
+
+    if( status != NULL )
     {
         *status = err;
     }
@@ -78,9 +92,9 @@ clsparseCreateControl( cl_command_queue queue, cl_int *status )
 }
 
 clsparseStatus
-clsparseEnableAsync(clsparseControl control, cl_bool async)
+clsparseEnableAsync( clsparseControl control, cl_bool async )
 {
-    if(control == NULL)
+    if( control == NULL )
     {
         return clsparseInvalidControlObject;
     }
@@ -90,22 +104,22 @@ clsparseEnableAsync(clsparseControl control, cl_bool async)
 }
 
 clsparseStatus
-clsparseReleaseControl(clsparseControl control)
+clsparseReleaseControl( clsparseControl control )
 {
-    if(control == NULL)
+    if( control == NULL )
     {
         return clsparseInvalidControlObject;
     }
 
-//    if(control->event != nullptr)
-//    {
-//        delete control->event;
-//    }
+    //    if(control->event != nullptr)
+    //    {
+    //        delete control->event;
+    //    }
 
-//    control->off_alpha = 0;
-//    control->off_beta = 0;
-//    control->off_x = 0;
-//    control->off_y = 0;
+    //    control->off_alpha = 0;
+    //    control->off_beta = 0;
+    //    control->off_x = 0;
+    //    control->off_y = 0;
 
     control->wavefront_size = 0;
     control->max_wg_size = 0;
@@ -119,36 +133,36 @@ clsparseReleaseControl(clsparseControl control)
 }
 
 clsparseStatus
-clsparseSetupEventWaitList(clsparseControl control,
-                           cl_uint num_events_in_wait_list,
-                           cl_event *event_wait_list)
+clsparseSetupEventWaitList( clsparseControl control,
+cl_uint num_events_in_wait_list,
+cl_event *event_wait_list )
 {
-    if(control == NULL)
+    if( control == NULL )
     {
         return clsparseInvalidControlObject;
     }
 
-    control->event_wait_list.clear();
-    control->event_wait_list.resize(num_events_in_wait_list);
-    for (int i = 0; i < num_events_in_wait_list; i++)
+    control->event_wait_list.clear( );
+    control->event_wait_list.resize( num_events_in_wait_list );
+    for( int i = 0; i < num_events_in_wait_list; i++ )
     {
-        control->event_wait_list[i] = event_wait_list[i];
+        control->event_wait_list[ i ] = event_wait_list[ i ];
     }
-    control->event_wait_list.shrink_to_fit();
+    control->event_wait_list.shrink_to_fit( );
 
     return clsparseSuccess;
 }
 
 clsparseStatus
-clsparseGetEvent(clsparseControl control, cl_event *event)
+clsparseGetEvent( clsparseControl control, cl_event *event )
 {
-    if(control == NULL)
+    if( control == NULL )
     {
         return clsparseInvalidControlObject;
     }
 
     //keeps the event valid on the user side
-    ::clRetainEvent(control->event( ));
+    ::clRetainEvent( control->event( ) );
 
     *event = control->event( );
 

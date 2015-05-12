@@ -73,7 +73,7 @@ public:
 private:
 
     cl::Kernel kernel;
-    int argCounter;
+    cl_uint argCounter;
 
 };
 

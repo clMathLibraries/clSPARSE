@@ -1,4 +1,5 @@
 #include "kernel_wrap.hpp"
+#include "clsparse.error.hpp"
 
 KernelWrap::KernelWrap(cl::Kernel &kernel) : kernel(kernel), argCounter(0)
 {
@@ -16,43 +17,34 @@ cl_int KernelWrap::run(clsparseControl control,
     assert (global[0] > 0);
     assert (global[0] >= local[0]);
 
-
-
     auto& queue = control->queue;
     const auto& eventWaitList = control->event_wait_list;
     cl_int status;
 
-    cl::Event tmp;
-    status = queue.enqueueNDRangeKernel( kernel,
-                                         cl::NullRange,
-                                         global, local,
-                                         &eventWaitList, &tmp );
-    if ( status != CL_SUCCESS)
-    {
+        cl::Event tmp;
+        status = queue.enqueueNDRangeKernel( kernel,
+                                                cl::NullRange,
+                                                global, local,
+                                                &eventWaitList, &tmp );
+        OPENCL_V_THROW( status, "queue.enqueueNDRangeKernel" );
 
-        std::cerr << "clSPARSE kernel execution failure:"
-                  << status
-                  << std::endl;
-        return status;
-    }
-
-    if (control->async)
-    {
-        // Remember the event in our control structure
-        // operator= takes the ownership
-        control->event = tmp;
-        // Prevent the reference count from hitting zero when the temporary goes out of scope
-        //::clRetainEvent( control->event( ) );
-    }
-    else
-    {
-        status = tmp.wait( );
-        if (status != CL_SUCCESS)
+        if( control->pDeviceTimer )
         {
-            std::cerr << "clSPARSE event wait failure: "
-                      << status
-                      << std::endl;
-            return status;
+            control->pDeviceTimer->AddSample( std::vector<cl::Event>{ tmp } );
+    }
+
+        if (control->async)
+        {
+            // Remember the event in our control structure
+            // operator= takes the ownership
+            control->event = tmp;
+            // Prevent the reference count from hitting zero when the temporary goes out of scope
+            //::clRetainEvent( control->event( ) );
+        }
+        else
+        {
+        status = tmp.wait( );
+            OPENCL_V_THROW( status, "tmp.wait" );
         }
     }
 

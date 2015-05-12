@@ -31,10 +31,11 @@ set( clSPARSE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include )
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
-  ${PROJECT_BINARY_DIR}/include
   ${clSPARSE_INCLUDE_DIRS}
   ${clBLAS_INCLUDE_DIRS}
   ${OPENCL_INCLUDE_DIRS}
+  ${PROJECT_BINARY_DIR}/include
+  ${PROJECT_BINARY_DIR}/clsparseTimer
 )
 
 set(ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/source_provider.cpp)
@@ -116,6 +117,7 @@ target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${clBLAS_LIBRARIES} 
 GENERATE_EXPORT_HEADER( clSPARSE )
 
 set_target_properties( clSPARSE PROPERTIES VERSION ${clSPARSE_VERSION} )
+set_target_properties( clSPARSE PROPERTIES SOVERSION ${clSPARSE_SOVERSION} )
 set_target_properties( clSPARSE PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
 # CPack configuration; include the executable into the package
