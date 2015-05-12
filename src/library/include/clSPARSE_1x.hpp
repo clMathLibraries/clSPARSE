@@ -2,6 +2,7 @@
 #ifndef _CL_SPARSE_1x_HPP_
 #define _CL_SPARSE_1x_HPP_
 
+#include <iostream>
 #include <type_traits>
 #include "clSPARSE_1x.h"
 
@@ -30,13 +31,23 @@ class clMemRAII
     pType* clMem;
 
 public:
-    clMemRAII( const cl_command_queue cl_queue, const cl_mem cl_buff ): clMem( nullptr )
+
+    /* cl_owner indicates whether the clMemRIAA class owns provided pointer
+     * if cl_owner = true; The clRetainMemObject method is not called,
+     *                      cl_mem reference counter is not increased,
+     *                      therefore memory will be released when the
+     *                      destructor will be called;
+     * if cl_owner = false; The clRetainMemObject method is called,
+     *                      cl_mem is not deleted in destructor
+    */
+    clMemRAII( const cl_command_queue cl_queue, const cl_mem cl_buff, cl_bool cl_owner = false): clMem( nullptr )
     {
         clQueue = cl_queue;
         clBuff = cl_buff;
 
         ::clRetainCommandQueue( clQueue );
-        ::clRetainMemObject( clBuff );
+        if (!cl_owner)
+            ::clRetainMemObject( clBuff );
     }
 
     pType* clMapMem( cl_bool clBlocking, const cl_map_flags clFlags, const size_t clOff, const size_t clSize )
@@ -58,6 +69,15 @@ public:
 
         cl_int clStatus = ::clEnqueueWriteBuffer( clQueue, clBuff, clBlocking, clOff,
                                                   clSize * sizeof( pType ), hostMem, 0, NULL, NULL );
+    }
+
+    void clAllocateMem (const cl_mem_flags clFlags, const size_t clSize)
+    {
+        cl_context ctx = NULL;
+
+        ::clGetCommandQueueInfo(clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
+        cl_int status = 0;
+        clBuff = ::clCreateBuffer(ctx, clFlags, clSize * sizeof(pType), NULL, &status);
     }
 
     ~clMemRAII( )

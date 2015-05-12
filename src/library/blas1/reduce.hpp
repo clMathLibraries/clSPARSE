@@ -86,22 +86,24 @@ reduce(clsparseScalarPrivate* pR,
         cl::Context context = control->getContext();
 
         //vector for partial sums of X;
+        //partial result
         clsparseVectorPrivate partial;
+        clsparseInitVector(&partial);
+        partial.n = REDUCE_BLOCKS_NUMBER;
 
-        allocateVector<T>(&partial, REDUCE_BLOCK_SIZE, control);
+        //partial will be deleted according to this object lifetime
+        clMemRAII<T> rPartial (control->queue(), partial.values, true);
+        rPartial.clAllocateMem(CL_MEM_READ_WRITE, REDUCE_BLOCKS_NUMBER);
 
         status = global_reduce<T, G_OP>(&partial, pX, REDUCE_BLOCKS_NUMBER,
                                       REDUCE_BLOCK_SIZE, control);
 
         if (status != CL_SUCCESS)
         {
-            releaseVector(&partial, control);
             return clsparseInvalidKernelExecution;
         }
 
         status = atomic_reduce<FPTYPE, F_OP>(pR, &partial, REDUCE_BLOCK_SIZE, control);
-
-        releaseVector(&partial, control);
 
         if (status != CL_SUCCESS)
         {

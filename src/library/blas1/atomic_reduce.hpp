@@ -55,7 +55,8 @@ atomic_reduce(clsparseScalarPrivate* pR,
 
     KernelWrap kWrapper(kernel);
 
-    kWrapper << pR->value << pX->values;
+    kWrapper << pR->value;
+    kWrapper << pX->values;
 
     int blocksNum = (pX->n + wg_size - 1) / wg_size;
     int globalSize = blocksNum * wg_size;

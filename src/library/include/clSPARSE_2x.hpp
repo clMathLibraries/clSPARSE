@@ -27,12 +27,24 @@ class clMemRAII
 {
     cl_command_queue clQueue;
     pType* clMem;
+    cl_bool clOwner;
 
 public:
-    clMemRAII( const cl_command_queue cl_queue, void* cl_malloc ): clMem( nullptr )
+
+    /* cl_owner indicates whether the clMemRIAA class owns provided pointer
+     * if cl_owner = true; The clRetainMemObject method is not called,
+     *                      cl_mem reference counter is not increased,
+     *                      therefore memory will be released when the
+     *                      destructor will be called;
+     * if cl_owner = false; The clRetainMemObject method is called,
+     *                      cl_mem is not deleted in destructor
+    */
+
+    clMemRAII( const cl_command_queue cl_queue, void* cl_malloc, cl_bool cl_owner ): clMem( nullptr )
     {
         clQueue = cl_queue;
         clMem = static_cast< pType* >( cl_malloc );
+        clOwner = cl_owner;
 
         ::clRetainCommandQueue( clQueue );
     }
@@ -60,6 +72,13 @@ public:
     {
         if( clMem )
             ::clEnqueueSVMUnmap( clQueue, clMem, 0, NULL, NULL );
+
+        if(clOwner)
+        {
+            cl_context ctx = nullptr;
+            ::clGetCommandQueueInfo( clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
+            ::clSVMFree(ctx, clMem);
+        }
 
         ::clReleaseCommandQueue( clQueue );
     }

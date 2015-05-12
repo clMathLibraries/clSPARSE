@@ -43,7 +43,10 @@ public:
     inline KernelWrap& operator<<(const cl_mem& val)
     {
         assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>());
-        kernel.setArg(argCounter++, val);
+
+        cl_int status = 0;
+        status = kernel.setArg(argCounter++, val);
+
 
         return *this;
     }

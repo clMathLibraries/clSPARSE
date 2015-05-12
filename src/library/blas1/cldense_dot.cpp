@@ -82,22 +82,23 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
         cl::Context context = control->getContext();
 
         //partial result
-        clsparseVectorPrivate partialDot;
-        allocateVector<T>(&partialDot, REDUCE_BLOCKS_NUMBER, control);
+        clsparseVectorPrivate partial;
+        clsparseInitVector(&partial);
+        partial.n = REDUCE_BLOCKS_NUMBER;
 
-        status = inner_product<T>(&partialDot, pX, pY, size,  REDUCE_BLOCKS_NUMBER,
+        clMemRAII<T> rPartial (control->queue(), partial.values, true);
+        rPartial.clAllocateMem(CL_MEM_READ_WRITE, REDUCE_BLOCKS_NUMBER);
+
+        status = inner_product<T>(&partial, pX, pY, size,  REDUCE_BLOCKS_NUMBER,
                                REDUCE_BLOCK_SIZE, control);
 
         if (status != clsparseSuccess)
         {
-            releaseVector(&partialDot, control);
             return clsparseInvalidKernelExecution;
         }
 
-       status = atomic_reduce<FPTYPE>(pR, &partialDot, REDUCE_BLOCK_SIZE,
+       status = atomic_reduce<FPTYPE>(pR, &partial, REDUCE_BLOCK_SIZE,
                                      control);
-
-        releaseVector(&partialDot, control);
 
         if (status != CL_SUCCESS)
         {
