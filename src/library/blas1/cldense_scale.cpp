@@ -88,7 +88,7 @@ cldenseSscale (clsparseVector* y,
                                     &(control->event_wait_list.front())(),
                                     &control->event( ));
 #else
-        clEnqueueSVMMemFill(control->queue(), pY->values,
+        status = clEnqueueSVMMemFill(control->queue(), pY->values,
                             &pattern, sizeof(cl_float),
                             pY->n * sizeof(cl_float),
                             control->event_wait_list.size(),
