@@ -31,20 +31,23 @@ class clMemRAII
 
 public:
 
-    /* cl_owner indicates whether the clMemRIAA class owns provided pointer
-     * if cl_owner = true; The clRetainMemObject method is not called,
-     *                      cl_mem reference counter is not increased,
-     *                      therefore memory will be released when the
-     *                      destructor will be called;
-     * if cl_owner = false; The clRetainMemObject method is called,
-     *                      cl_mem is not deleted in destructor
-    */
-
-    clMemRAII( const cl_command_queue cl_queue, void* cl_malloc, cl_bool cl_owner ): clMem( nullptr )
+    clMemRAII( const cl_command_queue cl_queue, void* cl_malloc,
+               const size_t cl_size = 0, const cl_svm_mem_flags cl_flags = CL_MEM_READ_WRITE):
+        clMem( nullptr ), clOwner(false)
     {
         clQueue = cl_queue;
         clMem = static_cast< pType* >( cl_malloc );
-        clOwner = cl_owner;
+
+        if(cl_size > 0)
+        {
+            cl_context ctx = NULL;
+
+            ::clGetCommandQueueInfo(clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
+            cl_int status = 0;
+
+            clMem = static_cast< pType* > (clSVMAlloc(ctx, cl_flags, cl_size * sizeof(pType), 0));
+            clOwner = true;
+        }
 
         ::clRetainCommandQueue( clQueue );
     }

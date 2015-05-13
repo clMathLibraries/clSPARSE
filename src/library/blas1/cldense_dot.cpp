@@ -86,8 +86,8 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
         clsparseInitVector(&partial);
         partial.n = REDUCE_BLOCKS_NUMBER;
 
-        clMemRAII<T> rPartial (control->queue(), partial.values, true);
-        rPartial.clAllocateMem(CL_MEM_READ_WRITE, REDUCE_BLOCKS_NUMBER);
+        clMemRAII<T> rPartial (control->queue(), partial.values, partial.n);
+
 
         status = inner_product<T>(&partial, pX, pY, size,  REDUCE_BLOCKS_NUMBER,
                                REDUCE_BLOCK_SIZE, control);

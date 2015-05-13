@@ -32,22 +32,26 @@ class clMemRAII
 
 public:
 
-    /* cl_owner indicates whether the clMemRIAA class owns provided pointer
-     * if cl_owner = true; The clRetainMemObject method is not called,
-     *                      cl_mem reference counter is not increased,
-     *                      therefore memory will be released when the
-     *                      destructor will be called;
-     * if cl_owner = false; The clRetainMemObject method is called,
-     *                      cl_mem is not deleted in destructor
-    */
-    clMemRAII( const cl_command_queue cl_queue, const cl_mem cl_buff, cl_bool cl_owner = false): clMem( nullptr )
+    clMemRAII( const cl_command_queue cl_queue, const cl_mem cl_buff,
+               const size_t cl_size = 0, const cl_mem_flags cl_flags = CL_MEM_READ_WRITE) :
+        clMem( nullptr )
     {
         clQueue = cl_queue;
         clBuff = cl_buff;
 
         ::clRetainCommandQueue( clQueue );
-        if (!cl_owner)
+         if(cl_size > 0)
+         {
+             cl_context ctx = NULL;
+
+             ::clGetCommandQueueInfo(clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
+             cl_int status = 0;
+             clBuff = ::clCreateBuffer(ctx, cl_flags, cl_size * sizeof(pType), NULL, &status);
+         }
+         else
+         {
             ::clRetainMemObject( clBuff );
+         }
     }
 
     pType* clMapMem( cl_bool clBlocking, const cl_map_flags clFlags, const size_t clOff, const size_t clSize )
@@ -71,22 +75,15 @@ public:
                                                   clSize * sizeof( pType ), hostMem, 0, NULL, NULL );
     }
 
-    void clAllocateMem (const cl_mem_flags clFlags, const size_t clSize)
-    {
-        cl_context ctx = NULL;
-
-        ::clGetCommandQueueInfo(clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
-        cl_int status = 0;
-        clBuff = ::clCreateBuffer(ctx, clFlags, clSize * sizeof(pType), NULL, &status);
-    }
-
     ~clMemRAII( )
     {
         if( clMem )
             ::clEnqueueUnmapMemObject( clQueue, clBuff, clMem, 0, NULL, NULL );
 
         ::clReleaseCommandQueue( clQueue );
+
         ::clReleaseMemObject( clBuff );
+
     }
 };
 

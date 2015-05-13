@@ -92,8 +92,8 @@ reduce(clsparseScalarPrivate* pR,
         partial.n = REDUCE_BLOCKS_NUMBER;
 
         //partial will be deleted according to this object lifetime
-        clMemRAII<T> rPartial (control->queue(), partial.values, true);
-        rPartial.clAllocateMem(CL_MEM_READ_WRITE, REDUCE_BLOCKS_NUMBER);
+        clMemRAII<T> rPartial (control->queue(), partial.values, partial.n);
+
 
         status = global_reduce<T, G_OP>(&partial, pX, REDUCE_BLOCKS_NUMBER,
                                       REDUCE_BLOCK_SIZE, control);
@@ -113,10 +113,4 @@ reduce(clsparseScalarPrivate* pR,
 
     return clsparseSuccess;
 }
-
-
-
-
-
-
 #endif //_CLSPARSE_REDUCE_HPP_

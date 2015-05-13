@@ -33,10 +33,27 @@ public:
         argCounter = 0;
     }
 
-    template<typename T>
+    template<typename T,
+             typename std::enable_if<!is_pointer_fundamental<T>::value>::type* = nullptr>
     KernelWrap& operator<< (const T& arg)
     {
-        std::cout << "NOT IMPLEMENTED" << std::endl;
+        //std::cout << "NOT IMPLEMENTED" << std::endl;
+        static_assert(!is_pointer_fundamental<T>::value,
+                      "!is_pointer_fundamental<T>::value>");
+
+        return *this;
+    }
+
+    template<typename T,
+             typename std::enable_if<is_pointer_fundamental<T>::value>::type* = nullptr>
+    KernelWrap& operator<< (const T& arg)
+    {
+        std::cout << "Void* types should be managed here for CL20" << std::endl;
+        assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>());
+
+        int status = clSetKernelArgSVMPointer(kernel(),
+                                              argCounter++, (void *)(&arg));
+
         return *this;
     }
 

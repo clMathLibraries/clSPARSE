@@ -60,8 +60,8 @@ cldenseSaxpy(clsparseVector *y,
      if (*fAlpha == 0) return clsparseSuccess;
 
      //leading dimmension is the shorter lenght
-     cl_ulong y_size = pY->n - pY->offValues;
-     cl_ulong x_size = pX->n - pX->offValues;
+     cl_ulong y_size = pY->n - pY->offset();
+     cl_ulong x_size = pX->n - pX->offset();
 
      cl_ulong size = (x_size >= y_size) ? y_size : x_size;
 
@@ -94,8 +94,8 @@ cldenseDaxpy(clsparseVector *y,
      if (*fAlpha == 0) return clsparseSuccess;
 
      //leading dimmension is the shorter lenght
-     cl_ulong y_size = pY->n - pY->offValues;
-     cl_ulong x_size = pX->n - pX->offValues;
+     cl_ulong y_size = pY->n - pY->offset();
+     cl_ulong x_size = pX->n - pX->offset();
 
      cl_ulong size = (x_size >= y_size) ? y_size : x_size;
 
