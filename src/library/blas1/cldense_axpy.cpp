@@ -1,6 +1,7 @@
 #include "include/clSPARSE-private.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
+#include "internal/clsparse_internal.hpp"
 
 clsparseStatus
 axpy(cl_ulong size,
@@ -46,6 +47,17 @@ cldenseSaxpy(clsparseVector *y,
               const clsparseVector *x,
               const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
 
     clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
@@ -81,6 +93,17 @@ cldenseDaxpy(clsparseVector *y,
               const clsparseScalar *alpha, const clsparseVector *x,
               const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
     clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );

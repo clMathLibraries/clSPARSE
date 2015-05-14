@@ -4,7 +4,6 @@
 
 #include "internal/clsparse_validate.hpp"
 #include "internal/clsparse_internal.hpp"
-#include "spmv/csrmv_vector/csrmv_vector_impl.hpp"
 
 // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION >= 200 )
@@ -13,6 +12,56 @@
 #include "include/clSPARSE_1x.hpp"
 #endif
 
+clsparseStatus
+csrmv (const clsparseScalarPrivate* pAlpha,
+       const clsparseCsrMatrixPrivate* pMatx,
+       const clsparseVectorPrivate* pX,
+       const clsparseScalarPrivate* pBeta,
+       clsparseVectorPrivate* pY,
+       const std::string& params,
+       const cl_uint group_size,
+       const cl_uint subwave_size,
+       clsparseControl control)
+{
+    cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "csrmv_general",
+                                         "csrmv_general",
+                                         params);
+
+    KernelWrap kWrapper(kernel);
+
+    kWrapper << pMatx->m
+             << pAlpha->value << pAlpha->offset()
+             << pMatx->rowOffsets
+             << pMatx->colIndices
+             << pMatx->values
+             << pX->values << pX->offset()
+             << pBeta->value << pBeta->offset()
+             << pY->values << pY->offset();
+
+    // subwave takes care of each row in matrix;
+    // predicted number of subwaves to be executed;
+    cl_uint predicted = subwave_size * pMatx->m;
+
+    // if NVIDIA is used it does not allow to run the group size
+    // which is not a multiplication of group_size. Don't know if that
+    // have an impact on performance
+    cl_uint global_work_size =
+            group_size* ((predicted + group_size - 1 ) / group_size);
+    cl::NDRange local(group_size);
+    //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
+    cl::NDRange global(global_work_size > local[0] ? global_work_size : local[0]);
+
+    cl_int status = kWrapper.run(control, global, local);
+
+    if (status != CL_SUCCESS)
+    {
+        return clsparseInvalidKernelExecution;
+    }
+
+    return clsparseSuccess;
+
+}
 
 clsparseStatus
 clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
@@ -109,104 +158,11 @@ clsparseScsrmv_vector (const clsparseScalarPrivate* pAlpha,
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
 
-    //check alpha and beta to distinct kernel version
-    cl_float h_alpha;
-    cl_float h_beta;
-
-#if( BUILD_CLVERSION >= 200 )
-    int svm_map_status = clEnqueueSVMMap(control->queue(), CL_TRUE, CL_MAP_READ,
-                              pAlpha->value, sizeof(cl_float),
-                              0, NULL, NULL);
-    if(svm_map_status != CL_SUCCESS)
-    {
-        return clsparseInvalidValue;
-    }
-
-    h_alpha = *(cl_float*)pAlpha->value;
-
-    svm_map_status = clEnqueueSVMUnmap(control->queue(), pAlpha->value,
-                                       0, NULL, NULL);
-    if(svm_map_status != CL_SUCCESS)
-    {
-        return clsparseInvalidValue;
-    }
-#else
-    void* t_alpha = clEnqueueMapBuffer(control->queue(), pAlpha->value, true, CL_MAP_READ,
-                                       0, sizeof(cl_float), 0, NULL, NULL, NULL);
-    h_alpha = *(cl_float*)t_alpha;
-    clEnqueueUnmapMemObject(control->queue(), pAlpha->value, t_alpha, 0, NULL, NULL);
-
-    void* t_beta = clEnqueueMapBuffer(control->queue(), pBeta->value, true, CL_MAP_READ,
-                                      0, sizeof(cl_float), 0, NULL, NULL, NULL);
-    h_beta = *(cl_float*)t_beta;
-    clEnqueueUnmapMemObject(control->queue(), pBeta->value, t_beta, 0, NULL, NULL);
-#endif
-
-#ifndef NDEBUG
-    std::cout << "h_alpha = " << h_alpha << " h_beta = " << h_beta << std::endl;
-#endif
-
-
-    // this functionallity can be implemented in one kernel by using ifdefs
-    // passed in parmeters but this way i found more clear;
-    if(h_alpha == 1.0f && h_beta == 0.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha = 1, beta = 0\n\n");
-#endif
-        //y = A*x
-        return csrmv_a1b0(pMatx, pX, pY,
-                          params, group_size, subwave_size, control);
-    }
-    else if( h_alpha == 0.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha = 0, (clsparseSscale)\n\n");
-#endif
-        // y = b*y;
-        return cldenseSscale(pY, pBeta, control);
-    }
-
-    else if(h_beta == 0.0)
-    {
-#ifndef NDEBUG
-        printf("\n\nalpha =/= 0, beta = 0\n\n");
-#endif
-        //y = alpha * A * x
-        return csrmv_b0(pAlpha, pMatx, pX, pY,
-                        params, group_size, subwave_size, control);
-    }
-
-    else if (h_alpha == 1.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha = 1.0, beta =/= 0.0\n\n");
-#endif
-        //y = A*x + b*y
-        return csrmv_a1(pMatx, pX, pBeta, pY,
-                        params, group_size, subwave_size, control);
-    }
-
-    else if (h_beta == 1.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha =/= 0, beta = 1.0\n\n");
-#endif
-        //y = alpha * A * x + y;
-        return csrmv_b1(pAlpha, pMatx, pX, pY,
-                        params, group_size, subwave_size, control);
-    }
-
-    else {
-#ifndef NDEBUG
-        printf("\n\talpha =/= 0.0, 1.0, beta =/= 0.0, 1.0\n\n");
-#endif
-        //y = alpha * A * x + beta * y;
-        return csrmv(pAlpha, pMatx, pX, pBeta, pY,
+    return csrmv(pAlpha, pMatx, pX, pBeta, pY,
                      params, group_size, subwave_size, control);
-    }
 
-    return clsparseNotImplemented;
+
+
 }
 
 
@@ -277,7 +233,7 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
 
     cl_uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
     cl_uint wave_size = control->wavefront_size;
-    cl_uint group_size = wave_size * 4;    // 256 gives best performance!
+    cl_uint group_size = 256;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
@@ -301,104 +257,10 @@ clsparseDcsrmv_vector(const clsparseScalarPrivate* pAlpha,
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
 
-    /*
-     * TODO: take care of the offsets for scalars !!!
-     */
-    //check alpha and beta to distinct kernel version
-    cl_double h_alpha;
-    cl_double h_beta;
+    //y = alpha * A * x + beta * y;
+     return csrmv(pAlpha, pMatx, pX, pBeta, pY,
+                  params, group_size, subwave_size, control);
 
-#if( BUILD_CLVERSION >= 200 )
-    int svm_map_status = clEnqueueSVMMap(control->queue(), CL_TRUE, CL_MAP_READ,
-                              pAlpha->value, sizeof(cl_double),
-                              0, NULL, NULL);
-    if(svm_map_status != CL_SUCCESS)
-    {
-        return clsparseInvalidValue;
-    }
-
-    h_alpha = *(cl_double*)pAlpha->value;
-
-    svm_map_status = clEnqueueSVMUnmap(control->queue(), pAlpha->value,
-                                       0, NULL, NULL);
-    if(svm_map_status != CL_SUCCESS)
-    {
-        return clsparseInvalidValue;
-    }
-#else
-    void* t_alpha = clEnqueueMapBuffer(control->queue(), pAlpha->value, true, CL_MAP_READ,
-                                       0, sizeof(cl_double), 0, NULL, NULL, NULL);
-    h_alpha = *(cl_double*)t_alpha;
-
-    clEnqueueUnmapMemObject(control->queue(), pAlpha->value, t_alpha, 0, NULL, NULL);
-
-    void* t_beta = clEnqueueMapBuffer(control->queue(), pBeta->value, true, CL_MAP_READ,
-                                      0, sizeof(cl_double), 0, NULL, NULL, NULL);
-    h_beta = *(cl_double*)t_beta;
-    clEnqueueUnmapMemObject(control->queue(), pBeta->value, t_beta, 0, NULL, NULL);
-#endif
-
-#ifndef NDEBUG
-    std::cout << "h_alpha = " << h_alpha << " h_beta = " << h_beta << std::endl;
-#endif
-    // this functionallity can be implemented in one kernel by using ifdefs
-    // passed in parmeters but this way i found more clear;
-    if(h_alpha == 1.0 && h_beta == 0.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha = 1, beta = 0\n\n");
-#endif
-        //y = A*x
-        return csrmv_a1b0(pMatx, pX, pY,
-                          params, group_size, subwave_size, control);
-    }
-    else if(h_alpha == 0.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha = 0, (clsparseDscale)\n\n");
-#endif
-        return cldenseDscale(pY, pBeta, control);
-    }
-
-    else if(h_beta == 0.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha =/= 0, beta = 0\n\n");
-#endif
-        //y = alpha * A * x;
-        return csrmv_b0(pAlpha, pMatx, pX, pY,
-                        params, group_size, subwave_size, control);
-    }
-
-    else if (h_alpha == 1.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha = 1.0, beta =/= 0.0\n\n");
-#endif
-        //y = A*x + b*y
-        return csrmv_a1(pMatx, pX, pBeta, pY,
-                        params, group_size, subwave_size, control);
-    }
-
-    else if (h_beta == 1.0)
-    {
-#ifndef NDEBUG
-        printf("\n\talpha =/= 0, beta = 1.0\n\n");
-#endif
-        //y = alpha * A * x + y;
-        return csrmv_b1(pAlpha, pMatx, pX, pY,
-                        params, group_size, subwave_size, control);
-    }
-    else {
-#ifndef NDEBUG
-        printf("\n\talpha =/= 0.0, 1.0, beta =/= 0.0, 1.0\n\n");
-#endif
-        //y = alpha * A * x + beta * y;
-        return csrmv(pAlpha, pMatx, pX, pBeta, pY,
-                     params, group_size, subwave_size, control);
-    }
-
-    return clsparseNotImplemented;
 }
 
 #endif //_CLSPARSE_CSRMV_VECTOR_HPP_
