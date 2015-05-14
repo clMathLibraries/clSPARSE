@@ -218,6 +218,23 @@ clsparseDcsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
                  cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
                  clsparseControl control);
 
+//COO <--> CSR
+CLSPARSE_EXPORT clsparseStatus
+clsparseScoo2csr_GPU(clsparseCooMatrix* coo,
+                     clsparseCsrMatrix* csr,
+                     clsparseControl control);
+
+//COO <--> CSR
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcoo2csr_GPU(clsparseCooMatrix* coo,
+                     clsparseCsrMatrix* csr,
+                     clsparseControl control);
+
+//DENSE <--> CSR
+CLSPARSE_EXPORT clsparseStatus
+clsparseSdense2csr(clsparseCsrMatrix* csr,
+                   clsparseDenseMatrix* A,
+                   clsparseControl control);
 
 
 #ifdef __cplusplus
