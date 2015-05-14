@@ -351,6 +351,55 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     CLSPARSE_EXPORT clsparseStatus
         clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control );
 
+clsparseDcoomv(const clsparseScalar* alpha,
+               const clsparseCooMatrix* matx,
+               const clsparseVector* x,
+               const clsparseScalar* beta,
+               clsparseVector* y,
+               const clsparseControl control);
+
+//CSR <--> Dense transformation routines
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsr2dense(const clsparseCsrMatrix* csr,
+                   clsparseDenseMatrix* A,
+                   const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcsr2dense(const clsparseCsrMatrix* csr,
+                   clsparseDenseMatrix* A,
+                   clsparseControl control);
+
+//CSR <--> COO transformation routines
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
+                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
+                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
+                 clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
+                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
+                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
+                 clsparseControl control);
+
+//COO <--> CSR
+CLSPARSE_EXPORT clsparseStatus
+clsparseScoo2csr_GPU(clsparseCooMatrix* coo,
+                     clsparseCsrMatrix* csr,
+                     clsparseControl control);
+
+//COO <--> CSR
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcoo2csr_GPU(clsparseCooMatrix* coo,
+                     clsparseCsrMatrix* csr,
+                     clsparseControl control);
+
+//DENSE <--> CSR
+CLSPARSE_EXPORT clsparseStatus
+clsparseSdense2csr(clsparseCsrMatrix* csr,
+                   clsparseDenseMatrix* A,
+                   clsparseControl control);
+
 
 #ifdef __cplusplus
 }      // extern C
