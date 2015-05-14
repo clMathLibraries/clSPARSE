@@ -38,20 +38,14 @@ reduce_by_key(
               " -DKERNEL0WORKGROUPSIZE=" + std::to_string(kernel0_WgSize)
             + " -DKERNEL1WORKGROUPSIZE=" + std::to_string(kernel1_WgSize)
             + " -DKERNEL2WORKGROUPSIZE=" + std::to_string(kernel2_WgSize);
-	
-    //int computeUnits     = ctl.getDevice( ).getInfo< CL_DEVICE_MAX_COMPUTE_UNITS >( );
  
     cl::Context context = control->getContext();
     std::vector<cl::Device> dev = context.getInfo<CL_CONTEXT_DEVICES>(); 
     int computeUnits  = dev[0].getInfo< CL_DEVICE_MAX_COMPUTE_UNITS >( );
     int wgPerComputeUnit = dev[0].getInfo< CL_DEVICE_MAX_WORK_GROUP_SIZE >( );
 
-    //int wgPerComputeUnit =  ctl.getWGPerComputeUnit( );
 
     int resultCnt = computeUnits * wgPerComputeUnit;
-
-    //  Ceiling function to bump the size of input to the next whole wavefront size
-    //cl_uint numElements = static_cast< cl_uint >( std::distance( keys_first, keys_last ) );
     cl_uint numElements = keys_last - keys_first + 1;
 	
     size_t sizeInputBuff = numElements;
@@ -63,7 +57,6 @@ reduce_by_key(
     }
     cl_uint numWorkGroupsK0 = static_cast< cl_uint >( sizeInputBuff / kernel0_WgSize );
 
-    //  Ceiling function to bump the size of the sum array to the next whole wavefront size
     size_t sizeScanBuff = numWorkGroupsK0;
     modWgSize = (sizeScanBuff & (kernel0_WgSize-1));
     if( modWgSize )
@@ -72,9 +65,6 @@ reduce_by_key(
         sizeScanBuff += kernel0_WgSize;
     }
 
-    // Create buffer wrappers so we can access the host functors, for read or writing in the kernel
-    //device_vector< int > tempArray( numElements, 0, CL_MEM_READ_WRITE, false, ctl);
-    //::cl::Buffer tempArrayVec = tempArray.begin( ).base().getContainer().getBuffer();
     cl_mem tempArrayVec = clCreateBuffer(context(),CL_MEM_READ_WRITE, (numElements)*sizeof(int), NULL, NULL );
 
     /**********************************************************************************
@@ -128,8 +118,6 @@ reduce_by_key(
     cl::Kernel kernel1 = KernelCache::get(control->queue,"reduce_by_key", "perBlockScanByKey", params);
 
     KernelWrap kWrapper1(kernel1);
-
-    //cl_uint workPerThread = static_cast< cl_uint >( no_workgrs % kernel1_WgSize?((no_workgrs/kernel1_WgSize)+1):(no_workgrs/kernel1_WgSize) );
 
     kWrapper1 << tempArrayVec
 	      << values_input

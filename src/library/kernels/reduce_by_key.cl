@@ -11,9 +11,6 @@ __kernel void OffsetCalculation(
     const uint vecSize
     )
 {
-
-    //keys.init( ikeys );
-
     size_t gloId = get_global_id( 0 );
     size_t groId = get_group_id( 0 );
     size_t locId = get_local_id( 0 );
@@ -48,7 +45,7 @@ __kernel void perBlockScanByKey(
     __global int *valBuffer)
 {
 
-    __local int ldsKeys[256];
+    __local int ldsKeys[256]; //make a parameter
     __local int ldsVals[256];
 
     size_t gloId = get_global_id( 0 );
@@ -284,7 +281,7 @@ __kernel void keyValueMapping(
         ikeys_output [newkeys [ gloId ]] = ikeys[ gloId];
         ivals_output[ newkeys [ gloId ]] = sum;
     }
-    //printf("keys_output %d vals_output %d newkeys [ gloId ]: %d\n", keys_output [newkeys [ gloId ]], vals_output[ newkeys [ gloId ]], newkeys [ gloId ]);
+
     if( gloId == (vecSize-1) )
     {
         ikeys_output[ count_number_of_sections - 1 ] = ikeys[ gloId ]; //Copying the last key directly. Works either ways

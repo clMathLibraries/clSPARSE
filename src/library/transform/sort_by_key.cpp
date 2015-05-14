@@ -23,11 +23,8 @@ radix_sort_by_key(int keys_first,
 
     const int RADICES = (1 << RADIX); //Values handeled by each work-item?
 
-    //int orig_szElements = static_cast<int>(std::distance(keys_first, keys_last));
     int orig_szElements = keys_last - keys_first + 1; 
     int szElements = orig_szElements;
-
-    //place holder
 
     int kernel0_WgSize = 256;
     int kernel1_WgSize = 256;
@@ -138,7 +135,7 @@ radix_sort_by_key(int keys_first,
         KernelWrap kWrapper0(kernel0);
         KernelWrap kWrapper2(kernel2);
         KernelWrap kWrapper3(kernel3);   
-       //Launch Kernel
+        //Launch Kernel
         cdata.m_startBit = bits;
         //Histogram Kernel
         if(swap == 0)

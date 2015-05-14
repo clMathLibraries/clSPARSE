@@ -39,8 +39,6 @@ scan( int first,
 	/**********************************************************************************
 	 * Round Up Number of Elements
 	 *********************************************************************************/
-	//  Ceiling function to bump the size of input to the next whole wavefront size
-	//cl_uint numElements = static_cast< cl_uint >( std::distance( first, last ) );
 	cl_uint  numElements = last - first + 1; 
 	
 	//cl_uint computeUnits = ctrl.getDevice().getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
@@ -59,7 +57,6 @@ scan( int first,
 	}
 
 	unsigned int no_workgrs = numElements % load_per_wg?((numElements/load_per_wg)+1):(numElements/load_per_wg);
-	//control::buffPointer preSumArray = ctrl.acquireBuffer( (no_workgrs)*sizeof( iType ) );
 	
         cl_mem preSumArray = clCreateBuffer(context(),CL_MEM_READ_WRITE, (no_workgrs)*sizeof(int), NULL, NULL );
 	
@@ -129,4 +126,4 @@ scan( int first,
 	
         return clsparseSuccess;
 
-}   //end of inclusive_scan_enqueue( )
+}   //end 

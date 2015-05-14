@@ -53,7 +53,7 @@ clsparse_coo2csr_internal(clsparseCooMatrix* coo,
                                pCoo->rowIndices,
                                pCoo->colIndices,
                                pCoo->values,
-                               float_type, //float
+                               float_type, 
                                control);
 
     if(status != clsparseSuccess)
@@ -137,6 +137,7 @@ clsparse_coo2csr_internal(clsparseCooMatrix* coo,
                         0,
                         NULL,
                         NULL);
+
     int f_size = (float_type==0)? sizeof(cl_float):sizeof(cl_double); //todo make a template
 
     clEnqueueCopyBuffer(control->queue(),

@@ -20,7 +20,7 @@ __kernel void perBlockAddition(
 	size_t groId = get_group_id( 0 );
 	size_t locId = get_local_id( 0 );
 	size_t wgSize = get_local_size( 0 );
-        __local int lds[256];
+        __local int lds[256]; //make a parameter
 
 	int scanResult;
 	const uint input_offset = groId * load_per_wg + locId;
@@ -102,7 +102,7 @@ __kernel void intraBlockInclusiveScan(
 	size_t locId = get_local_id( 0 );
 	size_t wgSize = get_local_size( 0 );
 
-        __local int lds[256];
+        __local int lds[256];//make a parameter
 	uint mapId  = gloId * workPerThread;
 	// do offset of zero manually
 	uint offset;
@@ -200,7 +200,7 @@ __kernel void perBlockInclusiveScan(
 	size_t locId = get_local_id( 0 );
 	size_t wgSize = get_local_size( 0 )  ;
 
-        __local int lds[256];
+        __local int lds[256];//make a parameter
 
 	const uint input_offset = groId * load_per_wg + locId;
 
