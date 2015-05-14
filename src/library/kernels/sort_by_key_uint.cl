@@ -418,7 +418,7 @@ void sort4BitsKeyValueDescending(u32 sortData[4],  int sortVal[4], const int sta
         }
     }
 }
-
+//do we need descending
 __kernel
 void permuteByKeyDescTemplate( __global const u32* restrict gKeys, 
                                __global const int* restrict gValues, 

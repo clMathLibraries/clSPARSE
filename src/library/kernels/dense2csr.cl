@@ -22,7 +22,7 @@ void process_scaninput ( int total,
 			__global  int *scan_input )
 {
 
-    int tid   = get_global_id(0);         // global workitem id
+    int tid   = get_global_id(0); 
     if (tid >= total)
         return;
 	

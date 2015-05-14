@@ -63,8 +63,6 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
              << pA->values
 	     << scan_input;
 
-
-    //if(run_status != CL_SUCCESS) { fprintf(stderr, "ERROR: read %d\n", run_status);}
     cl_uint workgroup_size   = 	256;		 
     cl_uint global_work_size = ((pA->m * pA->n) % workgroup_size == 0)? (pA->m * pA->n) :  (pA->m * pA->n) / workgroup_size * workgroup_size + workgroup_size;
     if (pA->m * pA->n < workgroup_size) global_work_size = workgroup_size;
@@ -93,7 +91,7 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
                                      0);	
 
     if(run_status != CL_SUCCESS) { fprintf(stderr, "ERROR: read %d\n", run_status);}
-    //temporarily on GPU
+    //TODO: temporarily on GPU
     int nnz = 0;
     for(int i = 0; i < pA->m * pA->n; i++)
         nnz += sum_temp[i];

@@ -42,6 +42,8 @@ set( TESTS_CPP
   test_solver_cg
   test_solver_bicgStab
   test_csrmm
+  test_clsparse_coo2csr
+  test_clsparse_dense2csr
 )
 
 set( TESTS_C

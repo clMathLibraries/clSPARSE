@@ -11,7 +11,6 @@ R"(
 
 #define CHECK_BOUNDARY
 
-
 uint scanlMemPrivData(uint val, __local uint* lmem, int exclusive)
 {
     // Set first half of local memory to zero to make room for scanning
@@ -48,7 +47,7 @@ scanInstantiated(__global uint * isums,
     
     int last_thread = (get_local_id(0) < n &&
                       (get_local_id(0)+1) == n) ? 1 : 0;
-    //printf("top_scan n = %d\n", n);
+    
     for (int d = 0; d < 16; d++)
     {
         uint val = 0;
@@ -78,12 +77,11 @@ __kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 void
 histogramAscInstantiated(__global const uint * in, 
-       __global uint * isums, 
-//       int4  cb)
-       int m_n,
-	   int m_nWGs, 
-	   int m_startBit,
-	   int m_nBlocksPerWG) 
+                         __global uint * isums, 
+                                  int m_n,
+	                          int m_nWGs, 
+	                          int m_startBit,
+	                          int m_nBlocksPerWG) 
 {
 
     __local uint lmem[WG_SIZE*RADICES];
@@ -145,11 +143,11 @@ __kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 void
 histogramSignedAscInstantiated(__global const uint * in, 
-       __global uint * isums, 
-        int m_n,
-           int m_nWGs,
-           int m_startBit,
-           int m_nBlocksPerWG)
+                               __global uint * isums, 
+                                         int m_n,
+                                         int m_nWGs,
+                                         int m_startBit,
+                                         int m_nBlocksPerWG)
  
 {
 

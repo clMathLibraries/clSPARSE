@@ -61,6 +61,13 @@ set( clSPARSE.source.cl
   kernels/atomic_reduce.cl
   kernels/elementwise_transform.cl
   kernels/matrix_utils.cl
+  kernels/scan_kernels.cl
+  kernels/reduce_by_key.cl
+  kernels/sort_by_key_common.cl
+  kernels/sort_by_key_int.cl
+  kernels/sort_by_key_uint.cl
+  kernels/prescan_scatter.cl
+  kernels/dense2csr.cl
 )
 
 set( clSPARSE.source.cpp
@@ -80,6 +87,11 @@ set( clSPARSE.source.transform
   transform/clsparse_csr2dense.cpp
   transform/clsparse_coo2csr.cpp
   transform/clsparse_csr2coo.cpp
+  transform/scan.cpp
+  transform/reduce_by_key.cpp
+  transform/sort_by_key.cpp
+  transform/clsparse_coo2csr_GPU.cpp
+  transform/clsparse_dense2csr.cpp
 )
 
 set( clSPARSE.source.blas1
@@ -170,6 +182,11 @@ set( clSPARSE.Headers.internal
   internal/data_types/reference_base.hpp
   internal/data_types/iterator-base.hpp
   internal/computeRowBlocks.hpp
+  spmv/csrmv_vector/csrmv_vector.hpp
+  spmv/csrmv_vector/csrmv_vector_impl.hpp
+  spmv/csrmv_adaptive/csrmv_adaptive.hpp
+  scale/clsparse_scale.hpp
+  transform/transform_kernels.h
   ${ocl_kernels_file_name}
 )
 
