@@ -32,10 +32,10 @@ class clMemRAII
 
 public:
 
-    clMemRAII() : clQueue(nullptr), clBuff(nullptr), clMem(nullptr)
-    {
+//    clMemRAII() : clQueue(nullptr), clBuff(nullptr), clMem(nullptr)
+//    {
 
-    }
+//    }
 
     clMemRAII( const cl_command_queue cl_queue, const cl_mem cl_buff,
                const size_t cl_size = 0, const cl_mem_flags cl_flags = CL_MEM_READ_WRITE) :
@@ -55,6 +55,29 @@ public:
          }
          else
          {
+             ::clRetainMemObject( clBuff );
+         }
+    }
+
+    clMemRAII( const cl_command_queue cl_queue, cl_mem* cl_buff,
+               const size_t cl_size = 0, const cl_mem_flags cl_flags = CL_MEM_READ_WRITE) :
+        clMem( nullptr )
+    {
+        clQueue = cl_queue;
+        clBuff = *cl_buff;
+
+        ::clRetainCommandQueue( clQueue );
+         if(cl_size > 0)
+         {
+             cl_context ctx = NULL;
+
+             ::clGetCommandQueueInfo(clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
+             cl_int status = 0;
+             clBuff = ::clCreateBuffer(ctx, cl_flags, cl_size * sizeof(pType), NULL, &status);
+             *cl_buff = clBuff;
+         }
+         else
+         {
             ::clRetainMemObject( clBuff );
          }
     }
@@ -64,6 +87,8 @@ public:
         // Right now, we don't support returning an event to wait on
         clBlocking = CL_TRUE;
         cl_int clStatus = 0;
+
+        cl_int status;
 
         clMem = static_cast< pType* >( ::clEnqueueMapBuffer( clQueue, clBuff, clBlocking, clFlags, clOff, 
             clSize * sizeof( pType ), 0, NULL, NULL, &clStatus ) );
@@ -88,7 +113,6 @@ public:
         ::clReleaseCommandQueue( clQueue );
 
         ::clReleaseMemObject( clBuff );
-
     }
 };
 

@@ -104,7 +104,7 @@ reduce(clsparseScalarPrivate* pR,
         partial.n = REDUCE_BLOCKS_NUMBER;
 
         //partial will be deleted according to this object lifetime
-        clMemRAII<T> rPartial (control->queue(), partial.values, partial.n);
+        clMemRAII<T> rPartial (control->queue(), &partial.values, partial.n);
 
 
         status = global_reduce<T, G_OP>(&partial, pX, REDUCE_BLOCKS_NUMBER,

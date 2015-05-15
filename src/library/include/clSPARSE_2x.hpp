@@ -31,6 +31,30 @@ class clMemRAII
 
 public:
 
+    //temporary solution for situations when clMemRaII is allocating buffer,
+    // bug should not release it when calling the destructor.
+    // ProperFIX: write operator=(const clMemRAII&)
+    clMemRAII( const cl_command_queue cl_queue, void** cl_malloc,
+               const size_t cl_size = 0, const cl_svm_mem_flags cl_flags = CL_MEM_READ_WRITE):
+        clMem( nullptr ), clOwner(false)
+    {
+        clQueue = cl_queue;
+        clMem = static_cast< pType* >( *cl_malloc );
+
+        if(cl_size > 0)
+        {
+            cl_context ctx = NULL;
+
+            ::clGetCommandQueueInfo(clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
+            cl_int status = 0;
+
+            clMem = static_cast< pType* > (clSVMAlloc(ctx, cl_flags, cl_size * sizeof(pType), 0));
+            *cl_malloc = clMem;
+        }
+
+        ::clRetainCommandQueue( clQueue );
+    }
+
     clMemRAII( const cl_command_queue cl_queue, void* cl_malloc,
                const size_t cl_size = 0, const cl_svm_mem_flags cl_flags = CL_MEM_READ_WRITE):
         clMem( nullptr ), clOwner(false)

@@ -67,6 +67,8 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
         return clsparseInvalidControlObject;
     }
 
+    cl_int status;
+
     init_scalar(pR, (T)0, control);
 
     // with REDUCE_BLOCKS_NUMBER = 256 final reduction can be performed
@@ -87,7 +89,6 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
 
     cl_ulong size = xSize;
 
-    cl_int status;
 
     if (size > 0)
     {
@@ -98,8 +99,7 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
         clsparseInitVector(&partial);
         partial.n = REDUCE_BLOCKS_NUMBER;
 
-        clMemRAII<T> rPartial (control->queue(), partial.values, partial.n);
-
+        clMemRAII<T> rPartial (control->queue(), &partial.values, partial.n);
 
         status = inner_product<T>(&partial, pX, pY, size,  REDUCE_BLOCKS_NUMBER,
                                REDUCE_BLOCK_SIZE, control);
@@ -117,6 +117,7 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
             return clsparseInvalidKernelExecution;
         }
     }
+
     return clsparseSuccess;
 
 }

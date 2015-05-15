@@ -7,9 +7,8 @@
 
 #include "solver_control.hpp"
 
-
 clSParseSolverControl
-clsparseCreateSolverControl(cl_uint nIters, PRECONDITIONER precond,
+clsparseCreateSolverControl(cl_int nIters, PRECONDITIONER precond,
                             cl_double relTol, cl_double absTol)
 {
     clSParseSolverControl solver_control = new _solverControl();
@@ -37,8 +36,14 @@ clsparseReleaseSolverControl(clSParseSolverControl solverControl)
         return clsparseInvalidSolverControlObject;
     }
 
+    solverControl->absoluteTolerance = -1;
+    solverControl->relativeTolerance = -1;
+    solverControl->nIters = -1;
+    solverControl->preconditioner = VOID;
+
     delete solverControl;
 
+    solverControl = nullptr;
     return clsparseSuccess;
 }
 

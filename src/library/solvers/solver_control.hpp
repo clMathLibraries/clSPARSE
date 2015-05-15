@@ -27,7 +27,7 @@ struct _solverControl
     }
 
     // number of solver iterations
-    cl_uint nIters;
+    cl_int nIters;
 
     // preconditioner type
     PRECONDITIONER preconditioner;

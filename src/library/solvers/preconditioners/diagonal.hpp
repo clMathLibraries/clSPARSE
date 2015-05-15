@@ -7,7 +7,7 @@
 #include "preconditioner.hpp"
 
 #include "blas1/elementwise_transform.hpp"
-
+#include "preconditioner_utils.hpp"
 #include <memory>
 
 template<typename T>
@@ -22,12 +22,41 @@ public:
         clsparseInitVector(&invDiag_A);
         invDiag_A.n = size;
 
-        //r_invDiag_A owns the invDiag so it should release this mem in destructor;
-        r_invDiag_A = clMemRAII<T>(control->queue(),
-                                  invDiag_A.values, invDiag_A.n,
-                                  CL_MEM_READ_WRITE);
+        cl_int status;
 
-        //extract inverse diagonal from A;
+        clMemRAII<T> r_invDiag_A (control->queue(),
+                                  &invDiag_A.values, invDiag_A.n,
+                                                CL_MEM_READ_WRITE);
+
+        // I dont want to clMemRAII release this object in constructor
+        // but the problem will be in openCL 20
+        // write operator= for clMemRAII then extend this class with field
+        // of this type which will manage the invDiag_A.
+#if (BUILD_CLVERSION < 200)
+        ::clRetainMemObject(invDiag_A.values);
+#endif
+
+        if( status != CL_SUCCESS )
+        {
+            std::cout << "Problem with creating invDiag buffer" << std::endl;
+        }
+        status = extract_diagonal<T, false>(&invDiag_A, A, control);
+
+        if( status != CL_SUCCESS )
+        {
+            std::cout << "Invalid extract_diagonal kernel execution " << std::endl;
+        }
+//        else
+//        {
+//            //clMemRAII<T> rData (control->queue(), invDiag_A.values);
+//            T* data = r_invDiag_A.clMapMem(CL_TRUE, CL_MAP_READ, invDiag_A.offset(), invDiag_A.n);
+
+//            for (int i = 0; i < invDiag_A.n; i++)
+//            {
+//                std::cout << "i = " << i << " " << data[i] << std::endl;
+//            }
+//            std::cout << std::endl;
+//        }
 
     }
 
@@ -40,10 +69,16 @@ public:
                 elementwise_transform<T, MULTIPLY>(y, x, &invDiag_A, control);
     }
 
+    ~Diagonal()
+    {
+        ::clReleaseMemObject(invDiag_A.values);
+        // return to init state;
+        clsparseInitVector(&invDiag_A);
+    }
+
 private:
     //inverse diagonal values of matrix A;
     clsparseVectorPrivate invDiag_A;
-    clMemRAII<T> r_invDiag_A;
 };
 
 template<typename T>
