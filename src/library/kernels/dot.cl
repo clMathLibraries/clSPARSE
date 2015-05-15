@@ -29,26 +29,12 @@ R"(
 )"
 
 R"(
-VALUE_TYPE operation(VALUE_TYPE A, VALUE_TYPE B)
-{
-#ifdef OP_PLUS
-    return A + B;
-#elif OP_SQR
-    return A + (B*B);
-#elif OP_FABS
-    return A + fabs(B);
-#else
-    return A;
-#endif
-}
-)"
-
-R"(
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 __kernel
-void reduce(const SIZE_TYPE size,
-          __global const VALUE_TYPE* pX,
-          __global VALUE_TYPE* pSum)
+void inner_product(const SIZE_TYPE size,
+            __global VALUE_TYPE* pSum,
+            __global const VALUE_TYPE* pX,
+            __global const VALUE_TYPE* pY)
 {
     __local VALUE_TYPE buf_tmp[REDUCE_BLOCK_SIZE];
 
@@ -62,7 +48,7 @@ void reduce(const SIZE_TYPE size,
     VALUE_TYPE sum = 0;
     while(eidx < size)
     {
-        sum = operation(sum, pX[eidx]);
+        sum += pX[eidx] * pY[eidx];
         eidx += N_THREADS;
     }
 
@@ -70,7 +56,6 @@ void reduce(const SIZE_TYPE size,
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    // Seqential part
     if (get_local_id(0) == 0)
     {
         sum = 0.0;

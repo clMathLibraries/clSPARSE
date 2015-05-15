@@ -47,9 +47,11 @@ cldenseSscale (clsparseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control)
 {
+    clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
+    const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
 
-    clMemRAII<cl_float> rAlpha (control->queue(), alpha->value);
-    cl_float* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, alpha->offValue, 1);
+    clMemRAII<cl_float> rAlpha (control->queue(), pAlpha->value);
+    cl_float* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
 
 
 #if( BUILD_CLVERSION < 200 )
@@ -68,20 +70,31 @@ cldenseSscale (clsparseVector* y,
     else
         return clsparseSuccess;
 #else
-    clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
-    const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
+
 
     cl_float pattern = 0.0f;
 
     if (*fAlpha == 0)
     {
-        cl_int status =
-                clEnqueueFillBuffer(control->queue(), pY->values,
+
+        cl_int status = 0;
+
+        //TODO: Add Fill method to RAII class
+#if( BUILD_CLVERSION < 200 )
+        status = clEnqueueFillBuffer(control->queue(), pY->values,
                                     &pattern, sizeof(cl_float), 0,
                                     sizeof(cl_float) * pY->n,
                                     control->event_wait_list.size(),
                                     &(control->event_wait_list.front())(),
                                     &control->event( ));
+#else
+        status = clEnqueueSVMMemFill(control->queue(), pY->values,
+                            &pattern, sizeof(cl_float),
+                            pY->n * sizeof(cl_float),
+                            control->event_wait_list.size(),
+                            &(control->event_wait_list.front())(),
+                            &control->event( ));
+#endif
         if (status != CL_SUCCESS)
         {
             return clsparseInvalidKernelExecution;
@@ -109,8 +122,11 @@ cldenseDscale (clsparseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control)
 {
-    clMemRAII<cl_double> rAlpha (control->queue(), alpha->value);
-    cl_double* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, alpha->offValue, 1);
+    clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
+    const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
+
+    clMemRAII<cl_double> rAlpha (control->queue(), pAlpha->value);
+    cl_double* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
 
 #if( BUILD_CLVERSION < 200 )
 
@@ -127,20 +143,28 @@ cldenseDscale (clsparseVector* y,
     else
         return clsparseSuccess;
 #else
-    clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
-    const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
-
     cl_double pattern = 0.0f;
 
     if (*fAlpha == 0)
     {
-        cl_int status =
-                clEnqueueFillBuffer(control->queue(), pY->values,
-                                    &pattern, sizeof(cl_double), 0,
-                                    sizeof(cl_double) * pY->n,
+        cl_int status = 0;
+
+        //TODO: Add Fill method to RAII class
+#if( BUILD_CLVERSION < 200 )
+        status = clEnqueueFillBuffer(control->queue(), pY->values,
+                                    &pattern, sizeof(cl_float), 0,
+                                    sizeof(cl_float) * pY->n,
                                     control->event_wait_list.size(),
                                     &(control->event_wait_list.front())(),
                                     &control->event( ));
+#else
+       status = clEnqueueSVMMemFill(control->queue(), pY->values,
+                                    &pattern, sizeof(cl_float),
+                                    pY->n * sizeof(cl_float),
+                                    control->event_wait_list.size(),
+                                    &(control->event_wait_list.front())(),
+                                    &control->event( ));
+#endif
         if (status != CL_SUCCESS)
         {
             return clsparseInvalidKernelExecution;
@@ -158,8 +182,5 @@ cldenseDscale (clsparseVector* y,
             + " -DWG_SIZE=" + std::to_string(group_size);
 
     return scale(pY, pAlpha, params, group_size, control);
-
-
 #endif
-
 }

@@ -59,6 +59,8 @@ set( clSPARSE.source.cl
   kernels/csr2coo.cl
   kernels/blas1.cl
   kernels/reduce.cl
+  kernels/dot.cl
+  kernels/atomic_reduce.cl
 )
 
 set( clSPARSE.source.cpp
@@ -77,6 +79,10 @@ set( clSPARSE.source.cpp
   blas1/cldense_axpby.cpp
   blas1/cldense_scale.cpp
   blas1/cldense_reduce.cpp
+  blas1/cldense_dot.cpp
+  blas1/reduce_operators.cpp
+  blas1/cldense_nrm1.cpp
+  blas1/cldense_nrm2.cpp
 )
 
 set( clSPARSE.Headers
@@ -97,6 +103,10 @@ set( clSPARSE.Headers
   spmv/csrmv_vector/csrmv_vector.hpp
   spmv/csrmv_vector/csrmv_vector_impl.hpp
   spmv/csrmv_adaptive/csrmv_adaptive.hpp
+  blas1/reduce.hpp
+  blas1/atomic_reduce.hpp
+  blas1/reduce_operators.hpp
+  blas1/commons.hpp
   ${ocl_kernels_file_name}
 )
 

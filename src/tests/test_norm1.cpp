@@ -11,49 +11,7 @@ cl_context ClSparseEnvironment::context = NULL;
 
 namespace po = boost::program_options;
 
-TEST (REDUCE, opencl20_float)
-{
-#if (BUILD_CLVERSION > 120) //this flag should be defined in tests CMakeLists.txt
-    using CLSE = ClSparseEnvironment;
-
-    cl_uint size = 2546872;
-    std::vector<cl_float> y(size, 1.0f);
-
-    cl_float zero = 0.f;
-
-    clsparseScalar sum;
-    clsparseInitScalar(&sum);
-
-
-    clsparseVector gY;
-    clsparseInitVector(&gY);
-    gY.n = y.size();
-
-    gY.values = (cl_float*)::clSVMAlloc(CLSE::context, CL_MEM_READ_WRITE, gY.n * sizeof(cl_float), 0);
-    ASSERT_NE(gY.values, nullptr);
-
-    sum.value = (cl_float*)::clSVMAlloc(CLSE::context, CL_MEM_READ_WRITE, sizeof(cl_float), 0);
-    ASSERT_NE(sum.value, nullptr);
-
-    cl_int status;
-    status = cldenseSreduce(&sum, &gY, CLSE::control);
-
-    ASSERT_EQ(clsparseSuccess, status);
-
-    cl_float ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
-
-    cl_float host_sum = 0.0f;
-
-//    clEnqueueReadBuffer(CLSE::queue,
-//                        sum.value, 1, 0,
-//                        sizeof(cl_float),
-//                        &host_sum, 0, NULL, NULL);
-
-    ASSERT_NEAR(ref_sum, host_sum, 5e-8);
-#endif
-}
-
-TEST (REDUCE, float_simple)
+TEST (NORM1, float)
 {
     using CLSE = ClSparseEnvironment;
 
@@ -81,11 +39,16 @@ TEST (REDUCE, float_simple)
                                sizeof(cl_float), NULL, &status);
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = cldenseSreduce(&sum, &gY, CLSE::control);
+    status = cldenseSnrm1(&sum, &gY, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
-    cl_float ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
+
+    cl_float ref_sum = 0;
+    for (int i = 0; i < size; i++)
+    {
+        ref_sum += std::fabs(y[i]);
+    }
 
     cl_float host_sum = 0.0f;
 
@@ -95,9 +58,10 @@ TEST (REDUCE, float_simple)
                         &host_sum, 0, NULL, NULL);
 
     ASSERT_NEAR(ref_sum, host_sum, 5e-8);
+
 }
 
-TEST (REDUCE, double_simple)
+TEST (NORM1, double)
 {
     using CLSE = ClSparseEnvironment;
 
@@ -126,11 +90,15 @@ TEST (REDUCE, double_simple)
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = cldenseDreduce(&sum, &gY, CLSE::control);
+    status = cldenseDnrm1(&sum, &gY, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
-    cl_double ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
+    cl_float ref_sum = 0;
+    for (int i = 0; i < size; i++)
+    {
+        ref_sum += std::fabs(y[i]);
+    }
 
     cl_double host_sum = 0.0;
 
@@ -142,6 +110,7 @@ TEST (REDUCE, double_simple)
     ASSERT_EQ(CL_SUCCESS, status);
 
     ASSERT_NEAR(ref_sum, host_sum, 5e-8);
+
 }
 
 int main (int argc, char* argv[])

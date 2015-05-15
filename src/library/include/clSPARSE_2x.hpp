@@ -27,12 +27,27 @@ class clMemRAII
 {
     cl_command_queue clQueue;
     pType* clMem;
+    cl_bool clOwner;
 
 public:
-    clMemRAII( const cl_command_queue cl_queue, void* cl_malloc ): clMem( nullptr )
+
+    clMemRAII( const cl_command_queue cl_queue, void* cl_malloc,
+               const size_t cl_size = 0, const cl_svm_mem_flags cl_flags = CL_MEM_READ_WRITE):
+        clMem( nullptr ), clOwner(false)
     {
         clQueue = cl_queue;
         clMem = static_cast< pType* >( cl_malloc );
+
+        if(cl_size > 0)
+        {
+            cl_context ctx = NULL;
+
+            ::clGetCommandQueueInfo(clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
+            cl_int status = 0;
+
+            clMem = static_cast< pType* > (clSVMAlloc(ctx, cl_flags, cl_size * sizeof(pType), 0));
+            clOwner = true;
+        }
 
         ::clRetainCommandQueue( clQueue );
     }
@@ -60,6 +75,13 @@ public:
     {
         if( clMem )
             ::clEnqueueSVMUnmap( clQueue, clMem, 0, NULL, NULL );
+
+        if(clOwner)
+        {
+            cl_context ctx = nullptr;
+            ::clGetCommandQueueInfo( clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
+            ::clSVMFree(ctx, clMem);
+        }
 
         ::clReleaseCommandQueue( clQueue );
     }

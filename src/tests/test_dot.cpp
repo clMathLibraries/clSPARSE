@@ -11,138 +11,118 @@ cl_context ClSparseEnvironment::context = NULL;
 
 namespace po = boost::program_options;
 
-TEST (REDUCE, opencl20_float)
+
+TEST (DOT, float)
 {
-#if (BUILD_CLVERSION > 120) //this flag should be defined in tests CMakeLists.txt
     using CLSE = ClSparseEnvironment;
 
-    cl_uint size = 2546872;
+    cl_uint size = 10000;
+    std::vector<cl_float> x(size, 2.0f);
     std::vector<cl_float> y(size, 1.0f);
 
     cl_float zero = 0.f;
 
-    clsparseScalar sum;
-    clsparseInitScalar(&sum);
+    clsparseScalar dot;
+    clsparseInitScalar(&dot);
 
 
+    clsparseVector gX;
     clsparseVector gY;
-    clsparseInitVector(&gY);
-    gY.n = y.size();
-
-    gY.values = (cl_float*)::clSVMAlloc(CLSE::context, CL_MEM_READ_WRITE, gY.n * sizeof(cl_float), 0);
-    ASSERT_NE(gY.values, nullptr);
-
-    sum.value = (cl_float*)::clSVMAlloc(CLSE::context, CL_MEM_READ_WRITE, sizeof(cl_float), 0);
-    ASSERT_NE(sum.value, nullptr);
-
-    cl_int status;
-    status = cldenseSreduce(&sum, &gY, CLSE::control);
-
-    ASSERT_EQ(clsparseSuccess, status);
-
-    cl_float ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
-
-    cl_float host_sum = 0.0f;
-
-//    clEnqueueReadBuffer(CLSE::queue,
-//                        sum.value, 1, 0,
-//                        sizeof(cl_float),
-//                        &host_sum, 0, NULL, NULL);
-
-    ASSERT_NEAR(ref_sum, host_sum, 5e-8);
-#endif
-}
-
-TEST (REDUCE, float_simple)
-{
-    using CLSE = ClSparseEnvironment;
-
-    cl_uint size = 2546872;
-    std::vector<cl_float> y(size, 1.0f);
-
-    cl_float zero = 0.f;
-
-    clsparseScalar sum;
-    clsparseInitScalar(&sum);
-
-
-    clsparseVector gY;
+    clsparseInitVector(&gX);
     clsparseInitVector(&gY);
 
     cl_int status;
+    gX.values = ::clCreateBuffer(CLSE::context,
+                                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 x.size() * sizeof(cl_float), x.data(), &status);
     gY.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                  y.size() * sizeof(cl_float), y.data(), &status);
     gY.n = y.size();
+    gX.n = x.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    sum.value = ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
+    dot.value = ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
                                sizeof(cl_float), NULL, &status);
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = cldenseSreduce(&sum, &gY, CLSE::control);
+    status = cldenseSdot(&dot, &gX, &gY, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
-    cl_float ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
+    cl_float ref_sum = 0.0;
+    for (int i = 0; i < size; i++)
+    {
+        ref_sum += x[i] * y[i];
+    }
 
     cl_float host_sum = 0.0f;
 
     clEnqueueReadBuffer(CLSE::queue,
-                        sum.value, 1, 0,
+                        dot.value, 1, 0,
                         sizeof(cl_float),
                         &host_sum, 0, NULL, NULL);
 
     ASSERT_NEAR(ref_sum, host_sum, 5e-8);
 }
 
-TEST (REDUCE, double_simple)
+TEST (DOT, double)
 {
     using CLSE = ClSparseEnvironment;
 
-    cl_uint size = 512*256;
-    std::vector<cl_double> y(size, 2.0f);
+    cl_uint size = 230000;
+    std::vector<cl_double> x(size, 8.0f);
+    std::vector<cl_double> y(size, 0.125);
 
     cl_double zero = 0.0;
 
-    clsparseScalar sum;
-    clsparseInitScalar(&sum);
+    clsparseScalar dot;
+    clsparseInitScalar(&dot);
 
 
+    clsparseVector gX;
     clsparseVector gY;
+    clsparseInitVector(&gX);
     clsparseInitVector(&gY);
 
     cl_int status;
+    gX.values = ::clCreateBuffer(CLSE::context,
+                                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 x.size() * sizeof(cl_double), x.data(), &status);
     gY.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                  y.size() * sizeof(cl_double), y.data(), &status);
     gY.n = y.size();
+    gX.n = x.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 
-    sum.value = ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
+    dot.value = ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
                                sizeof(cl_double), NULL, &status);
-
     ASSERT_EQ(CL_SUCCESS, status);
 
-    status = cldenseDreduce(&sum, &gY, CLSE::control);
+    status = cldenseDdot(&dot, &gX, &gY, CLSE::control);
 
     ASSERT_EQ(clsparseSuccess, status);
 
-    cl_double ref_sum = std::accumulate(y.begin(), y.end(), 0.0);
+    cl_double ref_sum = 0.0;
+    for (int i = 0; i < size; i++)
+    {
+        ref_sum += x[i] * y[i];
+    }
 
     cl_double host_sum = 0.0;
 
-    status = clEnqueueReadBuffer(CLSE::queue,
-                        sum.value, CL_TRUE, 0,
-                        1 * sizeof(cl_double),
+    clEnqueueReadBuffer(CLSE::queue,
+                        dot.value, 1, 0,
+                        sizeof(cl_double),
                         &host_sum, 0, NULL, NULL);
-
-    ASSERT_EQ(CL_SUCCESS, status);
 
     ASSERT_NEAR(ref_sum, host_sum, 5e-8);
 }
+
+
 
 int main (int argc, char* argv[])
 {
@@ -204,7 +184,6 @@ int main (int argc, char* argv[])
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
     ::testing::AddGlobalTestEnvironment( new CLSE(pID, dID));
-   
-    return RUN_ALL_TESTS();
 
+    return RUN_ALL_TESTS();
 }
