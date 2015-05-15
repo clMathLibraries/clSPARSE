@@ -79,7 +79,9 @@ set( clSPARSE.source.cpp
   blas1/reduce_operators.cpp
   blas1/cldense_nrm1.cpp
   blas1/cldense_nrm2.cpp
+  blas1/elementwise_operators.cpp
   solvers/solver_control.cpp
+  solvers/conjugate_gradients.cpp
 )
 
 set( clSPARSE.Headers
@@ -103,9 +105,13 @@ set( clSPARSE.Headers
   blas1/atomic_reduce.hpp
   blas1/reduce_operators.hpp
   blas1/commons.hpp
+  blas1/elementwise_transform.hpp
+  blas1/elementwise_operators.hpp
   ${ocl_kernels_file_name}
   solvers/solver_control.hpp
-  solvers/preconditioners/preconditioners.hpp
+  solvers/preconditioners/preconditioner.hpp
+  solvers/preconditioners/diagonal.hpp
+  solvers/conjugate_gradients.hpp
 )
 
 set( clSPARSE.Files ${clSPARSE.source.cpp} ${clSPARSE.Headers} ${clSPARSE.source.cl} )

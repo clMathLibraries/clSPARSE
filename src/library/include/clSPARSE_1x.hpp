@@ -32,6 +32,11 @@ class clMemRAII
 
 public:
 
+    clMemRAII() : clQueue(nullptr), clBuff(nullptr), clMem(nullptr)
+    {
+
+    }
+
     clMemRAII( const cl_command_queue cl_queue, const cl_mem cl_buff,
                const size_t cl_size = 0, const cl_mem_flags cl_flags = CL_MEM_READ_WRITE) :
         clMem( nullptr )

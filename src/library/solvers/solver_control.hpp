@@ -9,7 +9,7 @@
     #include <CL/cl.hpp>
 #endif
 
-#include "preconditioners/preconditioners.hpp"
+#include "preconditioners/diagonal.hpp"
 
 //enum PRINT_MODE {
 //    QUIET =0,

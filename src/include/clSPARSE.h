@@ -49,7 +49,10 @@ typedef enum clsparseStatus_ {
     clsparseInvalidKernelExecution,          /**< Problem with kenrel execution */
 
     /* Solver control */
-    clsparseInvalidSolverControlObject    = -2048
+    clsparseInvalidSolverControlObject    = -2048,
+    clsparseIterationsExceeded,
+    clsparseToleranceNotReached,
+    clsparseSolverError,
 
 
 } clsparseStatus;
@@ -121,7 +124,10 @@ clsparseReleaseSolverControl(clSParseSolverControl solverControl);
 CLSPARSE_EXPORT clsparseStatus
 clsparseSolverPrintMode(clSParseSolverControl solverControl, PRINT_MODE mode);
 
-
+/* Conjugate Gradients solver */
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsrcg(clsparseVector* x, clsparseCsrMatrix* A, clsparseVector* b,
+               clSParseSolverControl solverControl, clsparseControl control);
 
 
 CLSPARSE_EXPORT clsparseStatus
