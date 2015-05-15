@@ -1,6 +1,7 @@
 #include "include/clSPARSE-private.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
+#include "internal/clsparse_internal.hpp"
 
 #include "commons.hpp"
 #include "atomic_reduce.hpp"
@@ -55,6 +56,17 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
                    const clsparseVectorPrivate* pY,
                    const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
     init_scalar(pR, (T)0, control);
 
     // with REDUCE_BLOCKS_NUMBER = 256 final reduction can be performed

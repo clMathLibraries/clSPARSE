@@ -1,6 +1,7 @@
 #include "include/clSPARSE-private.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
+#include "internal/clsparse_internal.hpp"
 #include <clBLAS.h>
 
 
@@ -47,6 +48,17 @@ cldenseSscale (clsparseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
     clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
 
@@ -122,6 +134,17 @@ cldenseDscale (clsparseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
     clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
 

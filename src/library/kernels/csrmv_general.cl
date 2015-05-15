@@ -77,8 +77,12 @@ void csrmv_general (     const INDEX_TYPE num_rows,
 
         for(int j = row_start + thread_lane; j < row_end; j += SUBWAVE_SIZE)
         {
-
-            sum = fma(_alpha * val[j], x[off_x + col[j]], sum);//sum += val[j] * x[col[j]];
+            if (_alpha == 1)
+                sum = fma(val[j], x[off_x + col[j]], sum);
+            else if (_alpha == 0)
+                sum = 0;
+            else
+                sum = fma(_alpha * val[j], x[off_x + col[j]], sum);//sum += val[j] * x[col[j]];
         }
 
         //parllel reduction in shared memory
@@ -91,7 +95,14 @@ void csrmv_general (     const INDEX_TYPE num_rows,
         if (SUBWAVE_SIZE > 1)                    sum += sdata[local_id + 1];
 
         if (thread_lane == 0)
-            y[off_y + row] = sum + _beta * y[off_y + row];
+        {
+            if (_beta == 1)
+                y[off_y + row] = sum + y[off_y + row];
+            else if (_beta == 0)
+                y[off_y + row] = sum;
+            else
+                y[off_y + row] = sum + _beta * y[off_y + row];
+        }
     }
 }
 )"

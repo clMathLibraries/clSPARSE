@@ -5,6 +5,7 @@
 #include "include/clSPARSE-private.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
+#include "internal/clsparse_internal.hpp"
 
 #include "commons.hpp"
 #include "reduce_operators.hpp"
@@ -65,6 +66,17 @@ reduce(clsparseScalarPrivate* pR,
        const clsparseVectorPrivate* pX,
        const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
     // with REDUCE_BLOCKS_NUMBER = 256 final reduction can be performed
     // within one block;
     const cl_ulong REDUCE_BLOCKS_NUMBER = 256;

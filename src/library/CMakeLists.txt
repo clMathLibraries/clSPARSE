@@ -48,10 +48,6 @@ add_custom_command(
 
 # List the names of common files to compile across all platforms
 set( clSPARSE.source.cl
-  kernels/csrmv_alpha1.cl
-  kernels/csrmv_alpha1_beta0.cl
-  kernels/csrmv_beta0.cl
-  kernels/csrmv_beta1.cl
   kernels/csrmv_general.cl
   kernels/csrmv_adaptive.cl
   kernels/control.cl
@@ -101,7 +97,6 @@ set( clSPARSE.Headers
   internal/ocl_type_traits.hpp
   internal/kernel_wrap.hpp
   spmv/csrmv_vector/csrmv_vector.hpp
-  spmv/csrmv_vector/csrmv_vector_impl.hpp
   spmv/csrmv_adaptive/csrmv_adaptive.hpp
   blas1/reduce.hpp
   blas1/atomic_reduce.hpp
