@@ -9,9 +9,9 @@
 #include <iostream>
 
 //get the wavefront size and max work group size
-void collectEnvParams( clsparseControl control )
+void collectEnvParams(clsparseControl control)
 {
-    if( !clsparseInitialized )
+    if(!clsparseInitialized)
     {
         return;
     }
@@ -60,6 +60,11 @@ clsparseCreateControl( cl_command_queue queue, cl_int *status )
     }
 
     control->event = nullptr;
+//    control->off_alpha = 0;
+//    control->off_beta = 0;
+//    control->off_x = 0;
+//    control->off_y = 0;
+
     control->wavefront_size = 0;
     control->max_wg_size = 0;
     control->async = false;

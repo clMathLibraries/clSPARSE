@@ -1,0 +1,11 @@
+#pragma once
+#ifndef _CLSPARSE_PRECONDITIONERS_HPP_
+#define _CLSPARSE_PRECONDITIONERS_HPP_
+
+//enum PRECONDITIONER
+//{
+//    VOID = 0,
+//    DIAGONAL
+//};
+
+#endif //_CLSPARSE_PRECONDITIONERS_HPP_
