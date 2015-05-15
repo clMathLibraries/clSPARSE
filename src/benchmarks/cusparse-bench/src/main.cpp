@@ -128,11 +128,11 @@ int main(int argc, char *argv[])
   timer.Reserve( 3, profileCount );
   timer.setNormalize( true );
 
-  std::unique_ptr< cublasFunc > my_function;
+  std::unique_ptr< cusparseFunc > my_function;
   if( boost::iequals( function, "SpMdV" ) )
   {
     if( precision == "s" )
-        my_function = std::make_unique< xSpMdV< float > >( timer );
+        my_function = std::unique_ptr< cusparseFunc >( new xSpMdV< float >( timer ) );
     //else if( precision == "d" )
     //    my_function = std::make_unique< xSpMdV< double > >( timer );
     else
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
   else if( boost::iequals( function, "Csr2dense" ) )
   {
       if( precision == "s" )
-          my_function = std::make_unique< xCsr2dense< float > >( timer );
+          my_function = std::unique_ptr< cusparseFunc >( new xCsr2dense< float >( timer ) );
       //else if( precision == "d" )
       //    my_function = std::make_unique< xCsr2dense< double > >( timer );
       else

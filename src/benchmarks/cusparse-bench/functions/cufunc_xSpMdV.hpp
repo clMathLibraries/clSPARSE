@@ -9,10 +9,10 @@
 #include "include/mm_reader.hpp"
 
 template <typename T>
-class xSpMdV : public cublasFunc
+class xSpMdV : public cusparseFunc
 {
 public:
-    xSpMdV( StatisticalTimer& timer ): cublasFunc( timer ), transA( CUSPARSE_OPERATION_NON_TRANSPOSE )
+    xSpMdV( StatisticalTimer& timer ): cusparseFunc( timer ), transA( CUSPARSE_OPERATION_NON_TRANSPOSE )
     {
         cusparseStatus_t err = cusparseCreateMatDescr( &descrA );
         CUDA_V_THROW( err, "cusparseCreateMatDescr failed" );

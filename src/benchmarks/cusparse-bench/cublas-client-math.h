@@ -36,7 +36,7 @@ static unsigned int ROW_NANF = 0x7fc00000;
 
 #include <math.h>       // NAN, sqrt, abs
 #include <stdlib.h>     // rand()
-//#include <common.h>
+#include <cstdint>
 
 static inline int
 module(int a)
@@ -233,7 +233,7 @@ static T
 random(double limit)
 {
 	T v;
-    unsigned __int64 l = static_cast<unsigned __int64>(limit);
+    unsigned uint64_t l = static_cast< uint64_t >( limit );
     if (l == 0) {
         return 0;
     }

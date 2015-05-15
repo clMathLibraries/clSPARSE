@@ -248,10 +248,10 @@ CUDA_V_Throw( int res, const std::string& msg, size_t lineno )
 #define CUDA_V_THROW(_status,_message) CUDA_V_Throw(_status, _message, \
                                                         __LINE__)
 
-class cublasFunc
+class cusparseFunc
 {
 public:
-    cublasFunc(StatisticalTimer& _timer)
+    cusparseFunc(StatisticalTimer& _timer)
           : timer(_timer)
     {
         timer_id = timer.getUniqueID( "cufunc", 0 );
@@ -262,7 +262,7 @@ public:
         CUDA_V_THROW( cuSparseStatus, "cusparseCreate() failed with %d\n" );
     }
 
-    virtual ~cublasFunc()
+    virtual ~cusparseFunc()
     {
         cusparseDestroy( handle );
     }

@@ -8,10 +8,10 @@
 #include "cufunc_common.hpp"
 
 template <typename T>
-class xCsr2dense : public cublasFunc
+class xCsr2dense : public cusparseFunc
 {
 public:
-    xCsr2dense( StatisticalTimer& timer ): cublasFunc( timer )
+    xCsr2dense( StatisticalTimer& timer ): cusparseFunc( timer )
     {
         cusparseStatus_t err = cusparseCreateMatDescr( &descrA );
         CUDA_V_THROW( err, "cusparseCreateMatDescr failed" );
