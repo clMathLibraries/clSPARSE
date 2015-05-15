@@ -27,27 +27,12 @@
 #include <device_launch_parameters.h>
 #include <cusparse_v2.h>
 
-#include "cublas-client-math.h"
-#include "test-limits.h"
-
 
 template<typename T>
 static T
 makeScalar(double val)
 {
     return static_cast<T>(val);
-}
-
-template<typename T>
-static T
-randomScale()
-{
-    T t = random<T>(UPPER_BOUND<T>());
-    if (module(t) == 0) {
-        t = t + ONE<T>();
-    }
-
-    return t;
 }
 
 std::string
