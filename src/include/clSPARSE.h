@@ -46,7 +46,11 @@ typedef enum clsparseStatus_ {
     clsparseInvalidControlObject,           /**< clsparseControl object is not valid */
     clsparseInvalidFile,                    /**< Error reading the sparse matrix file */
     clsparseInvalidFileFormat,              /**< Only specific documented sparse matrix files supported */
-    clsparseInvalidKernelExecution          /**< Problem with kenrel execution */
+    clsparseInvalidKernelExecution,          /**< Problem with kenrel execution */
+
+    /* Solver control */
+    clsparseInvalidSolverControlObject    = -2048
+
 
 } clsparseStatus;
 
@@ -88,11 +92,36 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseReleaseControl(clsparseControl control);
 
 
-//Deprecated: offsets are hidden in type structures.
-//CLSPARSE_EXPORT clsparseStatus
-//clsparseSetOffsets(clsparseControl control,
-//                   size_t off_alpha, size_t off_beta,
-//                   size_t off_x, size_t off_y);
+/*
+ * Solver control: Object controlling the solver execution
+ */
+typedef enum _print_mode{
+    QUIET =0,
+    NORMAL,
+    VERBOSE
+} PRINT_MODE;
+
+typedef enum _precond
+{
+    VOID = 0,
+    DIAGONAL
+} PRECONDITIONER;
+
+
+typedef struct _solverControl*  clSParseSolverControl;
+
+CLSPARSE_EXPORT clSParseSolverControl
+clsparseCreateSolverControl(cl_uint nIters, PRECONDITIONER precond,
+                            cl_double relTol, cl_double absTol);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseReleaseSolverControl(clSParseSolverControl solverControl);
+
+//here maybe some other solver control utils;
+CLSPARSE_EXPORT clsparseStatus
+clsparseSolverPrintMode(clSParseSolverControl solverControl, PRINT_MODE mode);
+
+
 
 
 CLSPARSE_EXPORT clsparseStatus

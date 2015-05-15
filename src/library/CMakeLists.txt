@@ -79,6 +79,7 @@ set( clSPARSE.source.cpp
   blas1/reduce_operators.cpp
   blas1/cldense_nrm1.cpp
   blas1/cldense_nrm2.cpp
+  solvers/solver_control.cpp
 )
 
 set( clSPARSE.Headers
@@ -103,6 +104,8 @@ set( clSPARSE.Headers
   blas1/reduce_operators.hpp
   blas1/commons.hpp
   ${ocl_kernels_file_name}
+  solvers/solver_control.hpp
+  solvers/preconditioners/preconditioners.hpp
 )
 
 set( clSPARSE.Files ${clSPARSE.source.cpp} ${clSPARSE.Headers} ${clSPARSE.source.cl} )

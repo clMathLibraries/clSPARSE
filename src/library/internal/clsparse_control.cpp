@@ -58,13 +58,11 @@ clsparseCreateControl( cl_command_queue queue, cl_int *status )
     }
 
     control->event = nullptr;
-//    control->off_alpha = 0;
-//    control->off_beta = 0;
-//    control->off_x = 0;
-//    control->off_y = 0;
 
     control->wavefront_size = 0;
+
     control->max_wg_size = 0;
+
     control->async = false;
 
     collectEnvParams(control);
@@ -96,16 +94,6 @@ clsparseReleaseControl(clsparseControl control)
     {
         return clsparseInvalidControlObject;
     }
-
-//    if(control->event != nullptr)
-//    {
-//        delete control->event;
-//    }
-
-//    control->off_alpha = 0;
-//    control->off_beta = 0;
-//    control->off_x = 0;
-//    control->off_y = 0;
 
     control->wavefront_size = 0;
     control->max_wg_size = 0;
