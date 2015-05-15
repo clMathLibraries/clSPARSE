@@ -41,6 +41,7 @@ set( TESTS_CPP
   test_dot
   test_norm1
   test_norm2
+  test_solver_cg
 )
 
 set( TESTS_C

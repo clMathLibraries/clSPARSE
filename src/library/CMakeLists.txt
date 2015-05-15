@@ -58,6 +58,8 @@ set( clSPARSE.source.cl
   kernels/reduce.cl
   kernels/dot.cl
   kernels/atomic_reduce.cl
+  kernels/elementwise_transform.cl
+  kernels/matrix_utils.cl
 )
 
 set( clSPARSE.source.cpp
@@ -112,7 +114,9 @@ set( clSPARSE.Headers
   solvers/solver_control.hpp
   solvers/preconditioners/preconditioner.hpp
   solvers/preconditioners/diagonal.hpp
+  solvers/preconditioners/preconditioner_utils.hpp
   solvers/conjugate_gradients.hpp
+
 )
 
 set( clSPARSE.Files ${clSPARSE.source.cpp} ${clSPARSE.Headers} )

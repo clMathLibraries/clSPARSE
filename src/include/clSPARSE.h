@@ -114,7 +114,7 @@ typedef enum _precond
 typedef struct _solverControl*  clSParseSolverControl;
 
 CLSPARSE_EXPORT clSParseSolverControl
-clsparseCreateSolverControl(cl_uint nIters, PRECONDITIONER precond,
+clsparseCreateSolverControl(cl_int nIters, PRECONDITIONER precond,
                             cl_double relTol, cl_double absTol);
 
 CLSPARSE_EXPORT clsparseStatus
@@ -126,7 +126,7 @@ clsparseSolverPrintMode(clSParseSolverControl solverControl, PRINT_MODE mode);
 
 /* Conjugate Gradients solver */
 CLSPARSE_EXPORT clsparseStatus
-clsparseScsrcg(clsparseVector* x, clsparseCsrMatrix* A, clsparseVector* b,
+clsparseScsrcg(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
                clSParseSolverControl solverControl, clsparseControl control);
 
 

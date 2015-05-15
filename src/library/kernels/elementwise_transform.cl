@@ -49,7 +49,7 @@ void transform (const SIZE_TYPE size,
 
     if (index >= size) return;
 
-    pR[index] = operaton(x[index], y[index]);
+    pR[index] = operation(pX[index], pY[index]);
 
 }
 

@@ -42,13 +42,11 @@ cg(clsparseVector *x,
     if (solverControl->preconditioner == DIAGONAL)
     {
         preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new PrecondDiagonalHandler<T>());
+        // call constructor of Diag class
         preconditioner->notify(pA, control);
     }
 
-
-
-
-
+    preconditioner->operator ()(pX, pX, control);
 
 
     return clsparseSuccess;

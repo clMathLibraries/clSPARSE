@@ -38,7 +38,7 @@ elementwise_transform(clsparseVectorPrivate* r,
 
     std::string params = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DVALUE_SIZE=" + OclTypeTraits<T>::type
+            + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ElementWiseOperatorTrait<OP>::operation;
 
