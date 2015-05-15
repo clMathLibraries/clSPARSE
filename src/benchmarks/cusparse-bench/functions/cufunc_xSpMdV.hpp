@@ -90,8 +90,7 @@ public:
     void initialize_cpu_buffer( )
     {
         // Initialize x vector to size n_cols filled with all 1's
-        x.swap( std::vector< T >( n_cols, 1 ) );
-
+        x = std::vector< T >( n_cols, 1 );
     }
 
     void initialize_gpu_buffer( )
