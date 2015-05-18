@@ -2,10 +2,12 @@
 #define _CLSPARSE_CONTROL_H_
 
 #include "clSPARSE.h"
+#include "../clsparseTimer/clsparseTimer.device.hpp"
+
 #if defined(__APPLE__) || defined(__MACOSX)
-    #include <OpenCL/cl.hpp>
+#include <OpenCL/cl.hpp>
 #else
-    #include <CL/cl.hpp>
+#include <CL/cl.hpp>
 #endif
 
 
@@ -14,7 +16,7 @@ struct _clsparseControl
     _clsparseControl( )
     { }
 
-    _clsparseControl(const cl_command_queue& pQueue)
+    _clsparseControl( const cl_command_queue& pQueue )
         : queue( pQueue ), event_wait_list( 0 )
     {
         // Initializing a cl::CommandQueue from a cl_command_queue does not appear to bump the refcount
@@ -30,17 +32,9 @@ struct _clsparseControl
     //it is better in that way;
     cl::Event event;
 
-    //operation parameters
-//    cl_ulong off_alpha;
-//    cl_ulong off_beta;
-//    cl_ulong off_x;
-//    cl_ulong off_y;
-
     // for NV(32) for AMD(64)
-    cl_uint wavefront_size;
-
-    // max workgroup size
-    cl_uint max_wg_size;
+    size_t wavefront_size;
+    size_t max_wg_size;
 
     // current device max compute units;
     cl_uint max_compute_units;
@@ -49,9 +43,12 @@ struct _clsparseControl
     //otherwise after every kernel call we are syncing internally;
     cl_bool async;
 
-    cl::Context getContext()
+    // Handle/pointer to the librar logger
+    clsparseDeviceTimer* pDeviceTimer;
+
+    cl::Context getContext( )
     {
-        return queue.getInfo<CL_QUEUE_CONTEXT>();
+        return queue.getInfo<CL_QUEUE_CONTEXT>( );
     }
 
 };

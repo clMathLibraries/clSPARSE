@@ -43,6 +43,9 @@ message( STATUS "clSPARSE_VERSION_MINOR=${clSPARSE_VERSION_MINOR}" )
 message( STATUS "clSPARSE_VERSION_PATCH=${clSPARSE_VERSION_PATCH}" )
 message( STATUS "clSPARSE_VERSION_TWEAK=${clSPARSE_VERSION_TWEAK}" )
 
+# This is incremented when the ABI to the library changes
+set( clSPARSE_SOVERSION 1 )
+
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 
 # On windows, it's convenient to change the default install prefix such that it does NOT point to 'program files'
@@ -151,6 +154,7 @@ option( BUILD_TESTS "Build clSPARSE unit tests; requires Boost & googletest" ON 
 option( BUILD_BENCHMARKS "Build clSPARSE benchmarks" ON )
 
 add_subdirectory( library )
+add_subdirectory( clsparseTimer )
 
 if( BUILD_BENCHMARKS )
 	add_subdirectory( benchmarks )

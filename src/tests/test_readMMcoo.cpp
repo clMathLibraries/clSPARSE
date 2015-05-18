@@ -36,19 +36,19 @@ public:
     }
 };
 
-class clMem20: public clAllocator
-{
-public:
-    cl_svm_mem_flags flags;
-
-    void* operator( )( size_t buffSize ) const
-    {
-        cl_context ctx = NULL;
-        
-        ::clGetCommandQueueInfo( queue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL );
-        return ::clSVMAlloc( ctx, flags, buffSize, 0 );
-    }
-};
+//class clMem20: public clAllocator
+//{
+//public:
+//    cl_svm_mem_flags flags;
+//
+//    void* operator( )( size_t buffSize ) const
+//    {
+//        cl_context ctx = NULL;
+//        
+//        ::clGetCommandQueueInfo( queue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL );
+//        return ::clSVMAlloc( ctx, flags, buffSize, 0 );
+//    }
+//};
 
 void generateReference( const std::vector<float>& x,
                         const float alpha,

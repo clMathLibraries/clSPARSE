@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <boost/program_options.hpp>
+#include <numeric>
 
 #include "resources/clsparse_environment.h"
 

@@ -65,6 +65,10 @@ option( BUILD_Boost "Install Boost as an external dependency" ON )
 option( BUILD_gMock "Install googleMock as an external dependency" ON )
 option( BUILD_clBLAS "Install clBLAS as an external dependency" ON )
 
+# Query the user for which version of OpenCL they wish to build the library for
+set( BUILD_CLVERSION "1.2" CACHE STRING "The version of OpenCL we wish to compile the library against" )
+set_property( CACHE BUILD_CLVERSION PROPERTY STRINGS 2.0 1.2 1.1 )
+
 # Comment this out because this does not work yet
 set( clSPARSE.Dependencies )
 set( clSPARSE.Cmake.Args )
@@ -136,7 +140,7 @@ if( BUILD_clSPARSE )
     DEPENDS ${clSPARSE.Dependencies}
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/src
     BINARY_DIR clSPARSE-build
-    CMAKE_ARGS ${clSPARSE.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    CMAKE_ARGS ${clSPARSE.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION}
     INSTALL_COMMAND ""
   )
 endif( )
