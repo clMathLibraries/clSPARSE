@@ -1,51 +1,6 @@
 #include "include/clSPARSE-private.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
-#include "internal/clsparse_internal.hpp"
+#include "blas1/cldense_axpy.hpp"
 
-template<typename T>
-clsparseStatus
-axpy(cl_ulong size,
-     clsparseVectorPrivate* pY,
-     const clsparseScalarPrivate* pAlpha,
-     const clsparseVectorPrivate* pX,
-     const clsparseControl control)
-{
-    const int group_size = 256; // this or higher? control->max_wg_size?
-
-    const std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
-            + " -DWG_SIZE=" + std::to_string( group_size );
-
-    cl::Kernel kernel = KernelCache::get(control->queue, "blas1", "axpy",
-                                         params);
-
-    KernelWrap kWrapper(kernel);
-
-    kWrapper << size
-             << pY->values
-             << pY->offset()
-             << pAlpha->value
-             << pAlpha->offset()
-             << pX->values
-             << pX->offset();
-
-    int blocksNum = (size + group_size - 1) / group_size;
-    int globalSize = blocksNum * group_size;
-
-    cl::NDRange local(group_size);
-    cl::NDRange global (globalSize);
-
-    cl_int status = kWrapper.run(control, global, local);
-
-    if (status != CL_SUCCESS)
-    {
-        return clsparseInvalidKernelExecution;
-    }
-
-    return clsparseSuccess;
-}
 
 clsparseStatus
 cldenseSaxpy(clsparseVector *y,

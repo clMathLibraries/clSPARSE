@@ -13,8 +13,16 @@
 #include "spmv/csrmv_vector/csrmv_vector_impl.hpp"
 //dense vector operations
 #include "blas1/reduce.hpp"
+#include "blas1/cldense_dot.hpp"
 
 #include "solver_control.hpp"
+
+
+/*
+ * Nice paper describing Conjugate Gradient algorithm can
+ * be found here:
+ * http://www.cs.cmu.edu/~./quake-papers/painless-conjugate-gradient.pdf
+ */
 
 
 
@@ -29,7 +37,30 @@ inline void clsparseCheck(cl_int code, const char *file, int line, bool abort=fa
    }
 }
 
-
+template <typename T>
+inline cl_int
+clsparseCpyVectorBuffers(const clsparseVectorPrivate* src,
+                         clsparseVectorPrivate* dst,
+                         clsparseControl control)
+{
+    cl_int status;
+#if (BUILD_CLVERSION < 200)
+            status = clEnqueueCopyBuffer(control->queue(), src->values, dst->values,
+                            src->offset(), dst->offset(),
+                            src->n * sizeof(T),
+                            control->event_wait_list.size(),
+                            &(control->event_wait_list.front())(),
+                            &control->event( )
+                            );
+#else
+            status clEnqueueSVMMemcpy(control->queue(), CL_TRUE,
+                           dst->values, src->values, src->n * sizeof(T),
+                           control->event_wait_list.size(),
+                           &(control->event_wait_list.front())(),
+                           &control->event( ));
+#endif
+    return status;
+}
 
 template<typename T, typename PTYPE>
 clsparseStatus
@@ -83,21 +114,7 @@ cg(clsparseVectorPrivate *pX,
             solverControl->relativeTolerance = 0.0;
 
             //we can either fill the x with zeros or cpy b to x;
-#if (BUILD_CLVERSION < 200)
-            status = clEnqueueCopyBuffer(control->queue(), pB->values, pX->values,
-                            pB->offset(), pX->offset(),
-                            pB->n * sizeof(T),
-                            control->event_wait_list.size(),
-                            &(control->event_wait_list.front())(),
-                            &control->event( )
-                            );
-#else
-            status clEnqueueSVMMemcpy(control->queue(), CL_TRUE,
-                           pX->values, pB->values, pB->n * sizeof(T),
-                           control->event_wait_list.size(),
-                           &(control->event_wait_list.front())(),
-                           &control->event( ));
-#endif
+            status = clsparseCpyVectorBuffers<T>(pB, pX, control);
             CLSP_ERRCHK(status);
             std::cout << "vec B = 0" << std::endl;
             return clsparseSuccess;
@@ -145,19 +162,19 @@ cg(clsparseVectorPrivate *pX,
     clMemRAII<T> gp(control->queue(), &p.values, p.n);
     gp.clFillMem(0, 0, p.n);
 
-    clsparseScalarPrivate alpha;
-    clsparseInitScalar(&alpha);
-    clMemRAII<T> ga(control->queue(), &alpha.value, 1);
-    ga.clFillMem(1, 0, 1); //set alpha to 1
+    clsparseScalarPrivate sAlpha;
+    clsparseInitScalar(&sAlpha);
+    clMemRAII<T> ga(control->queue(), &sAlpha.value, 1);
+    ga.clFillMem(1, 0, 1); //set sAlpha to 1
 
-    clsparseScalarPrivate beta;
-    clsparseInitScalar(&beta);
-    clMemRAII<T> gb(control->queue(), &beta.value, 1);
-    gb.clFillMem(0, 0, 1); //set beta to 0
+    clsparseScalarPrivate sBeta;
+    clsparseInitScalar(&sBeta);
+    clMemRAII<T> gb(control->queue(), &sBeta.value, 1);
+    gb.clFillMem(0, 0, 1); //set sBeta to 0
 
 
     // y = A*x
-    status = csrmv<T>(&alpha, pA, pX, &beta, &y, control);
+    status = csrmv<T>(&sAlpha, pA, pX, &sBeta, &y, control);
     CLSP_ERRCHK(status);
 
     //r = b - y
@@ -190,8 +207,75 @@ cg(clsparseVectorPrivate *pX,
         return clsparseSuccess;
     }
 
-    //apply preconditioner
+    //apply preconditioner z = M*r
     M(&r, &z, control);
+
+    //copy inital z to p
+    status = clsparseCpyVectorBuffers<T>(&z, &p, control);
+    CLSP_ERRCHK(status);
+
+    //rz = <r, z>, here actually should be conjugate(r)) but we do not support complex type.
+    clsparseScalarPrivate rz;
+    clsparseInitScalar(&rz);
+    clMemRAII<T> grz(control->queue(), &rz.value, 1);
+    status = dot<T>(&rz, &r, &z, control);
+    CLSP_ERRCHK(status);
+
+    {
+        clMemRAII<T> m_rz(control->queue(), rz.value);
+        T* f_rz = m_rz.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
+        std::cout << "<r, z> = " << *f_rz << std::endl;
+    }
+
+
+    int iteration = 0;
+
+    bool converged = false;
+
+    clsparseScalarPrivate alpha;
+    clsparseInitScalar(&alpha);
+    clMemRAII<T> m_alpha(control->queue(), &alpha.value, 1);
+
+    //yp buffer for inner product of y and p vectors;
+    clsparseScalarPrivate yp;
+    clsparseInitScalar(&yp);
+    clMemRAII<T> m_yp(control->queue(), &yp.value, 1);
+
+    //while(!converged)
+    {
+        solverControl->nIters = iteration;
+
+        //y = A*p
+        status = csrmv<T>(&sAlpha, pA, &p, &sBeta, &y, control);
+        CLSP_ERRCHK(status);
+
+        // alpha = <r,z> / <y,p>
+        {
+            clMemRAII<T> r_alpha(control->queue(), alpha.value);
+            T* f_alpha = r_alpha.clMapMem(CL_TRUE, CL_MAP_WRITE, 0, 1);
+
+            clMemRAII<T> r_rz(control->queue(), rz.value);
+            T* f_rz = r_rz.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
+
+            status = dot<T>(&yp, &y, &p, control);
+            CLSP_ERRCHK(status);
+
+            clMemRAII<T> r_yp(control->queue(), yp.value);
+            T* f_yp = r_yp.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
+
+            *f_alpha = *f_rz / *f_yp;
+            std::cout << "alpha = " << *f_alpha << std::endl;
+        }
+
+        //x = x + alpha*p
+        //axp
+
+    }
+
+
+
+
+
 
 
 
