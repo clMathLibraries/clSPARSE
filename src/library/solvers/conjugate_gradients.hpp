@@ -31,33 +31,15 @@ inline void clsparseCheck(cl_int code, const char *file, int line, bool abort=fa
 
 
 
-template<typename T>
+template<typename T, typename PTYPE>
 clsparseStatus
-cg(clsparseVector *x,
-   const clsparseCsrMatrix* A,
-   const clsparseVector *b,
+cg(clsparseVectorPrivate *pX,
+   const clsparseCsrMatrixPrivate* pA,
+   const clsparseVectorPrivate *pB,
+   PTYPE& M,
    clSParseSolverControl solverControl,
    clsparseControl control)
 {
-    if (!clsparseInitialized)
-    {
-        return clsparseNotInitialized;
-    }
-
-    if (control == nullptr)
-    {
-        return clsparseInvalidControlObject;
-    }
-
-    if (solverControl == nullptr)
-    {
-        return clsparseInvalidSolverControlObject;
-    }
-
-    clsparseVectorPrivate* pX = static_cast<clsparseVectorPrivate*> ( x );
-    const clsparseCsrMatrixPrivate* pA = static_cast<const clsparseCsrMatrixPrivate*> ( A );
-    const clsparseVectorPrivate* pB = static_cast<const clsparseVectorPrivate*> ( b );
-
 
     assert (pA->n == pB->n);
     assert (pA->m == pX->n);
@@ -65,22 +47,6 @@ cg(clsparseVector *x,
     {
         return clsparseInvalidSystemSize;
     }
-
-    std::shared_ptr<PreconditionerHandler<T>> preconditioner;
-
-
-    if (solverControl->preconditioner == DIAGONAL)
-    {
-        preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new DiagonalHandler<T>());
-        // call constructor of preconditioner class
-        preconditioner->notify(pA, control);
-    }
-    else
-    {
-        preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new VoidHandler<T>());
-        preconditioner->notify(pA, control);
-    }
-
 
     //start of the solver algorithm
     clsparseScalarPrivate norm_b;
@@ -100,13 +66,17 @@ cg(clsparseVector *x,
     cl_int status = reduce<T, RO_FABS>(&norm_b, pB, control);
     CLSP_ERRCHK(status);
 
+    //norm_b is calculated once
+    T h_norm_b = 0;
+    //we do not have explicit unmap function defined so I'm doing this in that way
     {
         clMemRAII<T> m_norm_b(control->queue(), norm_b.value);
         T* f_norm_b = m_norm_b.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
+        h_norm_b = *f_norm_b;
 
-        std::cout << "norm_b " << *f_norm_b << std::endl;
+        std::cout << "norm_b " << h_norm_b << std::endl;
 
-        if (*f_norm_b == 0) //special case b is zero so solution is x = 0
+        if (h_norm_b == 0) //special case b is zero so solution is x = 0
         {
             solverControl->nIters = 0;
             solverControl->absoluteTolerance = 0.0;
@@ -190,6 +160,38 @@ cg(clsparseVector *x,
     status = csrmv<T>(&alpha, pA, pX, &beta, &y, control);
     CLSP_ERRCHK(status);
 
+    //r = b - y
+    status = elementwise_transform<T, EW_MINUS>(&r, pB, &y, control);
+    CLSP_ERRCHK(status);
+
+    clsparseScalarPrivate norm_r;
+    clsparseInitScalar(&norm_r);
+
+    clMemRAII<T> r_norm_r(control->queue(), &norm_r.value, 1);
+
+    //calculate norm of r
+    status = reduce<T, RO_FABS>(&norm_r, &r, control);
+    CLSP_ERRCHK(status);
+
+    T residuum = 0;
+    {
+
+        clMemRAII<T> m_norm_r(control->queue(), norm_r.value);
+        T* f_norm_r = m_norm_r.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
+
+        residuum = *f_norm_r / h_norm_b;
+        std::cout << "initial residuum = " << residuum << std::endl;
+    }
+
+    solverControl->initialResidual = residuum;
+    if (solverControl->finished(residuum))
+    {
+        solverControl->nIters = 0;
+        return clsparseSuccess;
+    }
+
+    //apply preconditioner
+    M(&r, &z, control);
 
 
 

@@ -18,8 +18,8 @@ TEST (CG, float)
     using CLSE = ClSparseEnvironment;
     using CSRE = CSREnvironment;
 
-    std::vector<cl_float> x(CSRE::n_rows, 0.0);
-    std::vector<cl_float> b(CSRE::n_cols, 1.0);
+    std::vector<cl_float> x(CSRE::n_rows, 1.0);
+    std::vector<cl_float> b(CSRE::n_cols, 2.0);
 
     clsparseVector gx;
     clsparseVector gb;
