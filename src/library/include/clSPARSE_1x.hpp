@@ -106,6 +106,15 @@ public:
                                                   clSize * sizeof( pType ), hostMem, 0, NULL, NULL );
     }
 
+    //simple fill mem wrapper, pattern is a single value for now
+    void clFillMem (const pType pattern, const size_t clOff, const size_t clSize)
+    {
+        cl_int clStatus = clEnqueueFillBuffer(clQueue, clBuff,
+                                              &pattern, sizeof(pType), clOff,
+                                              clSize * sizeof(pType),
+                                              0, NULL, NULL);
+    }
+
     ~clMemRAII( )
     {
 	cl_int clStatus = 0;

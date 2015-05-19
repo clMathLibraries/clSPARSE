@@ -95,6 +95,14 @@ public:
                                                   clSize * sizeof( pType ), 0, NULL, NULL );
     }
 
+    void clFillMem (const pType pattern, const size_t clOff, const size_t clSize)
+    {
+        cl_int clStatus = ::clEnqueueSVMMemFill(clQueue, clMem,
+                                                &pattern, sizeof(pType),
+                                                clSize * sizeof(pType),
+                                                0, NULL, NULL);
+    }
+
     ~clMemRAII( )
     {
         if( clMem )
