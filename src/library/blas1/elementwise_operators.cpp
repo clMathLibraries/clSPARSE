@@ -1,6 +1,6 @@
 #include "elementwise_operators.hpp"
 
-const char* ElementWiseOperatorTrait<PLUS>::operation = "OP_PLUS";
-const char* ElementWiseOperatorTrait<MINUS>::operation = "OP_MINUS";
-const char* ElementWiseOperatorTrait<MULTIPLY>::operation = "OP_MULTIPLY";
-const char* ElementWiseOperatorTrait<DUMMY>::operation = "OP_DUMMY";
+const char* ElementWiseOperatorTrait<EW_PLUS>::operation = "OP_EW_PLUS";
+const char* ElementWiseOperatorTrait<EW_MINUS>::operation = "OP_EW_MINUS";
+const char* ElementWiseOperatorTrait<EW_MULTIPLY>::operation = "OP_EW_MULTIPLY";
+const char* ElementWiseOperatorTrait<EW_DUMMY>::operation = "OP_EW_DUMMY";

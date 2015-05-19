@@ -47,9 +47,11 @@ typedef enum clsparseStatus_ {
     clsparseInvalidFile,                    /**< Error reading the sparse matrix file */
     clsparseInvalidFileFormat,              /**< Only specific documented sparse matrix files supported */
     clsparseInvalidKernelExecution,          /**< Problem with kenrel execution */
+    clsparseInvalidType,                     /** < Wrong type provided > */
 
     /* Solver control */
     clsparseInvalidSolverControlObject    = -2048,
+    clsparseInvalidSystemSize,
     clsparseIterationsExceeded,
     clsparseToleranceNotReached,
     clsparseSolverError,

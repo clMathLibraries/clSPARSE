@@ -23,11 +23,11 @@ R"(
 R"(
 VALUE_TYPE operation(VALUE_TYPE A, VALUE_TYPE B)
 {
-#ifdef OP_PLUS
+#ifdef OP_EW_PLUS
     return A + B;
-#elif OP_MINUS
+#elif OP_EW_MINUS
     return A - B;
-#elif OP_MULTIPLY
+#elif OP_EW_MULTIPLY
     return A * B;
 #else
     return 0;

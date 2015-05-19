@@ -3,16 +3,22 @@
 #include "internal/kernel_wrap.hpp"
 #include "internal/clsparse_internal.hpp"
 
+template<typename T>
 clsparseStatus
 axpby(cl_ulong size,
       clsparseVectorPrivate* pY,
       const clsparseScalarPrivate* pAlpha,
       const clsparseVectorPrivate* pX,
       const clsparseScalarPrivate* pBeta,
-      const std::string& params,
-      const cl_uint group_size,
       const clsparseControl control)
 {
+
+    const int group_size = 256; // this or higher? control->max_wg_size?
+
+    const std::string params = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
+            + " -DWG_SIZE=" + std::to_string( group_size );
     cl::Kernel kernel = KernelCache::get(control->queue, "blas1", "axpby",
                                          params);
 
@@ -69,9 +75,6 @@ cldenseSaxpby(clsparseVector *y,
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
     const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*> ( beta );
 
-    const int group_size = 256; // this or higher? control->max_wg_size?
-
-
     //is it necessary? Maybe run the kernel nevertheless those values?
 //    clMemRAII<cl_float> rAlpha (control->queue(), pAlpha->value);
 //    cl_float* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
@@ -89,12 +92,9 @@ cldenseSaxpby(clsparseVector *y,
 
     if(size == 0) return clsparseSuccess;
 
-    const std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
-            + " -DWG_SIZE=" + std::to_string( group_size );
 
-    return axpby(size, pY, pAlpha, pX, pBeta, params, group_size, control);
+
+    return axpby<cl_float>(size, pY, pAlpha, pX, pBeta, control);
 }
 
 clsparseStatus
@@ -120,14 +120,6 @@ cldenseDaxpby(clsparseVector *y,
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
     const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*> ( beta );
 
-    const int group_size = 256; // this or higher? control->max_wg_size?
-
-//    clMemRAII<cl_double> rAlpha (control->queue(), pAlpha->value);
-//    cl_double* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
-
-//    clMemRAII<cl_double> rBeta (control->queue(), pBeta->value);
-//    cl_double* fBeta = rBeta.clMapMem( CL_TRUE, CL_MAP_READ, pBeta->offset(), 1);
-
 
     cl_ulong y_size = pY->n - pY->offset();
     cl_ulong x_size = pX->n - pX->offset();
@@ -136,13 +128,6 @@ cldenseDaxpby(clsparseVector *y,
 
     if(size == 0) return clsparseSuccess;
 
-    //TODO: validate object sizes;
 
-
-    const std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
-            + " -DWG_SIZE=" + std::to_string( group_size );
-
-    return axpby(size, pY, pAlpha, pX, pBeta, params, group_size, control);
+    return axpby<cl_double>(size, pY, pAlpha, pX, pBeta, control);
 }

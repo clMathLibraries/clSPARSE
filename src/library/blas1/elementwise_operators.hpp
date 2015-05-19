@@ -4,10 +4,10 @@
 
 enum ElementWiseOperator
 {
-    PLUS = 0,
-    MINUS,
-    MULTIPLY,
-    DUMMY //does nothing
+    EW_PLUS = 0,
+    EW_MINUS,
+    EW_MULTIPLY,
+    EW_DUMMY //does nothing
 };
 
 
@@ -19,9 +19,9 @@ struct ElementWiseOperatorTrait {};
     struct ElementWiseOperatorTrait<OP> { \
     static const char* operation;};
 
-EW_OP_GENERATOR(PLUS)
-EW_OP_GENERATOR(MINUS)
-EW_OP_GENERATOR(MULTIPLY)
-EW_OP_GENERATOR(DUMMY)
+EW_OP_GENERATOR(EW_PLUS)
+EW_OP_GENERATOR(EW_MINUS)
+EW_OP_GENERATOR(EW_MULTIPLY)
+EW_OP_GENERATOR(EW_DUMMY)
 
 #endif //ELEMENTWISE_HPP

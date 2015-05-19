@@ -2,8 +2,6 @@
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 
-#include "atomic_reduce.hpp"
-
 #include "reduce.hpp"
 
 #include <algorithm>
@@ -16,7 +14,7 @@ cldenseSnrm1(clsparseScalar* s,
     clsparseScalarPrivate* pS = static_cast<clsparseScalarPrivate*> ( s );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
 
-    return reduce<cl_float, FLOAT, FABS>(pS, pX, control);
+    return reduce<cl_float, RO_FABS>(pS, pX, control);
 
 }
 
@@ -28,5 +26,5 @@ cldenseDnrm1(clsparseScalar* s,
     clsparseScalarPrivate* pS = static_cast<clsparseScalarPrivate*> ( s );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
 
-    return reduce<cl_double, DOUBLE, FABS>(pS, pX, control);
+    return reduce<cl_double, RO_FABS>(pS, pX, control);
 }

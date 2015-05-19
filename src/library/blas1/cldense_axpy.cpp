@@ -3,15 +3,21 @@
 #include "internal/kernel_wrap.hpp"
 #include "internal/clsparse_internal.hpp"
 
+template<typename T>
 clsparseStatus
 axpy(cl_ulong size,
      clsparseVectorPrivate* pY,
      const clsparseScalarPrivate* pAlpha,
      const clsparseVectorPrivate* pX,
-     const std::string& params,
-     const cl_uint group_size,
      const clsparseControl control)
 {
+    const int group_size = 256; // this or higher? control->max_wg_size?
+
+    const std::string params = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
+            + " -DWG_SIZE=" + std::to_string( group_size );
+
     cl::Kernel kernel = KernelCache::get(control->queue, "blas1", "axpy",
                                          params);
 
@@ -63,8 +69,6 @@ cldenseSaxpy(clsparseVector *y,
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
 
-    const int group_size = 256; // this or higher? control->max_wg_size?
-
      clMemRAII<cl_float> rAlpha (control->queue(), pAlpha->value);
      cl_float* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
 
@@ -79,13 +83,7 @@ cldenseSaxpy(clsparseVector *y,
 
      if(size == 0) return clsparseSuccess;
 
-
-    const std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
-            + " -DWG_SIZE=" + std::to_string( group_size );
-
-    return axpy(size, pY, pAlpha, pX, params, group_size, control);
+    return axpy<cl_float>(size, pY, pAlpha, pX, control);
 }
 
 clsparseStatus
@@ -108,7 +106,6 @@ cldenseDaxpy(clsparseVector *y,
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
 
-    const int group_size = 256; // this or higher? control->max_wg_size?
 
      clMemRAII<cl_double> rAlpha (control->queue(), pAlpha->value);
      cl_double* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
@@ -124,10 +121,6 @@ cldenseDaxpy(clsparseVector *y,
 
      if(size == 0) return clsparseSuccess;
 
-     const std::string params = std::string()
-             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-             + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
-             + " -DWG_SIZE=" + std::to_string( group_size );
 
-    return axpy(size, pY, pAlpha, pX, params, group_size, control);
+    return axpy<cl_double>(size, pY, pAlpha, pX, control);
 }

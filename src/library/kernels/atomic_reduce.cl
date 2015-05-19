@@ -49,7 +49,7 @@ void atomic_add_float (global VALUE_TYPE *ptr, VALUE_TYPE temp)
 R"(
 VALUE_TYPE operation(VALUE_TYPE A)
 {
-#ifdef OP_SQRT
+#ifdef OP_RO_SQRT
     return sqrt(A);
 #else
     return A;
