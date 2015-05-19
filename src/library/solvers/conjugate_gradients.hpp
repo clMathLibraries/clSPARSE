@@ -12,8 +12,10 @@
 //matrix multiply
 #include "spmv/csrmv_vector/csrmv_vector_impl.hpp"
 //dense vector operations
-#include "blas1/reduce.hpp"
 #include "blas1/cldense_dot.hpp"
+#include "blas1/cldense_axpy.hpp"
+#include "blas1/cldense_axpby.hpp"
+#include "blas1/cldense_nrm1.hpp"
 
 #include "solver_control.hpp"
 
@@ -62,6 +64,31 @@ clsparseCpyVectorBuffers(const clsparseVectorPrivate* src,
     return status;
 }
 
+template <typename T>
+inline cl_int
+clsparseCpyScalarBuffers(const clsparseScalarPrivate* src,
+                         clsparseScalarPrivate* dst,
+                         clsparseControl control)
+{
+    cl_int status;
+#if (BUILD_CLVERSION < 200)
+            status = clEnqueueCopyBuffer(control->queue(), src->value, dst->value,
+                            src->offset(), dst->offset(),
+                            sizeof(T),
+                            control->event_wait_list.size(),
+                            &(control->event_wait_list.front())(),
+                            &control->event( )
+                            );
+#else
+            status clEnqueueSVMMemcpy(control->queue(), CL_TRUE,
+                           dst->value, src->value, sizeof(T),
+                           control->event_wait_list.size(),
+                           &(control->event_wait_list.front())(),
+                           &control->event( ));
+#endif
+    return status;
+}
+
 template<typename T, typename PTYPE>
 clsparseStatus
 cg(clsparseVectorPrivate *pX,
@@ -88,13 +115,9 @@ cg(clsparseVectorPrivate *pX,
     clMemRAII<T> r_norm_b(control->queue(), &norm_b.value, 1);
 
 
-    /*TODO:: create an internal header file which will provide a nice named
-             functions like norm instead of reduce<T, RO_FABS>. Currently
-             this names are defined in cpp files so can't be extracted
-    */
 
     //norm of rhs
-    cl_int status = reduce<T, RO_FABS>(&norm_b, pB, control);
+    cl_int status = Norm1<T>(&norm_b, pB, control);
     CLSP_ERRCHK(status);
 
     //norm_b is calculated once
@@ -162,6 +185,7 @@ cg(clsparseVectorPrivate *pX,
     clMemRAII<T> gp(control->queue(), &p.values, p.n);
     gp.clFillMem(0, 0, p.n);
 
+    //TODO: Change sAlpha to one, bEta to 0;?
     clsparseScalarPrivate sAlpha;
     clsparseInitScalar(&sAlpha);
     clMemRAII<T> ga(control->queue(), &sAlpha.value, 1);
@@ -187,7 +211,7 @@ cg(clsparseVectorPrivate *pX,
     clMemRAII<T> r_norm_r(control->queue(), &norm_r.value, 1);
 
     //calculate norm of r
-    status = reduce<T, RO_FABS>(&norm_r, &r, control);
+    status = Norm1<T>(&norm_r, &r, control);
     CLSP_ERRCHK(status);
 
     T residuum = 0;
@@ -236,12 +260,20 @@ cg(clsparseVectorPrivate *pX,
     clsparseInitScalar(&alpha);
     clMemRAII<T> m_alpha(control->queue(), &alpha.value, 1);
 
+    clsparseScalarPrivate beta;
+    clsparseInitScalar(&beta);
+    clMemRAII<T> m_beta(control->queue(), &beta.value, 1);
+
     //yp buffer for inner product of y and p vectors;
     clsparseScalarPrivate yp;
     clsparseInitScalar(&yp);
     clMemRAII<T> m_yp(control->queue(), &yp.value, 1);
 
-    //while(!converged)
+    clsparseScalarPrivate rz_old;
+    clsparseInitScalar(&rz_old);
+    clMemRAII<T> m_rz_old(control->queue(), &rz_old.value, 1);
+
+    while(!converged)
     {
         solverControl->nIters = iteration;
 
@@ -268,17 +300,63 @@ cg(clsparseVectorPrivate *pX,
         }
 
         //x = x + alpha*p
-        //axp
+        status = axpy<T>(pX->n, pX, &alpha, &p, control);
+        CLSP_ERRCHK(status);
+
+        //r = r - alpha * y;
+        status = axpy<T, EW_MINUS>(r.n, &r, &alpha, &y, control);
+        CLSP_ERRCHK(status);
+
+        //apply preconditioner z = M*r
+        M(&r, &z, control);
+
+        //store old value of rz
+        status = clsparseCpyScalarBuffers<T>(&rz, &rz_old, control);
+        CLSP_ERRCHK(status);
+
+        //rz = <r,z>
+        status = dot<T>(&rz, &r, &z, control);
+        CLSP_ERRCHK(status);
+
+        // beta = <r^(i), r^(i)>/<r^(i-1),r^(i-1)> // i: iteration index;
+        {
+            clMemRAII<T> r_beta(control->queue(), beta.value);
+            T* f_beta = r_beta.clMapMem(CL_TRUE, CL_MAP_WRITE, 0, 1);
+
+            clMemRAII<T> r_rz(control->queue(), rz.value);
+            T* f_rz = r_rz.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
+
+
+            clMemRAII<T> r_rz_old(control->queue(), rz_old.value);
+            T* f_rz_old = r_rz_old.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
+
+            *f_beta = *f_rz / *f_rz_old;
+            std::cout << "beta = " << *f_beta << std::endl;
+        }
+
+        //p = z + beta*p;
+        //TODO: change name sAlpha to "one"
+        status = axpby<T>(p.n, &p, &sAlpha, &z, &beta, control );
+        CLSP_ERRCHK(status);
+
+        //calculate norm of r
+        status = Norm1<T>(&norm_r, &r, control);
+        CLSP_ERRCHK(status);
+
+
+        {
+
+            clMemRAII<T> m_norm_r(control->queue(), norm_r.value);
+            T* f_norm_r = m_norm_r.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
+
+            residuum = *f_norm_r / h_norm_b;
+            std::cout << "\tresiduum = " << residuum << std::endl;
+        }
+
+        iteration++;
+        converged = solverControl->finished(residuum);
 
     }
-
-
-
-
-
-
-
-
 
     return clsparseSuccess;
 
