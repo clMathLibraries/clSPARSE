@@ -18,8 +18,8 @@ TEST (CG, float)
     using CLSE = ClSparseEnvironment;
     using CSRE = CSREnvironment;
 
-    std::vector<cl_float> x(CSRE::n_rows, 1.0);
-    std::vector<cl_float> b(CSRE::n_cols, 0.0);
+    std::vector<cl_float> x(CSRE::n_rows, 0.0);
+    std::vector<cl_float> b(CSRE::n_cols, 1.0);
 
     clsparseVector gx;
     clsparseVector gb;
@@ -30,8 +30,8 @@ TEST (CG, float)
     gx.values = clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                x.size() * sizeof(cl_float), x.data(), &status);
 
-    ASSERT_EQ(CL_SUCCESS, status);
     gx.n = x.size();
+    ASSERT_EQ(CL_SUCCESS, status);
 
     gb.values = clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                b.size() * sizeof(cl_float), b.data(), &status);

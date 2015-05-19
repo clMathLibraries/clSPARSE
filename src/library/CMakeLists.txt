@@ -102,6 +102,7 @@ set( clSPARSE.Headers
   internal/ocl_type_traits.hpp
   internal/kernel_wrap.hpp
   spmv/csrmv_vector/csrmv_vector.hpp
+  spmv/csrmv_vector/csrmv_vector_impl.hpp
   spmv/csrmv_adaptive/csrmv_adaptive.hpp
   blas1/reduce.hpp
   blas1/atomic_reduce.hpp
