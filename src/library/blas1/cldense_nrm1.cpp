@@ -1,10 +1,5 @@
 #include "include/clSPARSE-private.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
-
-#include "reduce.hpp"
-
-#include <algorithm>
+#include "cldense_nrm1.hpp"
 
 clsparseStatus
 cldenseSnrm1(clsparseScalar* s,
@@ -14,7 +9,7 @@ cldenseSnrm1(clsparseScalar* s,
     clsparseScalarPrivate* pS = static_cast<clsparseScalarPrivate*> ( s );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
 
-    return reduce<cl_float, RO_FABS>(pS, pX, control);
+    return Norm1<cl_float>(pS, pX, control);
 
 }
 
@@ -26,5 +21,5 @@ cldenseDnrm1(clsparseScalar* s,
     clsparseScalarPrivate* pS = static_cast<clsparseScalarPrivate*> ( s );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
 
-    return reduce<cl_double, RO_FABS>(pS, pX, control);
+    return Norm1<cl_double>(pS, pX, control);
 }

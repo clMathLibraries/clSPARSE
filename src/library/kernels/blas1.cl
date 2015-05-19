@@ -20,6 +20,21 @@ R"(
 #endif
 )"
 
+R"(
+VALUE_TYPE operation(VALUE_TYPE A, VALUE_TYPE B)
+{
+#ifdef OP_EW_PLUS
+    return A + B;
+#elif OP_EW_MINUS
+    return A - B;
+#elif OP_EW_MULTIPLY
+    return A * B;
+#else
+    return 0;
+#endif
+}
+)"
+
 
 R"(
 __kernel
@@ -39,7 +54,7 @@ void axpy(const SIZE_TYPE size,
 
     const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
 
-    pY[index + pYOffset] = alpha * pX[index + pXOffset] + pY[index + pYOffset];
+    pY[index + pYOffset] = operation(pY[index + pYOffset], alpha * pX[index + pXOffset]);
 }
 )"
 
@@ -64,7 +79,7 @@ void axpby(const SIZE_TYPE size,
     const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
     const VALUE_TYPE beta = *(pBeta + pBetaOffset);
 
-    pY[index + pYOffset] = alpha * pX[index + pXOffset] + beta * pY[index + pYOffset];
+    pY[index + pYOffset] = operation(beta * pY[index + pYOffset], alpha * pX[index + pXOffset]);
 }
 )"
 

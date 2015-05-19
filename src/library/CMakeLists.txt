@@ -108,6 +108,11 @@ set( clSPARSE.Headers
   blas1/atomic_reduce.hpp
   blas1/reduce_operators.hpp
   blas1/commons.hpp
+  blas1/cldense_dot.hpp
+  blas1/cldense_axpy.hpp
+  blas1/cldense_axpby.hpp
+  blas1/cldense_nrm1.hpp
+  blas1/cldense_nrm2.hpp
   blas1/elementwise_transform.hpp
   blas1/elementwise_operators.hpp
   ${ocl_kernels_file_name}
