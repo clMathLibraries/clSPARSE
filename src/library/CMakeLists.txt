@@ -113,6 +113,7 @@ set( clSPARSE.Headers
   solvers/solver_control.hpp
   solvers/preconditioners/preconditioner.hpp
   solvers/preconditioners/diagonal.hpp
+  solvers/preconditioners/void.hpp
   solvers/preconditioners/preconditioner_utils.hpp
   solvers/conjugate_gradients.hpp
 

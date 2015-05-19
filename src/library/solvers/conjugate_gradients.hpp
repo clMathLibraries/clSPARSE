@@ -7,6 +7,7 @@
 
 #include "preconditioners/preconditioner.hpp"
 #include "preconditioners/diagonal.hpp"
+#include "preconditioners/void.hpp"
 
 #include "solver_control.hpp"
 
@@ -39,10 +40,17 @@ cg(clsparseVector *x,
 
     std::shared_ptr<PreconditionerHandler<T>> preconditioner;
 
+
     if (solverControl->preconditioner == DIAGONAL)
     {
-        preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new PrecondDiagonalHandler<T>());
+        preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new DiagonalHandler<T>());
         // call constructor of Diag class
+        preconditioner->notify(pA, control);
+    }
+    else
+    {
+        preconditioner = std::shared_ptr<PreconditionerHandler<T>>(new VoidHandler<T>());
+
         preconditioner->notify(pA, control);
     }
 
