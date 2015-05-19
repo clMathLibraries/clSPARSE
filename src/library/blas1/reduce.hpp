@@ -59,8 +59,8 @@ global_reduce (clsparseVectorPrivate* partial,
 
 // G_OP: Global reduce operation
 // F_OP: Final reduce operation, modifies final result of the reduce operation
-template<typename T, PRECISION FPTYPE,
-         ReduceOperator G_OP, ReduceOperator F_OP = DUMMY>
+
+template<typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
 clsparseStatus
 reduce(clsparseScalarPrivate* pR,
        const clsparseVectorPrivate* pX,
@@ -115,11 +115,13 @@ reduce(clsparseScalarPrivate* pR,
             return clsparseInvalidKernelExecution;
         }
 
-        status = atomic_reduce<FPTYPE, F_OP>(pR, &partial, REDUCE_BLOCK_SIZE, control);
+        clsparseStatus clsp_status =
+                atomic_reduce<T, F_OP>(pR, &partial, REDUCE_BLOCK_SIZE, control);
 
-        if (status != CL_SUCCESS)
+
+        if (clsp_status!= CL_SUCCESS)
         {
-            return clsparseInvalidKernelExecution;
+            return clsp_status;
         }
     }
 

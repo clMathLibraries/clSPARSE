@@ -86,7 +86,7 @@ public:
     {
         //element wise multiply y = x*invDiag_A;
         clsparseStatus status =
-                elementwise_transform<T, MULTIPLY>(y, x, &invDiag_A, control);
+                elementwise_transform<T, EW_MULTIPLY>(y, x, &invDiag_A, control);
     }
 
     ~DiagonalPreconditioner()

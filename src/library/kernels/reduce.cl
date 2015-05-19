@@ -31,11 +31,11 @@ R"(
 R"(
 VALUE_TYPE operation(VALUE_TYPE A, VALUE_TYPE B)
 {
-#ifdef OP_PLUS
+#ifdef OP_RO_PLUS
     return A + B;
-#elif OP_SQR
+#elif OP_RO_SQR
     return A + (B*B);
-#elif OP_FABS
+#elif OP_RO_FABS
     return A + fabs(B);
 #else
     return A;

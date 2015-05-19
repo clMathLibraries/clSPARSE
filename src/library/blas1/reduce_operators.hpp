@@ -4,11 +4,11 @@
 
 enum ReduceOperator
 {
-    PLUS = 0,
-    SQR,
-    SQRT,
-    FABS,
-    DUMMY //does nothing
+    RO_PLUS = 0,
+    RO_SQR,
+    RO_SQRT,
+    RO_FABS,
+    RO_DUMMY //does nothing
 };
 
 
@@ -20,11 +20,11 @@ struct ReduceOperatorTrait {};
     struct ReduceOperatorTrait<OP> { \
     static const char* operation;};
 
-REDUCE_OP_GENERATOR(PLUS)
-REDUCE_OP_GENERATOR(SQR)
-REDUCE_OP_GENERATOR(SQRT)
-REDUCE_OP_GENERATOR(FABS)
-REDUCE_OP_GENERATOR(DUMMY)
+REDUCE_OP_GENERATOR(RO_PLUS)
+REDUCE_OP_GENERATOR(RO_SQR)
+REDUCE_OP_GENERATOR(RO_SQRT)
+REDUCE_OP_GENERATOR(RO_FABS)
+REDUCE_OP_GENERATOR(RO_DUMMY)
 
 
 

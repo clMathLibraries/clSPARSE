@@ -50,7 +50,7 @@ inner_product (clsparseVectorPrivate* partial,
     return clsparseSuccess;
 }
 
-template<typename T, PRECISION FPTYPE>
+template<typename T>
 clsparseStatus dot(clsparseScalarPrivate* pR,
                    const clsparseVectorPrivate* pX,
                    const clsparseVectorPrivate* pY,
@@ -109,7 +109,7 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
             return clsparseInvalidKernelExecution;
         }
 
-       status = atomic_reduce<FPTYPE>(pR, &partial, REDUCE_BLOCK_SIZE,
+       status = atomic_reduce<T>(pR, &partial, REDUCE_BLOCK_SIZE,
                                      control);
 
         if (status != CL_SUCCESS)
@@ -132,7 +132,7 @@ cldenseSdot (clsparseScalar* r,
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
     const clsparseVectorPrivate* pY = static_cast<const clsparseVectorPrivate*> ( y );
 
-    return dot<cl_float, clsparseFloat>(pR, pX, pY, control);
+    return dot<cl_float>(pR, pX, pY, control);
 }
 
 clsparseStatus
@@ -145,5 +145,5 @@ cldenseDdot (clsparseScalar* r,
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
     const clsparseVectorPrivate* pY = static_cast<const clsparseVectorPrivate*> ( y );
 
-    return dot<cl_double, clsparseDouble>(pDot, pX, pY, control);
+    return dot<cl_double>(pDot, pX, pY, control);
 }
