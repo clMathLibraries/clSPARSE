@@ -233,9 +233,9 @@ clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, 
     cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_READ, pCooMatx->colIndOffset( ), pCooMatx->nnz );
     cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_READ, pCooMatx->rowOffOffset( ), pCooMatx->nnz );
 
-    cl_float* fCsrValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE, pCsrMatx->valOffset( ), pCsrMatx->nnz );
-    cl_int* iCsrColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCsrMatx->colIndOffset( ), pCsrMatx->nnz );
-    cl_int* iCsrRowOffsets = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
+    cl_float* fCsrValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->valOffset( ), pCsrMatx->nnz );
+    cl_int* iCsrColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->nnz );
+    cl_int* iCsrRowOffsets = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
 
     coo2csr_transform( fCooValues, iCooColIndices, iCooRowIndices, pCooMatx->nnz, fCsrValues, iCsrColIndices, iCsrRowOffsets );
 

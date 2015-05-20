@@ -46,13 +46,13 @@ public:
 
     template<typename T,
              typename std::enable_if<is_pointer_fundamental<T>::value>::type* = nullptr>
-    KernelWrap& operator<< (const T& arg)
+    KernelWrap& operator<< (const T arg)
     {
         std::cout << "Void* types should be managed here for CL20" << std::endl;
         assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>());
 
         int status = clSetKernelArgSVMPointer(kernel(),
-                                              argCounter++, (void *)(&arg));
+                                              argCounter++, arg );
 
         return *this;
     }

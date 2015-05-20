@@ -131,7 +131,7 @@ cldenseSdot (clsparseScalar* r,
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
     const clsparseVectorPrivate* pY = static_cast<const clsparseVectorPrivate*> ( y );
 
-    return dot<cl_float, FLOAT>(pR, pX, pY, control);
+    return dot<cl_float, clsparseFloat>(pR, pX, pY, control);
 }
 
 clsparseStatus
@@ -144,5 +144,5 @@ cldenseDdot (clsparseScalar* r,
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
     const clsparseVectorPrivate* pY = static_cast<const clsparseVectorPrivate*> ( y );
 
-    return dot<cl_double, DOUBLE>(pDot, pX, pY, control);
+    return dot<cl_double, clsparseDouble>(pDot, pX, pY, control);
 }

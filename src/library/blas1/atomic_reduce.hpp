@@ -16,9 +16,9 @@
 */
 
 enum PRECISION{
-    FLOAT = 0,
-    DOUBLE
-} ;
+    clsparseFloat = 0,
+    clsparseDouble
+};
 
 template<PRECISION FPTYPE, ReduceOperator OP = DUMMY>
 clsparseStatus
@@ -34,14 +34,14 @@ atomic_reduce(clsparseScalarPrivate* pR,
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ReduceOperatorTrait<OP>::operation;
 
-    if (FPTYPE == FLOAT)
+    if (FPTYPE == clsparseFloat)
     {
         std::string options = std::string()
                 + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
                 + " -DATOMIC_FLOAT";
         params.append(options);
     }
-    else if (FPTYPE == DOUBLE)
+    else if (FPTYPE == clsparseDouble)
     {
         std::string options = std::string()
                 + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
