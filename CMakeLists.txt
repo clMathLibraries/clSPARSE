@@ -64,6 +64,7 @@ option( BUILD_clSPARSE "Setup clSPARSE to use all the external dependencies" ON 
 option( BUILD_Boost "Install Boost as an external dependency" ON )
 option( BUILD_gMock "Install googleMock as an external dependency" ON )
 option( BUILD_clBLAS "Install clBLAS as an external dependency" ON )
+option( BUILD_MTX "Download sparse matrix files for bench/test" OFF )
 
 # Query the user for which version of OpenCL they wish to build the library for
 set( BUILD_CLVERSION "1.2" CACHE STRING "The version of OpenCL we wish to compile the library against" )
@@ -126,6 +127,12 @@ else( )
     endif( )
     list( APPEND clSPARSE.Cmake.Args -DCLMATH_BLAS_ROOT=${CLMATH_BLAS_ROOT} )
   endif( )
+endif( )
+
+# If the user selects, download, uncompress, and setup clBLAS
+if( BUILD_MTX )
+  message( STATUS "Setting up Matrix Market data external..." )
+  include( ExternalMTX )
 endif( )
 
 # Main project
