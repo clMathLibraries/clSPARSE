@@ -34,7 +34,6 @@ bool findMatrices( const std::string& root,
     fs::path dir( root );
     fs::directory_iterator end_iter;
     const boost::regex filter( ".*\\.\\" + extension );
-    std::cout << "Searching for files like: " << filter.str( ) << std::endl;
     bool found = false;
 
     if( fs::exists( dir ) && fs::is_directory( dir ) )
@@ -47,7 +46,7 @@ bool findMatrices( const std::string& root,
 
                 if( boost::regex_match( fname, filter ) )
                 {
-                    std::cout << "Adding: " << dir_iter->path( ) << std::endl;
+                    // std::cout << "Adding: " << dir_iter->path( ) << std::endl;
                     matrix_files.push_back( dir_iter->path( ) );
                     found = true;
                 }

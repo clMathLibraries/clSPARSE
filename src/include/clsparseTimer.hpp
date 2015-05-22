@@ -69,7 +69,7 @@ public:
     virtual void Stop( size_t id ) = 0;
 
     /**
-     * \fn void Reset(void)
+     * \fn void Clear(void)
      * \brief Reset the timer to 0
      * \sa Start(), Stop()
      */
