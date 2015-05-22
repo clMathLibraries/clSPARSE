@@ -39,6 +39,9 @@ inline void clsparseCheck(cl_int code, const char *file, int line, bool abort=fa
    }
 }
 
+
+// To keep the code more clear at the moment I've provided those functions for
+// copying functions for vector and scalars
 template <typename T>
 inline cl_int
 clsparseCpyVectorBuffers(const clsparseVectorPrivate* src,
@@ -89,6 +92,8 @@ clsparseCpyScalarBuffers(const clsparseScalarPrivate* src,
     return status;
 }
 
+
+
 template<typename T, typename PTYPE>
 clsparseStatus
 cg(clsparseVectorPrivate *pX,
@@ -114,9 +119,7 @@ cg(clsparseVectorPrivate *pX,
     //TODO:: Implement Allocator which will control this object!
     clMemRAII<T> r_norm_b(control->queue(), &norm_b.value, 1);
 
-
-
-    //norm of rhs
+    //norm of rhs of equation
     cl_int status = Norm1<T>(&norm_b, pB, control);
     CLSP_ERRCHK(status);
 
@@ -319,6 +322,8 @@ cg(clsparseVectorPrivate *pX,
         CLSP_ERRCHK(status);
 
         // beta = <r^(i), r^(i)>/<r^(i-1),r^(i-1)> // i: iteration index;
+        // beta is ration of dot product in current iteration compared
+        // to previous.
         {
             clMemRAII<T> r_beta(control->queue(), beta.value);
             T* f_beta = r_beta.clMapMem(CL_TRUE, CL_MAP_WRITE, 0, 1);
@@ -342,7 +347,6 @@ cg(clsparseVectorPrivate *pX,
         //calculate norm of r
         status = Norm1<T>(&norm_r, &r, control);
         CLSP_ERRCHK(status);
-
 
         {
 
