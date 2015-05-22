@@ -8,6 +8,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <stdexcept>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #   include <OpenCL/cl.h>

@@ -17,7 +17,8 @@ struct _clsparseControl
     { }
 
     _clsparseControl( const cl_command_queue& pQueue )
-        : queue( pQueue ), event_wait_list( 0 )
+        : queue( pQueue ), event_wait_list( 0 ), pDeviceTimer( nullptr ), wavefront_size( 0 ), 
+        max_wg_size( 0 ), max_compute_units( 0 ), async( CL_FALSE )
     {
         // Initializing a cl::CommandQueue from a cl_command_queue does not appear to bump the refcount
         // Increment reference count since the library is caching a copy of the queue

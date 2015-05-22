@@ -5,6 +5,7 @@
 #include <iostream>
 #include <type_traits>
 #include "clSPARSE_1x.h"
+#include "clsparse.error.hpp"
 
 // C++ wrapper classes that inherit from the extenrally visible C classes, 
 // for the purpose of providing convenience methods to abstract away the 
@@ -77,11 +78,19 @@ public:
 
     ~clMemRAII( )
     {
+	cl_int clStatus = 0;
+      
         if( clMem )
-            ::clEnqueueUnmapMemObject( clQueue, clBuff, clMem, 0, NULL, NULL );
-
+	{
+	    cl_event unmapEvent = nullptr;
+            clStatus = ::clEnqueueUnmapMemObject( clQueue, clBuff, clMem, 0, NULL, &unmapEvent );
+	    OPENCL_V_THROW( clStatus, "::clEnqueueUnmapMemObject" );
+            clStatus = ::clWaitForEvents( 1, &unmapEvent );
+	    OPENCL_V_THROW( clStatus, "::clWaitForEvents" );
+            clStatus = ::clReleaseEvent( unmapEvent );
+	}
+	
         ::clReleaseCommandQueue( clQueue );
-
         ::clReleaseMemObject( clBuff );
 
     }

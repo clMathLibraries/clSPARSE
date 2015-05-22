@@ -142,12 +142,12 @@ clsparseDeviceTimer::clsparseDeviceTimer( ): nEvents( 0 ), nSamples( 0 ), currID
 
 clsparseDeviceTimer::~clsparseDeviceTimer( )
 {
+  Clear( );
 }
 
 void
-clsparseDeviceTimer::Clear( )
+clsparseDeviceTimer::ClearData( )
 {
-    labelID.clear( );
     timerData.clear( );
 
     nEvents = 0;
@@ -157,6 +157,13 @@ clsparseDeviceTimer::Clear( )
     currRecord = 0;
 }
 
+void
+clsparseDeviceTimer::Clear( )
+{
+    labelID.clear( );
+    ClearData( );
+}
+
 //	The caller can pre-allocate memory, to improve performance.
 //	nEvents is an approximate value for how many seperate events the caller will think
 //	they will need, and nSamples is a hint on how many samples we think we will take
@@ -164,7 +171,6 @@ clsparseDeviceTimer::Clear( )
 void
 clsparseDeviceTimer::Reserve( size_t nE, size_t nS )
 {
-    Clear( );
     nEvents = std::max< size_t >( 1, nE );
     nSamples = std::max< size_t >( 1, nS );
 
@@ -178,6 +184,7 @@ clsparseDeviceTimer::Reset( )
     if( nEvents == 0 || nSamples == 0 )
         throw	std::runtime_error( "StatisticalTimer::Reserve( ) was not called before Reset( )" );
 
+    ClearData( );
     Reserve( nEvents, nSamples );
 
     return;

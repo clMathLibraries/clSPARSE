@@ -24,10 +24,11 @@ public:
             cpuTimer = sparseGetTimer( CLSPARSE_CPU );
             cpuTimer->Reserve( 1, profileCount );
             cpuTimer->setNormalize( true );
+
+            gpuTimerID = gpuTimer->getUniqueID( "GPU xSpMdV", 0 );
+            cpuTimerID = cpuTimer->getUniqueID( "CPU xSpMdV", 0 );
         }
 
-        gpuTimerID = gpuTimer->getUniqueID( "GPU xSpMdV", 0 );
-        cpuTimerID = cpuTimer->getUniqueID( "CPU xSpMdV", 0 );
 
         clsparseEnableAsync( control, false );
     }
@@ -38,6 +39,8 @@ public:
 
     void call_func( )
     {
+      if( gpuTimer && cpuTimer )
+      {
         gpuTimer->Start( gpuTimerID );
         cpuTimer->Start( cpuTimerID );
 
@@ -45,6 +48,11 @@ public:
 
         cpuTimer->Stop( cpuTimerID );
         gpuTimer->Stop( gpuTimerID );
+      }
+      else
+      {
+        xSpMdV_Function( false );
+      }
     }
 
     double gflops( )
@@ -187,16 +195,19 @@ public:
     }
 
     void cleanup( )
-    {
-        std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-        size_t sparseBytes = sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m );
-        cpuTimer->pruneOutliers( 3.0 );
-        cpuTimer->Print( sparseBytes, "GiB/s" );
-        cpuTimer->Reset( );
+    {	
+        if( gpuTimer && cpuTimer )
+        {
+          std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
+          size_t sparseBytes = sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m );
+          cpuTimer->pruneOutliers( 3.0 );
+          cpuTimer->Print( sparseBytes, "GiB/s" );
+          cpuTimer->Reset( );
 
-        gpuTimer->pruneOutliers( 3.0 );
-        gpuTimer->Print( sparseBytes, "GiB/s" );
-        gpuTimer->Reset( );
+          gpuTimer->pruneOutliers( 3.0 );
+          gpuTimer->Print( sparseBytes, "GiB/s" );
+          gpuTimer->Reset( );
+        }
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor

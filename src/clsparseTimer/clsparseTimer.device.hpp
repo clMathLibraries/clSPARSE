@@ -122,6 +122,13 @@ class clsparseDeviceTimer: public clsparseTimer
 
     void queryOpenCL( size_t id );
 
+    /**
+     * \fn void ClearData(void)
+     * \brief Clears everything from the class except for labels that have already been
+     * created
+     */
+    void ClearData( );
+    
 public:
     /**
      * \fn getInstance()
@@ -151,16 +158,17 @@ public:
     virtual void AddSample( std::vector< cl::Event > );
 
     /**
-     * \fn void Reset(void)
-     * \brief Reset the timer to 0
-     * \sa Start(), Stop()
+     * \fn void Clear(void)
+     * \brief Clears everything from the class; similar in function to their
+     * vector clear method
      */
     void Clear( );
 
     /**
      * \fn void Reset(void)
-     * \brief Reset the timer to 0
-     * \sa Start(), Stop()
+     * \brief Prepare the class to recieve new data; this is for reusing the 
+     * timer instance with new timing data, keeping the same tables and 
+     * keeping the same sizes
      */
     void Reset( );
 
