@@ -17,10 +17,6 @@
  *      wg_size is the workgroup size
 */
 
-enum PRECISION{
-    FLOAT = 0,
-    DOUBLE
-} ;
 
 template<typename T, ReduceOperator OP = RO_DUMMY>
 clsparseStatus
