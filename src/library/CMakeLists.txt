@@ -106,7 +106,10 @@ set( clSPARSE.Headers
   ${ocl_kernels_file_name}
 )
 
-set( clSPARSE.Files ${clSPARSE.source.cpp} ${clSPARSE.Headers} ${clSPARSE.source.cl} )
+set( clSPARSE.Files ${clSPARSE.source.cpp} ${clSPARSE.Headers} )
+
+# source_group( kernels REGULAR_EXPRESSION ".*cl$" )
+source_group( kernels FILES ${clSPARSE.source.cl} )
 
 if( CMAKE_COMPILER_IS_GNUCC )
     add_definitions( -pedantic )
