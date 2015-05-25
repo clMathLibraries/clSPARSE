@@ -18,8 +18,8 @@ TEST (CG, float)
     using CLSE = ClSparseEnvironment;
     using CSRE = CSREnvironment;
 
-    std::vector<cl_float> x(CSRE::n_rows, 1.0);
-    std::vector<cl_float> b(CSRE::n_cols, 2.0);
+    std::vector<cl_float> x(CSRE::n_cols, 10.0);
+    std::vector<cl_float> b(CSRE::n_rows, 1.0);
 
     clsparseVector gx;
     clsparseVector gb;
@@ -40,7 +40,7 @@ TEST (CG, float)
     ASSERT_EQ(CL_SUCCESS, status);
 
     clSParseSolverControl solver_control =
-            clsparseCreateSolverControl(100, DIAGONAL, 0.001, 1e-4);
+            clsparseCreateSolverControl(1, VOID, 0.001, 1e-4);
 
     ASSERT_NE(nullptr, solver_control);
 

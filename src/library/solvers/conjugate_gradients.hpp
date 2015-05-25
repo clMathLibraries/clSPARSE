@@ -92,6 +92,96 @@ clsparseCpyScalarBuffers(const clsparseScalarPrivate* src,
     return status;
 }
 
+template <typename T>
+inline cl_int
+clsparse_alloc_init_vector(clsparseVectorPrivate& vec, T value, clsparseControl control, bool fill = true)
+{
+    cl_int status;
+    cl_context ctx = control->getContext()();
+
+    vec.values = clCreateBuffer(ctx, CL_MEM_READ_WRITE, sizeof(T) * vec.n, NULL, &status);
+    CLSP_ERRCHK(status);
+
+    if (fill)
+    {
+        status = clEnqueueFillBuffer(control->queue(), vec.values, &value, sizeof(T), 0,
+                            sizeof(T) * vec.n, 0, NULL, NULL);
+        CLSP_ERRCHK(status);
+    }
+
+    return status;
+}
+
+template <typename T>
+inline cl_int
+clsparse_alloc_init_scalar(clsparseScalarPrivate& scalar, T value, clsparseControl control, bool fill = true)
+{
+    cl_int status;
+    cl_context ctx = control->getContext()();
+
+    scalar.value = clCreateBuffer(ctx, CL_MEM_READ_WRITE, sizeof(T), NULL, &status);
+    CLSP_ERRCHK(status);
+
+    if (fill)
+    {
+        status = clEnqueueFillBuffer(control->queue(), scalar.value, &value, sizeof(T), 0,
+                            sizeof(T), 0, NULL, NULL);
+        CLSP_ERRCHK(status);
+    }
+    return status;
+}
+
+template <typename T>
+inline cl_int
+display_vector(const clsparseVectorPrivate& v, clsparseControl control, std::string info = "")
+{
+    {
+        size_t size = v.n;
+        clMemRAII<T> r_temp(control->queue(), v.values);
+        T* f_temp = r_temp.clMapMem(CL_TRUE, CL_MAP_READ, 0, size);
+
+        std::cout << info << std::endl;
+        for (int i = 0; i < 5; i++)
+        {
+            std::cout << f_temp[i] << std::endl;
+        }
+        std::cout << "..." << std::endl;
+        for (int i = size - 5; i < size; i++)
+        {
+            std::cout << f_temp[i] << std::endl;
+        }
+    }
+
+}
+
+template <typename T>
+inline cl_int
+display_scalar(const clsparseScalarPrivate& s, clsparseControl control, std::string info = "")
+{
+    {
+        size_t size = 1;
+        clMemRAII<T> r_temp(control->queue(), s.value);
+        T* f_temp = r_temp.clMapMem(CL_TRUE, CL_MAP_READ, 0, size);
+
+        std::cout << info << " = " << *f_temp << std::endl;
+    }
+}
+
+template <typename T>
+inline cl_int
+display_matrix(const clsparseCsrMatrix& m, clsparseControl control)
+{
+    clMemRAII<T> r_v(control->queue(), m.values);
+    T* f_v = r_v.clMapMem(CL_TRUE, CL_MAP_READ, 0, m.nnz);
+
+    for (int i = 0; i < m.nnz; i++)
+    {
+        std::cout << f_v[i] << std::endl;
+    }
+}
+
+
+
 
 
 template<typename T, typename PTYPE>
@@ -110,21 +200,28 @@ cg(clsparseVectorPrivate *pX,
     {
         return clsparseInvalidSystemSize;
     }
+    cl_int status;
+
+    T scalarOne = 1;
+    T scalarZero = 0;
+
+    cl_context ctx = control->getContext()();
+
 
     //start of the solver algorithm
     clsparseScalarPrivate norm_b;
     clsparseInitScalar(&norm_b);
+    status = clsparse_alloc_init_scalar(norm_b, scalarZero, control, false);
+    CLSP_ERRCHK(status);
 
-    //let the clMemRAII control the norm_b object
-    //TODO:: Implement Allocator which will control this object!
-    clMemRAII<T> r_norm_b(control->queue(), &norm_b.value, 1);
 
     //norm of rhs of equation
-    cl_int status = Norm1<T>(&norm_b, pB, control);
+    status = Norm1<T>(&norm_b, pB, control);
     CLSP_ERRCHK(status);
 
     //norm_b is calculated once
     T h_norm_b = 0;
+
     //we do not have explicit unmap function defined so I'm doing this in that way
     {
         clMemRAII<T> m_norm_b(control->queue(), norm_b.value);
@@ -147,7 +244,6 @@ cg(clsparseVectorPrivate *pX,
         }
     }
 
-
     //continuing "normal" execution of cg algorithm
 
     const auto N = pA->n;
@@ -156,49 +252,41 @@ cg(clsparseVectorPrivate *pX,
     clsparseVectorPrivate y;
     clsparseInitVector(&y);
     y.n = N;
-    //TODO: allocator instead clMemRAII here and for others
-    clMemRAII<T> gy(control->queue(), &y.values, y.n);
-    gy.clFillMem(0, 0, y.n);
-    /* Test of clFillMem
+    status = clsparse_alloc_init_vector(y, scalarZero, control);
+    CLSP_ERRCHK(status);
 
-//    {
-//        T* hg = gy.clMapMem(CL_TRUE, CL_MAP_READ, 0, y.n);
-//        for (int i = 0; i < y.n; i++)
-//        {
-//            std::cout << hg[i] << std::endl;
-//        }
-//    }
-    */
 
     clsparseVectorPrivate z;
     clsparseInitVector(&z);
     z.n = N;
-    clMemRAII<T> gz(control->queue(), &z.values, z.n);
-    gz.clFillMem(0, 0, z.n);
+    status = clsparse_alloc_init_vector(z, scalarZero, control);
+    CLSP_ERRCHK(status);
+
 
     clsparseVectorPrivate r;
     clsparseInitVector(&r);
     r.n = N;
-    clMemRAII<T> gr(control->queue(), &r.values, r.n);
-    gr.clFillMem(0, 0, r.n);
+    status = clsparse_alloc_init_vector(r, scalarZero, control, false);
+    CLSP_ERRCHK(status);
+
 
     clsparseVectorPrivate p;
     clsparseInitVector(&p);
     p.n = N;
-    clMemRAII<T> gp(control->queue(), &p.values, p.n);
-    gp.clFillMem(0, 0, p.n);
+    status = clsparse_alloc_init_vector(p, scalarZero, control, false);
+    CLSP_ERRCHK(status);
 
     //TODO: Change sAlpha to one, bEta to 0;?
     clsparseScalarPrivate sAlpha;
     clsparseInitScalar(&sAlpha);
-    clMemRAII<T> ga(control->queue(), &sAlpha.value, 1);
-    ga.clFillMem(1, 0, 1); //set sAlpha to 1
+    status = clsparse_alloc_init_scalar(sAlpha, scalarOne, control);
+    CLSP_ERRCHK(status);
+
 
     clsparseScalarPrivate sBeta;
     clsparseInitScalar(&sBeta);
-    clMemRAII<T> gb(control->queue(), &sBeta.value, 1);
-    gb.clFillMem(0, 0, 1); //set sBeta to 0
-
+    status = clsparse_alloc_init_scalar(sBeta, scalarZero, control);
+    CLSP_ERRCHK(status);
 
     // y = A*x
     status = csrmv<T>(&sAlpha, pA, pX, &sBeta, &y, control);
@@ -210,8 +298,7 @@ cg(clsparseVectorPrivate *pX,
 
     clsparseScalarPrivate norm_r;
     clsparseInitScalar(&norm_r);
-
-    clMemRAII<T> r_norm_r(control->queue(), &norm_r.value, 1);
+    clsparse_alloc_init_scalar(norm_r, scalarZero, control, false);
 
     //calculate norm of r
     status = Norm1<T>(&norm_r, &r, control);
@@ -244,16 +331,11 @@ cg(clsparseVectorPrivate *pX,
     //rz = <r, z>, here actually should be conjugate(r)) but we do not support complex type.
     clsparseScalarPrivate rz;
     clsparseInitScalar(&rz);
-    clMemRAII<T> grz(control->queue(), &rz.value, 1);
-    status = dot<T>(&rz, &r, &z, control);
+    status = clsparse_alloc_init_scalar(rz, scalarZero, control, false);
     CLSP_ERRCHK(status);
 
-    {
-        clMemRAII<T> m_rz(control->queue(), rz.value);
-        T* f_rz = m_rz.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
-        std::cout << "<r, z> = " << *f_rz << std::endl;
-    }
-
+    status = dot<T>(&rz, &r, &z, control);
+    CLSP_ERRCHK(status);
 
     int iteration = 0;
 
@@ -284,6 +366,10 @@ cg(clsparseVectorPrivate *pX,
         status = csrmv<T>(&sAlpha, pA, &p, &sBeta, &y, control);
         CLSP_ERRCHK(status);
 
+
+        status = dot<T>(&yp, &y, &p, control);
+        CLSP_ERRCHK(status);
+
         // alpha = <r,z> / <y,p>
         {
             clMemRAII<T> r_alpha(control->queue(), alpha.value);
@@ -291,9 +377,6 @@ cg(clsparseVectorPrivate *pX,
 
             clMemRAII<T> r_rz(control->queue(), rz.value);
             T* f_rz = r_rz.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
-
-            status = dot<T>(&yp, &y, &p, control);
-            CLSP_ERRCHK(status);
 
             clMemRAII<T> r_yp(control->queue(), yp.value);
             T* f_yp = r_yp.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
@@ -362,8 +445,19 @@ cg(clsparseVectorPrivate *pX,
 
     }
 
-    return clsparseSuccess;
+    clReleaseMemObject(norm_b.value);
+    clReleaseMemObject(y.values);
+    clReleaseMemObject(z.values);
+    clReleaseMemObject(r.values);
+    clReleaseMemObject(p.values);
 
+    clReleaseMemObject(sAlpha.value);
+    clReleaseMemObject(sBeta.value);
+
+    clReleaseMemObject(norm_r.value);
+    clReleaseMemObject(rz.value);
+
+    return clsparseSuccess;
 }
 
 #endif //_CLSPARSE_SOLVER_CG_HPP_

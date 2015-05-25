@@ -1,5 +1,4 @@
 #include "conjugate_gradients.hpp"
-
 clsparseStatus
 clsparseScsrcg(clsparseVector *x,
                const clsparseCsrMatrix *A,
@@ -43,5 +42,7 @@ clsparseScsrcg(clsparseVector *x,
         preconditioner->notify(pA, control);
     }
 
-    return cg<cl_float>(pX, pA, pB, *preconditioner, solverControl, control);
+    clsparseStatus status = cg<cl_float>(pX, pA, pB, *preconditioner, solverControl, control);
+    std::cout << "nIters = " << solverControl->nIters << std::endl;
+    return status;
 }

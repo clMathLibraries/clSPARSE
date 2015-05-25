@@ -14,6 +14,8 @@
 #include "clsparseTimer.extern.hpp"
 #include "loadDynamicLibrary.hpp"
 #include "functions/clfunc_xSpMdV.hpp"
+#include "functions/clfunc_xCGM.hpp"
+
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -90,7 +92,7 @@ int main( int argc, char *argv[ ] )
         ( "alpha", po::value<double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
         ( "beta", po::value<double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
         //( "transposeA", po::value<int>( &transA_option )->default_value( 0 ), "0 = no transpose, 1 = transpose, 2 = conjugate transpose" )
-        ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV" )
+        ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, CGM, CGK" )
         ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
         ( "profile,p", po::value<size_t>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
         ;
@@ -135,12 +137,23 @@ int main( int argc, char *argv[ ] )
     if( boost::iequals( function, "SpMdV" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_DEFAULT ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
         else if( precision == "d" )
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_DEFAULT ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU) );
         else
         {
             std::cerr << "Unknown spmdv precision" << std::endl;
+            return -1;
+        }
+    }
+
+    else if (boost::iequals(function, "CGM" ))
+    {
+        if (precision == "s")
+            my_function = std::unique_ptr< clsparseFunc > ( new xCGM< float >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+        else
+        {
+            std::cerr << "Unknown CG precision (double not yet implemented)" << std::endl;
             return -1;
         }
     }

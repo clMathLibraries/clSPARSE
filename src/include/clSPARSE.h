@@ -124,6 +124,11 @@ clsparseReleaseSolverControl(clSParseSolverControl solverControl);
 
 //here maybe some other solver control utils;
 CLSPARSE_EXPORT clsparseStatus
+clsparseSetSolverParams(clSParseSolverControl solverControl,
+                        cl_int maxIters, cl_double relTol, cl_double absTol,
+                        PRECONDITIONER precond);
+
+CLSPARSE_EXPORT clsparseStatus
 clsparseSolverPrintMode(clSParseSolverControl solverControl, PRINT_MODE mode);
 
 /* Conjugate Gradients solver */

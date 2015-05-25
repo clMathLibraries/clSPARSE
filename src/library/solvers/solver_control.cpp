@@ -51,6 +51,28 @@ clsparseReleaseSolverControl(clSParseSolverControl solverControl)
     return clsparseSuccess;
 }
 
+// set the solver control parameters for next use;
+clsparseStatus
+clsparseSetSolverParams(clSParseSolverControl solverControl,
+                        cl_int maxIters, cl_double relTol, cl_double absTol,
+                        PRECONDITIONER precond)
+{
+    if (solverControl == nullptr)
+    {
+        return clsparseInvalidSolverControlObject;
+    }
+
+    solverControl->absoluteTolerance = absTol;
+    solverControl->relativeTolerance = relTol;
+    solverControl->nIters = 0;
+    solverControl->maxIters = maxIters;
+    solverControl->initialResidual = 0;
+    solverControl->preconditioner = precond;
+
+    return clsparseSuccess;
+
+}
+
 clsparseStatus
 clsparseSolverPrintMode(clSParseSolverControl solverControl, PRINT_MODE mode)
 {

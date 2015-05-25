@@ -49,12 +49,13 @@ public:
         // write operator= for clMemRAII then extend this class with field
         // of this type which will manage the invDiag_A.
 #if (BUILD_CLVERSION < 200)
-        ::clRetainMemObject(invDiag_A.values);
+        status = ::clRetainMemObject(invDiag_A.values);
 #endif
 
         if( status != CL_SUCCESS )
         {
-            std::cout << "Problem with creating invDiag buffer" << std::endl;
+            std::cout << "Problem with creating invDiag buffer"
+                      << " (" << status << ")" << std::endl;
         }
         // extract inverse diagonal from matrix A and store it in invDiag_A
         // easy to check with poisson matrix;

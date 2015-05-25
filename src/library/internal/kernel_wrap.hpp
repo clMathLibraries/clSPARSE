@@ -108,7 +108,6 @@ private:
         template<> inline KernelWrap& \
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
         { \
-            std::cout << "USING CL1.1" << std::endl; \
             assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
             kernel.setArg(argCounter++, arg); \
             return *this; \
@@ -120,7 +119,6 @@ private:
         template<> inline KernelWrap& \
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
         { \
-            std::cout << "USING CL1.2" << std::endl; \
             assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
             assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter) \
                                                          == TYPE_STRING); \
@@ -132,7 +130,6 @@ private:
         template<> inline KernelWrap& \
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
         { \
-            std::cout << "USING CL2.0" << std::endl; \
             assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
             assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter) \
                                                          == TYPE_STRING); \
