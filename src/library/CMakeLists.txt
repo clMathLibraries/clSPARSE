@@ -141,7 +141,7 @@ if( CMAKE_COMPILER_IS_GNUCC )
 endif( )
 
 add_compiler_export_flags( )
-add_library( clSPARSE SHARED ${clSPARSE.Files} )
+add_library( clSPARSE SHARED ${clSPARSE.Files} ${clSPARSE.source.cl})
 
 # PRIVATE linking prevents transitive library linking of the clBLAS libraries
 target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${clBLAS_LIBRARIES} )

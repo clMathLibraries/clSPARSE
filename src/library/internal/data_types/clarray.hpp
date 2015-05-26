@@ -44,8 +44,15 @@ public:
     }
 
     //create array from preinitialized buffer.
-    array (clsparseControl control, const cl::Buffer& buffer, size_t size) : BASE::buff(buffer), _size(size), queue(control->queue)
+    array (clsparseControl control, const cl::Buffer& buffer, size_t size)
+        : BASE::buff(buffer), _size(size), queue(control->queue)
     {}
+
+    array (clsparseControl control, const cl_mem& mem, size_t size)
+        : _size(size), queue(control->queue)
+    {
+         BASE::buff = mem;
+    }
 
 
     //returns deep copy of the object

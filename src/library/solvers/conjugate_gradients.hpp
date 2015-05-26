@@ -205,8 +205,6 @@ cg(clsparseVectorPrivate *pX,
 
     cl_context ctx = control->getContext()();
 
-
-    //start of the solver algorithm
     clsparseScalarPrivate norm_b;
     clsparseInitScalar(&norm_b);
     status = clsparse_alloc_init_scalar(norm_b, scalarZero, control, false);
@@ -244,13 +242,7 @@ cg(clsparseVectorPrivate *pX,
     }
 
     //continuing "normal" execution of cg algorithm
-
     const auto N = pA->n;
-
-    clsparse::array<T> xxx(control, 10, 1.2);
-
-
-
 
     //helper containers, all need to be zeroed
     clsparseVectorPrivate y;

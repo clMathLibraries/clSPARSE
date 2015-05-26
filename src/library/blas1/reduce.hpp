@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-
+#include "internal/data_types/clarray.hpp"
 
 template <typename T, ReduceOperator OP>
 clsparseStatus
@@ -59,7 +59,6 @@ global_reduce (clsparseVectorPrivate* partial,
 
 // G_OP: Global reduce operation
 // F_OP: Final reduce operation, modifies final result of the reduce operation
-
 template<typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
 clsparseStatus
 reduce(clsparseScalarPrivate* pR,
@@ -127,4 +126,6 @@ reduce(clsparseScalarPrivate* pR,
 
     return clsparseSuccess;
 }
+
+
 #endif //_CLSPARSE_REDUCE_HPP_
