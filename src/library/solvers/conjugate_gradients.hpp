@@ -4,6 +4,7 @@
 
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse_internal.hpp"
+#include "internal/data_types/clarray.hpp"
 
 #include "preconditioners/preconditioner.hpp"
 #include "preconditioners/diagonal.hpp"
@@ -246,6 +247,11 @@ cg(clsparseVectorPrivate *pX,
 
     const auto N = pA->n;
 
+    clsparse::array<T> xxx(control, 10, 1.2);
+
+
+
+
     //helper containers, all need to be zeroed
     clsparseVectorPrivate y;
     clsparseInitVector(&y);
@@ -407,7 +413,7 @@ cg(clsparseVectorPrivate *pX,
         CLSP_ERRCHK(status);
 
         // beta = <r^(i), r^(i)>/<r^(i-1),r^(i-1)> // i: iteration index;
-        // beta is ration of dot product in current iteration compared
+        // beta is ratio of dot product in current iteration compared
         // to previous.
         {
             clMemRAII<T> r_beta(control->queue(), beta.value);
