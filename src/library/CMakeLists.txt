@@ -91,9 +91,11 @@ set( clSPARSE.Headers
   ../include/clSPARSE.h
   ../include/clSPARSE_1x.h
   ../include/clSPARSE_2x.h
+  ../include/clsparse.error.hpp
   include/clSPARSE-private.hpp
   include/clSPARSE_1x.hpp
   include/clSPARSE_2x.hpp
+
   ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
   internal/clsparse_internal.hpp
   internal/clsparse_control.hpp
@@ -102,8 +104,8 @@ set( clSPARSE.Headers
   internal/kernel_cache.hpp
   internal/ocl_type_traits.hpp
   internal/kernel_wrap.hpp
+  spmv/clsparse_csrmv.hpp
   spmv/csrmv_vector/csrmv_vector.hpp
-  spmv/csrmv_vector/csrmv_vector_impl.hpp
   spmv/csrmv_adaptive/csrmv_adaptive.hpp
   blas1/reduce.hpp
   blas1/atomic_reduce.hpp

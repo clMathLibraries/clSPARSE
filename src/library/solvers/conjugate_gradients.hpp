@@ -10,7 +10,7 @@
 #include "preconditioners/void.hpp"
 
 //matrix multiply
-#include "spmv/csrmv_vector/csrmv_vector_impl.hpp"
+#include "spmv/clsparse_csrmv.hpp"
 //dense vector operations
 #include "blas1/cldense_dot.hpp"
 #include "blas1/cldense_axpy.hpp"
@@ -25,9 +25,6 @@
  * be found here:
  * http://www.cs.cmu.edu/~./quake-papers/painless-conjugate-gradient.pdf
  */
-
-
-
 #define CLSP_ERRCHK(ans) { clsparseCheck((ans), __FILE__, __LINE__); }
 
 inline void clsparseCheck(cl_int code, const char *file, int line, bool abort=false)
