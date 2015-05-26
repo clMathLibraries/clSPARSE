@@ -128,15 +128,47 @@ set_target_properties( clSPARSE PROPERTIES VERSION ${clSPARSE_VERSION} )
 set_target_properties( clSPARSE PROPERTIES SOVERSION ${clSPARSE_SOVERSION} )
 set_target_properties( clSPARSE PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
-# CPack configuration; include the executable into the package
-install( TARGETS clSPARSE
-  RUNTIME DESTINATION bin${SUFFIX_BIN}
-  LIBRARY DESTINATION lib${SUFFIX_LIB}
-  ARCHIVE DESTINATION lib${SUFFIX_LIB}
-)
-
+# The following installs the basic files of the library
 install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/clsparse_export.h
   DESTINATION
     include
 )
+
+# CPack configuration; include the executable into the package
+install( TARGETS clSPARSE
+  EXPORT clSPARSE-Targets
+  RUNTIME DESTINATION bin${SUFFIX_BIN}
+  LIBRARY DESTINATION lib${SUFFIX_LIB}
+  ARCHIVE DESTINATION lib${SUFFIX_LIB}
+  INCLUDES DESTINATION include
+)
+
+# The following is cmake code to generate a config file package for clSPARSE
+include( CMakePackageConfigHelpers )
+
+set( ConfigPackageLocation lib${SUFFIX_LIB}/clSPARSE/cmake )
+
+configure_package_config_file(
+  clSPARSEConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/clSPARSEConfig.cmake
+  INSTALL_DESTINATION ${ConfigPackageLocation}
+  PATH_VARS INCLUDE_INSTALL_DIR SYSCONFIG_INSTALL_DIR
+)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/clSPARSEConfigVersion.cmake
+  VERSION ${clSPARSE_SOVERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+install( EXPORT clSPARSE-Targets
+  DESTINATION
+    ${ConfigPackageLocation}
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/clSPARSEConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/clSPARSEConfigVersion.cmake
+  DESTINATION
+    ${ConfigPackageLocation} )
