@@ -225,7 +225,9 @@ cg(clsparseVectorPrivate *pX,
         T* f_norm_b = m_norm_b.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
         h_norm_b = *f_norm_b;
 
+#ifndef NDEBUG
         std::cout << "norm_b " << h_norm_b << std::endl;
+#endif
 
         if (h_norm_b == 0) //special case b is zero so solution is x = 0
         {
@@ -236,7 +238,6 @@ cg(clsparseVectorPrivate *pX,
             //we can either fill the x with zeros or cpy b to x;
             status = clsparseCpyVectorBuffers<T>(pB, pX, control);
             CLSP_ERRCHK(status);
-            std::cout << "vec B = 0" << std::endl;
             return clsparseSuccess;
         }
     }
@@ -308,7 +309,9 @@ cg(clsparseVectorPrivate *pX,
         T* f_norm_r = m_norm_r.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
 
         residuum = *f_norm_r / h_norm_b;
+#ifndef NDEBUG
         std::cout << "initial residuum = " << residuum << std::endl;
+#endif
     }
 
     solverControl->initialResidual = residuum;
@@ -379,7 +382,9 @@ cg(clsparseVectorPrivate *pX,
             T* f_yp = r_yp.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
 
             *f_alpha = *f_rz / *f_yp;
+#ifndef NDEBUG
             std::cout << "alpha = " << *f_alpha << std::endl;
+#endif
         }
 
         //x = x + alpha*p
@@ -416,7 +421,9 @@ cg(clsparseVectorPrivate *pX,
             T* f_rz_old = r_rz_old.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
 
             *f_beta = *f_rz / *f_rz_old;
+#ifndef NDEBUG
             std::cout << "beta = " << *f_beta << std::endl;
+#endif
         }
 
         //p = z + beta*p;
@@ -434,11 +441,13 @@ cg(clsparseVectorPrivate *pX,
             T* f_norm_r = m_norm_r.clMapMem(CL_TRUE, CL_MAP_READ, 0, 1);
 
             residuum = *f_norm_r / h_norm_b;
-            std::cout << "\tresiduum = " << residuum << std::endl;
+
         }
 
         iteration++;
         converged = solverControl->finished(residuum);
+
+        solverControl->print();
 
     }
 

@@ -37,6 +37,7 @@ public:
         clsparseEnableAsync( control, false );
 
         solverControl = clsparseCreateSolverControl(100, VOID, 1e-6, 1e-8);
+        clsparseSolverPrintMode(solverControl, NORMAL);
     }
 
     ~xCGM( )

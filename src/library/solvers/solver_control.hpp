@@ -46,6 +46,48 @@ struct _solverControl
         }
     }
 
+    void print()
+    {
+        if (printMode == VERBOSE)
+        {
+            std::cout << "Iteration: " << nIters
+                      << " Residuum: " << currentResidual
+                      << std::endl;
+        }
+    }
+
+    std::string printPreconditioner()
+    {
+
+        switch(preconditioner)
+        {
+        case VOID:
+            return "VOID";
+        case DIAGONAL:
+            return "Diagonal";
+        }
+    }
+
+    void printSummary(clsparseStatus status)
+    {
+        if (printMode == VERBOSE || printMode == NORMAL)
+        {
+            std::cout << "Solver constraints: \n"
+                      << "\trelative tolerance = " << relativeTolerance
+                      << "\n\tabsolute tolerance = " << absoluteTolerance
+                      << "\n\tmax iterations = " << maxIters
+                      << "\n\tPreconditioner: " << printPreconditioner()
+                      << std::endl;
+
+            std::cout << "Solver finished calculations with status "
+                      << status << std::endl;
+
+            std::cout << "\tfinal residual = " << currentResidual
+                      << "\titerations = " << nIters
+                      << std::endl;
+        }
+    }
+
     // current solver iteration;
     cl_int nIters;
 

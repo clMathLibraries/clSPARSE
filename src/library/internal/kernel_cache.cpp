@@ -53,8 +53,8 @@ cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
     else //build program and compile the kernel;
     {
 
-        std::cout << "kernel not found: " << hash <<std::endl;
 #ifndef NDEBUG
+        std::cout << "kernel not found: " << hash <<std::endl;
 #endif
 
         const cl::Program* program = NULL;

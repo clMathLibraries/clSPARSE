@@ -43,6 +43,8 @@ clsparseScsrcg(clsparseVector *x,
     }
 
     clsparseStatus status = cg<cl_float>(pX, pA, pB, *preconditioner, solverControl, control);
-    std::cout << "nIters = " << solverControl->nIters << std::endl;
+
+    solverControl->printSummary(status);
+
     return status;
 }
