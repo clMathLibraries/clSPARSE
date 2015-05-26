@@ -18,38 +18,6 @@ namespace po = boost::program_options;
 
 std::string path;
 
-class clMem12: public clAllocator
-{
-public:
-    cl_mem_flags flags;
-    void* hostBuffer;
-
-    void* operator( )( size_t buffSize ) const
-    {
-        cl_mem buf;
-        cl_int status;
-        cl_context ctx = NULL;
-            
-        ::clGetCommandQueueInfo( queue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL );
-        buf = ::clCreateBuffer( ctx, flags, buffSize, hostBuffer, &status );
-        return buf;
-    }
-};
-
-//class clMem20: public clAllocator
-//{
-//public:
-//    cl_svm_mem_flags flags;
-//
-//    void* operator( )( size_t buffSize ) const
-//    {
-//        cl_context ctx = NULL;
-//        
-//        ::clGetCommandQueueInfo( queue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL );
-//        return ::clSVMAlloc( ctx, flags, buffSize, 0 );
-//    }
-//};
-
 void generateReference( const std::vector<float>& x,
                         const float alpha,
                         std::vector<float>& y,
@@ -66,10 +34,19 @@ TEST( MM_file, load )
 {
     using CLSE = ClSparseEnvironment;
 
+    // Read sparse data from file and construct a COO matrix from it
+    int nnz, row, col;
+    clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, path.c_str( ) );
+    if( fileError != clsparseSuccess )
+        throw std::runtime_error( "Could not read matrix market header from disk" );
+
+    // Now initialise a CSR matrix from the COO matrix
     clsparseCooMatrix cooMatx;
     clsparseInitCooMatrix( &cooMatx );
+    cooMatx.nnz = nnz;
+    cooMatx.m = row;
+    cooMatx.n = col;
 
-    clsparseCooHeaderfromFile( &cooMatx, path.c_str( ) );
     cl_int status;
     cooMatx.values = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
                                        cooMatx.nnz * sizeof( cl_float ), NULL, &status );
@@ -78,17 +55,6 @@ TEST( MM_file, load )
     cooMatx.rowIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
                                            cooMatx.nnz * sizeof( cl_int ), NULL, &status );
     clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), CLSE::control );
-
-//#if( BUILD_CLVERSION < 200 )
-//    clMem12 clAlloc;
-//#else
-//    clMem20 clAlloc;
-//#endif
-//
-//    clAlloc.queue = CLSE::queue;
-//    clAlloc.flags = CL_MEM_READ_ONLY;
-//    clAlloc.hostBuffer = nullptr;
-//    clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), clAlloc );
 
     clsparseCsrMatrix csrMatx;
     clsparseInitCsrMatrix( &csrMatx );
