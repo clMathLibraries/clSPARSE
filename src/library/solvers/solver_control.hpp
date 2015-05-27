@@ -22,7 +22,7 @@ struct _solverControl
 
     _solverControl() : nIters(0), maxIters(0), preconditioner(VOID),
         relativeTolerance(0.0), absoluteTolerance(0.0),
-        initialResidual(0), currentResidual(0), printMode(NORMAL)
+        initialResidual(0), currentResidual(0), printMode(QUIET)
     {
 
     }
