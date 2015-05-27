@@ -147,18 +147,19 @@ install( TARGETS clSPARSE
 # The following is cmake code to generate a config file package for clSPARSE
 include( CMakePackageConfigHelpers )
 
-set( ConfigPackageLocation lib${SUFFIX_LIB}/clSPARSE/cmake )
+set( LIB_INSTALL_DIR lib${SUFFIX_LIB} )
+set( INCLUDE_INSTALL_DIR include )
+set( ConfigPackageLocation ${LIB_INSTALL_DIR}/clSPARSE/cmake )
 
 configure_package_config_file(
   clSPARSEConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/clSPARSEConfig.cmake
   INSTALL_DESTINATION ${ConfigPackageLocation}
-  PATH_VARS INCLUDE_INSTALL_DIR SYSCONFIG_INSTALL_DIR
+  PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
 )
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/clSPARSEConfigVersion.cmake
-  VERSION ${clSPARSE_SOVERSION}
   COMPATIBILITY SameMajorVersion
 )
 
