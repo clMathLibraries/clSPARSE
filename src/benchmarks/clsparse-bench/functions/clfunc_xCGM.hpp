@@ -36,7 +36,7 @@ public:
 
         clsparseEnableAsync( control, false );
 
-        solverControl = clsparseCreateSolverControl(100, VOID, 1e-2, 1e-8);
+        solverControl = clsparseCreateSolverControl(100, NOPRECOND, 1e-2, 1e-8);
         clsparseSolverPrintMode(solverControl, NORMAL);
     }
 
@@ -187,7 +187,7 @@ public:
                              sizeof( T ) * x.n, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
 
         // reset solverControl for next call
-        clsparseSetSolverParams(solverControl, 100, 1e-2, 1e-8, VOID);
+        clsparseSetSolverParams(solverControl, 100, 1e-2, 1e-8, NOPRECOND);
     }
 
     void read_gpu_buffer( )

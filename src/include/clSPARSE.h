@@ -108,10 +108,9 @@ typedef enum _print_mode{
 
 typedef enum _precond
 {
-    VOID = 0,
+    NOPRECOND = 0,
     DIAGONAL
 } PRECONDITIONER;
-
 
 typedef struct _solverControl*  clSParseSolverControl;
 

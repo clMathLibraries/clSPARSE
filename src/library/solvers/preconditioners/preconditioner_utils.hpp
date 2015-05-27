@@ -29,7 +29,7 @@ extract_diagonal(clsparseVectorPrivate* pDiag,
     assert (pA->n > 0);
     assert (pA->nnz > 0);
 
-    assert (pDiag->n == std::min(pA->n, pA->m));
+    assert (pDiag->n == min(pA->n, pA->m));
 
     cl_ulong wg_size = 256;
     cl_ulong size = pA->m;

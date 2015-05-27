@@ -1,4 +1,4 @@
-#pragma #once
+#pragma once
 #ifndef _CLSPARSE_SOLVER_CG_HPP_
 #define _CLSPARSE_SOLVER_CG_HPP_
 

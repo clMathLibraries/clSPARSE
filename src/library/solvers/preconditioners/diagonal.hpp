@@ -9,7 +9,7 @@
 #include "blas1/elementwise_transform.hpp"
 #include "preconditioner_utils.hpp"
 #include <memory>
-
+#include <algorithm>
 /* The simplest preconditioner consists of just the
    inverse values of the diagonal of the matrix:
 
@@ -33,7 +33,7 @@ public:
                            clsparseControl control)
     {
         //allocate proper size assuming rectangular size of A;
-        cl_uint size = std::min(A->m, A->n);
+        cl_uint size = min(A->m, A->n);
 
         clsparseInitVector(&invDiag_A);
         invDiag_A.n = size;

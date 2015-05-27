@@ -1,4 +1,4 @@
-#pragma #once
+#pragma once
 #ifndef _CLSPARSE_SOLVER_CONTROL_HPP_
 #define _CLSPARSE_SOLVER_CONTROL_HPP_
 
@@ -20,7 +20,7 @@
 struct _solverControl
 {
 
-    _solverControl() : nIters(0), maxIters(0), preconditioner(VOID),
+    _solverControl() : nIters(0), maxIters(0), preconditioner(NOPRECOND),
         relativeTolerance(0.0), absoluteTolerance(0.0),
         initialResidual(0), currentResidual(0), printMode(QUIET)
     {
@@ -61,8 +61,8 @@ struct _solverControl
 
         switch(preconditioner)
         {
-        case VOID:
-            return "VOID";
+        case NOPRECOND:
+            return "No preconditioner";
         case DIAGONAL:
             return "Diagonal";
         }

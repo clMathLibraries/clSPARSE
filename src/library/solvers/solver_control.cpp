@@ -43,7 +43,7 @@ clsparseReleaseSolverControl(clSParseSolverControl solverControl)
     solverControl->nIters = -1;
     solverControl->maxIters = -1;
     solverControl->initialResidual = -1;
-    solverControl->preconditioner = VOID;
+    solverControl->preconditioner = NOPRECOND;
 
     delete solverControl;
 

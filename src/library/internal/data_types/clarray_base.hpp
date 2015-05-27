@@ -56,9 +56,9 @@ public:
 
     array_base() = default;
     array_base(const array_base&) = delete;
-    array_base(array_base&&) = default;
+    //array_base(array_base&&) = default;
     array_base& operator=(const array_base&) = delete;
-    array_base& operator=(array_base&&) = default;
+//    array_base& operator=(array_base&&) = default;
 
 protected:
     BUFF_TYPE buff;

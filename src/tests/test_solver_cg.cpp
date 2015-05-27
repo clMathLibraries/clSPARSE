@@ -40,7 +40,7 @@ TEST (CG, float)
     ASSERT_EQ(CL_SUCCESS, status);
 
     clSParseSolverControl solver_control =
-            clsparseCreateSolverControl(1, VOID, 0.001, 1e-4);
+            clsparseCreateSolverControl(1, NOPRECOND, 0.001, 1e-4);
 
     ASSERT_NE(nullptr, solver_control);
 
