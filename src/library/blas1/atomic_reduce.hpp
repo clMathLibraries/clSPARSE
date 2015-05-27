@@ -2,6 +2,8 @@
 #ifndef _CLSPARSE_ATOMIC_REDUCE_HPP_
 #define _CLSPARSE_ATOMIC_REDUCE_HPP_
 
+#include <typeinfo>
+
 #include "include/clSPARSE-private.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
@@ -15,12 +17,8 @@
  *      wg_size is the workgroup size
 */
 
-enum PRECISION{
-    clsparseFloat = 0,
-    clsparseDouble
-};
 
-template<PRECISION FPTYPE, ReduceOperator OP = DUMMY>
+template<typename T, ReduceOperator OP = RO_DUMMY>
 clsparseStatus
 atomic_reduce(clsparseScalarPrivate* pR,
               const clsparseVectorPrivate* pX,
@@ -31,22 +29,23 @@ atomic_reduce(clsparseScalarPrivate* pR,
 
     std::string params = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ReduceOperatorTrait<OP>::operation;
 
-    if (FPTYPE == clsparseFloat)
+    if (typeid(cl_float) == typeid(T))
     {
-        std::string options = std::string()
-                + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
-                + " -DATOMIC_FLOAT";
+        std::string options = std::string() + " -DATOMIC_FLOAT";
         params.append(options);
     }
-    else if (FPTYPE == clsparseDouble)
+    else if (typeid(cl_double) == typeid(T))
     {
-        std::string options = std::string()
-                + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
-                + " -DATOMIC_DOUBLE";
+        std::string options = std::string() + " -DATOMIC_DOUBLE";
         params.append(options);
+    }
+    else
+    {
+        return clsparseInvalidType;
     }
 
     cl::Kernel kernel = KernelCache::get(control->queue,

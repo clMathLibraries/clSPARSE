@@ -127,7 +127,7 @@ prettyPrintClStatus( const cl_int& status )
 // Note: std::runtime_error does not take unicode strings as input, so
 // only strings supported
 inline cl_int
-OpenCL_V_Throw( cl_int res, const std::string& msg, size_t lineno )
+OpenCL_V_Throw( cl_int res, const std::string& msg, const char *file, size_t lineno )
 {
     switch( res )
     {
@@ -139,8 +139,9 @@ OpenCL_V_Throw( cl_int res, const std::string& msg, size_t lineno )
 
         tmp << "OPENCL_V_THROWERROR< ";
         tmp << prettyPrintClStatus( res );
-        tmp << " > (";
-        tmp << lineno;
+        tmp << " >";
+        tmp << "[" << file << "]";
+        tmp << " (" << lineno;
         tmp << "): ";
         tmp << msg;
         std::string errorm( tmp.str( ) );
@@ -152,6 +153,6 @@ OpenCL_V_Throw( cl_int res, const std::string& msg, size_t lineno )
     return res;
 }
 
-#define OPENCL_V_THROW( _status, _message ) OpenCL_V_Throw( _status, _message, __LINE__ )
+#define OPENCL_V_THROW( _status, _message ) OpenCL_V_Throw( _status, _message, __FILE__, __LINE__ )
 
 #endif

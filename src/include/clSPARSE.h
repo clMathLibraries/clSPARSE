@@ -46,7 +46,16 @@ typedef enum clsparseStatus_ {
     clsparseInvalidControlObject,           /**< clsparseControl object is not valid */
     clsparseInvalidFile,                    /**< Error reading the sparse matrix file */
     clsparseInvalidFileFormat,              /**< Only specific documented sparse matrix files supported */
-    clsparseInvalidKernelExecution          /**< Problem with kenrel execution */
+    clsparseInvalidKernelExecution,          /**< Problem with kenrel execution */
+    clsparseInvalidType,                     /** < Wrong type provided > */
+
+    /* Solver control */
+    clsparseInvalidSolverControlObject    = -2048,
+    clsparseInvalidSystemSize,
+    clsparseIterationsExceeded,
+    clsparseToleranceNotReached,
+    clsparseSolverError,
+
 
 } clsparseStatus;
 
@@ -88,11 +97,43 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseReleaseControl(clsparseControl control);
 
 
-//Deprecated: offsets are hidden in type structures.
-//CLSPARSE_EXPORT clsparseStatus
-//clsparseSetOffsets(clsparseControl control,
-//                   size_t off_alpha, size_t off_beta,
-//                   size_t off_x, size_t off_y);
+/*
+ * Solver control: Object controlling the solver execution
+ */
+typedef enum _print_mode{
+    QUIET =0,
+    NORMAL,
+    VERBOSE
+} PRINT_MODE;
+
+typedef enum _precond
+{
+    NOPRECOND = 0,
+    DIAGONAL
+} PRECONDITIONER;
+
+typedef struct _solverControl*  clSParseSolverControl;
+
+CLSPARSE_EXPORT clSParseSolverControl
+clsparseCreateSolverControl(cl_int maxIters, PRECONDITIONER precond,
+                            cl_double relTol, cl_double absTol);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseReleaseSolverControl(clSParseSolverControl solverControl);
+
+//here maybe some other solver control utils;
+CLSPARSE_EXPORT clsparseStatus
+clsparseSetSolverParams(clSParseSolverControl solverControl,
+                        cl_int maxIters, cl_double relTol, cl_double absTol,
+                        PRECONDITIONER precond);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseSolverPrintMode(clSParseSolverControl solverControl, PRINT_MODE mode);
+
+/* Conjugate Gradients solver */
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsrcg(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+               clSParseSolverControl solverControl, clsparseControl control);
 
 
 CLSPARSE_EXPORT clsparseStatus

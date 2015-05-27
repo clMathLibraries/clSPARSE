@@ -20,6 +20,21 @@ R"(
 #endif
 )"
 
+R"(
+VALUE_TYPE operation(VALUE_TYPE A, VALUE_TYPE B)
+{
+#ifdef OP_EW_PLUS
+    return A + B;
+#elif OP_EW_MINUS
+    return A - B;
+#elif OP_EW_MULTIPLY
+    return A * B;
+#else
+    return 0;
+#endif
+}
+)"
+
 
 R"(
 __kernel
@@ -39,7 +54,7 @@ void axpy(const SIZE_TYPE size,
 
     const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
 
-    pY[index + pYOffset] = alpha * pX[index + pXOffset] + pY[index + pYOffset];
+    pY[index + pYOffset] = operation(pY[index + pYOffset], alpha * pX[index + pXOffset]);
 }
 )"
 
@@ -64,7 +79,7 @@ void axpby(const SIZE_TYPE size,
     const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
     const VALUE_TYPE beta = *(pBeta + pBetaOffset);
 
-    pY[index + pYOffset] = alpha * pX[index + pXOffset] + beta * pY[index + pYOffset];
+    pY[index + pYOffset] = operation(beta * pY[index + pYOffset], alpha * pX[index + pXOffset]);
 }
 )"
 
@@ -85,23 +100,4 @@ void scale (const SIZE_TYPE pYSize,
 
     pY[i + pYOffset] = pY[i + pYOffset]* alpha;
 }
-)"
-//Not used yet
-R"(
-__kernel
-__attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))
-void element_wise_multiply (const SIZE_TYPE size,
-                         __global VALUE_TYPE* pR,
-                         __global const VALUE_TYPE* pX,
-                            const SIZE_TYPE pXOffset,
-                        __global const VALUE_TYPE* pY,
-                            const SIZE_TYPE pYOffset)
-{
-    const int i = get_global_id(0);
-
-    if(i >= size) return;
-
-    pR[i] = pX[i + pXOffset] * pY[i + pYOffset];
-}
-
 )"

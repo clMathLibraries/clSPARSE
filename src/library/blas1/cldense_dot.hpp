@@ -1,28 +1,25 @@
 #pragma once
-#ifndef _CLSPARSE_REDUCE_HPP_
-#define _CLSPARSE_REDUCE_HPP_
+#ifndef _CLSPARSE_DOT_HPP_
+#define _CLSPARSE_DOT_HPP_
 
-#include "include/clSPARSE-private.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 #include "internal/clsparse_internal.hpp"
 
 #include "commons.hpp"
-#include "reduce_operators.hpp"
 #include "atomic_reduce.hpp"
 
-#include <algorithm>
-
-#include "internal/data_types/clarray.hpp"
-
-template <typename T, ReduceOperator OP>
+template<typename T>
 clsparseStatus
-global_reduce (clsparseVectorPrivate* partial,
-               const clsparseVectorPrivate* pX,
-               const cl_ulong REDUCE_BLOCKS_NUMBER,
-               const cl_ulong REDUCE_BLOCK_SIZE,
-               const clsparseControl control)
+inner_product (clsparseVectorPrivate* partial,
+     const clsparseVectorPrivate* pX,
+     const clsparseVectorPrivate* pY,
+     const cl_ulong size,
+     const cl_ulong REDUCE_BLOCKS_NUMBER,
+     const cl_ulong REDUCE_BLOCK_SIZE,
+     const clsparseControl control)
 {
+
     cl_ulong nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
 
     std::string params = std::string()
@@ -30,17 +27,17 @@ global_reduce (clsparseVectorPrivate* partial,
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
-            + " -DN_THREADS=" + std::to_string(nthreads)
-            + " -D" + ReduceOperatorTrait<OP>::operation;
+            + " -DN_THREADS=" + std::to_string(nthreads);
 
     cl::Kernel kernel = KernelCache::get(control->queue,
-                                         "reduce", "reduce", params);
+                                         "dot", "inner_product", params);
 
     KernelWrap kWrapper(kernel);
 
-    kWrapper << (cl_ulong)pX->n
+    kWrapper << size
+             << partial->values
              << pX->values
-             << partial->values;
+             << pY->values;
 
     cl::NDRange local(REDUCE_BLOCK_SIZE);
     cl::NDRange global(REDUCE_BLOCKS_NUMBER * REDUCE_BLOCK_SIZE);
@@ -54,16 +51,13 @@ global_reduce (clsparseVectorPrivate* partial,
     }
 
     return clsparseSuccess;
-
 }
 
-// G_OP: Global reduce operation
-// F_OP: Final reduce operation, modifies final result of the reduce operation
-template<typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
-clsparseStatus
-reduce(clsparseScalarPrivate* pR,
-       const clsparseVectorPrivate* pX,
-       const clsparseControl control)
+template<typename T>
+clsparseStatus dot(clsparseScalarPrivate* pR,
+                   const clsparseVectorPrivate* pX,
+                   const clsparseVectorPrivate* pY,
+                   const clsparseControl control)
 {
     if (!clsparseInitialized)
     {
@@ -76,6 +70,10 @@ reduce(clsparseScalarPrivate* pR,
         return clsparseInvalidControlObject;
     }
 
+    cl_int status;
+
+    init_scalar(pR, (T)0, control);
+
     // with REDUCE_BLOCKS_NUMBER = 256 final reduction can be performed
     // within one block;
     const cl_ulong REDUCE_BLOCKS_NUMBER = 256;
@@ -85,47 +83,47 @@ reduce(clsparseScalarPrivate* pR,
     const cl_uint  WG_PER_CU = 64;
     const cl_ulong REDUCE_BLOCKS_NUMBER = control->max_compute_units * WG_PER_CU;
     */
-
     const cl_ulong REDUCE_BLOCK_SIZE = 256;
 
-    init_scalar(pR, (T)0.0, control);
+    cl_ulong xSize = pX->n - pX->offset();
+    cl_ulong ySize = pY->n - pY->offset();
+
+    assert (xSize == ySize);
+
+    cl_ulong size = xSize;
 
 
-    cl_int status;
-    if (pX->n > 0)
+    if (size > 0)
     {
         cl::Context context = control->getContext();
 
-        //vector for partial sums of X;
         //partial result
         clsparseVectorPrivate partial;
         clsparseInitVector(&partial);
         partial.n = REDUCE_BLOCKS_NUMBER;
 
-        //partial will be deleted according to this object lifetime
         clMemRAII<T> rPartial (control->queue(), &partial.values, partial.n);
 
+        status = inner_product<T>(&partial, pX, pY, size,  REDUCE_BLOCKS_NUMBER,
+                               REDUCE_BLOCK_SIZE, control);
 
-        status = global_reduce<T, G_OP>(&partial, pX, REDUCE_BLOCKS_NUMBER,
-                                      REDUCE_BLOCK_SIZE, control);
+        if (status != clsparseSuccess)
+        {
+            return clsparseInvalidKernelExecution;
+        }
+
+       status = atomic_reduce<T>(pR, &partial, REDUCE_BLOCK_SIZE,
+                                     control);
 
         if (status != CL_SUCCESS)
         {
             return clsparseInvalidKernelExecution;
         }
-
-        clsparseStatus clsp_status =
-                atomic_reduce<T, F_OP>(pR, &partial, REDUCE_BLOCK_SIZE, control);
-
-
-        if (clsp_status!= CL_SUCCESS)
-        {
-            return clsp_status;
-        }
     }
 
     return clsparseSuccess;
+
 }
 
 
-#endif //_CLSPARSE_REDUCE_HPP_
+#endif //_CLSPARSE_DOT_HPP_

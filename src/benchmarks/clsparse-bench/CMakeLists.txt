@@ -11,6 +11,7 @@ set( clsparse.bench.hdr
   include/statisticalTimer.h
   functions/clfunc_common.hpp
   functions/clfunc_xSpMdV.hpp
+  functions/clfunc_xCGM.hpp
   )
 
 # Having problems on build server, compiling gtest headers with -pedantic; disabling detection of long long

@@ -33,6 +33,11 @@ class clMemRAII
 
 public:
 
+//    clMemRAII() : clQueue(nullptr), clBuff(nullptr), clMem(nullptr)
+//    {
+
+//    }
+
     clMemRAII( const cl_command_queue cl_queue, const cl_mem cl_buff,
                const size_t cl_size = 0, const cl_mem_flags cl_flags = CL_MEM_READ_WRITE) :
         clMem( nullptr )
@@ -51,6 +56,29 @@ public:
          }
          else
          {
+             ::clRetainMemObject( clBuff );
+         }
+    }
+
+    clMemRAII( const cl_command_queue cl_queue, cl_mem* cl_buff,
+               const size_t cl_size = 0, const cl_mem_flags cl_flags = CL_MEM_READ_WRITE) :
+        clMem( nullptr )
+    {
+        clQueue = cl_queue;
+        clBuff = *cl_buff;
+
+        ::clRetainCommandQueue( clQueue );
+         if(cl_size > 0)
+         {
+             cl_context ctx = NULL;
+
+             ::clGetCommandQueueInfo(clQueue, CL_QUEUE_CONTEXT, sizeof( cl_context ), &ctx, NULL);
+             cl_int status = 0;
+             clBuff = ::clCreateBuffer(ctx, cl_flags, cl_size * sizeof(pType), NULL, &status);
+             *cl_buff = clBuff;
+         }
+         else
+         {
             ::clRetainMemObject( clBuff );
          }
     }
@@ -60,6 +88,8 @@ public:
         // Right now, we don't support returning an event to wait on
         clBlocking = CL_TRUE;
         cl_int clStatus = 0;
+
+        cl_int status;
 
         clMem = static_cast< pType* >( ::clEnqueueMapBuffer( clQueue, clBuff, clBlocking, clFlags, clOff, 
             clSize * sizeof( pType ), 0, NULL, NULL, &clStatus ) );
@@ -74,6 +104,15 @@ public:
 
         cl_int clStatus = ::clEnqueueWriteBuffer( clQueue, clBuff, clBlocking, clOff,
                                                   clSize * sizeof( pType ), hostMem, 0, NULL, NULL );
+    }
+
+    //simple fill mem wrapper, pattern is a single value for now
+    void clFillMem (const pType pattern, const size_t clOff, const size_t clSize)
+    {
+        cl_int clStatus = clEnqueueFillBuffer(clQueue, clBuff,
+                                              &pattern, sizeof(pType), clOff,
+                                              clSize * sizeof(pType),
+                                              0, NULL, NULL);
     }
 
     ~clMemRAII( )
@@ -92,7 +131,6 @@ public:
 	
         ::clReleaseCommandQueue( clQueue );
         ::clReleaseMemObject( clBuff );
-
     }
 };
 

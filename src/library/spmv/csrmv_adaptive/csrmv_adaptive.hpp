@@ -7,15 +7,29 @@
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 
+template <typename T>
 clsparseStatus
-csrmv( const clsparseScalarPrivate& pAlpha, const clsparseCsrMatrixPrivate& pCsrMatx,
+csrmv_adaptive( const clsparseScalarPrivate& pAlpha, const clsparseCsrMatrixPrivate& pCsrMatx,
             const clsparseVectorPrivate& pX,
             const clsparseScalarPrivate& pBeta,
             clsparseVectorPrivate& pY,
-            const std::string& params,
-            const cl_uint group_size,
             clsparseControl control )
 {
+    if(typeid(T) == typeid(cl_double))
+    {
+        return clsparseNotImplemented;
+    }
+
+    const cl_uint group_size = 256;
+
+    const std::string params = std::string( )
+    + " -DROWBITS=" + std::to_string( ROW_BITS )
+    + " -DWGBITS=" + std::to_string( WG_BITS )
+    + " -DBLOCKSIZE=" + std::to_string( BLKSIZE );
+#ifdef DOUBLE
+    buildFlags += " -DDOUBLE";
+#endif
+
     cl::Kernel kernel = KernelCache::get( control->queue,
                                           "csrmv_adaptive",
                                           "csrmv_adaptive",
@@ -47,45 +61,20 @@ csrmv( const clsparseScalarPrivate& pAlpha, const clsparseCsrMatrixPrivate& pCsr
     return clsparseSuccess;
 }
 
-clsparseStatus
-clsparseScsrmv_adaptive( const clsparseScalarPrivate& alpha,
-        const clsparseCsrMatrixPrivate& pCsrMatx,
-        const clsparseVectorPrivate& pX,
-        const clsparseScalarPrivate& beta,
-        clsparseVectorPrivate& pY,
-        clsparseControl control )
-{
-    clsparseStatus status;
+//clsparseStatus
+//clsparseScsrmv_adaptive( const clsparseScalarPrivate& alpha,
+//        const clsparseCsrMatrixPrivate& pCsrMatx,
+//        const clsparseVectorPrivate& pX,
+//        const clsparseScalarPrivate& beta,
+//        clsparseVectorPrivate& pY,
+//        clsparseControl control )
+//{
 
-    cl_uint nnz_per_row = pCsrMatx.nnz_per_row( );   //average nnz per row
-    const cl_uint wave_size = control->wavefront_size;
-    const cl_uint group_size = 256;   //wave_size * 8;    // 256 gives best performance!
 
-    const std::string params = std::string( ) //std::string( "-x clc++ -Dcl_khr_int64_base_atomics=1" )
-    + " -DROWBITS=" + std::to_string( ROW_BITS )
-    + " -DWGBITS=" + std::to_string( WG_BITS )
-    + " -DBLOCKSIZE=" + std::to_string( BLKSIZE );
-#ifdef DOUBLE
-    buildFlags += " -DDOUBLE";
-#endif
+//    //y = alpha * A * x + beta * y;
+//    return csrmv_adaptive( alpha, pCsrMatx, pX, beta, pY,
+//                    params, group_size, control );
 
-    //cl_float h_alpha;
-    //cl_float h_beta;
-
-    //{
-    //    clMemRAII< cl_float > rAlpha( control->queue( ), alpha.value );
-    //    clMemRAII< cl_float > rBeta( control->queue( ), beta.value );
-    //    cl_float* pAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, alpha.offset( ), 1 );
-    //    cl_float* pBeta = rBeta.clMapMem( CL_TRUE, CL_MAP_READ, beta.offset( ), 1 );
-    //    h_alpha = *pAlpha;
-    //    h_beta = *pBeta;
-    //    std::cout << "h_alpha = " << h_alpha << " h_beta = " << h_beta << std::endl;
-    //}
-
-    //y = alpha * A * x + beta * y;
-    return csrmv( alpha, pCsrMatx, pX, beta, pY,
-                    params, group_size, control );
-
-}
+//}
 
 #endif //_CLSPARSE_CSRMV_ADAPTIVE_HPP_

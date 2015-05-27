@@ -9,7 +9,9 @@ inline void init_scalar(clsparseScalarPrivate* scalar, T value,
                         const clsparseControl control)
 {
     clMemRAII<T> rScalar (control->queue(), scalar->value);
+
     T* fR = rScalar.clMapMem( CL_TRUE, CL_MAP_WRITE, scalar->offset(), 1);
+
     *fR  = value;
 }
 

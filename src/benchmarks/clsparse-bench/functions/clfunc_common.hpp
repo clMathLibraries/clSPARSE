@@ -39,6 +39,14 @@ public:
         // Setup OpenCL environment
         OPENCL_V_THROW( ::clGetPlatformIDs( 1, &platform, NULL ), "getting platform IDs" );
         OPENCL_V_THROW( ::clGetDeviceIDs( platform, devType, 1, &device, NULL ), "getting device IDs" );
+
+        {
+            char buffer [1024];
+            clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(buffer), buffer, NULL);
+            std::cout << "DEVICE NAME " << buffer << std::endl;
+        }
+
+
         props[ 0 ] = CL_CONTEXT_PLATFORM;
         props[ 1 ] = (cl_context_properties)platform;
         props[ 2 ] = 0;
