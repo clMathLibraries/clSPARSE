@@ -57,11 +57,35 @@ public:
     }
 
 
+    array(const array& other) : _size(other._size), queue(other.queue)
+    {
+        cl_int status;
+        cl::Event controlEvent;
+
+        const cl::Buffer& src = other.buffer();
+        cl::Buffer& dst = BASE::buffer();
+
+        cl_mem_flags flags = src.getInfo<CL_MEM_FLAGS>(&status);
+
+        OPENCL_V_THROW(status, "Array cpy constr, getInfo<CL_MEM_FLAGS>");
+
+        assert (_size > 0);
+
+        dst = create_buffer(_size, flags);
+
+        status = queue.enqueueCopyBuffer(src, dst, 0, 0,
+                                         sizeof(value_type) * other.size(),
+                                         NULL, &controlEvent);
+        OPENCL_V_THROW(status, "operator= queue.enqueueCopyBuffer");
+        status = controlEvent.wait();
+        OPENCL_V_THROW(status, "operator= controlEvent.wait");
+
+    }
+
+
     //returns deep copy of the object
     array copy(clsparseControl control)
     {
-        cl::CommandQueue queue(control->queue);
-
         cl::Event controlEvent;
         cl_int status;
 
@@ -140,6 +164,33 @@ public:
         assert(n < _size);
 
         return reference( *this, n, queue);
+    }
+
+    //assignment operator performs deep copy
+    array& operator= (const array& other)
+    {
+        if (this != &other)
+        {
+            assert(other.size() > 0);
+
+            if (_size != other.size())
+                resize(other.size());
+
+            cl::Event controlEvent;
+            cl_int status;
+
+            const cl::Buffer& src = other.buffer();
+            cl::Buffer& dst = BASE::buffer();
+
+            status = queue.enqueueCopyBuffer(src, dst, 0, 0,
+                                             sizeof(value_type) * other.size(),
+                                             NULL, &controlEvent);
+            OPENCL_V_THROW(status, "operator= queue.enqueueCopyBuffer");
+            status = controlEvent.wait();
+            OPENCL_V_THROW(status, "operator= controlEvent.wait");
+        }
+        return *this;
+
     }
 
 

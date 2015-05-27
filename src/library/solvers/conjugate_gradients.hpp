@@ -206,19 +206,41 @@ cg(clsparseVectorPrivate *pX,
     cl_context ctx = control->getContext()();
 
 //    clsparse::array<T> x(control, 10, 1.2);
-//    std::cout << x[0] << std::endl;
-//    x.fill(control, 1.4);
-//    std::cout << x[0] << std::endl;
-//    x[9] = 1.555;
-//    std::cout << x[9] << std::endl;
 
-//    clsparse::array<T> x2(control, 10, 0.1);
-//    x2 = x.copy(control);
-//    std::cout << "X2 content: " << std::endl;
+//    clsparse::array<T> x2(control, 15, 0.1);
+//    x2 = x;
+//    clsparse::array<T> x3(x2);
+
+//    std::cout << "X2 content: " << x2.size() << std::endl;
 //    for(int i = 0; i < x2.size(); i++)
 //    {
 //        std::cout << x2[i] << std::endl;
 //    }
+
+//    std::cout << "X3 content: " << x3.size() << std::endl;
+//    for(int i = 0; i < x3.size(); i++)
+//    {
+//        std::cout << x3[i] << std::endl;
+//        x3[i] = 0.9;
+//    }
+
+//    clsparse::array<T> x4 = x3;
+//    x4[6] = 199;
+
+//    std::cout << "All arrays: " << std::endl;
+//    for(int i = 0; i < x3.size(); i++)
+//    {
+//        std::cout << x[i] << " "
+//                  << x2[i] << " "
+//                  << x3[i] << " "
+//                  << x4[i] << std::endl;
+
+//    }
+
+//      return clsparseSuccess;
+
+
+
 
     clsparseScalarPrivate norm_b;
     clsparseInitScalar(&norm_b);
