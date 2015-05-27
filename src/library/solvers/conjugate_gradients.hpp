@@ -205,6 +205,21 @@ cg(clsparseVectorPrivate *pX,
 
     cl_context ctx = control->getContext()();
 
+//    clsparse::array<T> x(control, 10, 1.2);
+//    std::cout << x[0] << std::endl;
+//    x.fill(control, 1.4);
+//    std::cout << x[0] << std::endl;
+//    x[9] = 1.555;
+//    std::cout << x[9] << std::endl;
+
+//    clsparse::array<T> x2(control, 10, 0.1);
+//    x2 = x.copy(control);
+//    std::cout << "X2 content: " << std::endl;
+//    for(int i = 0; i < x2.size(); i++)
+//    {
+//        std::cout << x2[i] << std::endl;
+//    }
+
     clsparseScalarPrivate norm_b;
     clsparseInitScalar(&norm_b);
     status = clsparse_alloc_init_scalar(norm_b, scalarZero, control, false);

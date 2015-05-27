@@ -9,6 +9,8 @@
 #include "clarray_base.hpp"
 #include "reference_base.hpp"
 
+#include <cassert>
+
 /* First approach to implement clsparse::array type for internal use
  * Container of array is cl::Buffer it is easier to use
  */
@@ -29,7 +31,7 @@ public:
 
     typedef reference_base<array<value_type> > reference;
 
-    array(clsparseControl control) : _size(0), queue(control->queue) {}
+    //array(clsparseControl control) : _size(0), queue(control->queue) {}
 
     array(clsparseControl control, size_t size, const value_type& value = value_type(),
           cl_mem_flags flags = CL_MEM_READ_WRITE, cl_bool init = true) : queue(control->queue)
@@ -60,72 +62,43 @@ public:
     {
         cl::CommandQueue queue(control->queue);
 
-        const auto& eventWaitList = control->event_wait_list;
         cl::Event controlEvent;
         cl_int status;
 
-        if (!_size)
-        {
-            //need to provide valid event
-            status = queue.enqueueMarkerWithWaitList(&eventWaitList, &controlEvent);
-            OPENCL_V_THROW(status, "queue.enqueueMarkerWithWaitList");
+        assert(_size > 0);
 
-            return array();
-        }
-        else
+        if (_size > 0)
         {
             const cl::Buffer& src = BASE::buff;
 
 
             array new_array(control, _size);
-            cl::Buffer& dst = new_array();
+            cl::Buffer& dst = new_array.buffer();
 
             status = queue.enqueueCopyBuffer(src, dst, 0, 0,
                                              sizeof(value_type) * _size,
-                                             &eventWaitList, &controlEvent);
+                                             NULL, &controlEvent);
             OPENCL_V_THROW(status, "queue.enqueueCopyBuffer");
-
-            if (control->async)
-            {
-                control->event = controlEvent;
-            }
-            else
-            {
-                status = controlEvent.wait();
-                OPENCL_V_THROW(status, "controlEvent.wait");
-            }
-
+            status = controlEvent.wait();
+            OPENCL_V_THROW(status, "controlEvent.wait");
             return new_array;
         }
+
     }
 
     cl_int fill(clsparseControl control, const T &value)
     {
-        //cl::CommandQueue queue(control->queue);
-
-        const auto& eventWaitList = control->event_wait_list;
         cl::Event controlEvent;
         cl_int status;
-        if (!_size)
-        {
-            //need to provide valid event
-            status = queue.enqueueMarkerWithWaitList(&eventWaitList, &controlEvent);
-            OPENCL_V_THROW(status, "queue.enqueueMarkerWithWaitList");
-        }
-        else
+
+        assert (_size > 0);
+        if (_size > 0)
         {
             status = queue.enqueueFillBuffer(BASE::buff, value, 0,
                                              _size * sizeof(value_type),
-                                             &eventWaitList, &controlEvent);
+                                             NULL, &controlEvent);
             OPENCL_V_THROW(status, "queue.enqueueFillBuffer");
-        }
 
-        if (control->async)
-        {
-            control->event = controlEvent;
-        }
-        else
-        {
             status = controlEvent.wait();
             OPENCL_V_THROW(status, "controlEvent.wait");
         }
@@ -164,6 +137,7 @@ public:
 
     reference operator[]( size_t n )
     {
+        assert(n < _size);
 
         return reference( *this, n, queue);
     }

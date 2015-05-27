@@ -25,7 +25,7 @@ public:
     {
         cl_int status = CL_SUCCESS;
         naked_pointer result = reinterpret_cast< naked_pointer >(
-                    queue.enqueueMapBuffer( container(), true, CL_MAP_READ,
+                    queue.enqueueMapBuffer( container.buffer(), true, CL_MAP_READ,
                                             index * sizeof( value_type ),
                                             sizeof( value_type ),
                                             NULL, NULL, &status)
@@ -36,7 +36,7 @@ public:
         value_type valTmp = *result;
 
         ::cl::Event unmapEvent;
-        OPENCL_V_THROW( queue.enqueueUnmapMemObject( container(), result, NULL, &unmapEvent ),
+        OPENCL_V_THROW( queue.enqueueUnmapMemObject( container.buffer(), result, NULL, &unmapEvent ),
                         "Array failed to unmap host memory back to device memory" );
         OPENCL_V_THROW( unmapEvent.wait( ), "Failed to wait for unmap event" );
 
@@ -47,7 +47,7 @@ public:
     {
         cl_int status = CL_SUCCESS;
         naked_pointer result = reinterpret_cast< naked_pointer >(
-                    queue.enqueueMapBuffer(container(), true, CL_MAP_WRITE_INVALIDATE_REGION,
+                    queue.enqueueMapBuffer(container.buffer(), true, CL_MAP_WRITE_INVALIDATE_REGION,
                                            index * sizeof( value_type ), sizeof( value_type ),
                                            NULL, NULL, &status ) );
         OPENCL_V_THROW( status, "Array failed map device memory to host memory for operator[]" );
@@ -55,7 +55,7 @@ public:
         *result = rhs;
 
         ::cl::Event unmapEvent;
-        OPENCL_V_THROW( queue.enqueueUnmapMemObject( container(), result, NULL, &unmapEvent ),
+        OPENCL_V_THROW( queue.enqueueUnmapMemObject( container.buffer(), result, NULL, &unmapEvent ),
                         "Array failed to unmap host memory back to device memory" );
         OPENCL_V_THROW( unmapEvent.wait( ), "Failed to wait for unmap event" );
 
@@ -68,7 +68,7 @@ public:
         cl_int status = CL_SUCCESS;
         value_type value = static_cast<value_type>(rhs);
         naked_pointer result = reinterpret_cast< naked_pointer >(
-                    queue.enqueueMapBuffer(container(), true, CL_MAP_WRITE_INVALIDATE_REGION,
+                    queue.enqueueMapBuffer(container.buffer(), true, CL_MAP_WRITE_INVALIDATE_REGION,
                                            index * sizeof( value_type ), sizeof( value_type ),
                                            NULL, NULL, &status) );
         OPENCL_V_THROW( status, "Array failed map device memory to host memory for operator[]" );
@@ -76,7 +76,7 @@ public:
         *result = value;
 
         cl::Event unmapEvent;
-        OPENCL_V_THROW( queue.enqueueUnmapMemObject( container(), result, NULL, &unmapEvent ),
+        OPENCL_V_THROW( queue.enqueueUnmapMemObject( container.buffer(), result, NULL, &unmapEvent ),
                         "Array failed to unmap host memory back to device memory" );
         OPENCL_V_THROW( unmapEvent.wait( ), "Failed to wait for unmap event" );
 

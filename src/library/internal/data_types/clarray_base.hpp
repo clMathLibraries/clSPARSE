@@ -45,15 +45,6 @@ public:
         return buff;
     }
 
-    BUFF_TYPE& operator()()
-    {
-        return buff;
-    }
-
-    const BUFF_TYPE& operator()() const
-    {
-        return buff;
-    }
 
     void clear()
     {
