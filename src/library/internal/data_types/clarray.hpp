@@ -8,6 +8,7 @@
 
 #include "clarray_base.hpp"
 #include "reference_base.hpp"
+#include "iterator.hpp"
 
 #include <cassert>
 
@@ -31,7 +32,45 @@ public:
 
     typedef reference_base<array<value_type> > reference;
 
-    //array(clsparseControl control) : _size(0), queue(control->queue) {}
+    template <typename Container>
+    class iterator_base
+    {
+    public:
+
+        typedef iterator_base self_type;
+
+        typedef typename Container::value_type value_type;
+
+        typedef std::forward_iterator_tag iterator_category;
+
+        typedef size_t difference_type;
+
+        iterator_base(Container& rhs, difference_type index, cl::CommandQueue queue):
+            container ( rhs ), index(index), range(1), queue(queue)
+        {}
+
+        iterator_base(Container& rhs, difference_type index, difference_type range, cl::CommandQueue queue):
+            container ( rhs ), index ( index ), range ( range ), queue ( queue )
+        {}
+        const reference operator*()
+        {
+            return reference( container, index, queue);
+        }
+
+
+//        bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
+
+//        bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+
+    private:
+
+        Container& container;
+        difference_type index;
+        difference_type range;
+        cl::CommandQueue queue;
+    };
+
+    typedef iterator_base< array<value_type> > iterator;
 
     array(clsparseControl control, size_t size, const value_type& value = value_type(),
           cl_mem_flags flags = CL_MEM_READ_WRITE, cl_bool init = true) : queue(control->queue)
@@ -164,6 +203,23 @@ public:
         assert(n < _size);
 
         return reference( *this, n, queue);
+    }
+
+    iterator begin()
+    {
+        return iterator(*this, 0, queue);
+    }
+
+    iterator begin (size_t range)
+    {
+        return iterator(*this, 0, range, queue);
+    }
+
+
+
+    iterator end()
+    {
+        return iterator(*this, _size, queue);
     }
 
     //assignment operator performs deep copy

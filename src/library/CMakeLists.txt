@@ -107,6 +107,7 @@ set( clSPARSE.Headers
   internal/data_types/clarray.hpp
   internal/data_types/clarray_base.hpp
   internal/data_types/reference_base.hpp
+  internal/data_types/iterator.hpp
   spmv/clsparse_csrmv.hpp
   spmv/csrmv_vector/csrmv_vector.hpp
   spmv/csrmv_adaptive/csrmv_adaptive.hpp

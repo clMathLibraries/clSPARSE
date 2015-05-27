@@ -7,6 +7,10 @@
 #include "internal/kernel_wrap.hpp"
 #include "internal/clsparse_internal.hpp"
 
+#if !defined(min)
+#define min(x, y) std::min(x, y)
+#endif
+
 
 template<typename T, bool inverse = false>
 clsparseStatus
