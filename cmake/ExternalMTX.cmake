@@ -10,29 +10,30 @@ macro( MAP_ENTRY K V )
 endmacro( )
 
 function( MTX_process_files MTX_file_list MTX_file_path )
-	foreach( MTX ${${MTX_file_list}} )
-		message( STATUS "Downloading MTX=${MTX} ")
-		get_filename_component( MTX_DIR ${MTX} DIRECTORY )
-		get_filename_component( MTX_NAME ${MTX} NAME )
+  message( STATUS "Optional file() flags = ${ARGV2} ")
+  foreach( MTX ${${MTX_file_list}} )
+    message( STATUS "Downloading MTX=${MTX} ")
+    get_filename_component( MTX_DIR ${MTX} DIRECTORY )
+    get_filename_component( MTX_NAME ${MTX} NAME )
 
-		file( DOWNLOAD http://www.cise.ufl.edu/research/sparse/MM/${MTX}
-			${${MTX_file_path}}/${MTX_NAME}
-			INACTIVITY_TIMEOUT 60
-			TIMEOUT 60
-			EXPECTED_HASH MD5=${MD5_${MTX}}
-			# [STATUS status]
-			# [LOG log]
-			# SHOW_PROGRESS
-			# [TLS_VERIFY on|off]
-			# [TLS_CAINFO file]
-			)
+    file( DOWNLOAD http://www.cise.ufl.edu/research/sparse/MM/${MTX}
+      ${${MTX_file_path}}/${MTX_NAME}
+      INACTIVITY_TIMEOUT 60
+      EXPECTED_HASH MD5=${MD5_${MTX}}
+      ${ARGV2} # Can be used to pass additional flags, such as SHOW_PROGRESS
+      # TIMEOUT 300
+      # [STATUS status]
+      # [LOG log]
+      # [TLS_VERIFY on|off]
+      # [TLS_CAINFO file]
+      )
 
-		message( STATUS "Unzipping MTX=${MTX} ")
-		execute_process(
-			COMMAND ${CMAKE_COMMAND} -E tar xf ${${MTX_file_path}}/${MTX_NAME}
-			WORKING_DIRECTORY ${${MTX_file_path}}
-		)
-	endforeach( )
+    message( STATUS "Unzipping MTX=${MTX} ")
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} -E tar xf ${${MTX_file_path}}/${MTX_NAME}
+      WORKING_DIRECTORY ${${MTX_file_path}}
+    )
+  endforeach( )
 endfunction( )
 
 # Not found from the Bell-Garland paper
@@ -41,18 +42,18 @@ endfunction( )
 
 ##### Bell-Garland sparse data #####
 set( MTX_Bell_Garland_files
-	Williams/pdb1HYS.tar.gz
-	Williams/consph.tar.gz
-	Williams/cant.tar.gz
-	Boeing/pwtk.tar.gz
-	Bova/rma10.tar.gz
-	DNVS/shipsec1.tar.gz
-	Williams/mac_econ_fwd500.tar.gz
-	Williams/mc2depi.tar.gz
-	Williams/cop20k_A.tar.gz
-	Hamm/scircuit.tar.gz
-	Williams/webbase-1M.tar.gz
-	Mittelmann/rail4284.tar.gz
+  Williams/pdb1HYS.tar.gz
+  Williams/consph.tar.gz
+  Williams/cant.tar.gz
+  Boeing/pwtk.tar.gz
+  Bova/rma10.tar.gz
+  DNVS/shipsec1.tar.gz
+  Williams/mac_econ_fwd500.tar.gz
+  Williams/mc2depi.tar.gz
+  Williams/cop20k_A.tar.gz
+  Hamm/scircuit.tar.gz
+  Williams/webbase-1M.tar.gz
+  Mittelmann/rail4284.tar.gz
 )
 
 MAP_ENTRY( "Williams/pdb1HYS.tar.gz" "fdbfaa0edb11e799f67870ebf16adfb0" )
@@ -71,23 +72,23 @@ MAP_ENTRY( "Mittelmann/rail4284.tar.gz" "6279700b7d44b44fd630c079b31eee46" )
 set( Bell_Garland_MTX_path ${PROJECT_BINARY_DIR}/Externals/MTX/Bell_Garland )
 
 if( DOWNLOAD_MTX_BELL_GARLAND )
-	MTX_process_files( MTX_Bell_Garland_files Bell_Garland_MTX_path )
+  MTX_process_files( MTX_Bell_Garland_files Bell_Garland_MTX_path )
 endif( )
 
 ##### Large Sparse Matrices #####
 
 set( MTX_Large_files
-	DIMACS10/delaunay_n24.tar.gz
-	DIMACS10/kron_g500-logn21.tar.gz
-	DIMACS10/europe_osm.tar.gz
-	DIMACS10/rgg_n_2_24_s0.tar.gz
-	LAW/hollywood-2009.tar.gz
-	LAW/indochina-2004.tar.gz
-	LAW/arabic-2005.tar.gz
-#	LAW/webbase-2001.tar.gz
-	Schenk/nlpkkt240.tar.gz
-	Janna/Flan_1565.tar.gz
-#	Fluorem/HV15R.tar.gz
+  DIMACS10/delaunay_n24.tar.gz
+  DIMACS10/kron_g500-logn21.tar.gz
+  DIMACS10/europe_osm.tar.gz
+  DIMACS10/rgg_n_2_24_s0.tar.gz
+  LAW/hollywood-2009.tar.gz
+  LAW/indochina-2004.tar.gz
+  LAW/arabic-2005.tar.gz
+#  LAW/webbase-2001.tar.gz
+  Schenk/nlpkkt240.tar.gz
+  Janna/Flan_1565.tar.gz
+#  Fluorem/HV15R.tar.gz
 )
 
 MAP_ENTRY( "DIMACS10/delaunay_n24.tar.gz" "3d73b37d1d1a14247d143223ed3a4c7c" )
@@ -105,34 +106,34 @@ MAP_ENTRY( "Janna/Flan_1565.tar.gz" "8777f46c3b033e8b4fc24fa31dc79b4a" )
 set( MTX_Large_path ${PROJECT_BINARY_DIR}/Externals/MTX/Large )
 
 if( DOWNLOAD_MTX_LARGE )
-	MTX_process_files( MTX_Large_files MTX_Large_path )
+  MTX_process_files( MTX_Large_files MTX_Large_path SHOW_PROGRESS )
 endif( )
 
 ##### Small Sparse Matrices #####
 
 set( MTX_Small_files
-	AG-Monien/3elt.tar.gz
-	AG-Monien/crack.tar.gz
-	Alemdar/Alemdar.tar.gz
-	Andrianov/fxm3_6.tar.gz
-	Gset/G51.tar.gz
-	Hamm/add20.tar.gz
-	MathWorks/tomography.tar.gz
-	MathWorks/QRpivot.tar.gz
-	Meszaros/gas11.tar.gz
-	Newman/celegansneural.tar.gz
-	NYPA/Maragal_6.tar.gz
-	Pajek/Cities.tar.gz
-	Pajek/Reuters911.tar.gz
-	PARSEC/Na5.tar.gz
-	PARSEC/Si10H16.tar.gz
-	Qaplib/lp_nug07.tar.gz
-	QCD/conf5_0-4x4-18.tar.gz
-	Rajat/rajat04.tar.gz
-	Sandia/oscil_dcop_11.tar.gz
-	UTEP/Dubcova1.tar.gz
-	YCheng/psse1.tar.gz
-	Zitney/hydr1c.tar.gz
+  AG-Monien/3elt.tar.gz
+  AG-Monien/crack.tar.gz
+  Alemdar/Alemdar.tar.gz
+  Andrianov/fxm3_6.tar.gz
+  Gset/G51.tar.gz
+  Hamm/add20.tar.gz
+  MathWorks/tomography.tar.gz
+  MathWorks/QRpivot.tar.gz
+  Meszaros/gas11.tar.gz
+  Newman/celegansneural.tar.gz
+  NYPA/Maragal_6.tar.gz
+  Pajek/Cities.tar.gz
+  Pajek/Reuters911.tar.gz
+  PARSEC/Na5.tar.gz
+  PARSEC/Si10H16.tar.gz
+  Qaplib/lp_nug07.tar.gz
+  QCD/conf5_0-4x4-18.tar.gz
+  Rajat/rajat04.tar.gz
+  Sandia/oscil_dcop_11.tar.gz
+  UTEP/Dubcova1.tar.gz
+  YCheng/psse1.tar.gz
+  Zitney/hydr1c.tar.gz
 )
 
 MAP_ENTRY( "AG-Monien/3elt.tar.gz" "4699f0d2633d813c5ddfee7bfb551a54" )
@@ -161,5 +162,5 @@ MAP_ENTRY( "Zitney/hydr1c.tar.gz" "356935778c2fc0011a3a21b645ede961" )
 set( MTX_Small_path ${PROJECT_BINARY_DIR}/Externals/MTX/Small )
 
 if( DOWNLOAD_MTX_SMALL )
-	MTX_process_files( MTX_Small_files MTX_Small_path )
+  MTX_process_files( MTX_Small_files MTX_Small_path )
 endif( )

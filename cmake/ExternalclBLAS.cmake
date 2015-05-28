@@ -1,7 +1,7 @@
 message( STATUS "Configuring clBLAS SuperBuild..." )
 include( ExternalProject )
 
-set( ext.clBLAS_Tag "develop" CACHE STRING "clBLAS tag to download" )
+set( ext.clBLAS_Tag "master" CACHE STRING "clBLAS tag to download" )
 mark_as_advanced( ext.clBLAS_Tag )
 
 message( STATUS "ext.clBLAS_Tag: " ${ext.clBLAS_Tag} )
