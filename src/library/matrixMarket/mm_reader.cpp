@@ -45,6 +45,7 @@ to copyright protection within the United States.
 #include "include/external/mmio.h"
 #include "clSPARSE.hpp"
 #include "internal/clsparse_control.hpp"
+#include "internal/computeRowBlocks.hpp"
 
 // Class declarations
 template<typename FloatType>
@@ -464,9 +465,9 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cls
     clMemRAII< cl_int > rCooColIndices( control->queue( ), pCooMatx->colIndices );
     clMemRAII< cl_int > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
 
-    cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->valOffset( ), pCooMatx->nnz );
-    cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->colIndOffset( ), pCooMatx->nnz );
-    cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->rowOffOffset( ), pCooMatx->nnz );
+    cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->valOffset( ), pCooMatx->nnz );
+    cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->colIndOffset( ), pCooMatx->nnz );
+    cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->nnz );
 
     Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
     for( cl_int c = 0; c < pCooMatx->nnz; ++c )
@@ -477,75 +478,6 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cls
     }
 
     return clsparseSuccess;
-}
-
-template< typename rowBlockType >
-void ComputeRowBlocks( rowBlockType* rowBlocks, const int* rowDelimiters, int nRows, int blkSize )
-{
-    *rowBlocks = 0;
-    rowBlocks++;
-    rowBlockType sum = 0;
-    rowBlockType i, last_i = 0;
-
-    // Check to ensure nRows can fit in 32 bits
-    if( (rowBlockType)nRows > (rowBlockType)pow( 2, ( 64 - ROW_BITS ) ) )
-    {
-        printf( "Number of Rows in the Sparse Matrix is greater than what is supported at present ((64-ROW_BITS) bits) !" );
-        exit( 0 );
-    }
-
-    for( i = 1; i <= nRows; i++ )
-    {
-        sum += ( rowDelimiters[ i ] - rowDelimiters[ i - 1 ] );
-
-        // more than one row results in non-zero elements
-        // to be greater than blockSize
-        if( ( i - last_i > 1 ) && sum > blkSize )
-        {
-            *rowBlocks = ( i - 1 << ROW_BITS );
-            rowBlocks++;
-            i--;
-            last_i = i;
-            sum = 0;
-        }
-
-        // exactly one row results in non-zero elements
-        // to be greater than blockSize
-        else if( ( i - last_i == 1 ) && sum > blkSize )
-        {
-            int numWGReq = ceil( (double)sum / blkSize );
-
-            // Check to ensure #workgroups can fit in 24 bits, if not
-            // then the last workgroup will do all the remaining work
-            numWGReq = ( numWGReq < (int)pow( 2, WG_BITS ) ) ? numWGReq : (int)pow( 2, WG_BITS );
-
-            for( int w = 1; w < numWGReq; w++ )
-            {
-                *rowBlocks = ( i - 1 << ROW_BITS );
-                *rowBlocks |= static_cast< rowBlockType >( w );
-                rowBlocks++;
-            }
-
-            *rowBlocks = ( i << ROW_BITS );
-            rowBlocks++;
-
-            last_i = i;
-            sum = 0;
-        }
-        // sum of non-zero elements is exactly
-        // equal to blockSize
-        else if( sum == blkSize )
-        {
-            *rowBlocks = ( i << ROW_BITS );
-            rowBlocks++;
-            last_i = i;
-            sum = 0;
-        }
-
-    }
-
-    *rowBlocks = ( static_cast< rowBlockType >( nRows ) << ROW_BITS );
-    rowBlocks++;
 }
 
 clsparseStatus
@@ -609,7 +541,7 @@ clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cls
         clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
         cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize );
 
-        ComputeRowBlocks( ulCsrRowBlocks, iCsrRowOffsets, pCsrMatx->m, BLKSIZE );
+        ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->m, BLKSIZE );
     }
 
     return clsparseSuccess;

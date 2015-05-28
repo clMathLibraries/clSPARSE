@@ -89,8 +89,6 @@ public:
         clBlocking = CL_TRUE;
         cl_int clStatus = 0;
 
-        cl_int status;
-
         clMem = static_cast< pType* >( ::clEnqueueMapBuffer( clQueue, clBuff, clBlocking, clFlags, clOff, 
             clSize * sizeof( pType ), 0, NULL, NULL, &clStatus ) );
 

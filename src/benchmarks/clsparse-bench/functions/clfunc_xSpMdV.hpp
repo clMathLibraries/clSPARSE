@@ -100,6 +100,7 @@ public:
         csrMtx.nnz = nnz;
         csrMtx.m = row;
         csrMtx.n = col;
+        clsparseCsrMetaSize( &csrMtx, control );
 
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
@@ -113,8 +114,6 @@ public:
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             ( csrMtx.m + 1 ) * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowOffsets" );
-
-        clsparseCsrMetaSize( &csrMtx, control );
 
         csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );

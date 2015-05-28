@@ -177,7 +177,7 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseCsrComputeMeta( clsparseCsrMatrix* csrMatx, clsparseControl control );
+clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
 /* BLAS 1 routines for dense vector*/
 

@@ -71,7 +71,7 @@ TEST( MM_file, load )
 
     csrMatx.rowBlocks = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
                                           csrMatx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-    clsparseCsrComputeMeta( &csrMatx, CLSE::control );
+    clsparseCsrMetaCompute( &csrMatx, CLSE::control );
 
     clsparseScalar alpha;
     clsparseScalar beta;
