@@ -17,7 +17,7 @@
 
 clsparseStatus
 csr2dense_transform(const clsparseCsrMatrixPrivate* pCsr,
-                    clsparseDenseMatrixPrivate* pA,
+                    cldenseMatrixPrivate* pA,
                     const std::string& params,
                     const cl_uint group_size,
                     const cl_uint subwave_size,
@@ -50,8 +50,8 @@ csr2dense_transform(const clsparseCsrMatrixPrivate* pCsr,
         return clsparseInvalidKernelExecution;
     }
 
-    pA->m = pCsr->m;
-    pA->n = pCsr->n;
+    pA->row = pCsr->m;
+    pA->col = pCsr->n;
 
     return clsparseSuccess;
  
@@ -59,11 +59,11 @@ csr2dense_transform(const clsparseCsrMatrixPrivate* pCsr,
 
 clsparseStatus
 clsparseScsr2dense(const clsparseCsrMatrix* csr,
-                  clsparseDenseMatrix* A,
+                    cldenseMatrix* A,
                   const clsparseControl control)
 {
     const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
-    clsparseDenseMatrixPrivate* pA = static_cast<clsparseDenseMatrixPrivate*>(A);
+    cldenseMatrixPrivate* pA = static_cast<cldenseMatrixPrivate*>( A );
 
     if (!clsparseInitialized)
     {
@@ -132,11 +132,11 @@ clsparseScsr2dense(const clsparseCsrMatrix* csr,
 
 clsparseStatus
 clsparseDcsr2dense(const clsparseCsrMatrix* csr,
-                   clsparseDenseMatrix* A,
+cldenseMatrix* A,
                    const clsparseControl control)
 {
     const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
-    clsparseDenseMatrixPrivate* pA = static_cast<clsparseDenseMatrixPrivate*>(A);
+    cldenseMatrixPrivate* pA = static_cast<cldenseMatrixPrivate*>( A );
 
     if (!clsparseInitialized)
     {

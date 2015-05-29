@@ -83,21 +83,61 @@ set( clSPARSE.source.cpp
   blas1/cldense_nrm1.cpp
   blas1/cldense_nrm2.cpp
   blas1/elementwise_operators.cpp
+  blas3/clsparse_csrmm.cpp
   solvers/solver_control.cpp
   solvers/conjugate_gradients.cpp
   solvers/biconjugate-gradients-stabilized.cpp
 )
 
-set( clSPARSE.Headers
+set( clSPARSE.Headers.public
   ../include/clSPARSE.h
   ../include/clSPARSE_1x.h
   ../include/clSPARSE_2x.h
   ../include/clsparse.error.hpp
-  include/clSPARSE-private.hpp
+  ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
+)
+
+set( clSPARSE.Headers.private
   include/clSPARSE_1x.hpp
   include/clSPARSE_2x.hpp
+  include/clSPARSE-private.hpp
+)
 
-  ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
+set( clSPARSE.Headers.blas1
+  blas1/reduce.hpp
+  blas1/atomic_reduce.hpp
+  blas1/reduce_operators.hpp
+  blas1/commons.hpp
+  blas1/cldense_dot.hpp
+  blas1/cldense_axpy.hpp
+  blas1/cldense_axpby.hpp
+  blas1/cldense_nrm1.hpp
+  blas1/cldense_nrm2.hpp
+  blas1/elementwise_transform.hpp
+  blas1/elementwise_operators.hpp
+)
+
+set( clSPARSE.Headers.blas2
+  spmv/clsparse_csrmv.hpp
+  spmv/csrmv_vector/csrmv_vector.hpp
+  spmv/csrmv_adaptive/csrmv_adaptive.hpp
+)
+
+set( clSPARSE.Headers.blas3
+  blas3/clsparse_csrmm.hpp
+)
+
+set( clSPARSE.Headers.solvers
+  solvers/solver_control.hpp
+  solvers/preconditioners/preconditioner.hpp
+  solvers/preconditioners/diagonal.hpp
+  solvers/preconditioners/void.hpp
+  solvers/preconditioners/preconditioner_utils.hpp
+  solvers/conjugate_gradients.hpp
+  solvers/biconjugate-gradients-stabilized.hpp
+)
+
+set( clSPARSE.Headers.internal
   internal/clsparse_internal.hpp
   internal/clsparse_control.hpp
   internal/clsparse_validate.hpp
@@ -111,42 +151,35 @@ set( clSPARSE.Headers
   internal/data_types/reference_base.hpp
   internal/data_types/iterator-base.hpp
   internal/computeRowBlocks.hpp
-  spmv/clsparse_csrmv.hpp
-  spmv/csrmv_vector/csrmv_vector.hpp
-  spmv/csrmv_adaptive/csrmv_adaptive.hpp
-  blas1/reduce.hpp
-  blas1/atomic_reduce.hpp
-  blas1/reduce_operators.hpp
-  blas1/commons.hpp
-  blas1/cldense_dot.hpp
-  blas1/cldense_axpy.hpp
-  blas1/cldense_axpby.hpp
-  blas1/cldense_nrm1.hpp
-  blas1/cldense_nrm2.hpp
-  blas1/elementwise_transform.hpp
-  blas1/elementwise_operators.hpp
   ${ocl_kernels_file_name}
-  solvers/solver_control.hpp
-  solvers/preconditioners/preconditioner.hpp
-  solvers/preconditioners/diagonal.hpp
-  solvers/preconditioners/void.hpp
-  solvers/preconditioners/preconditioner_utils.hpp
-  solvers/conjugate_gradients.hpp
-  solvers/biconjugate-gradients-stabilized.hpp
-
 )
 
-set( clSPARSE.Files ${clSPARSE.source.cpp} ${clSPARSE.Headers} )
-
 # source_group( kernels REGULAR_EXPRESSION ".*cl$" )
-source_group( kernels FILES ${clSPARSE.source.cl} )
+source_group( "Header Files\\Kernels" FILES ${clSPARSE.source.cl} )
+source_group( "Header Files\\Public" FILES ${clSPARSE.Headers.public} )
+source_group( "Header Files\\Private" FILES ${clSPARSE.Headers.private} )
+source_group( "Header Files\\Blas1" FILES ${clSPARSE.Headers.blas1} )
+source_group( "Header Files\\Blas2" FILES ${clSPARSE.Headers.blas2} )
+source_group( "Header Files\\Blas3" FILES ${clSPARSE.Headers.blas3} )
+source_group( "Header Files\\Solvers" FILES ${clSPARSE.Headers.solvers} )
+source_group( "Header Files\\Internal" FILES ${clSPARSE.Headers.internal} )
 
-if( CMAKE_COMPILER_IS_GNUCC )
+if( CMAKE_COMPILER_IS_GNUCXX )
     add_definitions( -pedantic )
 endif( )
 
 add_compiler_export_flags( )
-add_library( clSPARSE SHARED ${clSPARSE.Files} ${clSPARSE.source.cl})
+add_library( clSPARSE SHARED
+  ${clSPARSE.source.cpp}
+  ${clSPARSE.Headers.public}
+  ${clSPARSE.Headers.private}
+  ${clSPARSE.Headers.blas1}
+  ${clSPARSE.Headers.blas2}
+  ${clSPARSE.Headers.blas3}
+  ${clSPARSE.Headers.solvers}
+  ${clSPARSE.Headers.internal}
+  ${clSPARSE.source.cl}
+  )
 
 # PRIVATE linking prevents transitive library linking of the clBLAS libraries
 target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${clBLAS_LIBRARIES} )
