@@ -6,7 +6,7 @@
 #include <cassert>
 
 template< typename rowBlockType >
-void ComputeRowBlocks( rowBlockType* rowBlocks, size_t rowBlockSize, const int* rowDelimiters, int nRows, int blkSize )
+void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters, int nRows, int blkSize )
 {
     rowBlockType* rowBlocksBase = rowBlocks;
 
@@ -77,6 +77,9 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t rowBlockSize, const int* 
 
     size_t dist = std::distance( rowBlocksBase, rowBlocks );
     assert( dist < rowBlockSize );
+
+    //   Update the size of rowBlocks to reflect the actual amount of memory used
+    rowBlockSize = dist;
 }
 
 #endif
