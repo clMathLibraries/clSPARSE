@@ -124,8 +124,8 @@ target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${clBLAS_LIBRARIES} 
 # Package that helps me set visibility for function names exported from shared library
 GENERATE_EXPORT_HEADER( clSPARSE )
 
-set_target_properties( clSPARSE PROPERTIES VERSION ${clSPARSE_VERSION} )
-set_target_properties( clSPARSE PROPERTIES SOVERSION ${clSPARSE_SOVERSION} )
+set_target_properties( clSPARSE PROPERTIES VERSION ${clSPARSE_VERSION} SOVERSION ${clSPARSE_SOVERSION} )
+set_target_properties( clSPARSE PROPERTIES DEBUG_POSTFIX d )
 set_target_properties( clSPARSE PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
 # The following installs the basic files of the library
@@ -160,6 +160,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/clSPARSEConfigVersion.cmake
+  VERSION ${clSPARSE_VERSION}
   COMPATIBILITY SameMajorVersion
 )
 
