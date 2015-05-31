@@ -25,7 +25,7 @@ else( )
   set( Boost_Ext "tar.bz2" )
 endif( )
 
-set( Boost.Command ./b2 --prefix=<SOURCE_DIR>/../package )
+set( Boost.Command ./b2 --prefix=<INSTALL_DIR>/package )
 
 if( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
   list( APPEND Boost.Command cxxflags=-fPIC  )
