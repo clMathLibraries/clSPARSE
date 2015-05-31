@@ -1,13 +1,14 @@
 #include "include/clSPARSE-private.hpp"
+#include "internal/clsparse_internal.hpp"
 #include "internal/clsparse_control.hpp"
 #include "clsparse_csrmm.hpp"
 
 clsparseStatus
 clsparseScsrmm( const clsparseScalar* alpha,
-const clsparseCsrMatrix* matA,
-const cldenseMatrix* matB,
+const clsparseCsrMatrix* sparseCsrA,
+const cldenseMatrix* denseB,
 const clsparseScalar* beta,
-cldenseMatrix* matC,
+cldenseMatrix* denseC,
 const clsparseControl control )
 {
     if( !clsparseInitialized )
@@ -22,22 +23,21 @@ const clsparseControl control )
     }
 
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*>( alpha );
-    const clsparseCsrMatrixPrivate* pCsrMatx = static_cast<const clsparseCsrMatrixPrivate*>( matA );
-    const cldenseMatrixPrivate* pX = static_cast<const cldenseMatrixPrivate*>( matB );
+    const clsparseCsrMatrixPrivate* pSparseCsrA = static_cast<const clsparseCsrMatrixPrivate*>( sparseCsrA );
+    const cldenseMatrixPrivate* pDenseB = static_cast<const cldenseMatrixPrivate*>( pDenseB );
     const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*>( beta );
-    cldenseMatrixPrivate* pY = static_cast<cldenseMatrixPrivate*>( matC );
+    cldenseMatrixPrivate* pDenseC = static_cast<cldenseMatrixPrivate*>( denseC );
 
 
-    //return csrmv<cl_float>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
-    return clsparseSuccess;
+    return csrmm< cl_float >( *pAlpha, *pSparseCsrA, *pDenseB, *pBeta, *pDenseC, control );
 }
 
 clsparseStatus
 clsparseDcsrmm( const clsparseScalar* alpha,
-const clsparseCsrMatrix* matA,
-const cldenseMatrix* matB,
+const clsparseCsrMatrix* sparseCsrA,
+const cldenseMatrix* denseB,
 const clsparseScalar* beta,
-cldenseMatrix* matC,
+cldenseMatrix* denseC,
 const clsparseControl control )
 {
     if( !clsparseInitialized )
@@ -52,12 +52,11 @@ const clsparseControl control )
     }
 
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*>( alpha );
-    const clsparseCsrMatrixPrivate* pCsrMatx = static_cast<const clsparseCsrMatrixPrivate*>( matA );
-    const cldenseMatrixPrivate* pX = static_cast<const cldenseMatrixPrivate*>( matB );
+    const clsparseCsrMatrixPrivate* pSparseCsrA = static_cast<const clsparseCsrMatrixPrivate*>( sparseCsrA );
+    const cldenseMatrixPrivate* pDenseB = static_cast<const cldenseMatrixPrivate*>( pDenseB );
     const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*>( beta );
-    cldenseMatrixPrivate* pY = static_cast<cldenseMatrixPrivate*>( matC );
+    cldenseMatrixPrivate* pDenseC = static_cast<cldenseMatrixPrivate*>( denseC );
 
-    // return csrmv<cl_double>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
-    return clsparseSuccess;
+    return csrmm< cl_double >( *pAlpha, *pSparseCsrA, *pDenseB, *pBeta, *pDenseC, control );
 
 }

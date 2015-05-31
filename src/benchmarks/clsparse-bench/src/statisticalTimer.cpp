@@ -23,6 +23,7 @@
 #include <cassert>
 #include <limits>
 #include <functional>
+#include <cmath>
 #include "include/statisticalTimer.h"
 
 #if defined( _WIN32 )
