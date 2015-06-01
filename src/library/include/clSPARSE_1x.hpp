@@ -237,7 +237,7 @@ class cldenseMatrixPrivate: public cldenseMatrix
 public:
     void clear( )
     {
-        row = col = ld = 0;
+        num_rows = num_cols = lead_dim = 0;
         major = rowMajor;
         values = nullptr;
     }

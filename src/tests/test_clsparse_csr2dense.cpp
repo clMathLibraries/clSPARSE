@@ -47,7 +47,7 @@ public:
 
     void SetUp()
     {
-        clsparseInitDenseMatrix(&A);
+        cldenseInitMatrix( &A );
 
         dense = std::vector<T>(CSRE::n_cols * CSRE::n_rows, 0);
 

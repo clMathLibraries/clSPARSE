@@ -21,6 +21,11 @@ const clsparseControl control )
       return clsparseNotImplemented;
   }
 
+  if( ( pDenseB.major != rowMajor ) && ( pDenseC.major != rowMajor ) )
+  {
+      return clsparseNotImplemented;
+  }
+
   const cl_uint group_size = 256;
 
   const std::string params = std::string( )
@@ -33,15 +38,14 @@ const clsparseControl control )
 
   cl::Kernel kernel = KernelCache::get( control->queue,
                                         "csrmm",
-                                        "csrmm",
+                                        "csrmm_ulong",
                                         params );
 
   KernelWrap kWrapper( kernel );
 
-  kWrapper << pSparseCsrA.values
-      << pSparseCsrA.colIndices << pSparseCsrA.rowOffsets
-      << pDenseB.values << pDenseC.values
-      << pSparseCsrA.rowBlocks
+  kWrapper << pSparseCsrA.values << pSparseCsrA.colIndices << pSparseCsrA.rowOffsets << pSparseCsrA.rowBlocks
+      << pDenseB.values << pDenseB.lead_dim 
+      << pDenseC.values << pDenseC.num_rows << pDenseC.num_cols << pDenseC.lead_dim
       << pAlpha.value << pBeta.value;
 
   // if NVIDIA is used it does not allow to run the group size

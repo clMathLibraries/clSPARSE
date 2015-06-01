@@ -72,9 +72,9 @@ typedef struct clsparseCooMatrix_
 //for sake of clarity in the interface
 typedef struct cldenseMatrix_
 {
-    size_t row;
-    size_t col;
-    size_t ld;
+    size_t num_rows;
+    size_t num_cols;
+    size_t lead_dim;
     cldenseMajor major;
 
     cl_mem values;

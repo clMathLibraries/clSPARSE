@@ -50,8 +50,8 @@ csr2dense_transform(const clsparseCsrMatrixPrivate* pCsr,
         return clsparseInvalidKernelExecution;
     }
 
-    pA->row = pCsr->m;
-    pA->col = pCsr->n;
+    pA->num_rows = pCsr->m;
+    pA->num_cols = pCsr->n;
 
     return clsparseSuccess;
  

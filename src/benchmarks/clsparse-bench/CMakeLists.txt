@@ -11,15 +11,10 @@ set( clsparse.bench.hdr
   include/statisticalTimer.h
   functions/clfunc_common.hpp
   functions/clfunc_xSpMdV.hpp
+  functions/clfunc-xSpMdM.hpp
   functions/clfunc_xCG.hpp
   functions/clfunc_xBiCGStab.hpp
   )
-
-# Having problems on build server, compiling gtest headers with -pedantic; disabling detection of long long
-# http://code.google.com/p/googletest/issues/detail?id=334
-# if( CMAKE_COMPILER_IS_GNUCXX )
-#   add_definitions( -Wno-long-long )
-# endif( )
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
@@ -29,15 +24,15 @@ include_directories(
   ${OPENCL_INCLUDE_DIRS}
  )
 
-add_executable( clsparse.bench ${clsparse.bench.src} ${clsparse.bench.hdr} )
-target_link_libraries( clsparse.bench ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} ${CMAKE_DL_LIBS} clSPARSE )
-set_target_properties( clsparse.bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
-set_target_properties( clsparse.bench PROPERTIES VERSION ${clSPARSE_VERSION} )
-set_property( TARGET clsparse.bench PROPERTY FOLDER "Benchmarks")
+add_executable( clsparse-bench ${clsparse.bench.src} ${clsparse.bench.hdr} )
+target_link_libraries( clsparse-bench ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} ${CMAKE_DL_LIBS} clSPARSE )
+set_target_properties( clsparse-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+set_target_properties( clsparse-bench PROPERTIES VERSION ${clSPARSE_VERSION} )
+set_property( TARGET clsparse-bench PROPERTY FOLDER "Benchmarks")
 
 # CPack configuration; include the executable into the package
-install( TARGETS clsparse.bench
-  RUNTIME DESTINATION bin${SUFFIX_BIN}
-  LIBRARY DESTINATION lib${SUFFIX_LIB}
-  ARCHIVE DESTINATION lib${SUFFIX_LIB}
-)
+# install( TARGETS clsparse.bench
+#   RUNTIME DESTINATION bin${SUFFIX_BIN}
+#   LIBRARY DESTINATION lib${SUFFIX_LIB}
+#   ARCHIVE DESTINATION lib${SUFFIX_LIB}
+# )

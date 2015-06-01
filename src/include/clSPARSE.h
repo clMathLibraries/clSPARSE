@@ -17,50 +17,50 @@ extern "C" {
 #endif
 
     typedef enum clsparseStatus_ {
-    clsparseSuccess                         = CL_SUCCESS,
-    clsparseInvalidValue                    = CL_INVALID_VALUE,
-    clsparseInvalidCommandQueue             = CL_INVALID_COMMAND_QUEUE,
-    clsparseInvalidContext                  = CL_INVALID_CONTEXT,
-    clsparseInvalidMemObject                = CL_INVALID_MEM_OBJECT,
-    clsparseInvalidDevice                   = CL_INVALID_DEVICE,
-    clsparseInvalidEventWaitList            = CL_INVALID_EVENT_WAIT_LIST,
-    clsparseInvalidEvent                    = CL_INVALID_EVENT,
-    clsparseOutOfResources                  = CL_OUT_OF_RESOURCES,
-    clsparseOutOfHostMemory                 = CL_OUT_OF_HOST_MEMORY,
-    clsparseInvalidOperation                = CL_INVALID_OPERATION,
-    clsparseCompilerNotAvailable            = CL_COMPILER_NOT_AVAILABLE,
-    clsparseBuildProgramFailure             = CL_BUILD_PROGRAM_FAILURE,
-    clsparseInvalidKernelArgs                = CL_INVALID_KERNEL_ARGS,
+        clsparseSuccess = CL_SUCCESS,
+        clsparseInvalidValue = CL_INVALID_VALUE,
+        clsparseInvalidCommandQueue = CL_INVALID_COMMAND_QUEUE,
+        clsparseInvalidContext = CL_INVALID_CONTEXT,
+        clsparseInvalidMemObject = CL_INVALID_MEM_OBJECT,
+        clsparseInvalidDevice = CL_INVALID_DEVICE,
+        clsparseInvalidEventWaitList = CL_INVALID_EVENT_WAIT_LIST,
+        clsparseInvalidEvent = CL_INVALID_EVENT,
+        clsparseOutOfResources = CL_OUT_OF_RESOURCES,
+        clsparseOutOfHostMemory = CL_OUT_OF_HOST_MEMORY,
+        clsparseInvalidOperation = CL_INVALID_OPERATION,
+        clsparseCompilerNotAvailable = CL_COMPILER_NOT_AVAILABLE,
+        clsparseBuildProgramFailure = CL_BUILD_PROGRAM_FAILURE,
+        clsparseInvalidKernelArgs = CL_INVALID_KERNEL_ARGS,
 
-    /* Extended error codes */
-    clsparseNotImplemented         = -1024, /**< Functionality is not implemented */
-    clsparseNotInitialized,                 /**< clsparse library is not initialized yet */
-    clsparseStructInvalid,                 /**< clsparse library is not initialized yet */
-    clsparseInvalidSize,                    /**< Invalid size of object > */
-    clsparseInvalidMemObj,                  /**< Checked obejct is no a valid cl_mem object */
-    clsparseInsufficientMemory,             /**< The memory object for vector is too small */
-    clsparseInvalidControlObject,           /**< clsparseControl object is not valid */
-    clsparseInvalidFile,                    /**< Error reading the sparse matrix file */
-    clsparseInvalidFileFormat,              /**< Only specific documented sparse matrix files supported */
-    clsparseInvalidKernelExecution,          /**< Problem with kenrel execution */
-    clsparseInvalidType,                     /** < Wrong type provided > */
+        /* Extended error codes */
+        clsparseNotImplemented = -1024, /**< Functionality is not implemented */
+        clsparseNotInitialized,                 /**< clsparse library is not initialized yet */
+        clsparseStructInvalid,                 /**< clsparse library is not initialized yet */
+        clsparseInvalidSize,                    /**< Invalid size of object > */
+        clsparseInvalidMemObj,                  /**< Checked obejct is no a valid cl_mem object */
+        clsparseInsufficientMemory,             /**< The memory object for vector is too small */
+        clsparseInvalidControlObject,           /**< clsparseControl object is not valid */
+        clsparseInvalidFile,                    /**< Error reading the sparse matrix file */
+        clsparseInvalidFileFormat,              /**< Only specific documented sparse matrix files supported */
+        clsparseInvalidKernelExecution,          /**< Problem with kenrel execution */
+        clsparseInvalidType,                     /** < Wrong type provided > */
 
-    /* Solver control */
-    clsparseInvalidSolverControlObject    = -2048,
-    clsparseInvalidSystemSize,
-    clsparseIterationsExceeded,
-    clsparseToleranceNotReached,
-    clsparseSolverError,
+        /* Solver control */
+        clsparseInvalidSolverControlObject = -2048,
+        clsparseInvalidSystemSize,
+        clsparseIterationsExceeded,
+        clsparseToleranceNotReached,
+        clsparseSolverError,
     } clsparseStatus;
 
 
     // clsparseControl keeps the data relevant for
     // OpenCL operations like kernel execution, mem alocation, sync.
     /* To be considered:
-    - how the allocation should look like?
+        - how the allocation should look like?
         IMO clsparseControl ctrl = clsparseControl { .queue = queue ... } is not nice
-    - if there is sth like clsparseControl how we should destroy it? in the tearDown function?
-    - if the user call the clReleaseCommandQueue the clsparseControl become invalid.
+        - if there is sth like clsparseControl how we should destroy it? in the tearDown function?
+        - if the user call the clReleaseCommandQueue the clsparseControl become invalid.
         */
     //
     typedef struct _clsparseControl*  clsparseControl;
@@ -78,7 +78,7 @@ extern "C" {
     //TODO:: NOT WORKING! NDRange throws Failure
     CLSPARSE_EXPORT clsparseStatus
         clsparseSetupEventWaitList( clsparseControl control,
-                           cl_uint num_events_in_wait_list,
+        cl_uint num_events_in_wait_list,
         cl_event* event_wait_list );
 
     //get the event from the last kernel execution
@@ -91,18 +91,18 @@ extern "C" {
         clsparseReleaseControl( clsparseControl control );
 
     /*
- * Solver control: Object controlling the solver execution
- */
+     * Solver control: Object controlling the solver execution
+     */
     typedef enum _print_mode{
         QUIET = 0,
-    NORMAL,
-    VERBOSE
+        NORMAL,
+        VERBOSE
     } PRINT_MODE;
 
     typedef enum _precond
     {
-    NOPRECOND = 0,
-    DIAGONAL
+        NOPRECOND = 0,
+        DIAGONAL
     } PRECONDITIONER;
 
     typedef struct _solverControl*  clSParseSolverControl;
@@ -164,7 +164,7 @@ clsparseDcsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clspar
         clsparseInitCsrMatrix( clsparseCsrMatrix* csrMatx );
 
     CLSPARSE_EXPORT clsparseStatus
-        clsparseInitDenseMatrix( cldenseMatrix* denseMatx );
+        cldenseInitMatrix( cldenseMatrix* denseMatx );
 
     // Convenience functions provided by library to read sparse matrices from file
     CLSPARSE_EXPORT clsparseStatus
@@ -195,47 +195,47 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseSscale( clsparseVector* y,
-                const clsparseScalar* alpha,
+        const clsparseScalar* alpha,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDscale( clsparseVector* y,
-                const clsparseScalar* alpha,
+        const clsparseScalar* alpha,
         const clsparseControl control );
 
     /* AXPY: y = alpha*x + y*/
     CLSPARSE_EXPORT clsparseStatus
         cldenseSaxpy( clsparseVector* y,
-              const clsparseScalar* alpha, const clsparseVector* x,
+        const clsparseScalar* alpha, const clsparseVector* x,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDaxpy( clsparseVector* y,
-              const clsparseScalar* alpha, const clsparseVector* x,
+        const clsparseScalar* alpha, const clsparseVector* x,
         const clsparseControl control );
 
     /* AXPY: y = alpha*x + beta*y*/
     CLSPARSE_EXPORT clsparseStatus
         cldenseSaxpby( clsparseVector* y,
-              const clsparseScalar* alpha, const clsparseVector* x,
-              const clsparseScalar* beta,
+        const clsparseScalar* alpha, const clsparseVector* x,
+        const clsparseScalar* beta,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDaxpby( clsparseVector* y,
-              const clsparseScalar* alpha, const clsparseVector* x,
-              const clsparseScalar* beta,
+        const clsparseScalar* alpha, const clsparseVector* x,
+        const clsparseScalar* beta,
         const clsparseControl control );
 
     /* Reduce (sum) */
     CLSPARSE_EXPORT clsparseStatus
         cldenseSreduce( clsparseScalar* s,
-             const clsparseVector* x,
+        const clsparseVector* x,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDreduce( clsparseScalar* s,
-             const clsparseVector* x,
+        const clsparseVector* x,
         const clsparseControl control );
 
     /* norms */
@@ -243,36 +243,36 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     /* L1 norm */
     CLSPARSE_EXPORT clsparseStatus
         cldenseSnrm1( clsparseScalar* s,
-             const clsparseVector* x,
+        const clsparseVector* x,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDnrm1( clsparseScalar *s,
-             const clsparseVector* x,
+        const clsparseVector* x,
         const clsparseControl control );
 
     /* L2 norm */
     CLSPARSE_EXPORT clsparseStatus
         cldenseSnrm2( clsparseScalar* s,
-             const clsparseVector* x,
+        const clsparseVector* x,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDnrm2( clsparseScalar* s,
-             const clsparseVector* x,
+        const clsparseVector* x,
         const clsparseControl control );
 
     /* dot product */
     CLSPARSE_EXPORT clsparseStatus
         cldenseSdot( clsparseScalar* r,
-             const clsparseVector* x,
-             const clsparseVector* y,
+        const clsparseVector* x,
+        const clsparseVector* y,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDdot( clsparseScalar* r,
-             const clsparseVector* x,
-             const clsparseVector* y,
+        const clsparseVector* x,
+        const clsparseVector* y,
         const clsparseControl control );
 
     // BLAS 2 routines
@@ -282,35 +282,35 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     //new possible implementation of csrmv with control object
     CLSPARSE_EXPORT clsparseStatus
         clsparseScsrmv( const clsparseScalar* alpha,
-                const clsparseCsrMatrix* matx,
-                const clsparseVector* x,
-                const clsparseScalar* beta,
-                clsparseVector* y,
-                const clsparseControl control );
+        const clsparseCsrMatrix* matx,
+        const clsparseVector* x,
+        const clsparseScalar* beta,
+        clsparseVector* y,
+        const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         clsparseDcsrmv( const clsparseScalar* alpha,
-            const clsparseCsrMatrix* matx,
-            const clsparseVector* x,
+        const clsparseCsrMatrix* matx,
+        const clsparseVector* x,
         const clsparseScalar* beta,
         clsparseVector* y,
-            const clsparseControl control );
+        const clsparseControl control );
 
 
     CLSPARSE_EXPORT clsparseStatus
         clsparseScoomv( const clsparseScalar* alpha,
         const clsparseCooMatrix* matx,
-                const clsparseVector* x,
-                const clsparseScalar* beta,
-                clsparseVector* y,
-                const clsparseControl control );
+        const clsparseVector* x,
+        const clsparseScalar* beta,
+        clsparseVector* y,
+        const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         clsparseDcoomv( const clsparseScalar* alpha,
-               const clsparseCooMatrix* matx,
-               const clsparseVector* x,
-               const clsparseScalar* beta,
-               clsparseVector* y,
+        const clsparseCooMatrix* matx,
+        const clsparseVector* x,
+        const clsparseScalar* beta,
+        clsparseVector* y,
         const clsparseControl control );
 
     // Sparse BLAS 3 routines
@@ -318,10 +318,10 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     // C = \alpha * A * B  + \beta * C
     CLSPARSE_EXPORT clsparseStatus
         clsparseScsrmm( const clsparseScalar* alpha,
-        const clsparseCsrMatrix* matA,
-        const cldenseMatrix* matB,
-               const clsparseScalar* beta,
-        cldenseMatrix* matC,
+        const clsparseCsrMatrix* sparseMatA,
+        const cldenseMatrix* denseMatB,
+        const clsparseScalar* beta,
+        cldenseMatrix* denseMatC,
         const clsparseControl control );
 
     //CSR <--> Dense transformation routines
@@ -338,14 +338,14 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     //CSR <--> COO transformation routines
     CLSPARSE_EXPORT clsparseStatus
         clsparseScsr2coo( const cl_int m, const cl_int n, const cl_int nnz,
-                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
-                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
+        cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
+        cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
         clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         clsparseDcsr2coo( const cl_int m, const cl_int n, const cl_int nnz,
-                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
-                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
+        cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
+        cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
         clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus

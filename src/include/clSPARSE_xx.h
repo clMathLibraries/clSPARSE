@@ -11,7 +11,7 @@
 //  Used to help define the orientation of a dense matrix
 typedef enum _cldenseMajor
 {
-    rowMajor = 0,
+    rowMajor = 1,
     columnMajor
 } cldenseMajor;
 

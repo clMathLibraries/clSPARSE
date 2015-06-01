@@ -1,7 +1,7 @@
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse_internal.hpp"
 #include "internal/clsparse_control.hpp"
-#include "clsparse_csrmm.hpp"
+#include "clsparse-csrmm.hpp"
 
 clsparseStatus
 clsparseScsrmm( const clsparseScalar* alpha,
@@ -24,10 +24,9 @@ const clsparseControl control )
 
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*>( alpha );
     const clsparseCsrMatrixPrivate* pSparseCsrA = static_cast<const clsparseCsrMatrixPrivate*>( sparseCsrA );
-    const cldenseMatrixPrivate* pDenseB = static_cast<const cldenseMatrixPrivate*>( pDenseB );
+    const cldenseMatrixPrivate* pDenseB = static_cast<const cldenseMatrixPrivate*>( denseB );
     const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*>( beta );
     cldenseMatrixPrivate* pDenseC = static_cast<cldenseMatrixPrivate*>( denseC );
-
 
     return csrmm< cl_float >( *pAlpha, *pSparseCsrA, *pDenseB, *pBeta, *pDenseC, control );
 }
@@ -53,7 +52,7 @@ const clsparseControl control )
 
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*>( alpha );
     const clsparseCsrMatrixPrivate* pSparseCsrA = static_cast<const clsparseCsrMatrixPrivate*>( sparseCsrA );
-    const cldenseMatrixPrivate* pDenseB = static_cast<const cldenseMatrixPrivate*>( pDenseB );
+    const cldenseMatrixPrivate* pDenseB = static_cast<const cldenseMatrixPrivate*>( denseB );
     const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*>( beta );
     cldenseMatrixPrivate* pDenseC = static_cast<cldenseMatrixPrivate*>( denseC );
 

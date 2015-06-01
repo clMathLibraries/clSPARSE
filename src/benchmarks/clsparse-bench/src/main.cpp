@@ -14,9 +14,9 @@
 #include "clsparseTimer.extern.hpp"
 #include "loadDynamicLibrary.hpp"
 #include "functions/clfunc_xSpMdV.hpp"
+#include "functions/clfunc-xSpMdM.hpp"
 #include "functions/clfunc_xCG.hpp"
 #include "functions/clfunc_xBiCGStab.hpp"
-
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -32,8 +32,6 @@ bool findMatrices( const std::string& root,
     const std::string& extension,
     std::vector<fs::path>& matrix_files )
 {
-
-
     fs::path dir( root );
     fs::directory_iterator end_iter;
     const boost::regex filter( ".*\\.\\" + extension );
@@ -78,10 +76,9 @@ std::vector< fs::path > enumMatrices( const std::string& root_dir )
 
 int main( int argc, char *argv[ ] )
 {
-    double alpha;
-    double beta;
+    cl_double alpha, beta;
+    size_t rows, columns;
     size_t profileCount;
-    //int transA_option;
     std::string function;
     std::string precision;
     std::string root_dir;
@@ -90,9 +87,10 @@ int main( int argc, char *argv[ ] )
     desc.add_options( )
         ( "help,h", "produces this help message" )
         ( "dirpath,d", po::value( &root_dir ), "Matrix directory" )
-        ( "alpha", po::value<double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
-        ( "beta", po::value<double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
-        //( "transposeA", po::value<int>( &transA_option )->default_value( 0 ), "0 = no transpose, 1 = transpose, 2 = conjugate transpose" )
+        ( "alpha", po::value<cl_double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
+        ( "beta", po::value<cl_double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
+        ( "rows", po::value<size_t>( &rows )->default_value( 16 ), "specifies the number of rows for matrix data" )
+        ( "columns", po::value<size_t>( &columns )->default_value( 16 ), "specifies the number of columns for matrix data" )
         ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, CG, BiCGStab" )
         ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
         ( "profile,p", po::value<size_t>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
@@ -140,14 +138,13 @@ int main( int argc, char *argv[ ] )
         if( precision == "s" )
             my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
         else if( precision == "d" )
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
         else
         {
             std::cerr << "Unknown spmdv precision" << std::endl;
             return -1;
         }
     }
-
     else if (boost::iequals(function, "CG" ))
     {
         if (precision == "s")
@@ -157,11 +154,18 @@ int main( int argc, char *argv[ ] )
     }
 
     else if (boost::iequals(function, "BiCGStab" ))
-    {
+        {
         if (precision == "s")
             my_function = std::unique_ptr< clsparseFunc > ( new xBiCGStab< float >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
         else
             my_function = std::unique_ptr< clsparseFunc > ( new xBiCGStab< double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+        }
+    else if( boost::iequals( function, "SpMdM" ) )
+    {
+        if( precision == "s" )
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns ) );
+        else
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
     }
     else
     {
