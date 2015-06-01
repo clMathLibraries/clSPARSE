@@ -45,6 +45,7 @@ to copyright protection within the United States.
 #include "include/external/mmio.h"
 #include "clSPARSE.hpp"
 #include "internal/clsparse_control.hpp"
+#include "internal/computeRowBlocks.hpp"
 
 // Class declarations
 template<typename FloatType>
@@ -54,6 +55,15 @@ struct Coordinate
     int y;
     FloatType val;
 };
+
+template<typename FloatType>
+bool CoordinateCompare( const Coordinate<FloatType> &c1, const Coordinate<FloatType> &c2 )
+{
+    if( c1.x != c2.x )
+        return ( c1.x < c2.x );
+    else
+        return ( c1.y < c2.y );
+}
 
 template <typename FloatType>
 class MatrixMarketReader
@@ -392,9 +402,8 @@ int MatrixMarketReader<FloatType>::MMReadMtxCrdSize( FILE *infile )
 // Post-condition: clears clsparseCooMatrix, then sets pCooMatx->m, pCooMatx->n
 // pCooMatx->nnz
 clsparseStatus
-clsparseCooHeaderfromFile( clsparseCooMatrix* cooMatx, const char* filePath )
+clsparseHeaderfromFile( cl_int* nnz, cl_int* row, cl_int* col, const char* filePath )
 {
-    clsparseCooMatrixPrivate* pCooMatx = static_cast<clsparseCooMatrixPrivate*>( cooMatx );
 
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
@@ -414,10 +423,9 @@ clsparseCooHeaderfromFile( clsparseCooMatrix* cooMatx, const char* filePath )
     if( mm_reader.MMReadHeader( filePath ) )
         return clsparseInvalidFile;
 
-    clsparseInitCooMatrix( cooMatx );
-    pCooMatx->m = mm_reader.GetNumRows( );
-    pCooMatx->n = mm_reader.GetNumCols( );
-    pCooMatx->nnz = mm_reader.GetNumNonZeroes( );
+    *row = mm_reader.GetNumRows( );
+    *col = mm_reader.GetNumCols( );
+    *nnz = mm_reader.GetNumNonZeroes( );
 
     return clsparseSuccess;
 }
@@ -457,9 +465,9 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cls
     clMemRAII< cl_int > rCooColIndices( control->queue( ), pCooMatx->colIndices );
     clMemRAII< cl_int > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
 
-    cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->valOffset( ), pCooMatx->nnz );
-    cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->colIndOffset( ), pCooMatx->nnz );
-    cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->rowOffOffset( ), pCooMatx->nnz );
+    cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->valOffset( ), pCooMatx->nnz );
+    cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->colIndOffset( ), pCooMatx->nnz );
+    cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->nnz );
 
     Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
     for( cl_int c = 0; c < pCooMatx->nnz; ++c )
@@ -473,9 +481,9 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cls
 }
 
 clsparseStatus
-clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, const clAllocator& clAlloc )
+clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control )
 {
-    clsparseCooMatrixPrivate* pCooMatx = static_cast<clsparseCooMatrixPrivate*>( cooMatx );
+    clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
 
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
@@ -491,41 +499,49 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, con
         return clsparseInvalidFileFormat;
 
     // Read data from a file on disk into CPU buffers
+    // Data is read natively as COO format with the reader 
     MatrixMarketReader< cl_float > mm_reader;
     if( mm_reader.MMReadFormat( filePath ) )
         return clsparseInvalidFile;
 
     // BUG: We need to check to see if openCL buffers currently exist and deallocate them first!
 
-    pCooMatx->m = mm_reader.GetNumRows( );
-    pCooMatx->n = mm_reader.GetNumCols( );
-    pCooMatx->nnz = mm_reader.GetNumNonZeroes( );
-
-#if( BUILD_CLVERSION < 200 )
-    pCooMatx->values = static_cast< cl_mem >( clAlloc( pCooMatx->nnz * sizeof( cl_float ) ) );
-    pCooMatx->colIndices = static_cast< cl_mem >( clAlloc( pCooMatx->nnz * sizeof( cl_int ) ) );
-    pCooMatx->rowIndices = static_cast< cl_mem >( clAlloc( pCooMatx->nnz * sizeof( cl_int ) ) );
-#else
-    pCooMatx->values = clAlloc( pCooMatx->nnz * sizeof( cl_int ) );
-    pCooMatx->colIndices = clAlloc( pCooMatx->nnz * sizeof( cl_float ) );
-    pCooMatx->rowIndices = clAlloc( pCooMatx->nnz * sizeof( cl_int ) );
-#endif
+    pCsrMatx->m = mm_reader.GetNumRows( );
+    pCsrMatx->n = mm_reader.GetNumCols( );
+    pCsrMatx->nnz = mm_reader.GetNumNonZeroes( );
 
     // Transfers data from CPU buffer to GPU buffers
-    clMemRAII< cl_float > rCooValues( clAlloc.queue, pCooMatx->values );
-    clMemRAII< cl_int > rCooColIndices( clAlloc.queue, pCooMatx->colIndices );
-    clMemRAII< cl_int > rCooRowIndices( clAlloc.queue, pCooMatx->rowIndices );
+    clMemRAII< cl_float > rCsrValues( control->queue( ), pCsrMatx->values );
+    clMemRAII< cl_int > rCsrColIndices( control->queue( ), pCsrMatx->colIndices );
+    clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
 
-    cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->valOffset( ), pCooMatx->nnz );
-    cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->colIndOffset( ), pCooMatx->nnz );
-    cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE, pCooMatx->rowOffOffset( ), pCooMatx->nnz );
+    cl_float* fCsrValues = rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->valOffset( ), pCsrMatx->nnz );
+    cl_int* iCsrColIndices = rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->nnz );
+    cl_int* iCsrRowOffsets = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
 
+    //  The following section of code converts the sparse format from COO to CSR
     Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
-    for( cl_int c = 0; c < pCooMatx->nnz; ++c )
+    std::sort( coords, coords + pCsrMatx->nnz, CoordinateCompare< cl_float > );
+
+    int current_row = 1;
+    iCsrRowOffsets[ 0 ] = 0;
+    for( int i = 0; i < pCsrMatx->nnz; i++ )
     {
-        iCooRowIndices[ c ] = coords[ c ].x;
-        iCooColIndices[ c ] = coords[ c ].y;
-        fCooValues[ c ] = coords[ c ].val;
+        iCsrColIndices[ i ] = coords[ i ].y;
+        fCsrValues[ i ] = coords[ i ].val;
+
+        if( coords[ i ].x >= current_row )
+            iCsrRowOffsets[ current_row++ ] = i;
+    }
+    iCsrRowOffsets[ current_row ] = pCsrMatx->nnz;
+
+    // Compute the csr matrix meta data and fill in buffers
+    if( pCsrMatx->rowBlockSize )
+    {
+        clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
+        cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize );
+
+        ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->m, BLKSIZE );
     }
 
     return clsparseSuccess;

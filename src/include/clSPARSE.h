@@ -162,10 +162,13 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseInitDenseMatrix( clsparseDenseMatrix* denseMatx );
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseCooHeaderfromFile( clsparseCooMatrix* cooMatx, const char* filePath );
+clsparseHeaderfromFile( cl_int* nnz, cl_int* row, cl_int* col, const char* filePath );
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control );
@@ -174,7 +177,7 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseCsrComputeMeta( clsparseCsrMatrix* csrMatx, clsparseControl control );
+clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
 /* BLAS 1 routines for dense vector*/
 

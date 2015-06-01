@@ -1,7 +1,14 @@
 message( STATUS "Configuring Boost SuperBuild..." )
 include( ExternalProject )
 
-set( ext.Boost_VERSION "1.57.0" CACHE STRING "Boost version to download/use" )
+# TODO:  Options should be added to allow downloading Boost straight from github
+
+# This file is used to add Boost as a library dependency to another project
+# This sets up boost to download from sourceforge, and builds it as a cmake
+# ExternalProject
+
+# Change this one line to upgrade to newer versions of boost
+set( ext.Boost_VERSION "1.58.0" CACHE STRING "Boost version to download/use" )
 mark_as_advanced( ext.Boost_VERSION )
 string( REPLACE "." "_" ext.Boost_Version_Underscore ${ext.Boost_VERSION} )
 
@@ -18,16 +25,8 @@ else( )
   set( Boost_Ext "tar.bz2" )
 endif( )
 
-# Purely for debugging the file downloading URLs
-# file( DOWNLOAD "http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.7z"
-# "${CMAKE_CURRENT_BINARY_DIR}/download/boost-${ext.Boost_VERSION}/boost_1_55_0.7z" SHOW_PROGRESS STATUS fileStatus LOG fileLog )
-# message( STATUS "status: " ${fileStatus} )
-# message( STATUS "log: " ${fileLog} )
+set( Boost.Command ./b2 --prefix=<INSTALL_DIR>/package )
 
-set( Boost.Command ./b2 --prefix=<SOURCE_DIR>/../package )
-
-# message( "GNUCC: ${CMAKE_COMPILER_IS_GNUCC}" )
-# message( "GNUCXX: ${CMAKE_COMPILER_IS_GNUCXX}" )
 if( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
   list( APPEND Boost.Command cxxflags=-fPIC  )
 endif( )
@@ -56,19 +55,32 @@ elseif( MSVC11 )
   list( APPEND Boost.Command toolset=msvc-11.0 )
 elseif( MSVC12 )
   list( APPEND Boost.Command toolset=msvc-12.0 )
+elseif( MSVC14 )
+  list( APPEND Boost.Command toolset=msvc-14.0 )
 endif( )
 
 if( WIN32 )
   list( APPEND Boost.Command define=BOOST_LOG_USE_WINNT6_API )
 endif( )
 
-set( ext.Boost_VARIANT "debug,release" CACHE STRING "Which boost variant?  debug | release | debug,release" )
 set( ext.Boost_LINK "static" CACHE STRING "Which boost link method?  static | shared | static,shared" )
 
 if( WIN32 )
-   set( ext.Boost_LAYOUT "versioned" CACHE STRING "Which boost layout method?  versioned | tagged | system" )
+    # Versioned is the default on windows
+    set( ext.Boost_LAYOUT "versioned" CACHE STRING "Which boost layout method?  versioned | tagged | system" )
+
+    # For windows, default to build both variants to support the VS IDE
+    set( ext.Boost_VARIANT "debug,release" CACHE STRING "Which boost variant?  debug | release | debug,release" )
 else( )
-   set( ext.Boost_LAYOUT "tagged" CACHE STRING "Which boost layout method?  versioned | tagged | system" )
+    # Tagged builds provide unique enough names to be able to build both variants
+    set( ext.Boost_LAYOUT "tagged" CACHE STRING "Which boost layout method?  versioned | tagged | system" )
+
+   # For Linux, typically a build tree only needs one variant
+   if( ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+     set( ext.Boost_VARIANT "debug" CACHE STRING "Which boost variant?  debug | release | debug,release" )
+   else( )
+     set( ext.Boost_VARIANT "release" CACHE STRING "Which boost variant?  debug | release | debug,release" )
+   endif( )
 endif( )
 
 list( APPEND Boost.Command link=${ext.Boost_LINK} variant=${ext.Boost_VARIANT} --layout=${ext.Boost_LAYOUT} install )
@@ -90,16 +102,16 @@ if( WIN32 )
 
   if( CMAKE_VERSION VERSION_LESS "3.1.0" )
     # .zip file
-    set( ext.MD5_HASH "5e040e578e3f0ba879da04a1e0cd55ff" )
+    set( ext.MD5_HASH "b0605a9323f1e960f7434dbbd95a7a5c" )
   else( )
     # .7z file
-    set( ext.MD5_HASH "17c98dd78d6180f553fbefe5a0f57d12" )
+    set( ext.MD5_HASH "f7255aeb692c1c38fe761c32fb0d3ecd" )
   endif( )
 else( )
   set( Boost.Bootstrap "./bootstrap.sh" )
 
   # .tar.bz2
-  set( ext.MD5_HASH "1be49befbdd9a5ce9def2983ba3e7b76" )
+  set( ext.MD5_HASH "b8839650e61e9c1c0a89f371dd475546" )
 endif( )
 
 # Below is a fancy CMake command to download, build and install Boost on the users computer
@@ -115,9 +127,8 @@ ExternalProject_Add(
   INSTALL_COMMAND ""
 )
 
-set_property( TARGET Boost PROPERTY FOLDER "Externals")
+set_property( TARGET Boost PROPERTY FOLDER "Externals" )
+ExternalProject_Get_Property( Boost install_dir )
 
-ExternalProject_Get_Property( Boost source_dir )
-
-set( Boost_FOUND TRUE )
-set( BOOST_ROOT ${source_dir}/../package )
+# For use by the user of ExternalBoost.cmake
+set( BOOST_ROOT ${install_dir}/package )

@@ -3,6 +3,10 @@
 #define _CL_SPARSE_PRIVATE_HPP_
 // Definitions and #includes private to the internal implementation of the library
 
+#if defined ( _WIN32 )
+#define NOMINMAX
+#endif
+
 #include "clSPARSE.h"
 
 #if defined(__APPLE__) || defined(__MACOSX)

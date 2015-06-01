@@ -91,65 +91,49 @@ public:
     {
         sparseFile = path;
 
-
-        // Create container for sparse data to pass in/out of clsparse API's
-        clsparseInitCooMatrix( &cooMtx );
-
         // Read sparse data from file and construct a COO matrix from it
-        clsparseStatus fileError = clsparseCooHeaderfromFile( &cooMtx, sparseFile.c_str( ) );
+        int nnz, row, col;
+        clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, sparseFile.c_str( ) );
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market header from disk" );
 
-        cl_int status;
-        cooMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                          cooMtx.nnz * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer cooMtx.values" );
-
-        cooMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                              cooMtx.nnz * sizeof( cl_int ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer cooMtx.colIndices" );
-
-        cooMtx.rowIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                              cooMtx.nnz * sizeof( cl_int ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer cooMtx.rowIndices" );
-
-        fileError = clsparseCooMatrixfromFile( &cooMtx, sparseFile.c_str( ), control );
-        if( fileError != clsparseSuccess )
-            throw std::runtime_error( "Could not read matrix market data from disk" );
-
         // Now initialise a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );
+        csrMtx.nnz = nnz;
+        csrMtx.m = row;
+        csrMtx.n = col;
+        clsparseCsrMetaSize( &csrMtx, control );
 
+        cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                           cooMtx.nnz * sizeof( T ), NULL, &status );
+            csrMtx.nnz * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMtx.nnz * sizeof( cl_int ), NULL, &status );
+            csrMtx.nnz * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               ( cooMtx.m + 1 ) * sizeof( cl_int ), NULL, &status );
+            ( csrMtx.m + 1 ) * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
-        clsparseScoo2csr( &csrMtx, &cooMtx, control );
-
-
-        clsparseCsrMetaSize( &csrMtx, control );
-
         csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                              csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-        clsparseCsrComputeMeta( &csrMtx, control );
+            csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
+        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowBlocks" );
+
+        fileError = clsparseCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        if( fileError != clsparseSuccess )
+            throw std::runtime_error( "Could not read matrix market data from disk" );
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );
-        x.n = cooMtx.m;
+        x.n = csrMtx.m;
         x.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                      x.n * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer x.values" );
 
         clsparseInitVector( &y );
-        y.n = cooMtx.n;
+        y.n = csrMtx.n;
         y.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                      y.n * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer y.values" );
@@ -211,9 +195,6 @@ public:
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
-        OPENCL_V_THROW( ::clReleaseMemObject( cooMtx.values ), "clReleaseMemObject cooMtx.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( cooMtx.colIndices ), "clReleaseMemObject cooMtx.colIndices" );
-        OPENCL_V_THROW( ::clReleaseMemObject( cooMtx.rowIndices ), "clReleaseMemObject cooMtx.rowIndices" );
         OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
         OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
         OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
@@ -236,7 +217,6 @@ private:
     std::string sparseFile;
 
     //device values
-    clsparseCooMatrix cooMtx;
     clsparseCsrMatrix csrMtx;
     clsparseVector x;
     clsparseVector y;

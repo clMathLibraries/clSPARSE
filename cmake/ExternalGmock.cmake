@@ -50,7 +50,7 @@ if( UNIX )
   endif( )
 else( )
   list( APPEND ext.gMock.cmake_args -Dgtest_force_shared_crt=ON )
-  set( ext.gMock.Make 
+  set( ext.gMock.Make
         COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
         COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Debug )
 endif( )
@@ -99,5 +99,4 @@ set_property( TARGET gMock PROPERTY FOLDER "Externals")
 ExternalProject_Get_Property( gMock install_dir )
 
 # For use by the user of ExternalGtest.cmake
-set( GMOCK_FOUND TRUE )
 set( GMOCK_ROOT ${install_dir}/package )
