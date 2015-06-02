@@ -25,31 +25,17 @@ public:
 
     }
 
-    void operator() (const clsparseVectorPrivate* x,
-                     clsparseVectorPrivate* y,
+    void operator() (const clsparse::array<T>& x,
+                     clsparse::array<T>& y,
                      clsparseControl control)
     {
-        cl_ulong xSize = x->n - x->offset();
-        cl_ulong ySize = y->n - y->offset();
 
-        assert (xSize == ySize);
+        assert (x.size() == y.size());
 
         //void does nothing just copy x to y;
-#if (BUILD_CLVERSION < 200)
-        clEnqueueCopyBuffer(control->queue(), x->values, y->values,
-                            x->offset(), y->offset(),
-                            x->n * sizeof(T),
-                            control->event_wait_list.size(),
-                            &(control->event_wait_list.front())(),
-                            &control->event( )
-                            );
-#else
-        clEnqueueSVMMemcpy(control->queue(), CL_TRUE,
-                           y->values, x->values, x->n * sizeof(T),
-                           control->event_wait_list.size(),
-                           &(control->event_wait_list.front())(),
-                           &control->event( ));
-#endif
+
+        //deep copy;
+        y = x;
     }
 
 };
@@ -66,8 +52,8 @@ public:
 
     }
 
-    void operator ()(const clsparseVectorPrivate* x,
-                     clsparseVectorPrivate* y,
+    void operator ()(const clsparse::array<T>& x,
+                     clsparse::array<T>& y,
                      clsparseControl control)
     {
         (*void_precond)(x, y, control);

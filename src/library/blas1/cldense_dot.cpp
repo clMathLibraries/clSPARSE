@@ -6,6 +6,18 @@ cldenseSdot (clsparseScalar* r,
              const clsparseVector* y,
              const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
+
     clsparseScalarPrivate* pR = static_cast<clsparseScalarPrivate*>( r );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
     const clsparseVectorPrivate* pY = static_cast<const clsparseVectorPrivate*> ( y );
@@ -19,6 +31,18 @@ cldenseDdot (clsparseScalar* r,
              const clsparseVector* y,
              const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
+
     clsparseScalarPrivate* pDot = static_cast<clsparseScalarPrivate*>( r );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
     const clsparseVectorPrivate* pY = static_cast<const clsparseVectorPrivate*> ( y );

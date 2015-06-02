@@ -6,6 +6,17 @@ cldenseSnrm1(clsparseScalar* s,
              const clsparseVector* x,
              const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
     clsparseScalarPrivate* pS = static_cast<clsparseScalarPrivate*> ( s );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
 
@@ -18,6 +29,17 @@ cldenseDnrm1(clsparseScalar* s,
              const clsparseVector* x,
              const clsparseControl control)
 {
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
     clsparseScalarPrivate* pS = static_cast<clsparseScalarPrivate*> ( s );
     const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
 

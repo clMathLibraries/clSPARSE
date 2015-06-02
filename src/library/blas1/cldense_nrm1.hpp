@@ -15,4 +15,16 @@ Norm1(clsparseScalarPrivate* pS,
     return reduce<T, RO_FABS>(pS, pX, control);
 }
 
+/*
+ * clsparse::array
+ */
+template<typename T>
+clsparseStatus
+Norm1(clsparse::array<T>& pS,
+      const clsparse::array<T>& pX,
+      const clsparseControl control)
+{
+    return reduce<T, RO_FABS>(pS, pX, control);
+}
+
 #endif //_CLSPARSE_NRM_1_HPP_

@@ -8,8 +8,9 @@
 
 #include "blas1/elementwise_transform.hpp"
 #include "preconditioner_utils.hpp"
+#include "internal/data_types/clarray.hpp"
 #include <memory>
-#include <algorithm>
+
 /* The simplest preconditioner consists of just the
    inverse values of the diagonal of the matrix:
 
@@ -30,76 +31,33 @@ class DiagonalPreconditioner
 {
 public:
     DiagonalPreconditioner(const clsparseCsrMatrixPrivate* A,
-                           clsparseControl control)
+                           clsparseControl control) :
+        invDiag_A(control, min(A->m, A->n), 0, CL_MEM_READ_WRITE, false)
     {
-        //allocate proper size assuming rectangular size of A;
-        cl_uint size = min(A->m, A->n);
-
-        clsparseInitVector(&invDiag_A);
-        invDiag_A.n = size;
 
         cl_int status;
 
-        clMemRAII<T> r_invDiag_A (control->queue(),
-                                  &invDiag_A.values, invDiag_A.n,
-                                                CL_MEM_READ_WRITE);
-
-        // I dont want to clMemRAII release this object in constructor
-        // but the problem will be in openCL 20
-        // write operator= for clMemRAII then extend this class with field
-        // of this type which will manage the invDiag_A.
-#if (BUILD_CLVERSION < 200)
-        status = ::clRetainMemObject(invDiag_A.values);
-#endif
-
-        if( status != CL_SUCCESS )
-        {
-            std::cout << "Problem with creating invDiag buffer"
-                      << " (" << status << ")" << std::endl;
-        }
         // extract inverse diagonal from matrix A and store it in invDiag_A
         // easy to check with poisson matrix;
-        status = extract_diagonal<T, true>(&invDiag_A, A, control);
-
-        if( status != CL_SUCCESS )
-        {
-            std::cout << "Invalid extract_diagonal kernel execution " << std::endl;
-        }
-        //Print the values from invDiag_A
-//        else
-//        {
-//            //clMemRAII<T> rData (control->queue(), invDiag_A.values);
-//            T* data = r_invDiag_A.clMapMem(CL_TRUE, CL_MAP_READ, invDiag_A.offset(), invDiag_A.n);
-
-//            for (int i = 0; i < invDiag_A.n; i++)
-//            {
-//                std::cout << "i = " << i << " " << data[i] << std::endl;
-//            }
-//            std::cout << std::endl;
-//        }
+        status = extract_diagonal<T, true>(invDiag_A, A, control);
+        OPENCL_V_THROW(status, "Invalid extract_diagonal kernel execution");
 
     }
 
     // apply preconditioner
-    void operator ()(const clsparseVectorPrivate* x,
-                     clsparseVectorPrivate* y,
+    void operator ()(const clsparse::array<T>& x,
+                     clsparse::array<T>& y,
                      clsparseControl control)
     {
         //element wise multiply y = x*invDiag_A;
         clsparseStatus status =
-                elementwise_transform<T, EW_MULTIPLY>(y, x, &invDiag_A, control);
-    }
-
-    ~DiagonalPreconditioner()
-    {
-        ::clReleaseMemObject(invDiag_A.values);
-        // return to init state;
-        clsparseInitVector(&invDiag_A);
+                elementwise_transform<T, EW_MULTIPLY>(y, x, invDiag_A, control);
+        OPENCL_V_THROW(status, "Diagonal operator()");
     }
 
 private:
     //inverse diagonal values of matrix A;
-    clsparseVectorPrivate invDiag_A;
+    clsparse::array<T> invDiag_A;
 };
 
 
@@ -114,8 +72,8 @@ public:
     {
     }
 
-    void operator()(const clsparseVectorPrivate* x,
-                    clsparseVectorPrivate* y,
+    void operator()(const clsparse::array<T>& x,
+                    clsparse::array<T>& y,
                     clsparseControl control)
     {
         (*diagonal)(x, y, control);
