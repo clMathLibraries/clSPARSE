@@ -31,7 +31,80 @@ public:
 
     typedef reference_base<array<value_type> > reference;
 
-    //array(clsparseControl control) : _size(0), queue(control->queue) {}
+    template <typename Container>
+    class iterator_base
+    {
+    public:
+
+        typedef iterator_base self_type;
+
+        typedef typename Container::value_type value_type;
+
+        typedef std::forward_iterator_tag iterator_category;
+
+        typedef size_t difference_type;
+
+        iterator_base(Container& rhs, difference_type index, cl::CommandQueue queue):
+            container ( rhs ), index(index), range(1), queue(queue)
+        {}
+
+        iterator_base(Container& rhs, difference_type index, difference_type range, cl::CommandQueue queue):
+            container ( rhs ), index ( index ), range ( range ), queue ( queue )
+        {}
+
+        iterator_base( const iterator_base& iter) :
+            container (iter.container), index (iter.index), range (iter.range), queue(iter.queue)
+        {
+
+        }
+
+        const reference operator*()
+        {
+            return reference( container, index, queue);
+        }
+
+        iterator_base < Container >& operator+= ( const difference_type& n)
+        {
+            index += n;
+            return *this;
+        }
+
+        iterator_base < Container >& operator = ( const difference_type& n)
+        {
+            index += n;
+            return *this;
+        }
+
+        const iterator_base < Container > operator+ ( const difference_type& n) const
+        {
+            iterator_base < Container > result(*this);
+            result.index += n;
+            return result;
+        }
+
+        bool operator== (const self_type& rhs ) const
+        {
+            bool sameIndex = rhs.index == index;
+            bool sameContainer = (&rhs.container == &container);
+            return (sameContainer && sameIndex );
+        }
+
+        bool operator != (const self_type& rhs) const
+        {
+            bool sameIndex = rhs.index == index;
+            bool sameContainer = (&rhs.container == &container);
+            return !(sameContainer && sameIndex );
+        }
+
+    private:
+
+        Container& container;
+        difference_type index;
+        difference_type range;
+        cl::CommandQueue queue;
+    };
+
+    typedef iterator_base< array<value_type> > iterator;
 
     array(clsparseControl control, size_t size, const value_type& value = value_type(),
           cl_mem_flags flags = CL_MEM_READ_WRITE, cl_bool init = true) : queue(control->queue)
@@ -53,6 +126,9 @@ public:
     array (clsparseControl control, const cl_mem& mem, size_t size)
         : _size(size), queue(control->queue)
     {
+
+        //operator = on Memory class transfers ownership which I want to avoid;
+         clRetainMemObject(mem);
          BASE::buff = mem;
     }
 
@@ -165,6 +241,18 @@ public:
 
         return reference( *this, n, queue);
     }
+
+
+    iterator begin()
+    {
+        return iterator(*this, 0, queue);
+    }
+
+    iterator end()
+    {
+        return iterator(*this, _size, queue);
+    }
+
 
     //assignment operator performs deep copy
     array& operator= (const array& other)
