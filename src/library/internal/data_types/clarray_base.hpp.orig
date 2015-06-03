@@ -58,7 +58,11 @@ public:
     array_base(const array_base&) = delete;
     //array_base(array_base&&) = default;
     array_base& operator=(const array_base&) = delete;
+<<<<<<< HEAD
+//    array_base& operator=(array_base&&) = default;
+=======
     //array_base& operator=(array_base&&) = default;
+>>>>>>> clsparse::array implementation, adopted all algorithm functions for clsparse::array, only matrix types remain in struct *Private
 
 protected:
     BUFF_TYPE buff;

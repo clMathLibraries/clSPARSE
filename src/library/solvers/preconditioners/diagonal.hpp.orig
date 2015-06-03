@@ -10,7 +10,7 @@
 #include "preconditioner_utils.hpp"
 #include "internal/data_types/clarray.hpp"
 #include <memory>
-
+#include <algorithm>
 /* The simplest preconditioner consists of just the
    inverse values of the diagonal of the matrix:
 
@@ -34,6 +34,14 @@ public:
                            clsparseControl control) :
         invDiag_A(control, min(A->m, A->n), 0, CL_MEM_READ_WRITE, false)
     {
+<<<<<<< HEAD
+        //allocate proper size assuming rectangular size of A;
+        cl_uint size = min(A->m, A->n);
+
+        clsparseInitVector(&invDiag_A);
+        invDiag_A.n = size;
+=======
+>>>>>>> clsparse::array implementation, adopted all algorithm functions for clsparse::array, only matrix types remain in struct *Private
 
         cl_int status;
 

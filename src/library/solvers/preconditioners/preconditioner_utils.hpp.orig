@@ -7,11 +7,18 @@
 #include "internal/kernel_wrap.hpp"
 #include "internal/clsparse_internal.hpp"
 
+<<<<<<< HEAD
+#if !defined(min)
+#define min(x, y) std::min(x, y)
+#endif
+
+=======
 #include "internal/data_types/clarray.hpp"
 
 #if !defined(min)
 #define min(x, y) std::min(x, y)
 #endif
+>>>>>>> clsparse::array implementation, adopted all algorithm functions for clsparse::array, only matrix types remain in struct *Private
 
 template<typename T, bool inverse = false>
 clsparseStatus

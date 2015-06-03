@@ -8,6 +8,7 @@
 
 #include "clarray_base.hpp"
 #include "reference_base.hpp"
+#include "iterator.hpp"
 
 #include <cassert>
 
@@ -51,6 +52,8 @@ public:
         iterator_base(Container& rhs, difference_type index, difference_type range, cl::CommandQueue queue):
             container ( rhs ), index ( index ), range ( range ), queue ( queue )
         {}
+<<<<<<< HEAD
+=======
 
         iterator_base( const iterator_base& iter) :
             container (iter.container), index (iter.index), range (iter.range), queue(iter.queue)
@@ -58,11 +61,18 @@ public:
 
         }
 
+>>>>>>> clsparse::array implementation, adopted all algorithm functions for clsparse::array, only matrix types remain in struct *Private
         const reference operator*()
         {
             return reference( container, index, queue);
         }
 
+<<<<<<< HEAD
+
+//        bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
+
+//        bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+=======
         iterator_base < Container >& operator+= ( const difference_type& n)
         {
             index += n;
@@ -95,6 +105,7 @@ public:
             bool sameContainer = (&rhs.container == &container);
             return !(sameContainer && sameIndex );
         }
+>>>>>>> clsparse::array implementation, adopted all algorithm functions for clsparse::array, only matrix types remain in struct *Private
 
     private:
 
@@ -242,18 +253,34 @@ public:
         return reference( *this, n, queue);
     }
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> clsparse::array implementation, adopted all algorithm functions for clsparse::array, only matrix types remain in struct *Private
     iterator begin()
     {
         return iterator(*this, 0, queue);
     }
 
+<<<<<<< HEAD
+    iterator begin (size_t range)
+    {
+        return iterator(*this, 0, range, queue);
+    }
+
+
+
+=======
+>>>>>>> clsparse::array implementation, adopted all algorithm functions for clsparse::array, only matrix types remain in struct *Private
     iterator end()
     {
         return iterator(*this, _size, queue);
     }
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> clsparse::array implementation, adopted all algorithm functions for clsparse::array, only matrix types remain in struct *Private
     //assignment operator performs deep copy
     array& operator= (const array& other)
     {

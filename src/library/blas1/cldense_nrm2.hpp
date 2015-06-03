@@ -13,5 +13,17 @@ Norm2(clsparseScalarPrivate* pS,
     return reduce<T, RO_SQR, RO_SQRT>(pS, pX, control);
 }
 
+/*
+ * clsparse::array
+ */
+template<typename T>
+clsparseStatus
+Norm2(clsparse::array<T>& pS,
+      const clsparse::array<T>& pX,
+      const clsparseControl control)
+{
+    return reduce<T, RO_SQR, RO_SQRT>(pS, pX, control);
+}
+
 
 #endif //_CLSPARSE_NRM_2_HPP_
