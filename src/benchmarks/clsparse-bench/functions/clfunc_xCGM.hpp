@@ -29,7 +29,7 @@ public:
             cpuTimer->Reserve( 1, profileCount );
             cpuTimer->setNormalize( true );
 
-            gpuTimerID = gpuTimer->getUniqueID( "GPU xCGM", 0 );
+//            gpuTimerID = gpuTimer->getUniqueID( "GPU xCGM", 0 );
             cpuTimerID = cpuTimer->getUniqueID( "CPU xCGM", 0 );
         }
 
