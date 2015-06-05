@@ -3,7 +3,7 @@
 #define _CLSPARSE_PRECONDITIONER_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 //enum PRECONDITIONER
 //{
@@ -67,8 +67,8 @@ template<typename T>
 class PreconditionerHandler
 {
 public:
-    virtual void operator()(const clsparse::array<T>& x,
-                       clsparse::array<T>& y,
+    virtual void operator()(const clsparse::vector<T>& x,
+                       clsparse::vector<T>& y,
                        clsparseControl control) = 0;
 
     virtual void notify(const clsparseCsrMatrixPrivate* pA,

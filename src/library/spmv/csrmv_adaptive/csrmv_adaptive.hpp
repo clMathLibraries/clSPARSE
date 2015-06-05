@@ -6,7 +6,7 @@
 #include "internal/clsparse_validate.hpp"
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 template <typename T>
 clsparseStatus
@@ -70,11 +70,11 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
 
 template <typename T>
 clsparseStatus
-csrmv_adaptive( const clsparse::array<T>& pAlpha,
+csrmv_adaptive( const clsparse::vector<T>& pAlpha,
                 const clsparseCsrMatrixPrivate* pCsrMatx,
-            const clsparse::array<T>& pX,
-            const clsparse::array<T>& pBeta,
-            clsparse::array<T>& pY,
+            const clsparse::vector<T>& pX,
+            const clsparse::vector<T>& pBeta,
+            clsparse::vector<T>& pY,
             clsparseControl control )
 {
     if(typeid(T) == typeid(cl_double))
@@ -101,9 +101,9 @@ csrmv_adaptive( const clsparse::array<T>& pAlpha,
 
     kWrapper << pCsrMatx->values
         << pCsrMatx->colIndices << pCsrMatx->rowOffsets
-        << pX.buffer() << pY.buffer()
+        << pX.data() << pY.data()
         << pCsrMatx->rowBlocks
-        << pAlpha.buffer() << pBeta.buffer();
+        << pAlpha.data() << pBeta.data();
         //<< h_alpha << h_beta;
 
     // if NVIDIA is used it does not allow to run the group size

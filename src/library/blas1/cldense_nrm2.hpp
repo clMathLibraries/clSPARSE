@@ -18,8 +18,8 @@ Norm2(clsparseScalarPrivate* pS,
  */
 template<typename T>
 clsparseStatus
-Norm2(clsparse::array<T>& pS,
-      const clsparse::array<T>& pX,
+Norm2(clsparse::vector<T>& pS,
+      const clsparse::vector<T>& pX,
       const clsparseControl control)
 {
     return reduce<T, RO_SQR, RO_SQRT>(pS, pX, control);

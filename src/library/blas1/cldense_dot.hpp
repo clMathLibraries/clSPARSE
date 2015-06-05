@@ -8,7 +8,7 @@
 
 #include "commons.hpp"
 #include "atomic_reduce.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 template<typename T>
 clsparseStatus
@@ -120,9 +120,9 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
  */
 template<typename T>
 clsparseStatus
-inner_product (clsparse::array<T>& partial,
-     const clsparse::array<T>& pX,
-     const clsparse::array<T>& pY,
+inner_product (clsparse::vector<T>& partial,
+     const clsparse::vector<T>& pX,
+     const clsparse::vector<T>& pY,
      const cl_ulong size,
      const cl_ulong REDUCE_BLOCKS_NUMBER,
      const cl_ulong REDUCE_BLOCK_SIZE,
@@ -144,9 +144,9 @@ inner_product (clsparse::array<T>& partial,
     KernelWrap kWrapper(kernel);
 
     kWrapper << size
-             << partial.buffer()
-             << pX.buffer()
-             << pY.buffer();
+             << partial.data()
+             << pX.data()
+             << pY.data();
 
     cl::NDRange local(REDUCE_BLOCK_SIZE);
     cl::NDRange global(REDUCE_BLOCKS_NUMBER * REDUCE_BLOCK_SIZE);
@@ -163,9 +163,9 @@ inner_product (clsparse::array<T>& partial,
 }
 
 template<typename T>
-clsparseStatus dot(clsparse::array<T>& pR,
-                   const clsparse::array<T>& pX,
-                   const clsparse::array<T>& pY,
+clsparseStatus dot(clsparse::vector<T>& pR,
+                   const clsparse::vector<T>& pX,
+                   const clsparse::vector<T>& pY,
                    const clsparseControl control)
 {
 
@@ -197,7 +197,7 @@ clsparseStatus dot(clsparse::array<T>& pR,
         cl::Context context = control->getContext();
 
         //partial result
-        clsparse::array<T> partial(control, REDUCE_BLOCKS_NUMBER, 0,
+        clsparse::vector<T> partial(control, REDUCE_BLOCKS_NUMBER, 0,
                                    CL_MEM_READ_WRITE, false);
 
         status = inner_product<T>(partial, pX, pY, size,  REDUCE_BLOCKS_NUMBER,

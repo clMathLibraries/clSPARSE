@@ -4,7 +4,7 @@
 
 #include "internal/clsparse_validate.hpp"
 #include "internal/clsparse_internal.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 template<typename T>
 clsparseStatus
@@ -84,11 +84,11 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
  */
 template<typename T>
 clsparseStatus
-csrmv_vector(const clsparse::array<T>& pAlpha,
+csrmv_vector(const clsparse::vector<T>& pAlpha,
        const clsparseCsrMatrixPrivate* pMatx,
-       const clsparse::array<T>& pX,
-       const clsparse::array<T>& pBeta,
-       clsparse::array<T>& pY,
+       const clsparse::vector<T>& pX,
+       const clsparse::vector<T>& pBeta,
+       clsparse::vector<T>& pY,
        clsparseControl control)
 {
     cl_uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
@@ -126,13 +126,13 @@ csrmv_vector(const clsparse::array<T>& pAlpha,
     cl_ulong offset  = 0;
 
     kWrapper << pMatx->m
-             << pAlpha.buffer() << offset
+             << pAlpha.data() << offset
              << pMatx->rowOffsets
              << pMatx->colIndices
              << pMatx->values
-             << pX.buffer() << offset
-             << pBeta.buffer() << offset
-             << pY.buffer() << offset;
+             << pX.data() << offset
+             << pBeta.data() << offset
+             << pY.data() << offset;
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;

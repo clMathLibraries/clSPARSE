@@ -9,7 +9,7 @@
 
 #include "blas1/elementwise_operators.hpp"
 
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus
@@ -64,10 +64,10 @@ axpby(cl_ulong size,
 //version for clsparse::array
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus
-axpby(clsparse::array<T>& pY,
-      const clsparse::array<T>& pAlpha,
-      const clsparse::array<T>& pX,
-      const clsparse::array<T>& pBeta,
+axpby(clsparse::vector<T>& pY,
+      const clsparse::vector<T>& pAlpha,
+      const clsparse::vector<T>& pX,
+      const clsparse::vector<T>& pBeta,
       const clsparseControl control)
 {
 
@@ -90,13 +90,13 @@ axpby(clsparse::array<T>& pY,
     cl_ulong offset = 0;
 
     kWrapper << size
-             << pY.buffer()
+             << pY.data()
              << offset
-             << pAlpha.buffer()
+             << pAlpha.data()
              << offset
-             << pX.buffer()
+             << pX.data()
              << offset
-             << pBeta.buffer()
+             << pBeta.data()
              << offset;
 
     int blocksNum = (size + group_size - 1) / group_size;

@@ -7,7 +7,7 @@
 #include "internal/kernel_wrap.hpp"
 #include "internal/clsparse_internal.hpp"
 
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 #if !defined(min)
 #define min(x, y) std::min(x, y)
@@ -100,7 +100,7 @@ extract_diagonal(clsparseVectorPrivate* pDiag,
 
 template<typename T, bool inverse = false>
 clsparseStatus
-extract_diagonal(clsparse::array<T>& pDiag,
+extract_diagonal(clsparse::vector<T>& pDiag,
                  const clsparseCsrMatrixPrivate* pA,
                  clsparseControl control)
 {
@@ -159,7 +159,7 @@ extract_diagonal(clsparse::array<T>& pDiag,
     KernelWrap kWrapper(kernel);
 
     kWrapper << size
-             << pDiag.buffer()
+             << pDiag.data()
              << pA->rowOffsets
              << pA->colIndices
              << pA->values;

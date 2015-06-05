@@ -17,10 +17,10 @@
 namespace clsparse
 {
 
-template <typename T> class array;
+template <typename T> class vector;
 
 template <typename T>
-class array : public array_base<T>
+class vector : public array_base<T>
 {
 
     typedef array_base<T> BASE;
@@ -29,7 +29,7 @@ public:
 
     typedef typename array_base<T>::value_type value_type;
 
-    typedef reference_base<array<value_type> > reference;
+    typedef reference_base<vector<value_type> > reference;
 
     template <typename Container>
     class iterator_base
@@ -104,9 +104,9 @@ public:
         cl::CommandQueue queue;
     };
 
-    typedef iterator_base< array<value_type> > iterator;
+    typedef iterator_base< vector<value_type> > iterator;
 
-    array(clsparseControl control, size_t size, const value_type& value = value_type(),
+    vector(clsparseControl control, size_t size, const value_type& value = value_type(),
           cl_mem_flags flags = CL_MEM_READ_WRITE, cl_bool init = true) : queue(control->queue)
     {
         BASE::buff = create_buffer(size, flags);
@@ -119,11 +119,11 @@ public:
     }
 
     //create array from preinitialized buffer.
-    array (clsparseControl control, const cl::Buffer& buffer, size_t size)
+    vector (clsparseControl control, const cl::Buffer& buffer, size_t size)
         : BASE::buff(buffer), _size(size), queue(control->queue)
     {}
 
-    array (clsparseControl control, const cl_mem& mem, size_t size)
+    vector (clsparseControl control, const cl_mem& mem, size_t size)
         : _size(size), queue(control->queue)
     {
 
@@ -133,13 +133,13 @@ public:
     }
 
 
-    array(const array& other) : _size(other._size), queue(other.queue)
+    vector(const vector& other) : _size(other._size), queue(other.queue)
     {
         cl_int status;
         cl::Event controlEvent;
 
-        const cl::Buffer& src = other.buffer();
-        cl::Buffer& dst = BASE::buffer();
+        const cl::Buffer& src = other.data();
+        cl::Buffer& dst = BASE::data();
 
         cl_mem_flags flags = src.getInfo<CL_MEM_FLAGS>(&status);
 
@@ -160,7 +160,7 @@ public:
 
 
     //returns deep copy of the object
-    array copy(clsparseControl control)
+    vector copy(clsparseControl control)
     {
         cl::Event controlEvent;
         cl_int status;
@@ -172,8 +172,8 @@ public:
             const cl::Buffer& src = BASE::buff;
 
 
-            array new_array(control, _size);
-            cl::Buffer& dst = new_array.buffer();
+            vector new_array(control, _size);
+            cl::Buffer& dst = new_array.data();
 
             status = queue.enqueueCopyBuffer(src, dst, 0, 0,
                                              sizeof(value_type) * _size,
@@ -194,7 +194,7 @@ public:
         assert (_size > 0);
         if (_size > 0)
         {
-            status = queue.enqueueFillBuffer(BASE::buff, value, 0,
+            status = queue.enqueueFillBuffer(BASE::data(), value, 0,
                                              _size * sizeof(value_type),
                                              NULL, &controlEvent);
             OPENCL_V_THROW(status, "queue.enqueueFillBuffer");
@@ -220,9 +220,9 @@ public:
         }
     }
 
-    array shallow_copy()
+    vector shallow_copy()
     {
-        array tmpCopy;
+        vector tmpCopy;
         tmpCopy._size = _size;
         tmpCopy.buff = this->buff;
         return tmpCopy;
@@ -255,7 +255,7 @@ public:
 
 
     //assignment operator performs deep copy
-    array& operator= (const array& other)
+    vector& operator= (const vector& other)
     {
         if (this != &other)
         {
@@ -267,8 +267,8 @@ public:
             cl::Event controlEvent;
             cl_int status;
 
-            const cl::Buffer& src = other.buffer();
-            cl::Buffer& dst = BASE::buffer();
+            const cl::Buffer& src = other.data();
+            cl::Buffer& dst = BASE::data();
 
             status = queue.enqueueCopyBuffer(src, dst, 0, 0,
                                              sizeof(value_type) * other.size(),

@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 template <typename T, ReduceOperator OP>
 clsparseStatus
@@ -133,8 +133,8 @@ reduce(clsparseScalarPrivate* pR,
 
 template <typename T, ReduceOperator OP>
 clsparseStatus
-global_reduce (clsparse::array<T>& partial,
-               const clsparse::array<T>& pX,
+global_reduce (clsparse::vector<T>& partial,
+               const clsparse::vector<T>& pX,
                const cl_ulong REDUCE_BLOCKS_NUMBER,
                const cl_ulong REDUCE_BLOCK_SIZE,
                const clsparseControl control)
@@ -157,8 +157,8 @@ global_reduce (clsparse::array<T>& partial,
     cl_ulong size = pX.size();
 
     kWrapper << size
-             << pX.buffer()
-             << partial.buffer();
+             << pX.data()
+             << partial.data();
 
     cl::NDRange local(REDUCE_BLOCK_SIZE);
     cl::NDRange global(REDUCE_BLOCKS_NUMBER * REDUCE_BLOCK_SIZE);
@@ -179,8 +179,8 @@ global_reduce (clsparse::array<T>& partial,
 // F_OP: Final reduce operation, modifies final result of the reduce operation
 template<typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
 clsparseStatus
-reduce(clsparse::array<T>& pR,
-       const clsparse::array<T>& pX,
+reduce(clsparse::vector<T>& pR,
+       const clsparse::vector<T>& pX,
        const clsparseControl control)
 {
 
@@ -204,7 +204,7 @@ reduce(clsparse::array<T>& pR,
         cl::Context context = control->getContext();
 
         //vector for partial sums of X;
-        clsparse::array<T> partial(control, REDUCE_BLOCKS_NUMBER, 0,
+        clsparse::vector<T> partial(control, REDUCE_BLOCKS_NUMBER, 0,
                                    CL_MEM_READ_WRITE, false);
 
         status = global_reduce<T, G_OP>(partial, pX, REDUCE_BLOCKS_NUMBER,

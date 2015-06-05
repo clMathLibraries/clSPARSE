@@ -8,7 +8,7 @@
 
 #include "blas1/elementwise_transform.hpp"
 #include "preconditioner_utils.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 #include <memory>
 
 /* The simplest preconditioner consists of just the
@@ -45,8 +45,8 @@ public:
     }
 
     // apply preconditioner
-    void operator ()(const clsparse::array<T>& x,
-                     clsparse::array<T>& y,
+    void operator ()(const clsparse::vector<T>& x,
+                     clsparse::vector<T>& y,
                      clsparseControl control)
     {
         //element wise multiply y = x*invDiag_A;
@@ -57,7 +57,7 @@ public:
 
 private:
     //inverse diagonal values of matrix A;
-    clsparse::array<T> invDiag_A;
+    clsparse::vector<T> invDiag_A;
 };
 
 
@@ -72,8 +72,8 @@ public:
     {
     }
 
-    void operator()(const clsparse::array<T>& x,
-                    clsparse::array<T>& y,
+    void operator()(const clsparse::vector<T>& x,
+                    clsparse::vector<T>& y,
                     clsparseControl control)
     {
         (*diagonal)(x, y, control);

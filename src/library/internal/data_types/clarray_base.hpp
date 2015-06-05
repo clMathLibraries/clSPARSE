@@ -31,7 +31,7 @@ public:
      * @brief buffer
      * @return original underlying buffer
      */
-    BUFF_TYPE& buffer()
+    BUFF_TYPE& data()
     {
         return buff;
     }
@@ -40,7 +40,7 @@ public:
      * @brief buffer
      * @return original underlying buffer
      */
-    const BUFF_TYPE& buffer() const
+    const BUFF_TYPE& data() const
     {
         return buff;
     }

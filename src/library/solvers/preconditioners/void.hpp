@@ -25,8 +25,8 @@ public:
 
     }
 
-    void operator() (const clsparse::array<T>& x,
-                     clsparse::array<T>& y,
+    void operator() (const clsparse::vector<T>& x,
+                     clsparse::vector<T>& y,
                      clsparseControl control)
     {
 
@@ -52,8 +52,8 @@ public:
 
     }
 
-    void operator ()(const clsparse::array<T>& x,
-                     clsparse::array<T>& y,
+    void operator ()(const clsparse::vector<T>& x,
+                     clsparse::vector<T>& y,
                      clsparseControl control)
     {
         (*void_precond)(x, y, control);

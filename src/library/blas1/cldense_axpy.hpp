@@ -8,7 +8,7 @@
 #include "internal/clsparse_internal.hpp"
 
 #include "elementwise_operators.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus
@@ -58,9 +58,9 @@ axpy(cl_ulong size,
 
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus
-axpy(clsparse::array<T>& pY,
-     const clsparse::array<T>& pAlpha,
-     const clsparse::array<T>& pX,
+axpy(clsparse::vector<T>& pY,
+     const clsparse::vector<T>& pAlpha,
+     const clsparse::vector<T>& pX,
      const clsparseControl control)
 {
     const int group_size = 256; // this or higher? control->max_wg_size?
@@ -80,11 +80,11 @@ axpy(clsparse::array<T>& pY,
     cl_ulong offset = 0;
 
     kWrapper << size
-             << pY.buffer()
+             << pY.data()
              << offset
-             << pAlpha.buffer()
+             << pAlpha.data()
              << offset
-             << pX.buffer()
+             << pX.data()
              << offset;
 
     int blocksNum = (size + group_size - 1) / group_size;
