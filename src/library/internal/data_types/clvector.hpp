@@ -9,6 +9,8 @@
 #include "clarray_base.hpp"
 #include "reference_base.hpp"
 
+#include "blas1/elementwise_transform.hpp"
+
 #include <cassert>
 
 /* First approach to implement clsparse::array type for internal use
@@ -133,7 +135,7 @@ public:
     }
 
 
-    vector(const vector& other) : _size(other._size), queue(other.queue)
+    vector(const vector& other, bool copy = true) : _size(other._size), queue(other.queue)
     {
         cl_int status;
         cl::Event controlEvent;
@@ -149,12 +151,15 @@ public:
 
         dst = create_buffer(_size, flags);
 
-        status = queue.enqueueCopyBuffer(src, dst, 0, 0,
+        if (copy)
+        {
+            status = queue.enqueueCopyBuffer(src, dst, 0, 0,
                                          sizeof(value_type) * other.size(),
                                          NULL, &controlEvent);
-        OPENCL_V_THROW(status, "operator= queue.enqueueCopyBuffer");
-        status = controlEvent.wait();
-        OPENCL_V_THROW(status, "operator= controlEvent.wait");
+            OPENCL_V_THROW(status, "operator= queue.enqueueCopyBuffer");
+            status = controlEvent.wait();
+            OPENCL_V_THROW(status, "operator= controlEvent.wait");
+        }
 
     }
 
@@ -172,8 +177,8 @@ public:
             const cl::Buffer& src = BASE::buff;
 
 
-            vector new_array(control, _size);
-            cl::Buffer& dst = new_array.data();
+            vector new_vector(control, _size);
+            cl::Buffer& dst = new_vector.data();
 
             status = queue.enqueueCopyBuffer(src, dst, 0, 0,
                                              sizeof(value_type) * _size,
@@ -181,7 +186,7 @@ public:
             OPENCL_V_THROW(status, "queue.enqueueCopyBuffer");
             status = controlEvent.wait();
             OPENCL_V_THROW(status, "controlEvent.wait");
-            return new_array;
+            return new_vector;
         }
 
     }
@@ -279,6 +284,98 @@ public:
         }
         return *this;
 
+    }
+
+
+    /* Interface for 'operator op' require zero or one arguments, this will result
+     * in need of creation a new buffer which I want to avoid. Other issue,
+     * is related to passing clsparseContol object to properly call the kernel.
+     * It have to be passed to KernelWrapper.run function. With operator implementation
+     * i can't do that nicely.
+     *
+     * My proposal is to implement operators as explicit functions which updates
+     * the this->data() with provided parameters;
+     *
+     * '/' == div(const vector&x, const vector& y) { this->data = x.data() / y.data();
+     * etc.
+     */
+
+    // z = x + y
+    clsparseStatus
+    add(const vector& x, const vector& y, clsparseControl control)
+    {
+        assert (x.size() == y.size());
+        assert (x.size() == _size);
+
+        //
+        clsparseStatus status =
+                elementwise_transform<T, EW_PLUS>(*this, x, y, control);
+        OPENCL_V_THROW(status, "operator add");
+
+        return status;
+    }
+
+    // z += x
+    clsparseStatus add(const vector& x, clsparseControl control)
+    {
+       return add(*this, x, control);
+    }
+
+    //z = x - y;
+    clsparseStatus sub(const vector& x, const vector& y, clsparseControl control)
+    {
+        assert (x.size() == y.size());
+        assert (x.size() == _size);
+
+        clsparseStatus status =
+            elementwise_transform<T, EW_MINUS>(*this, x, y, control);
+        OPENCL_V_THROW(status, "operator subtract");
+
+        return status;
+    }
+
+    //z -= x;
+    clsparseStatus sub(const vector& x, clsparseControl control)
+    {
+        return sub(*this, x, control);
+    }
+
+    //z = x*y;
+    clsparseStatus mul(const vector& x, const vector& y, clsparseControl control)
+    {
+        assert (x.size() == y.size());
+        assert (x.size() == _size);
+
+        clsparseStatus status =
+            elementwise_transform<T, EW_MULTIPLY>(*this, x, y, control);
+        OPENCL_V_THROW(status, "operator multiply");
+
+        return status;
+    }
+
+    //z *= x;
+    clsparseStatus mul(const vector &x, clsparseControl control)
+    {
+        return mul(*this, x, control);
+    }
+
+    //z = x/y (zero division is not checked!)
+    clsparseStatus div(const vector& x, const vector& y, clsparseControl control)
+    {
+        assert (x.size() == y.size());
+        assert (x.size() == _size);
+
+        clsparseStatus status =
+            elementwise_transform<T, EW_DIV>(*this, x, y, control);
+        OPENCL_V_THROW(status, "operator div");
+
+        return status;
+    }
+
+    //z /= x (zero division is not checked
+    clsparseStatus div(const vector& x, clsparseControl control)
+    {
+        return div(*this, x, control);
     }
 
 

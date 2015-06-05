@@ -29,6 +29,8 @@ VALUE_TYPE operation(VALUE_TYPE A, VALUE_TYPE B)
     return A - B;
 #elif OP_EW_MULTIPLY
     return A * B;
+#elif OP_EW_DIV
+    return A/B;
 #else
     return 0;
 #endif

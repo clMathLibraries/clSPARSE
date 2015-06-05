@@ -93,24 +93,26 @@ cg(clsparseVectorPrivate *pX,
     OPENCL_V_THROW(status, "csrmv Failed");
 
     //r = b - y
-    status = elementwise_transform<T, EW_MINUS>(r, b, y, control);
+    status = r.sub(b, y, control);
+    //status = elementwise_transform<T, EW_MINUS>(r, b, y, control);
     OPENCL_V_THROW(status, "b - y Failed");
 
     clsparse::vector<T> norm_r(control, 1, 0, CL_MEM_WRITE_ONLY, true);
     status = Norm1<T>(norm_r, r, control);
     OPENCL_V_THROW(status, "norm r Failed");
 
-    T residuum = 0;
-    {
+    //T residuum = 0;
+    clsparse::vector<T> residuum(control, 1, 0, CL_MEM_WRITE_ONLY, false);
 
-        residuum = norm_r[0] / h_norm_b;
+    //residuum = norm_r[0] / h_norm_b;
+    residuum.div(norm_r, norm_b, control);
+
+    solverControl->initialResidual = residuum[0];
 #ifndef NDEBUG
-        std::cout << "initial residuum = " << residuum << std::endl;
+        std::cout << "initial residuum = "
+                  << solverControl->initialResidual << std::endl;
 #endif
-    }
-
-    solverControl->initialResidual = residuum;
-    if (solverControl->finished(residuum))
+    if (solverControl->finished(solverControl->initialResidual))
     {
         solverControl->nIters = 0;
         return clsparseSuccess;
@@ -151,7 +153,8 @@ cg(clsparseVectorPrivate *pX,
         OPENCL_V_THROW(status, "<y,p> Failed");
 
         // alpha = <r,z> / <y,p>
-        alpha[0] = rz[0] / yp[0];
+        //alpha[0] = rz[0] / yp[0];
+        alpha.div(rz, yp, control);
 
 #ifndef NDEBUG
             std::cout << "alpha = " << alpha[0] << std::endl;
@@ -178,7 +181,8 @@ cg(clsparseVectorPrivate *pX,
 
         // beta = <r^(i), r^(i)>/<r^(i-1),r^(i-1)> // i: iteration index;
         // beta is ratio of dot product in current iteration compared
-        beta[0] = rz[0] / rz_old[0];
+        //beta[0] = rz[0] / rz_old[0];
+        beta.div(rz, rz_old, control);
 #ifndef NDEBUG
             std::cout << "beta = " << beta[0] << std::endl;
 #endif
@@ -191,10 +195,12 @@ cg(clsparseVectorPrivate *pX,
         status = Norm1<T>(norm_r, r, control);
         OPENCL_V_THROW(status, "norm r Failed");
 
-        residuum = norm_r[0] / h_norm_b;
+        //residuum = norm_r[0] / h_norm_b;
+        status = residuum.div(norm_r, norm_b, control);
+        OPENCL_V_THROW(status, "residuum");
 
         iteration++;
-        converged = solverControl->finished(residuum);
+        converged = solverControl->finished(residuum[0]);
 
         solverControl->print();
     }
