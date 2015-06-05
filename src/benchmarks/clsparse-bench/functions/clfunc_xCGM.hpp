@@ -16,27 +16,27 @@ class xCGM : public clsparseFunc
 {
 public:
     xCGM( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ):
-        clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+        clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ),/* gpuTimer( nullptr ),*/ cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
         {
-            gpuTimer = sparseGetTimer( CLSPARSE_GPU );
-            gpuTimer->Reserve( 1, profileCount );
-            gpuTimer->setNormalize( true );
+//            gpuTimer = sparseGetTimer( CLSPARSE_GPU );
+//            gpuTimer->Reserve( 1, profileCount );
+//            gpuTimer->setNormalize( true );
 
             cpuTimer = sparseGetTimer( CLSPARSE_CPU );
             cpuTimer->Reserve( 1, profileCount );
             cpuTimer->setNormalize( true );
 
-            gpuTimerID = gpuTimer->getUniqueID( "GPU xCGM", 0 );
+//            gpuTimerID = gpuTimer->getUniqueID( "GPU xCGM", 0 );
             cpuTimerID = cpuTimer->getUniqueID( "CPU xCGM", 0 );
         }
 
 
         clsparseEnableAsync( control, false );
 
-        solverControl = clsparseCreateSolverControl(100, NOPRECOND, 1e-2, 1e-8);
+        solverControl = clsparseCreateSolverControl(10000, NOPRECOND, 1e-4, 1e-8);
         clsparseSolverPrintMode(solverControl, NORMAL);
     }
 
@@ -50,16 +50,16 @@ public:
 
     void call_func()
     {
-        if( gpuTimer && cpuTimer )
+        if( /*gpuTimer && */cpuTimer )
         {
-          gpuTimer->Start( gpuTimerID );
+//          gpuTimer->Start( gpuTimerID );
           cpuTimer->Start( cpuTimerID );
 
           xCGM_Function(false);
 
 
           cpuTimer->Stop( cpuTimerID );
-          gpuTimer->Stop( gpuTimerID );
+//          gpuTimer->Stop( gpuTimerID );
         }
         else
         {
@@ -171,7 +171,7 @@ public:
                              sizeof( T ) * x.n, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
 
         // reset solverControl for next call
-        clsparseSetSolverParams(solverControl, 100, 1e-2, 1e-8, NOPRECOND);
+        clsparseSetSolverParams(solverControl, 10000, 1e-4, 1e-8, NOPRECOND);
     }
 
     void read_gpu_buffer( )
@@ -180,7 +180,7 @@ public:
 
     void cleanup( )
     {
-        if( gpuTimer && cpuTimer )
+        if(/* gpuTimer && */cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
           size_t sparseBytes = sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m );
@@ -190,11 +190,11 @@ public:
 
           //gpuTimer->pruneOutliers( 3.0 );
           //puTimer->Print( sparseBytes, "GiB/s" );
-          gpuTimer->Reset( );
+//          gpuTimer->Reset( );
         }
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
-        //need to do this before we eventually hit the destructor
+        //need to do this before we eventually hit the destructor     
         OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
         OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
         OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
@@ -210,7 +210,7 @@ private:
     void xCGM_Function( bool flush );
 
     //  Timers we want to keep
-    clsparseTimer* gpuTimer;
+   // clsparseTimer* gpuTimer;
     clsparseTimer* cpuTimer;
     size_t gpuTimerID, cpuTimerID;
 
@@ -233,7 +233,17 @@ template<> void
 xCGM<float>::xCGM_Function( bool flush )
 {
     // solve x from y = Ax
+    try {
     clsparseStatus status = clsparseScsrcg(&x, &csrMtx, &y, solverControl, control);
+    }
+    catch (std::out_of_range e)
+    {
+        std::cout << "e: " << std::endl;
+    }
+    catch (...)
+    {
+        std::cout << "xxx" << std::endl;
+    }
 
     if( flush )
         clFinish( queue );

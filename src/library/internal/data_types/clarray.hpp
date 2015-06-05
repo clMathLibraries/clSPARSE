@@ -8,7 +8,6 @@
 
 #include "clarray_base.hpp"
 #include "reference_base.hpp"
-#include "iterator.hpp"
 
 #include <cassert>
 
@@ -52,15 +51,50 @@ public:
         iterator_base(Container& rhs, difference_type index, difference_type range, cl::CommandQueue queue):
             container ( rhs ), index ( index ), range ( range ), queue ( queue )
         {}
+
+        iterator_base( const iterator_base& iter) :
+            container (iter.container), index (iter.index), range (iter.range), queue(iter.queue)
+        {
+
+        }
+
         const reference operator*()
         {
             return reference( container, index, queue);
         }
 
+        iterator_base < Container >& operator+= ( const difference_type& n)
+        {
+            index += n;
+            return *this;
+        }
 
-//        bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
+        iterator_base < Container >& operator = ( const difference_type& n)
+        {
+            index += n;
+            return *this;
+        }
 
-//        bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+        const iterator_base < Container > operator+ ( const difference_type& n) const
+        {
+            iterator_base < Container > result(*this);
+            result.index += n;
+            return result;
+        }
+
+        bool operator== (const self_type& rhs ) const
+        {
+            bool sameIndex = rhs.index == index;
+            bool sameContainer = (&rhs.container == &container);
+            return (sameContainer && sameIndex );
+        }
+
+        bool operator != (const self_type& rhs) const
+        {
+            bool sameIndex = rhs.index == index;
+            bool sameContainer = (&rhs.container == &container);
+            return !(sameContainer && sameIndex );
+        }
 
     private:
 
@@ -92,6 +126,9 @@ public:
     array (clsparseControl control, const cl_mem& mem, size_t size)
         : _size(size), queue(control->queue)
     {
+
+        //operator = on Memory class transfers ownership which I want to avoid;
+         clRetainMemObject(mem);
          BASE::buff = mem;
     }
 
@@ -205,22 +242,17 @@ public:
         return reference( *this, n, queue);
     }
 
+
     iterator begin()
     {
         return iterator(*this, 0, queue);
     }
 
-    iterator begin (size_t range)
-    {
-        return iterator(*this, 0, range, queue);
-    }
-
-
-
     iterator end()
     {
         return iterator(*this, _size, queue);
     }
+
 
     //assignment operator performs deep copy
     array& operator= (const array& other)

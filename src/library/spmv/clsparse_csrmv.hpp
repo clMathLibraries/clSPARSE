@@ -6,7 +6,7 @@
 #include "internal/clsparse_control.hpp"
 #include "spmv/csrmv_adaptive/csrmv_adaptive.hpp"
 #include "spmv/csrmv_vector/csrmv_vector.hpp"
-
+#include "internal/data_types/clarray.hpp"
 
 template <typename T>
 clsparseStatus
@@ -31,7 +31,39 @@ csrmv (const clsparseScalarPrivate *pAlpha,
         }
 
         // Call adaptive CSR kernels
-        return csrmv_adaptive<T>( *pAlpha, *pCsrMatx, *pX, *pBeta, *pY, control );
+        return csrmv_adaptive<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
+    }
+
+}
+
+/*
+ * clsparse::array
+ */
+
+template <typename T>
+clsparseStatus
+csrmv (const clsparse::array<T>& pAlpha,
+       const clsparseCsrMatrixPrivate *pCsrMatx,
+       const clsparse::array<T>& pX,
+       const clsparse::array<T>& pBeta,
+       clsparse::array<T>& pY,
+       clsparseControl control)
+{
+
+    if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
+    {
+        return csrmv_vector<T>(pAlpha, pCsrMatx, pX, pBeta, pY, control);
+    }
+    else
+    {
+        if( ( pCsrMatx->rowBlocks == nullptr ) || ( pCsrMatx->rowBlockSize == 0 ) )
+        {
+            // rowBlockSize varible is not zero but no pointer
+            return clsparseStructInvalid;
+        }
+
+        // Call adaptive CSR kernels
+        return csrmv_adaptive<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
     }
 
 }
