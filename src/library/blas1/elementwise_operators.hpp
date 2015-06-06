@@ -7,6 +7,7 @@ enum ElementWiseOperator
     EW_PLUS = 0,
     EW_MINUS,
     EW_MULTIPLY,
+    EW_DIV,
     EW_DUMMY //does nothing
 };
 
@@ -22,6 +23,8 @@ struct ElementWiseOperatorTrait {};
 EW_OP_GENERATOR(EW_PLUS)
 EW_OP_GENERATOR(EW_MINUS)
 EW_OP_GENERATOR(EW_MULTIPLY)
+EW_OP_GENERATOR(EW_DIV)
 EW_OP_GENERATOR(EW_DUMMY)
+
 
 #endif //ELEMENTWISE_HPP

@@ -2,7 +2,7 @@
 #ifndef _CLSPARSE_NRM_1_HPP_
 #define _CLSPARSE_NRM_1_HPP_
 
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 #include "reduce.hpp"
 
 
@@ -20,8 +20,8 @@ Norm1(clsparseScalarPrivate* pS,
  */
 template<typename T>
 clsparseStatus
-Norm1(clsparse::array<T>& pS,
-      const clsparse::array<T>& pX,
+Norm1(clsparse::vector<T>& pS,
+      const clsparse::vector<T>& pX,
       const clsparseControl control)
 {
     return reduce<T, RO_FABS>(pS, pX, control);

@@ -104,7 +104,7 @@ set( clSPARSE.Headers
   internal/kernel_cache.hpp
   internal/ocl_type_traits.hpp
   internal/kernel_wrap.hpp
-  internal/data_types/clarray.hpp
+  internal/data_types/clvector.hpp
   internal/data_types/clarray_base.hpp
   internal/data_types/reference_base.hpp
   internal/data_types/iterator.hpp

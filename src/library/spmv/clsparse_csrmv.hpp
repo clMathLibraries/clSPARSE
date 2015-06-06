@@ -6,7 +6,7 @@
 #include "internal/clsparse_control.hpp"
 #include "spmv/csrmv_adaptive/csrmv_adaptive.hpp"
 #include "spmv/csrmv_vector/csrmv_vector.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 template <typename T>
 clsparseStatus
@@ -42,11 +42,11 @@ csrmv (const clsparseScalarPrivate *pAlpha,
 
 template <typename T>
 clsparseStatus
-csrmv (const clsparse::array<T>& pAlpha,
+csrmv (const clsparse::vector<T>& pAlpha,
        const clsparseCsrMatrixPrivate *pCsrMatx,
-       const clsparse::array<T>& pX,
-       const clsparse::array<T>& pBeta,
-       clsparse::array<T>& pY,
+       const clsparse::vector<T>& pX,
+       const clsparse::vector<T>& pBeta,
+       clsparse::vector<T>& pY,
        clsparseControl control)
 {
 

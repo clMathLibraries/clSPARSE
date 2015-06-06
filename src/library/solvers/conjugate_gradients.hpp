@@ -4,7 +4,7 @@
 
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse_internal.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 #include "preconditioners/preconditioner.hpp"
 #include "preconditioners/diagonal.hpp"
@@ -44,15 +44,15 @@ cg(clsparseVectorPrivate *pX,
     }
 
     //opaque input parameters with clsparse::array type;
-    clsparse::array<T> x(control, pX->values, pX->n);
-    clsparse::array<T> b(control, pB->values, pB->n);
+    clsparse::vector<T> x(control, pX->values, pX->n);
+    clsparse::vector<T> b(control, pB->values, pB->n);
 
     cl_int status;
 
     T scalarOne = 1;
     T scalarZero = 0;
 
-    clsparse::array<T> norm_b(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::vector<T> norm_b(control, 1, 0, CL_MEM_WRITE_ONLY, true);
 
     //norm of rhs of equation
     status = Norm1<T>(norm_b, b, control);
@@ -80,37 +80,39 @@ cg(clsparseVectorPrivate *pX,
     const auto N = pA->n;
 
     //helper containers, all need to be zeroed
-    clsparse::array<T> y(control, N, 0, CL_MEM_READ_WRITE, true);
-    clsparse::array<T> z(control, N, 0, CL_MEM_READ_WRITE, true);
-    clsparse::array<T> r(control, N, 0, CL_MEM_READ_WRITE, true);
-    clsparse::array<T> p(control, N, 0, CL_MEM_READ_WRITE, true);
+    clsparse::vector<T> y(control, N, 0, CL_MEM_READ_WRITE, true);
+    clsparse::vector<T> z(control, N, 0, CL_MEM_READ_WRITE, true);
+    clsparse::vector<T> r(control, N, 0, CL_MEM_READ_WRITE, true);
+    clsparse::vector<T> p(control, N, 0, CL_MEM_READ_WRITE, true);
 
-    clsparse::array<T> one(control, 1, 1, CL_MEM_READ_ONLY, true);
-    clsparse::array<T> zero(control, 1, 0, CL_MEM_READ_ONLY, true);
+    clsparse::vector<T> one(control, 1, 1, CL_MEM_READ_ONLY, true);
+    clsparse::vector<T> zero(control, 1, 0, CL_MEM_READ_ONLY, true);
 
     // y = A*x
     status = csrmv<T>(one, pA, x, zero, y, control);
     OPENCL_V_THROW(status, "csrmv Failed");
 
     //r = b - y
-    status = elementwise_transform<T, EW_MINUS>(r, b, y, control);
+    status = r.sub(b, y, control);
+    //status = elementwise_transform<T, EW_MINUS>(r, b, y, control);
     OPENCL_V_THROW(status, "b - y Failed");
 
-    clsparse::array<T> norm_r(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::vector<T> norm_r(control, 1, 0, CL_MEM_WRITE_ONLY, true);
     status = Norm1<T>(norm_r, r, control);
     OPENCL_V_THROW(status, "norm r Failed");
 
-    T residuum = 0;
-    {
+    //T residuum = 0;
+    clsparse::vector<T> residuum(control, 1, 0, CL_MEM_WRITE_ONLY, false);
 
-        residuum = norm_r[0] / h_norm_b;
+    //residuum = norm_r[0] / h_norm_b;
+    residuum.div(norm_r, norm_b, control);
+
+    solverControl->initialResidual = residuum[0];
 #ifndef NDEBUG
-        std::cout << "initial residuum = " << residuum << std::endl;
+        std::cout << "initial residuum = "
+                  << solverControl->initialResidual << std::endl;
 #endif
-    }
-
-    solverControl->initialResidual = residuum;
-    if (solverControl->finished(residuum))
+    if (solverControl->finished(solverControl->initialResidual))
     {
         solverControl->nIters = 0;
         return clsparseSuccess;
@@ -122,7 +124,7 @@ cg(clsparseVectorPrivate *pX,
     p = z;
 
     //rz = <r, z>, here actually should be conjugate(r)) but we do not support complex type.
-    clsparse::array<T> rz(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::vector<T> rz(control, 1, 0, CL_MEM_WRITE_ONLY, true);
     status = dot<T>(rz, r, z, control);
     OPENCL_V_THROW(status, "<r, z> Failed");
 
@@ -130,13 +132,13 @@ cg(clsparseVectorPrivate *pX,
 
     bool converged = false;
 
-    clsparse::array<T> alpha (control, 1, 0, CL_MEM_READ_WRITE, true);
-    clsparse::array<T> beta  (control, 1, 0, CL_MEM_READ_WRITE, true);
+    clsparse::vector<T> alpha (control, 1, 0, CL_MEM_READ_WRITE, true);
+    clsparse::vector<T> beta  (control, 1, 0, CL_MEM_READ_WRITE, true);
 
     //yp buffer for inner product of y and p vectors;
-    clsparse::array<T> yp(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::vector<T> yp(control, 1, 0, CL_MEM_WRITE_ONLY, true);
 
-    clsparse::array<T> rz_old(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::vector<T> rz_old(control, 1, 0, CL_MEM_WRITE_ONLY, true);
 
     while(!converged)
     {
@@ -151,7 +153,8 @@ cg(clsparseVectorPrivate *pX,
         OPENCL_V_THROW(status, "<y,p> Failed");
 
         // alpha = <r,z> / <y,p>
-        alpha[0] = rz[0] / yp[0];
+        //alpha[0] = rz[0] / yp[0];
+        alpha.div(rz, yp, control);
 
 #ifndef NDEBUG
             std::cout << "alpha = " << alpha[0] << std::endl;
@@ -178,7 +181,8 @@ cg(clsparseVectorPrivate *pX,
 
         // beta = <r^(i), r^(i)>/<r^(i-1),r^(i-1)> // i: iteration index;
         // beta is ratio of dot product in current iteration compared
-        beta[0] = rz[0] / rz_old[0];
+        //beta[0] = rz[0] / rz_old[0];
+        beta.div(rz, rz_old, control);
 #ifndef NDEBUG
             std::cout << "beta = " << beta[0] << std::endl;
 #endif
@@ -191,10 +195,12 @@ cg(clsparseVectorPrivate *pX,
         status = Norm1<T>(norm_r, r, control);
         OPENCL_V_THROW(status, "norm r Failed");
 
-        residuum = norm_r[0] / h_norm_b;
+        //residuum = norm_r[0] / h_norm_b;
+        status = residuum.div(norm_r, norm_b, control);
+        OPENCL_V_THROW(status, "residuum");
 
         iteration++;
-        converged = solverControl->finished(residuum);
+        converged = solverControl->finished(residuum[0]);
 
         solverControl->print();
     }

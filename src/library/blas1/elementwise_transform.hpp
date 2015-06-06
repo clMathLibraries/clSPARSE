@@ -9,9 +9,12 @@
 
 #include "elementwise_operators.hpp"
 
-#include "internal/data_types/clarray.hpp"
-
-
+//#include "internal/data_types/clvector.hpp"
+//forward declaration of clsparse::vector class for proper interface
+namespace clsparse
+{
+template <typename T> class vector;
+}
 
 /* Elementwise operation on two vectors
 */
@@ -73,9 +76,9 @@ elementwise_transform(clsparseVectorPrivate* r,
  */
 template<typename T, ElementWiseOperator OP>
 clsparseStatus
-elementwise_transform(clsparse::array<T>& r,
-                      const clsparse::array<T>& x,
-                      const clsparse::array<T>& y,
+elementwise_transform(clsparse::vector<T>& r,
+                      const clsparse::vector<T>& x,
+                      const clsparse::vector<T>& y,
                       clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -106,7 +109,7 @@ elementwise_transform(clsparse::array<T>& r,
 
     KernelWrap kWrapper (kernel);
 
-    kWrapper << size << r.buffer() << x.buffer() << y.buffer();
+    kWrapper << size << r.data() << x.data() << y.data();
 
     int blocks = (size + wg_size - 1) / wg_size;
 

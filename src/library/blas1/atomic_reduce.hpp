@@ -8,7 +8,7 @@
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 #include "reduce_operators.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data_types/clvector.hpp"
 
 /* Helper function used in reduce type operations
  * pR = \sum pX
@@ -78,8 +78,8 @@ atomic_reduce(clsparseScalarPrivate* pR,
  */
 template<typename T, ReduceOperator OP = RO_DUMMY>
 clsparseStatus
-atomic_reduce(clsparse::array<T>& pR,
-              const clsparse::array<T>& pX,
+atomic_reduce(clsparse::vector<T>& pR,
+              const clsparse::vector<T>& pX,
               const cl_ulong wg_size,
               const clsparseControl control)
 {
@@ -112,8 +112,8 @@ atomic_reduce(clsparse::array<T>& pR,
 
     KernelWrap kWrapper(kernel);
 
-    kWrapper << pR.buffer();
-    kWrapper << pX.buffer();
+    kWrapper << pR.data();
+    kWrapper << pX.data();
 
     int blocksNum = (pX.size() + wg_size - 1) / wg_size;
     int globalSize = blocksNum * wg_size;
