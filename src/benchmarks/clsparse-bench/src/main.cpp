@@ -165,7 +165,7 @@ int main( int argc, char *argv[ ] )
         if( precision == "s" )
             my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns ) );
         else
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns ) );
     }
     else
     {

@@ -115,7 +115,7 @@ public:
         csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowBlocks" );
 
-        fileError = clsparseCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk" );
 

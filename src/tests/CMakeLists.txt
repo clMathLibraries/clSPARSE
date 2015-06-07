@@ -28,8 +28,6 @@ include_directories(
 set( TESTS_CPP
   test_clsparse_init
   test_csrmv_simple
-  test_resources_io
-  test_clsparse_transpose
   test_clsparse_csr2dense
   test_cl_traits
   test_readMMcoo
@@ -43,6 +41,7 @@ set( TESTS_CPP
   test_norm2
   test_solver_cg
   test_solver_bicgStab
+  test_csrmm
 )
 
 set( TESTS_C
@@ -52,14 +51,13 @@ set( TESTS_C
 #additional headers and sources
 set( src
   resources/csr_matrix_environment.cpp
+  resources/opencl_utils.cpp
 )
 
 set( headers
-  resources/hdl_test_resources.h
   resources/opencl_utils.h
   resources/clsparse_environment.h
   resources/matrix_utils.h
-  resources/matrix_market.h
   resources/csr_matrix_environment.h
 )
 

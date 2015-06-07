@@ -95,7 +95,7 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
     rowBlocks++;
 
     size_t dist = std::distance( rowBlocksBase, rowBlocks );
-    assert( dist < rowBlockSize );
+    assert( dist <= rowBlockSize );
 
     //   Update the size of rowBlocks to reflect the actual amount of memory used
     rowBlockSize = dist;

@@ -7,6 +7,26 @@
 #include <algorithm>
 #include <cassert>
 
+template< typename T >
+class matrix
+{
+public:
+    matrix( ): num_rows( 0 ), num_cols( 0 ), leading_dim( 0 )
+    {
+        data.clear( );
+    }
+
+    matrix( size_t rows, size_t cols, size_t ld ): num_rows( rows ), num_cols( cols ), leading_dim( ld )
+    {
+        data.resize( num_rows * leading_dim );
+    }
+
+    std::vector< T > data;
+    size_t num_rows;
+    size_t num_cols;
+    size_t leading_dim;
+};
+
 // convert row indices vector to csr row_offsets vector
 // lenght of indices == matrix nnz
 // lenght of offsets == n_rows+1;
@@ -120,6 +140,40 @@ void csrmv(int n_rows, int n_cols, int nnz,
         }
         y[i] = sum + beta * y[i];
 
+    }
+}
+
+//simple spmv for csr matrix to obtain reference results;
+template<typename VALUE_TYPE, typename INDEX_TYPE>
+void csrmm( int n_rows, int n_cols, int nnz,
+            const std::vector<INDEX_TYPE>& row_offsets,
+            const std::vector<INDEX_TYPE>& col_indices,
+            const std::vector<VALUE_TYPE>& values,
+            const matrix< VALUE_TYPE >& matB,
+            const VALUE_TYPE alpha,
+            matrix< VALUE_TYPE >& matC,
+            const VALUE_TYPE beta )
+{
+    assert( matB.num_cols == n_cols );
+    assert( matC.data.size( ) == n_rows*n_cols );
+
+    assert( row_offsets.size( ) == n_rows + 1 );
+    assert( row_offsets[ n_rows ] == nnz );
+    assert( col_indices.size( ) == nnz );
+    assert( values.size( ) == nnz );
+
+
+    for( int c = 0; c < n_cols; ++c )
+    {
+        for( int i = 0; i < n_rows; i++ )
+        {
+            VALUE_TYPE sum = (VALUE_TYPE)0;
+            for( int j = row_offsets[ i ]; j < row_offsets[ i + 1 ]; j++ )
+            {
+                sum += alpha * values[ j ] * matB.data[ c + ( col_indices[ j ] * matB.leading_dim ) ];
+            }
+            matC.data[ c + ( i * matC.leading_dim ) ] = sum + beta * matC.data[ c + ( i * matC.leading_dim ) ];
+        }
     }
 }
 
