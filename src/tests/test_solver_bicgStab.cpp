@@ -40,7 +40,7 @@ TEST (BiCGStab, float)
     ASSERT_EQ(CL_SUCCESS, status);
 
     clSParseSolverControl solver_control =
-            clsparseCreateSolverControl(DIAGONAL, 5600, 1e-8, 0);
+            clsparseCreateSolverControl(NOPRECOND, 5600, 1e-8, 0);
 
     ASSERT_NE(nullptr, solver_control);
     clsparseSolverPrintMode(solver_control, VERBOSE);

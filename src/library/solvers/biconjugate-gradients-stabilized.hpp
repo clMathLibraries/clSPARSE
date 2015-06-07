@@ -191,6 +191,11 @@ bicgStab(clsparseVectorPrivate *pX,
         OPENCL_V_THROW(status, "<AMs, AMs> Failed");
         omega.div(AMsS, AMsAMs, control);
 
+#ifndef NDEBUG
+        if(omega[0] == 0)
+            std::cout << "omega = 0" ;
+#endif
+
         //x = x + alpha*Mp + omega*Ms;
         status = axpy<T>(x, alpha, Mp, x, control);
         OPENCL_V_THROW(status, "x = x + alpha * Mp Failed");

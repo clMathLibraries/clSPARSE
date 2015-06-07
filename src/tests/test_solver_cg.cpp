@@ -40,9 +40,10 @@ TEST (CG, float)
     ASSERT_EQ(CL_SUCCESS, status);
 
     clSParseSolverControl solver_control =
-            clsparseCreateSolverControl(NOPRECOND, 1, 0.001, 1e-4);
+            clsparseCreateSolverControl(NOPRECOND, 5600, 1e-8, 0);
 
     ASSERT_NE(nullptr, solver_control);
+    clsparseSolverPrintMode(solver_control, NORMAL);
 
     status = clsparseScsrcg(&gx, &CSRE::csrSMatrix, &gb, solver_control, CLSE::control);
 
