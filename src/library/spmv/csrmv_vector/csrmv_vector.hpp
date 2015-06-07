@@ -84,11 +84,11 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
  */
 template<typename T>
 clsparseStatus
-csrmv_vector(const clsparse::vector<T>& pAlpha,
+csrmv_vector(const clsparse::array_base<T>& pAlpha,
        const clsparseCsrMatrixPrivate* pMatx,
-       const clsparse::vector<T>& pX,
-       const clsparse::vector<T>& pBeta,
-       clsparse::vector<T>& pY,
+       const clsparse::array_base<T>& pX,
+       const clsparse::array_base<T>& pBeta,
+       clsparse::array_base<T>& pY,
        clsparseControl control)
 {
     cl_uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row

@@ -70,11 +70,11 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
 
 template <typename T>
 clsparseStatus
-csrmv_adaptive( const clsparse::vector<T>& pAlpha,
+csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
                 const clsparseCsrMatrixPrivate* pCsrMatx,
-            const clsparse::vector<T>& pX,
-            const clsparse::vector<T>& pBeta,
-            clsparse::vector<T>& pY,
+            const clsparse::array_base<T>& pX,
+            const clsparse::array_base<T>& pBeta,
+            clsparse::array_base<T>& pY,
             clsparseControl control )
 {
     if(typeid(T) == typeid(cl_double))
@@ -122,21 +122,5 @@ csrmv_adaptive( const clsparse::vector<T>& pAlpha,
 
     return clsparseSuccess;
 }
-
-//clsparseStatus
-//clsparseScsrmv_adaptive( const clsparseScalarPrivate& alpha,
-//        const clsparseCsrMatrixPrivate& pCsrMatx,
-//        const clsparseVectorPrivate& pX,
-//        const clsparseScalarPrivate& beta,
-//        clsparseVectorPrivate& pY,
-//        clsparseControl control )
-//{
-
-
-//    //y = alpha * A * x + beta * y;
-//    return csrmv_adaptive( alpha, pCsrMatx, pX, beta, pY,
-//                    params, group_size, control );
-
-//}
 
 #endif //_CLSPARSE_CSRMV_ADAPTIVE_HPP_

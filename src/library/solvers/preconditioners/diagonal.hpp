@@ -2,6 +2,10 @@
 #ifndef _CLSPARSE_PREC_DIAGONAL_HPP_
 #define _CLSPARSE_PREC_DIAGONAL_HPP_
 
+#if defined( _WIN32 )
+#define NOMINMAX
+#endif
+
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse_control.hpp"
 #include "preconditioner.hpp"
@@ -32,7 +36,7 @@ class DiagonalPreconditioner
 public:
     DiagonalPreconditioner(const clsparseCsrMatrixPrivate* A,
                            clsparseControl control) :
-        invDiag_A(control, min(A->m, A->n), 0, CL_MEM_READ_WRITE, false)
+        invDiag_A(control, std::min(A->m, A->n), 0, CL_MEM_READ_WRITE, false)
     {
 
         cl_int status;

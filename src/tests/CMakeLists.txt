@@ -42,6 +42,7 @@ set( TESTS_CPP
   test_norm1
   test_norm2
   test_solver_cg
+  test_solver_bicgStab
 )
 
 set( TESTS_C
