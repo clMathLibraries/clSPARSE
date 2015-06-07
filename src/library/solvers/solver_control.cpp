@@ -8,7 +8,7 @@
 #include "solver_control.hpp"
 
 clSParseSolverControl
-clsparseCreateSolverControl(cl_int maxIters, PRECONDITIONER precond,
+clsparseCreateSolverControl(PRECONDITIONER precond, cl_int maxIters,
                             cl_double relTol, cl_double absTol)
 {
     clSParseSolverControl solver_control = new _solverControl();
@@ -54,8 +54,8 @@ clsparseReleaseSolverControl(clSParseSolverControl solverControl)
 // set the solver control parameters for next use;
 clsparseStatus
 clsparseSetSolverParams(clSParseSolverControl solverControl,
-                        cl_int maxIters, cl_double relTol, cl_double absTol,
-                        PRECONDITIONER precond)
+                        PRECONDITIONER precond,
+                        cl_int maxIters, cl_double relTol, cl_double absTol)
 {
     if (solverControl == nullptr)
     {

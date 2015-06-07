@@ -58,9 +58,9 @@ axpy(cl_ulong size,
 
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus
-axpy(clsparse::vector<T>& pY,
-     const clsparse::vector<T>& pAlpha,
-     const clsparse::vector<T>& pX,
+axpy(clsparse::array_base<T>& pY,
+     const clsparse::array_base<T>& pAlpha,
+     const clsparse::array_base<T>& pX,
      const clsparseControl control)
 {
     const int group_size = 256; // this or higher? control->max_wg_size?

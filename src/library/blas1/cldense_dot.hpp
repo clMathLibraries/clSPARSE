@@ -120,9 +120,9 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
  */
 template<typename T>
 clsparseStatus
-inner_product (clsparse::vector<T>& partial,
-     const clsparse::vector<T>& pX,
-     const clsparse::vector<T>& pY,
+inner_product (clsparse::array_base<T>& partial,
+     const clsparse::array_base<T>& pX,
+     const clsparse::array_base<T>& pY,
      const cl_ulong size,
      const cl_ulong REDUCE_BLOCKS_NUMBER,
      const cl_ulong REDUCE_BLOCK_SIZE,
@@ -163,9 +163,9 @@ inner_product (clsparse::vector<T>& partial,
 }
 
 template<typename T>
-clsparseStatus dot(clsparse::vector<T>& pR,
-                   const clsparse::vector<T>& pX,
-                   const clsparse::vector<T>& pY,
+clsparseStatus dot(clsparse::array_base<T>& pR,
+                   const clsparse::array_base<T>& pX,
+                   const clsparse::array_base<T>& pY,
                    const clsparseControl control)
 {
 
