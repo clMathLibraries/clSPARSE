@@ -42,11 +42,11 @@ csrmv (const clsparseScalarPrivate *pAlpha,
 
 template <typename T>
 clsparseStatus
-csrmv (const clsparse::vector<T>& pAlpha,
+csrmv (const clsparse::array_base<T>& pAlpha,
        const clsparseCsrMatrixPrivate *pCsrMatx,
-       const clsparse::vector<T>& pX,
-       const clsparse::vector<T>& pBeta,
-       clsparse::vector<T>& pY,
+       const clsparse::array_base<T>& pX,
+       const clsparse::array_base<T>& pBeta,
+       clsparse::array_base<T>& pY,
        clsparseControl control)
 {
 

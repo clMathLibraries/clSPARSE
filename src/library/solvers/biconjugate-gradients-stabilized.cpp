@@ -1,10 +1,8 @@
-#include "conjugate_gradients.hpp"
+#include "biconjugate-gradients-stabilized.hpp"
+
 clsparseStatus
-clsparseScsrcg(clsparseVector *x,
-               const clsparseCsrMatrix *A,
-               const clsparseVector *b,
-               clSParseSolverControl solverControl,
-               clsparseControl control)
+clsparseScsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+               clSParseSolverControl solverControl, clsparseControl control)
 {
     using T = cl_float;
 
@@ -42,19 +40,18 @@ clsparseScsrcg(clsparseVector *x,
         preconditioner->notify(pA, control);
     }
 
-    clsparseStatus status = cg<T>(pX, pA, pB, *preconditioner, solverControl, control);
+    clsparseStatus status = bicgStab<T>(pX, pA, pB, *preconditioner, solverControl, control);
 
     solverControl->printSummary(status);
 
     return status;
+
+
 }
 
 clsparseStatus
-clsparseDcsrcg(clsparseVector *x,
-               const clsparseCsrMatrix *A,
-               const clsparseVector *b,
-               clSParseSolverControl solverControl,
-               clsparseControl control)
+clsparseDcsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+               clSParseSolverControl solverControl, clsparseControl control)
 {
     using T = cl_double;
 
@@ -92,7 +89,7 @@ clsparseDcsrcg(clsparseVector *x,
         preconditioner->notify(pA, control);
     }
 
-    clsparseStatus status = cg<T>(pX, pA, pB, *preconditioner, solverControl, control);
+    clsparseStatus status = bicgStab<T>(pX, pA, pB, *preconditioner, solverControl, control);
 
     solverControl->printSummary(status);
 

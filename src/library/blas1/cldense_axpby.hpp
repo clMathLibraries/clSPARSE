@@ -42,7 +42,9 @@ axpby(cl_ulong size,
              << pX->values
              << pX->offset()
              << pBeta->value
-             << pBeta->offset();
+             << pBeta->offset()
+             << pY->values
+             << pY->offset();
 
     int blocksNum = (size + group_size - 1) / group_size;
     int globalSize = blocksNum * group_size;
@@ -62,12 +64,18 @@ axpby(cl_ulong size,
 
 
 //version for clsparse::array
+
+// pY is a result container;
+// y = alpha * x + beta * z;
+// if z == y we have standard axpby; should we adopt the clSPARSE.h to this interface?
+
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus
 axpby(clsparse::array_base<T>& pY,
       const clsparse::array_base<T>& pAlpha,
       const clsparse::array_base<T>& pX,
       const clsparse::array_base<T>& pBeta,
+      const clsparse::array_base<T>& pZ,
       const clsparseControl control)
 {
 
@@ -97,6 +105,8 @@ axpby(clsparse::array_base<T>& pY,
              << pX.data()
              << offset
              << pBeta.data()
+             << offset
+             << pZ.data()
              << offset;
 
     int blocksNum = (size + group_size - 1) / group_size;

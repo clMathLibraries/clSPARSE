@@ -85,6 +85,7 @@ set( clSPARSE.source.cpp
   blas1/elementwise_operators.cpp
   solvers/solver_control.cpp
   solvers/conjugate_gradients.cpp
+  solvers/biconjugate-gradients-stabilized.cpp
 )
 
 set( clSPARSE.Headers
@@ -131,6 +132,7 @@ set( clSPARSE.Headers
   solvers/preconditioners/void.hpp
   solvers/preconditioners/preconditioner_utils.hpp
   solvers/conjugate_gradients.hpp
+  solvers/biconjugate-gradients-stabilized.hpp
 
 )
 

@@ -13,13 +13,13 @@ cl_context ClSparseEnvironment::context = NULL;
 
 namespace po = boost::program_options;
 
-TEST (CG, float)
+TEST (BiCGStab, float)
 {
     using CLSE = ClSparseEnvironment;
     using CSRE = CSREnvironment;
 
-    std::vector<cl_float> x(CSRE::n_cols, 10.0);
-    std::vector<cl_float> b(CSRE::n_rows, 1.0);
+    std::vector<cl_float> x(CSRE::n_cols, 0.0);
+    std::vector<cl_float> b(CSRE::n_rows, 0.05);
 
     clsparseVector gx;
     clsparseVector gb;
@@ -43,9 +43,9 @@ TEST (CG, float)
             clsparseCreateSolverControl(NOPRECOND, 5600, 1e-8, 0);
 
     ASSERT_NE(nullptr, solver_control);
-    clsparseSolverPrintMode(solver_control, NORMAL);
+    clsparseSolverPrintMode(solver_control, VERBOSE);
 
-    status = clsparseScsrcg(&gx, &CSRE::csrSMatrix, &gb, solver_control, CLSE::control);
+    status = clsparseScsrbicgStab(&gx, &CSRE::csrSMatrix, &gb, solver_control, CLSE::control);
 
     ASSERT_EQ(CL_SUCCESS, status);
 

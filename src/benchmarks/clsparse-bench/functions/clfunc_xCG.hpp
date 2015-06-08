@@ -2,20 +2,18 @@
  * Copyright 2015 Advanced Micro Devices, Inc.
  * ************************************************************************/
 #pragma once
-#ifndef CLSPARSE_BENCHMARK_CGM_HXX__
-#define CLSPARSE_BENCHMARK_CGM_HXX__
+#ifndef CLSPARSE_BENCHMARK_CG_HXX__
+#define CLSPARSE_BENCHMARK_CG_HXX__
 
 #include "clSPARSE.h"
 #include "clfunc_common.hpp"
 
-//CG solver benchmark where calculations of scalar values are performed by mapping them on host
-
 
 template <typename T>
-class xCGM : public clsparseFunc
+class xCG : public clsparseFunc
 {
 public:
-    xCGM( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ):
+    xCG( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ):
         clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ),/* gpuTimer( nullptr ),*/ cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
@@ -30,7 +28,7 @@ public:
             cpuTimer->setNormalize( true );
 
 //            gpuTimerID = gpuTimer->getUniqueID( "GPU xCGM", 0 );
-            cpuTimerID = cpuTimer->getUniqueID( "CPU xCGM", 0 );
+            cpuTimerID = cpuTimer->getUniqueID( "CPU xCG", 0 );
         }
 
 
@@ -40,7 +38,7 @@ public:
         clsparseSolverPrintMode(solverControl, NORMAL);
     }
 
-    ~xCGM( )
+    ~xCG( )
     {
         if( clsparseReleaseSolverControl( solverControl) != clsparseSuccess )
         {
@@ -55,7 +53,7 @@ public:
 //          gpuTimer->Start( gpuTimerID );
           cpuTimer->Start( cpuTimerID );
 
-          xCGM_Function(false);
+          xCG_Function(false);
 
 
           cpuTimer->Stop( cpuTimerID );
@@ -63,7 +61,7 @@ public:
         }
         else
         {
-            xCGM_Function(false);
+            xCG_Function(false);
         }
     }
     double gflops( )
@@ -121,7 +119,13 @@ public:
             csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowBlocks" );
 
-        fileError = clsparseCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        if(typeid(T) == typeid(float))
+            fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        else if (typeid(T) == typeid(double))
+            fileError = clsparseDCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        else
+            fileError = clsparseInvalidType;
+
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk" );
 
@@ -207,7 +211,7 @@ public:
     }
 
 private:
-    void xCGM_Function( bool flush );
+    void xCG_Function( bool flush );
 
     //  Timers we want to keep
    // clsparseTimer* gpuTimer;
@@ -230,7 +234,7 @@ private:
 }; //class xCGM
 
 template<> void
-xCGM<float>::xCGM_Function( bool flush )
+xCG<float>::xCG_Function( bool flush )
 {
     // solve x from y = Ax
     try {
@@ -250,9 +254,9 @@ xCGM<float>::xCGM_Function( bool flush )
 }
 
 template<> void
-xCGM<double>::xCGM_Function( bool flush )
+xCG<double>::xCG_Function( bool flush )
 {
-//    clsparseStatus status = clsparseDcsrmv( &a, &csrMtx, &x, &b, &y, control );
+    clsparseStatus status = clsparseDcsrcg(&x, &csrMtx, &y, solverControl, control);
 
     if( flush )
         clFinish( queue );

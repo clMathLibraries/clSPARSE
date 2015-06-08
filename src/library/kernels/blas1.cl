@@ -45,7 +45,9 @@ void axpy(const SIZE_TYPE size,
           __global const VALUE_TYPE* pAlpha,
          const SIZE_TYPE pAlphaOffset,
           __global const VALUE_TYPE* pX,
-          const SIZE_TYPE pXOffset)
+          const SIZE_TYPE pXOffset,
+          __global const VALUE_TYPE* pZ,
+          const SIZE_TYPE pZOffset)
 {
 
     const int index = get_global_id(0);
@@ -54,7 +56,7 @@ void axpy(const SIZE_TYPE size,
 
     const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
 
-    pY[index + pYOffset] = operation(pY[index + pYOffset], alpha * pX[index + pXOffset]);
+    pY[index + pYOffset] = operation(pZ[index + pZOffset], alpha * pX[index + pXOffset]);
 }
 )"
 
@@ -69,7 +71,9 @@ void axpby(const SIZE_TYPE size,
           __global const VALUE_TYPE* pX,
           const SIZE_TYPE pXOffset,
           __global const VALUE_TYPE* pBeta,
-          const SIZE_TYPE pBetaOffset)
+          const SIZE_TYPE pBetaOffset,
+          __global const VALUE_TYPE* pZ,
+          const SIZE_TYPE pZOffset)
 {
 
     const int index = get_global_id(0);
@@ -79,7 +83,7 @@ void axpby(const SIZE_TYPE size,
     const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
     const VALUE_TYPE beta = *(pBeta + pBetaOffset);
 
-    pY[index + pYOffset] = operation(beta * pY[index + pYOffset], alpha * pX[index + pXOffset]);
+    pY[index + pYOffset] = operation(alpha * pX[index + pXOffset], beta * pZ[index + pZOffset]);
 }
 )"
 

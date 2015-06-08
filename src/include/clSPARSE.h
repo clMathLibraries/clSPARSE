@@ -135,6 +135,18 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseScsrcg(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
                clSParseSolverControl solverControl, clsparseControl control);
 
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcsrcg(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+               clSParseSolverControl solverControl, clsparseControl control);
+
+/* Bi-Conjugate Gradients Stabilized solver */
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+               clSParseSolverControl solverControl, clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+               clSParseSolverControl solverControl, clsparseControl control);
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseGetVersion( cl_uint *major, cl_uint *minor, cl_uint *patch, cl_uint *tweak );
@@ -167,8 +179,14 @@ clsparseHeaderfromFile( cl_int* nnz, cl_int* row, cl_int* col, const char* fileP
 CLSPARSE_EXPORT clsparseStatus
 clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control );
 
+//CLSPARSE_EXPORT clsparseStatus
+//clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
+
 CLSPARSE_EXPORT clsparseStatus
-clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
+clsparseSCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control );

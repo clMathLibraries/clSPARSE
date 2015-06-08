@@ -87,8 +87,8 @@ cg(clsparseVectorPrivate *pX,
     clsparse::vector<T> r(control, N, 0, CL_MEM_READ_WRITE, true);
     clsparse::vector<T> p(control, N, 0, CL_MEM_READ_WRITE, true);
 
-    clsparse::vector<T> one(control, 1, 1, CL_MEM_READ_ONLY, true);
-    clsparse::vector<T> zero(control, 1, 0, CL_MEM_READ_ONLY, true);
+    clsparse::scalar<T> one(control,  1, CL_MEM_READ_ONLY, true);
+    clsparse::scalar<T> zero(control, 0, CL_MEM_READ_ONLY, true);
 
     // y = A*x
     status = csrmv<T>(one, pA, x, zero, y, control);
@@ -163,11 +163,11 @@ cg(clsparseVectorPrivate *pX,
 #endif
 
         //x = x + alpha*p
-        status = axpy<T>(x, alpha, p, control);
+        status = axpy<T>(x, alpha, p, x, control);
         OPENCL_V_THROW(status, "x = x + alpha * p Failed");
 
         //r = r - alpha * y;
-        status = axpy<T, EW_MINUS>(r, alpha, y, control);
+        status = axpy<T, EW_MINUS>(r, alpha, y, r, control);
         OPENCL_V_THROW(status, "r = r - alpha * y Failed");
 
 
@@ -191,7 +191,7 @@ cg(clsparseVectorPrivate *pX,
 #endif
 
         //p = z + beta*p;
-        status = axpby<T>(p, one, z, beta, control );
+        status = axpby<T>(p, one, z, beta, p, control );
         OPENCL_V_THROW(status, "p = z + beta*p Failed");
 
         //calculate norm of r

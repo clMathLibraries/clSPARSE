@@ -2,59 +2,70 @@
  * Copyright 2015 Advanced Micro Devices, Inc.
  * ************************************************************************/
 #pragma once
-#ifndef CLSPARSE_BENCHMARK_SPMV_HXX__
-#define CLSPARSE_BENCHMARK_SPMV_HXX__
+#ifndef CLSPARSE_BENCHMARK_BICGSTAB_HXX__
+#define CLSPARSE_BENCHMARK_BICGSTAB_HXX__
 
 #include "clSPARSE.h"
 #include "clfunc_common.hpp"
+#include <vector>
+
+
 
 template <typename T>
-class xSpMdV: public clsparseFunc
+class xBiCGStab : public clsparseFunc
 {
 public:
-    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xBiCGStab( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ):
+        clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ),/* gpuTimer( nullptr ),*/ cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
         {
-            gpuTimer = sparseGetTimer( CLSPARSE_GPU );
-            gpuTimer->Reserve( 1, profileCount );
-            gpuTimer->setNormalize( true );
+//            gpuTimer = sparseGetTimer( CLSPARSE_GPU );
+//            gpuTimer->Reserve( 1, profileCount );
+//            gpuTimer->setNormalize( true );
 
             cpuTimer = sparseGetTimer( CLSPARSE_CPU );
             cpuTimer->Reserve( 1, profileCount );
             cpuTimer->setNormalize( true );
 
-            gpuTimerID = gpuTimer->getUniqueID( "GPU xSpMdV", 0 );
-            cpuTimerID = cpuTimer->getUniqueID( "CPU xSpMdV", 0 );
+//            gpuTimerID = gpuTimer->getUniqueID( "GPU xCGM", 0 );
+            cpuTimerID = cpuTimer->getUniqueID( "CPU xBiCGStab", 0 );
         }
 
 
         clsparseEnableAsync( control, false );
+
+        solverControl = clsparseCreateSolverControl(DIAGONAL, 1000, 1e-6, 0);
+        clsparseSolverPrintMode(solverControl, VERBOSE);
     }
 
-    ~xSpMdV( )
+    ~xBiCGStab( )
     {
+        if( clsparseReleaseSolverControl( solverControl) != clsparseSuccess )
+        {
+            std::cout << "Problem with releasing solver control object" << std::endl;
+        }
     }
 
-    void call_func( )
+    void call_func()
     {
-      if( gpuTimer && cpuTimer )
-      {
-        gpuTimer->Start( gpuTimerID );
-        cpuTimer->Start( cpuTimerID );
+        if( /*gpuTimer && */cpuTimer )
+        {
+//          gpuTimer->Start( gpuTimerID );
+          cpuTimer->Start( cpuTimerID );
 
-        xSpMdV_Function( false );
+          xBiCGStab_Function(false);
 
-        cpuTimer->Stop( cpuTimerID );
-        gpuTimer->Stop( gpuTimerID );
-      }
-      else
-      {
-        xSpMdV_Function( false );
-      }
+
+          cpuTimer->Stop( cpuTimerID );
+//          gpuTimer->Stop( gpuTimerID );
+        }
+        else
+        {
+            xBiCGStab_Function(false);
+        }
     }
-
     double gflops( )
     {
         return 0.0;
@@ -67,13 +78,8 @@ public:
 
     double bandwidth( )
     {
-        //  Assuming that accesses to the vector always hit in the cache after the first access
-        //  There are NNZ integers in the cols[ ] array
-        //  You access each integer value in row_delimiters[ ] once.
-        //  There are NNZ float_types in the vals[ ] array
-        //  You read num_cols floats from the vector, afterwards they cache perfectly.
-        //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m ) ) / time_in_ns( );
+        //TODO:: what is BW per iteration? don't know yet
+        return 0;
     }
 
     std::string bandwidth_formula( )
@@ -81,13 +87,9 @@ public:
         return "GiB/s";
     }
 
-
     void setup_buffer( double pAlpha, double pBeta, const std::string& path )
     {
         sparseFile = path;
-
-        alpha = static_cast< T >( pAlpha );
-        beta = static_cast< T >( pBeta );
 
         // Read sparse data from file and construct a COO matrix from it
         int nnz, row, col;
@@ -131,27 +133,18 @@ public:
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );
-        x.n = csrMtx.n;
-        x.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        x.n = csrMtx.m;
+        x.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                      x.n * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer x.values" );
 
         clsparseInitVector( &y );
-        y.n = csrMtx.m;
-        y.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        y.n = csrMtx.n;
+        y.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                      y.n * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer y.values" );
 
-        // Initialize the scalar alpha & beta parameters
-        clsparseInitScalar( &a );
-        a.value = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                     1 * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer x.values" );
 
-        clsparseInitScalar( &b );
-        b.value = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                     1 * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer y.values" );
     }
 
     void initialize_cpu_buffer( )
@@ -160,26 +153,31 @@ public:
 
     void initialize_gpu_buffer( )
     {
-        T scalarOne = 1.0;
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, x.values, &scalarOne, sizeof( T ), 0,
+        // We will solve A*x = y,
+        // where initial guess of x will be vector of zeros 0,
+        // and y will be vector of ones;
+
+        T xValue = 0.0;
+        T yValue = 1.0;
+
+        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, x.values, &xValue, sizeof( T ), 0,
             sizeof( T ) * x.n, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
 
-        T scalarZero = 0.0;
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, y.values, &scalarZero, sizeof( T ), 0,
+        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, y.values, &yValue, sizeof( T ), 0,
             sizeof( T ) * y.n, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
 
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, a.value, &alpha, sizeof( T ), 0,
-            sizeof( T ) * 1, 0, NULL, NULL ), "::clEnqueueFillBuffer alpha.value" );
 
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, b.value, &beta, sizeof( T ), 0,
-            sizeof( T ) * 1, 0, NULL, NULL ), "::clEnqueueFillBuffer beta.value" );
     }
 
     void reset_gpu_write_buffer( )
     {
+        // we will solve A*x = y, where initial guess of x will be 0
         T scalar = 0;
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, y.values, &scalar, sizeof( T ), 0,
-                             sizeof( T ) * y.n, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
+        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, x.values, &scalar, sizeof( T ), 0,
+                             sizeof( T ) * x.n, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
+
+        // reset solverControl for next call
+        clsparseSetSolverParams(solverControl, NOPRECOND, 100, 1e-2, 1e-8);
     }
 
     void read_gpu_buffer( )
@@ -187,8 +185,8 @@ public:
     }
 
     void cleanup( )
-    {	
-        if( gpuTimer && cpuTimer )
+    {
+        if(/* gpuTimer && */cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
           size_t sparseBytes = sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m );
@@ -196,13 +194,13 @@ public:
           cpuTimer->Print( sparseBytes, "GiB/s" );
           cpuTimer->Reset( );
 
-          gpuTimer->pruneOutliers( 3.0 );
-          gpuTimer->Print( sparseBytes, "GiB/s" );
-          gpuTimer->Reset( );
+          //gpuTimer->pruneOutliers( 3.0 );
+          //puTimer->Print( sparseBytes, "GiB/s" );
+//          gpuTimer->Reset( );
         }
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
-        //need to do this before we eventually hit the destructor
+        //need to do this before we eventually hit the destructor     
         OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
         OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
         OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
@@ -210,15 +208,15 @@ public:
 
         OPENCL_V_THROW( ::clReleaseMemObject( x.values ), "clReleaseMemObject x.values" );
         OPENCL_V_THROW( ::clReleaseMemObject( y.values ), "clReleaseMemObject y.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( a.value ), "clReleaseMemObject alpha.value" );
-        OPENCL_V_THROW( ::clReleaseMemObject( b.value ), "clReleaseMemObject beta.value" );
+
+
     }
 
 private:
-    void xSpMdV_Function( bool flush );
+    void xBiCGStab_Function( bool flush );
 
     //  Timers we want to keep
-    clsparseTimer* gpuTimer;
+   // clsparseTimer* gpuTimer;
     clsparseTimer* cpuTimer;
     size_t gpuTimerID, cpuTimerID;
 
@@ -228,34 +226,50 @@ private:
     clsparseCsrMatrix csrMtx;
     clsparseVector x;
     clsparseVector y;
-    clsparseScalar a;
-    clsparseScalar b;
 
-    // host values
-    T alpha;
-    T beta;
 
     //  OpenCL state
     cl_command_queue_properties cqProp;
 
-}; // class xSpMdV
+    // solver control object;
+    clSParseSolverControl solverControl;
+}; //class xCGM
 
 template<> void
-xSpMdV<float>::xSpMdV_Function( bool flush )
+xBiCGStab<float>::xBiCGStab_Function( bool flush )
 {
-    clsparseStatus status = clsparseScsrmv( &a, &csrMtx, &x, &b, &y, control );
+    // solve x from y = Ax
+    try {
+    clsparseStatus status = clsparseScsrbicgStab(&x, &csrMtx, &y, solverControl, control);
+
+//    std::vector<float> h_y(x.n);
+//    clEnqueueReadBuffer(queue, x.values, CL_TRUE, 0, x.n * sizeof(float), h_y.data(), 0, NULL, NULL );
+//    for (int i = 0; i < h_y.size(); i++)
+//    {
+//        std::cout << "hy [" << i << "] = " << h_y[i] << std::endl;
+//    }
+    }
+    catch (std::out_of_range e)
+    {
+        std::cout << "e: " << std::endl;
+    }
+    catch (...)
+    {
+        std::cout << "xxx" << std::endl;
+    }
 
     if( flush )
         clFinish( queue );
 }
 
 template<> void
-xSpMdV<double>::xSpMdV_Function( bool flush )
+xBiCGStab<double>::xBiCGStab_Function( bool flush )
 {
-    clsparseStatus status = clsparseDcsrmv( &a, &csrMtx, &x, &b, &y, control );
+    clsparseStatus status = clsparseDcsrbicgStab(&x, &csrMtx, &y, solverControl, control);
 
     if( flush )
         clFinish( queue );
 }
 
-#endif // ifndef CLSPARSE_BENCHMARK_SPMV_HXX__
+
+#endif

@@ -37,7 +37,9 @@ axpy(cl_ulong size,
              << pAlpha->value
              << pAlpha->offset()
              << pX->values
-             << pX->offset();
+             << pX->offset()
+             << pY->values
+             << pY->offset();
 
     int blocksNum = (size + group_size - 1) / group_size;
     int globalSize = blocksNum * group_size;
@@ -61,6 +63,7 @@ clsparseStatus
 axpy(clsparse::array_base<T>& pY,
      const clsparse::array_base<T>& pAlpha,
      const clsparse::array_base<T>& pX,
+     const clsparse::array_base<T>& pZ,
      const clsparseControl control)
 {
     const int group_size = 256; // this or higher? control->max_wg_size?
@@ -85,6 +88,8 @@ axpy(clsparse::array_base<T>& pY,
              << pAlpha.data()
              << offset
              << pX.data()
+             << offset
+             << pZ.data()
              << offset;
 
     int blocksNum = (size + group_size - 1) / group_size;
