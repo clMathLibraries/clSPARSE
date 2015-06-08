@@ -119,7 +119,13 @@ public:
             csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowBlocks" );
 
-        fileError = clsparseCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        if(typeid(T) == typeid(float))
+            fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        else if (typeid(T) == typeid(double))
+            fileError = clsparseDCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        else
+            fileError = clsparseInvalidType;
+
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk" );
 

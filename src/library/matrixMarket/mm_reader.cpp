@@ -481,7 +481,7 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cls
 }
 
 clsparseStatus
-clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control )
+clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control)
 {
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
 
@@ -499,7 +499,7 @@ clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cls
         return clsparseInvalidFileFormat;
 
     // Read data from a file on disk into CPU buffers
-    // Data is read natively as COO format with the reader 
+    // Data is read natively as COO format with the reader
     MatrixMarketReader< cl_float > mm_reader;
     if( mm_reader.MMReadFormat( filePath ) )
         return clsparseInvalidFile;
@@ -545,4 +545,140 @@ clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cls
     }
 
     return clsparseSuccess;
+
 }
+
+clsparseStatus
+clsparseDCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control)
+{
+    clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
+
+    // Check that the file format is matrix market; the only format we can read right now
+    // This is not a complete solution, and fails for directories with file names etc...
+    // TODO: Should we use boost filesystem?
+    std::string strPath( filePath );
+    if( strPath.find_last_of( '.' ) != std::string::npos )
+    {
+        std::string ext = strPath.substr( strPath.find_last_of( '.' ) + 1 );
+        if( ext != "mtx" )
+            return clsparseInvalidFileFormat;
+    }
+    else
+        return clsparseInvalidFileFormat;
+
+    // Read data from a file on disk into CPU buffers
+    // Data is read natively as COO format with the reader
+    MatrixMarketReader< cl_double > mm_reader;
+    if( mm_reader.MMReadFormat( filePath ) )
+        return clsparseInvalidFile;
+
+    // BUG: We need to check to see if openCL buffers currently exist and deallocate them first!
+
+    pCsrMatx->m = mm_reader.GetNumRows( );
+    pCsrMatx->n = mm_reader.GetNumCols( );
+    pCsrMatx->nnz = mm_reader.GetNumNonZeroes( );
+
+    // Transfers data from CPU buffer to GPU buffers
+    clMemRAII< cl_double > rCsrValues( control->queue( ), pCsrMatx->values );
+    clMemRAII< cl_int > rCsrColIndices( control->queue( ), pCsrMatx->colIndices );
+    clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+
+    cl_double* fCsrValues = rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->valOffset( ), pCsrMatx->nnz );
+    cl_int* iCsrColIndices = rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->nnz );
+    cl_int* iCsrRowOffsets = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
+
+    //  The following section of code converts the sparse format from COO to CSR
+    Coordinate< cl_double >* coords = mm_reader.GetUnsymCoordinates( );
+    std::sort( coords, coords + pCsrMatx->nnz, CoordinateCompare< cl_double > );
+
+    int current_row = 1;
+    iCsrRowOffsets[ 0 ] = 0;
+    for( int i = 0; i < pCsrMatx->nnz; i++ )
+    {
+        iCsrColIndices[ i ] = coords[ i ].y;
+        fCsrValues[ i ] = coords[ i ].val;
+
+        if( coords[ i ].x >= current_row )
+            iCsrRowOffsets[ current_row++ ] = i;
+    }
+    iCsrRowOffsets[ current_row ] = pCsrMatx->nnz;
+
+    // Compute the csr matrix meta data and fill in buffers
+    if( pCsrMatx->rowBlockSize )
+    {
+        clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
+        cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize );
+
+        ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->m, BLKSIZE );
+    }
+
+    return clsparseSuccess;
+
+}
+
+//clsparseStatus
+//clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control )
+//{
+//    clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
+
+//    // Check that the file format is matrix market; the only format we can read right now
+//    // This is not a complete solution, and fails for directories with file names etc...
+//    // TODO: Should we use boost filesystem?
+//    std::string strPath( filePath );
+//    if( strPath.find_last_of( '.' ) != std::string::npos )
+//    {
+//        std::string ext = strPath.substr( strPath.find_last_of( '.' ) + 1 );
+//        if( ext != "mtx" )
+//            return clsparseInvalidFileFormat;
+//    }
+//    else
+//        return clsparseInvalidFileFormat;
+
+//    // Read data from a file on disk into CPU buffers
+//    // Data is read natively as COO format with the reader
+//    MatrixMarketReader< cl_float > mm_reader;
+//    if( mm_reader.MMReadFormat( filePath ) )
+//        return clsparseInvalidFile;
+
+//    // BUG: We need to check to see if openCL buffers currently exist and deallocate them first!
+
+//    pCsrMatx->m = mm_reader.GetNumRows( );
+//    pCsrMatx->n = mm_reader.GetNumCols( );
+//    pCsrMatx->nnz = mm_reader.GetNumNonZeroes( );
+
+//    // Transfers data from CPU buffer to GPU buffers
+//    clMemRAII< cl_float > rCsrValues( control->queue( ), pCsrMatx->values );
+//    clMemRAII< cl_int > rCsrColIndices( control->queue( ), pCsrMatx->colIndices );
+//    clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+
+//    cl_float* fCsrValues = rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->valOffset( ), pCsrMatx->nnz );
+//    cl_int* iCsrColIndices = rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->nnz );
+//    cl_int* iCsrRowOffsets = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
+
+//    //  The following section of code converts the sparse format from COO to CSR
+//    Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
+//    std::sort( coords, coords + pCsrMatx->nnz, CoordinateCompare< cl_float > );
+
+//    int current_row = 1;
+//    iCsrRowOffsets[ 0 ] = 0;
+//    for( int i = 0; i < pCsrMatx->nnz; i++ )
+//    {
+//        iCsrColIndices[ i ] = coords[ i ].y;
+//        fCsrValues[ i ] = coords[ i ].val;
+
+//        if( coords[ i ].x >= current_row )
+//            iCsrRowOffsets[ current_row++ ] = i;
+//    }
+//    iCsrRowOffsets[ current_row ] = pCsrMatx->nnz;
+
+//    // Compute the csr matrix meta data and fill in buffers
+//    if( pCsrMatx->rowBlockSize )
+//    {
+//        clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
+//        cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize );
+
+//        ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->m, BLKSIZE );
+//    }
+
+//    return clsparseSuccess;
+//}

@@ -179,8 +179,14 @@ clsparseHeaderfromFile( cl_int* nnz, cl_int* row, cl_int* col, const char* fileP
 CLSPARSE_EXPORT clsparseStatus
 clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control );
 
+//CLSPARSE_EXPORT clsparseStatus
+//clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
+
 CLSPARSE_EXPORT clsparseStatus
-clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
+clsparseSCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control );

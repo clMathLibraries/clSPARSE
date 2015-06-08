@@ -7,8 +7,8 @@
 
 #include "clSPARSE.h"
 #include "clfunc_common.hpp"
+#include <vector>
 
-//CG solver benchmark where calculations of scalar values are performed by mapping them on host
 
 
 template <typename T>
@@ -36,7 +36,7 @@ public:
 
         clsparseEnableAsync( control, false );
 
-        solverControl = clsparseCreateSolverControl(NOPRECOND, 1000, 1e-6, 0);
+        solverControl = clsparseCreateSolverControl(DIAGONAL, 1000, 1e-6, 0);
         clsparseSolverPrintMode(solverControl, VERBOSE);
     }
 
@@ -121,7 +121,13 @@ public:
             csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowBlocks" );
 
-        fileError = clsparseCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        if(typeid(T) == typeid(float))
+            fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        else if (typeid(T) == typeid(double))
+            fileError = clsparseDCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        else
+            fileError = clsparseInvalidType;
+
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk" );
 
@@ -235,6 +241,13 @@ xBiCGStab<float>::xBiCGStab_Function( bool flush )
     // solve x from y = Ax
     try {
     clsparseStatus status = clsparseScsrbicgStab(&x, &csrMtx, &y, solverControl, control);
+
+//    std::vector<float> h_y(x.n);
+//    clEnqueueReadBuffer(queue, x.values, CL_TRUE, 0, x.n * sizeof(float), h_y.data(), 0, NULL, NULL );
+//    for (int i = 0; i < h_y.size(); i++)
+//    {
+//        std::cout << "hy [" << i << "] = " << h_y[i] << std::endl;
+//    }
     }
     catch (std::out_of_range e)
     {
