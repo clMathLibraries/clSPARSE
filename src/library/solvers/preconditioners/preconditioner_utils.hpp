@@ -119,7 +119,7 @@ extract_diagonal(clsparse::vector<T>& pDiag,
     assert (pA->n > 0);
     assert (pA->nnz > 0);
 
-    assert (pDiag.size() == min(pA->n, pA->m));
+    assert (pDiag.size() == std::min(pA->n, pA->m));
 
     cl_ulong wg_size = 256;
     cl_ulong size = pA->m;
