@@ -115,7 +115,7 @@ typedef enum _precond
 typedef struct _solverControl*  clSParseSolverControl;
 
 CLSPARSE_EXPORT clSParseSolverControl
-clsparseCreateSolverControl(cl_int maxIters, PRECONDITIONER precond,
+clsparseCreateSolverControl(PRECONDITIONER precond, cl_int maxIters,
                             cl_double relTol, cl_double absTol);
 
 CLSPARSE_EXPORT clsparseStatus
@@ -124,8 +124,8 @@ clsparseReleaseSolverControl(clSParseSolverControl solverControl);
 //here maybe some other solver control utils;
 CLSPARSE_EXPORT clsparseStatus
 clsparseSetSolverParams(clSParseSolverControl solverControl,
-                        cl_int maxIters, cl_double relTol, cl_double absTol,
-                        PRECONDITIONER precond);
+                        PRECONDITIONER precond,
+                        cl_int maxIters, cl_double relTol, cl_double absTol);
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseSolverPrintMode(clSParseSolverControl solverControl, PRINT_MODE mode);

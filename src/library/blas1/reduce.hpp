@@ -133,8 +133,8 @@ reduce(clsparseScalarPrivate* pR,
 
 template <typename T, ReduceOperator OP>
 clsparseStatus
-global_reduce (clsparse::vector<T>& partial,
-               const clsparse::vector<T>& pX,
+global_reduce (clsparse::array_base<T>& partial,
+               const clsparse::array_base<T>& pX,
                const cl_ulong REDUCE_BLOCKS_NUMBER,
                const cl_ulong REDUCE_BLOCK_SIZE,
                const clsparseControl control)
@@ -179,8 +179,8 @@ global_reduce (clsparse::vector<T>& partial,
 // F_OP: Final reduce operation, modifies final result of the reduce operation
 template<typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
 clsparseStatus
-reduce(clsparse::vector<T>& pR,
-       const clsparse::vector<T>& pX,
+reduce(clsparse::array_base<T>& pR,
+       const clsparse::array_base<T>& pX,
        const clsparseControl control)
 {
 

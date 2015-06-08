@@ -13,7 +13,7 @@
 //forward declaration of clsparse::vector class for proper interface
 namespace clsparse
 {
-template <typename T> class vector;
+template <typename T> class array_base;
 }
 
 /* Elementwise operation on two vectors
@@ -76,9 +76,9 @@ elementwise_transform(clsparseVectorPrivate* r,
  */
 template<typename T, ElementWiseOperator OP>
 clsparseStatus
-elementwise_transform(clsparse::vector<T>& r,
-                      const clsparse::vector<T>& x,
-                      const clsparse::vector<T>& y,
+elementwise_transform(clsparse::array_base<T>& r,
+                      const clsparse::array_base<T>& x,
+                      const clsparse::array_base<T>& y,
                       clsparseControl control)
 {
     if (!clsparseInitialized)

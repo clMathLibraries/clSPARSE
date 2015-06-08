@@ -64,10 +64,10 @@ axpby(cl_ulong size,
 //version for clsparse::array
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus
-axpby(clsparse::vector<T>& pY,
-      const clsparse::vector<T>& pAlpha,
-      const clsparse::vector<T>& pX,
-      const clsparse::vector<T>& pBeta,
+axpby(clsparse::array_base<T>& pY,
+      const clsparse::array_base<T>& pAlpha,
+      const clsparse::array_base<T>& pX,
+      const clsparse::array_base<T>& pBeta,
       const clsparseControl control)
 {
 

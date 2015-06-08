@@ -5,6 +5,7 @@
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse_internal.hpp"
 #include "internal/data_types/clvector.hpp"
+#include "internal/data_types/clarray.hpp"
 
 #include "preconditioners/preconditioner.hpp"
 #include "preconditioners/diagonal.hpp"
@@ -52,7 +53,8 @@ cg(clsparseVectorPrivate *pX,
     T scalarOne = 1;
     T scalarZero = 0;
 
-    clsparse::vector<T> norm_b(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    //clsparse::vector<T> norm_b(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::scalar<T> norm_b(control, 0, CL_MEM_WRITE_ONLY, false);
 
     //norm of rhs of equation
     status = Norm1<T>(norm_b, b, control);
@@ -97,12 +99,12 @@ cg(clsparseVectorPrivate *pX,
     //status = elementwise_transform<T, EW_MINUS>(r, b, y, control);
     OPENCL_V_THROW(status, "b - y Failed");
 
-    clsparse::vector<T> norm_r(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::scalar<T> norm_r(control, 0, CL_MEM_WRITE_ONLY, false);
     status = Norm1<T>(norm_r, r, control);
     OPENCL_V_THROW(status, "norm r Failed");
 
     //T residuum = 0;
-    clsparse::vector<T> residuum(control, 1, 0, CL_MEM_WRITE_ONLY, false);
+    clsparse::scalar<T> residuum(control, 0, CL_MEM_WRITE_ONLY, false);
 
     //residuum = norm_r[0] / h_norm_b;
     residuum.div(norm_r, norm_b, control);
@@ -124,7 +126,7 @@ cg(clsparseVectorPrivate *pX,
     p = z;
 
     //rz = <r, z>, here actually should be conjugate(r)) but we do not support complex type.
-    clsparse::vector<T> rz(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::scalar<T> rz(control, 0, CL_MEM_WRITE_ONLY, false);
     status = dot<T>(rz, r, z, control);
     OPENCL_V_THROW(status, "<r, z> Failed");
 
@@ -132,13 +134,13 @@ cg(clsparseVectorPrivate *pX,
 
     bool converged = false;
 
-    clsparse::vector<T> alpha (control, 1, 0, CL_MEM_READ_WRITE, true);
-    clsparse::vector<T> beta  (control, 1, 0, CL_MEM_READ_WRITE, true);
+    clsparse::scalar<T> alpha (control, 0, CL_MEM_READ_WRITE, false);
+    clsparse::scalar<T> beta  (control, 0, CL_MEM_READ_WRITE, false);
 
     //yp buffer for inner product of y and p vectors;
-    clsparse::vector<T> yp(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::scalar<T> yp(control, 0, CL_MEM_WRITE_ONLY, false);
 
-    clsparse::vector<T> rz_old(control, 1, 0, CL_MEM_WRITE_ONLY, true);
+    clsparse::scalar<T> rz_old(control, 0, CL_MEM_WRITE_ONLY, false);
 
     while(!converged)
     {
@@ -173,6 +175,7 @@ cg(clsparseVectorPrivate *pX,
         M(r, z, control);
 
         //store old value of rz
+        //improve that by move or swap
         rz_old = rz;
 
         //rz = <r,z>
@@ -204,7 +207,6 @@ cg(clsparseVectorPrivate *pX,
 
         solverControl->print();
     }
-
     return clsparseSuccess;
 }
 

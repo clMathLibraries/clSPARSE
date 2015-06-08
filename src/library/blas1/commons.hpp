@@ -3,7 +3,7 @@
 #define _CLSPARSE_COMMONS_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/data_types/clvector.hpp"
+#include "internal/data_types/clarray_base.hpp"
 template <typename T>
 inline void init_scalar(clsparseScalarPrivate* scalar, T value,
                         const clsparseControl control)
@@ -16,10 +16,10 @@ inline void init_scalar(clsparseScalarPrivate* scalar, T value,
 }
 
 template <typename T>
-inline void init_scalar(clsparse::vector<T>& scalar, T value,
+inline void init_scalar(clsparse::array_base<T>& scalar, T value,
                         const clsparseControl control)
 {
-    scalar.fill(control, value);
+    clsparse::internal::fill(scalar, value, control->queue);
 }
 
 
