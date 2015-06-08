@@ -2,10 +2,6 @@
 #ifndef _CLSPARSE_PREC_DIAGONAL_HPP_
 #define _CLSPARSE_PREC_DIAGONAL_HPP_
 
-#if defined( _WIN32 )
-#define NOMINMAX
-#endif
-
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse_control.hpp"
 #include "preconditioner.hpp"

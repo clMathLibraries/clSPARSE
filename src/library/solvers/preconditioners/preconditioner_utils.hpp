@@ -9,10 +9,6 @@
 
 #include "internal/data_types/clvector.hpp"
 
-#if defined( _WIN32 )
-#define NOMINMAX
-#endif
-
 template<typename T, bool inverse = false>
 clsparseStatus
 extract_diagonal(clsparseVectorPrivate* pDiag,
