@@ -78,6 +78,10 @@ typedef struct cldenseMatrix_
     cldenseMajor major;
 
     cl_mem values;
+
+    //OpenCL meta
+    cl_ulong offValues;
+
 } cldenseMatrix;
 
 #endif

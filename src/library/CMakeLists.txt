@@ -51,7 +51,7 @@ add_custom_command(
 set( clSPARSE.source.cl
   kernels/csrmv_general.cl
   kernels/csrmv_adaptive.cl
-  kernels/csrmm.cl
+  kernels/csrmm_general.cl
   kernels/control.cl
   kernels/csr2dense.cl
   kernels/csr2coo.cl

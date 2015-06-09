@@ -237,10 +237,16 @@ class cldenseMatrixPrivate: public cldenseMatrix
 public:
     void clear( )
     {
-        num_rows = num_cols = lead_dim = 0;
+        num_rows = num_cols = lead_dim = offValues = 0;
         major = rowMajor;
         values = nullptr;
     }
+
+    cl_ulong offset( ) const
+    {
+        return offValues;
+    }
+
 };
 
 // Check that it is OK to static_cast a C struct pointer to a C++ class pointer
