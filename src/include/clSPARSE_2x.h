@@ -2,11 +2,7 @@
 #ifndef _CL_SPARSE_2x_H_
 #define _CL_SPARSE_2x_H_
 
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl.h>
-#else
-#include <CL/cl.h>
-#endif
+#include "clSPARSE_xx.h"
 
 // Data types used to pass OpenCL objects into the clSPARSE library
 // These are plain PoD containers; no methods defined
@@ -57,13 +53,15 @@ typedef struct clsparseCooMatrix_
     void* rowIndices;
 } clsparseCooMatrix;
 
-typedef struct clsparseDenseMatrix_
+typedef struct cldenseMatrix_
 {
-    cl_int m;
-    cl_int n;
+    size_t num_rows;
+    size_t num_cols;
+    size_t lead_dim;
+    cldenseMajor major;
 
     void* values;
 
-} clsparseDenseMatrix;
+} cldenseMatrix;
 
 #endif

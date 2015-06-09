@@ -94,6 +94,7 @@ private:
 
     cl::Kernel kernel;
     cl_uint argCounter;
+    cl_uint addrBits;
 
 };
 

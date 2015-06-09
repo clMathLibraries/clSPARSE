@@ -27,8 +27,10 @@ endif( )
 
 set( Boost.Command ./b2 --prefix=<INSTALL_DIR>/package )
 
-if( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
+if( CMAKE_COMPILER_IS_GNUCXX )
   list( APPEND Boost.Command cxxflags=-fPIC  )
+elseif( XCODE_VERSION )
+  list( APPEND Boost.Command cxxflags=-std=c++11 -stdlib=libc++ linkflags=-stdlib=libc++ )
 endif( )
 
 include( ProcessorCount )
@@ -57,6 +59,8 @@ elseif( MSVC12 )
   list( APPEND Boost.Command toolset=msvc-12.0 )
 elseif( MSVC14 )
   list( APPEND Boost.Command toolset=msvc-14.0 )
+elseif( XCODE_VERSION )
+  list( APPEND Boost.Command toolset=clang )
 endif( )
 
 if( WIN32 )
@@ -64,6 +68,7 @@ if( WIN32 )
 endif( )
 
 set( ext.Boost_LINK "static" CACHE STRING "Which boost link method?  static | shared | static,shared" )
+mark_as_advanced( ext.Boost_LINK )
 
 if( WIN32 )
     # Versioned is the default on windows
@@ -82,6 +87,8 @@ else( )
      set( ext.Boost_VARIANT "release" CACHE STRING "Which boost variant?  debug | release | debug,release" )
    endif( )
 endif( )
+mark_as_advanced( ext.Boost_LAYOUT )
+mark_as_advanced( ext.Boost_VARIANT )
 
 list( APPEND Boost.Command link=${ext.Boost_LINK} variant=${ext.Boost_VARIANT} --layout=${ext.Boost_LAYOUT} install )
 
@@ -112,6 +119,10 @@ else( )
 
   # .tar.bz2
   set( ext.MD5_HASH "b8839650e61e9c1c0a89f371dd475546" )
+
+  if( XCODE_VERSION )
+    list( APPEND Boost.Bootstrap --with-toolset=clang )
+  endif( )
 endif( )
 
 # Below is a fancy CMake command to download, build and install Boost on the users computer

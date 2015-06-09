@@ -8,7 +8,7 @@ message( STATUS "ext.clBLAS_Tag: " ${ext.clBLAS_Tag} )
 
 set( ext.clBLAS.BUILD.options -DBUILD_RUNTIME=ON -DBUILD_CLIENT=OFF -DBUILD_KTEST=OFF -DBUILD_PERFORMANCE=OFF -DBUILD_SAMPLE=OFF -DBUILD_TEST=OFF )
 
-if( UNIX )
+if( UNIX AND NOT XCODE_VERSION )
   # Add build thread in addition to the number of cores that we have
   include( ProcessorCount )
   ProcessorCount( Cores )

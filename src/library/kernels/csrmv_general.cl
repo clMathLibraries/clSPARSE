@@ -87,11 +87,17 @@ void csrmv_general (     const INDEX_TYPE num_rows,
 
         //parllel reduction in shared memory
         sdata[local_id] = sum;
+        barrier( CLK_LOCAL_MEM_FENCE );
         if (SUBWAVE_SIZE > 32) sdata[local_id] = sum += sdata[local_id + 32];
+        barrier( CLK_LOCAL_MEM_FENCE );
         if (SUBWAVE_SIZE > 16) sdata[local_id] = sum += sdata[local_id + 16];
+        barrier( CLK_LOCAL_MEM_FENCE );
         if (SUBWAVE_SIZE > 8)  sdata[local_id] = sum += sdata[local_id + 8];
+        barrier( CLK_LOCAL_MEM_FENCE );
         if (SUBWAVE_SIZE > 4)  sdata[local_id] = sum += sdata[local_id + 4];
+        barrier( CLK_LOCAL_MEM_FENCE );
         if (SUBWAVE_SIZE > 2)  sdata[local_id] = sum += sdata[local_id + 2];
+        barrier( CLK_LOCAL_MEM_FENCE );
         if (SUBWAVE_SIZE > 1)                    sum += sdata[local_id + 1];
 
         if (thread_lane == 0)

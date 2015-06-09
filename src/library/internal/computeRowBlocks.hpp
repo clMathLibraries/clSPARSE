@@ -5,6 +5,25 @@
 #include <iterator>
 #include <cassert>
 
+// The row blocks buffer holds a packed set of information used to inform each
+// workgroup about how to do its work:
+//
+// |6666 5555 5555 5544 4444 4444 3333 3333|3322 2222|2222 1111 1111 1100 0000 0000|
+// |3210 9876 5432 1098 7654 3210 9876 5432|1098 7654|3210 9876 5432 1098 7654 3210|
+// |------------Row Information------------|----flag^|---WG ID within a long row---|
+//
+// The upper 32 bits of each rowBlock entry tell the workgroup the ID of the first
+// row it will be working on. When one workgroup calculates multiple rows, this
+// rowBlock entry and the next one tell it the range of rows to work on.
+// The lower 24 bits are used whenever multiple workgroups calculate a single long
+// row. This tells each workgroup its ID within that row, so it knows which
+// part of the row to operate on.
+// Bit 24 is a flag bit used so that the multiple WGs calculating a long row can
+// know when the first workgroup for that row has finished initializing the output
+// value. While this bit is the same as the first workgroup's flag bit, this
+// workgroup will spin-loop.
+
+//  rowBlockType is currently instantiated as ulong
 template< typename rowBlockType >
 void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters, int nRows, int blkSize )
 {
@@ -19,15 +38,15 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
     if( (rowBlockType)nRows > (rowBlockType)pow( 2, ( 64 - ROW_BITS ) ) )
     {
         printf( "Number of Rows in the Sparse Matrix is greater than what is supported at present ((64-ROW_BITS) bits) !" );
-        exit( 0 );
+        return;
     }
 
     for( i = 1; i <= nRows; i++ )
     {
         sum += ( rowDelimiters[ i ] - rowDelimiters[ i - 1 ] );
 
-        // more than one row results in non-zero elements
-        // to be greater than blockSize
+        // more than one row results in non-zero elements to be greater than blockSize
+        // This is csr-stream case; bottom WG_BITS == 0
         if( ( i - last_i > 1 ) && sum > blkSize )
         {
             *rowBlocks = ( (i - 1) << ROW_BITS );
@@ -37,13 +56,13 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
             sum = 0;
         }
 
-        // exactly one row results in non-zero elements
-        // to be greater than blockSize
+        // exactly one row results in non-zero elements to be greater than blockSize
+        // This is csr-vector case; bottom WG_BITS == workgroup ID
         else if( ( i - last_i == 1 ) && sum > blkSize )
         {
             int numWGReq = static_cast< int >( ceil( (double)sum / blkSize ) );
 
-            // Check to ensure #workgroups can fit in 24 bits, if not
+            // Check to ensure #workgroups can fit in WG_BITS bits, if not
             // then the last workgroup will do all the remaining work
             numWGReq = ( numWGReq < (int)pow( 2, WG_BITS ) ) ? numWGReq : (int)pow( 2, WG_BITS );
 
@@ -60,8 +79,8 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
             last_i = i;
             sum = 0;
         }
-        // sum of non-zero elements is exactly
-        // equal to blockSize
+        // sum of non-zero elements is exactly equal to blockSize
+        // This is csr-stream case; bottom WG_BITS == 0
         else if( sum == blkSize )
         {
             *rowBlocks = ( i << ROW_BITS );
@@ -76,7 +95,7 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
     rowBlocks++;
 
     size_t dist = std::distance( rowBlocksBase, rowBlocks );
-    assert( dist < rowBlockSize );
+    assert( dist <= rowBlockSize );
 
     //   Update the size of rowBlocks to reflect the actual amount of memory used
     rowBlockSize = dist;

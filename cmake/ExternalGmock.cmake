@@ -34,7 +34,13 @@ if( CMAKE_COMPILER_IS_GNUCC )
   list( APPEND ext.gMock.cmake_args -DCMAKE_C_FLAGS=${EXTRA_FLAGS} -DCMAKE_CXX_FLAGS=${EXTRA_FLAGS} )
 endif( )
 
-if( UNIX )
+if( MSVC_IDE OR XCODE_VERSION )
+  list( APPEND ext.gMock.cmake_args -Dgtest_force_shared_crt=ON )
+  set( ext.gMock.Make
+        COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
+        COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Debug
+  )
+else( )
   # Add build thread in addition to the number of cores that we have
   include( ProcessorCount )
   ProcessorCount( Cores )
@@ -48,11 +54,6 @@ if( UNIX )
     # If we could not detect # of cores, assume 1 core and add an additional build thread
     list( APPEND ext.gMock.Make -j 2 )
   endif( )
-else( )
-  list( APPEND ext.gMock.cmake_args -Dgtest_force_shared_crt=ON )
-  set( ext.gMock.Make
-        COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
-        COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Debug )
 endif( )
 
 # Add external project for googleMock
@@ -73,7 +74,7 @@ set( packageDir "<INSTALL_DIR>/package" )
 
 set( gMockLibDir "<BINARY_DIR>/${LIB_DIR}" )
 set( gTestLibDir "<BINARY_DIR>/gtest/${LIB_DIR}" )
-if( MSVC )
+if( MSVC_IDE OR XCODE_VERSION )
     # Create a package by bundling libraries and header files
     ExternalProject_Add_Step( gMock createPackage
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${gMockLibDir}/Debug ${packageDir}/${LIB_DIR}

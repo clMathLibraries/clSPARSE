@@ -4,42 +4,42 @@
 #include <gtest/gtest.h>
 #include <clSPARSE.h>
 
-#include "matrix_market.h"
+#include "clsparse_environment.h"
+
+using CLSE = ClSparseEnvironment;
 
 /**
  * @brief The CSREnvironment class will keep the input parameters for tests
  * They are list of paths to matrices in csr format in mtx files.
  */
-class CSREnvironment : public ::testing::Environment
+class CSREnvironment: public ::testing::Environment
 {
 public:
-    explicit CSREnvironment(const std::string& path,
-                            double alpha, double beta,
-                            cl_command_queue queue,
-                            cl_context context) :
-        file_name(path),
-        queue(queue),
-        context(context)
+    explicit CSREnvironment( const std::string& path,
+                             double alpha, double beta,
+                             cl_command_queue queue,
+                             cl_context context ):
+                             file_name( path ),
+                             queue( queue ),
+                             context( context )
     {
-        bool read_status = false;
-        read_status = readMatrixMarketCSR(row_offsets, col_indices, f_values,
-                                          n_rows, n_cols, n_vals, file_name);
-        if(!read_status)
+        clsparseStatus read_status = clsparseHeaderfromFile( &n_vals, &n_rows, &n_cols, file_name.c_str( ) );
+        if( read_status )
         {
-            exit(-3);
+            exit( -3 );
         }
 
-        clsparseInitCsrMatrix(&csrSMatrix);
-        clsparseInitCsrMatrix(&csrDMatrix);
+        clsparseInitCsrMatrix( &csrSMatrix );
+        csrSMatrix.nnz = n_vals;
         csrSMatrix.m = n_rows;
         csrSMatrix.n = n_cols;
-        csrSMatrix.nnz = n_vals;
+        clsparseCsrMetaSize( &csrSMatrix, CLSE::control );
 
+        clsparseInitCsrMatrix( &csrDMatrix );
+        csrDMatrix.nnz = n_vals;
         csrDMatrix.m = n_rows;
         csrDMatrix.n = n_cols;
-        csrDMatrix.nnz = n_vals;
-
-
+        clsparseCsrMetaSize( &csrDMatrix, CLSE::control );
 
         this->alpha = alpha;
         this->beta = beta;
@@ -47,74 +47,87 @@ public:
     }
 
 
-    void SetUp()
+    void SetUp( )
     {
+        //  Load single precision data from file; this API loads straight into GPU memory
+        cl_int status;
+        csrSMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                              csrSMatrix.nnz * sizeof( cl_float ), NULL, &status );
 
-        d_values = std::vector<double>(f_values.begin(), f_values.end());
+        csrSMatrix.colIndices = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                                  csrSMatrix.nnz * sizeof( cl_int ), NULL, &status );
 
-        //ALLOCATE MATRIX CL Buffers;
-        cl_int mem_status;
+        csrSMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                                  ( csrSMatrix.m + 1 ) * sizeof( cl_int ), NULL, &status );
 
-        cl_row_offsets = clCreateBuffer(context, CL_MEM_READ_WRITE, row_offsets.size()*sizeof(int), NULL, &mem_status);
-        cl_col_indices = clCreateBuffer(context, CL_MEM_READ_WRITE, col_indices.size()*sizeof(int), NULL, &mem_status);
-        cl_f_values = clCreateBuffer(context, CL_MEM_READ_WRITE, f_values.size()*sizeof(float), NULL, &mem_status);
-        cl_d_values = clCreateBuffer(context, CL_MEM_READ_WRITE, d_values.size()*sizeof(double), NULL, &mem_status);
+        csrSMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                                 csrSMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
 
-        if(mem_status != CL_SUCCESS)
-        {
-            TearDown();
-            exit(-4);
-        }
+        clsparseStatus fileError = clsparseSCsrMatrixfromFile( &csrSMatrix, file_name.c_str( ), CLSE::control );
+        if( fileError != clsparseSuccess )
+            throw std::runtime_error( "Could not read matrix market data from disk" );
 
-        cl_int copy_status;
+        //  Intialize double precision data, all the indices can be reused.
+        csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                              csrDMatrix.nnz * sizeof( cl_double ), NULL, &status );
+
+        csrDMatrix.colIndices = csrSMatrix.colIndices;
+        ::clRetainMemObject( csrDMatrix.colIndices );
+
+        csrDMatrix.rowOffsets = csrSMatrix.rowOffsets;
+        ::clRetainMemObject( csrDMatrix.rowOffsets );
+
+        csrDMatrix.rowBlocks = csrSMatrix.rowBlocks;
+        ::clRetainMemObject( csrDMatrix.rowBlocks );
+
+        //  Download sparse matrix data to host
+        //  First, create space on host to hold the data
+        f_values.resize( csrSMatrix.nnz );
+        col_indices.resize( csrSMatrix.nnz );
+        row_offsets.resize( csrSMatrix.m + 1 );
+
         // copy host matrix arrays to device;
-        copy_status = clEnqueueWriteBuffer(queue, cl_row_offsets, 1, 0,
-                                           row_offsets.size() * sizeof(int),
-                                           row_offsets.data(),
-                                           0, NULL, NULL);
+        cl_int copy_status;
+        copy_status = clEnqueueReadBuffer( queue, csrSMatrix.values, CL_TRUE, 0,
+                                           f_values.size( ) * sizeof( cl_float ),
+                                           f_values.data( ),
+                                           0, NULL, NULL );
 
-        copy_status = clEnqueueWriteBuffer(queue, cl_col_indices, 1, 0,
-                                           col_indices.size() * sizeof(int),
-                                           col_indices.data(),
-                                           0, NULL, NULL);
+        copy_status = clEnqueueReadBuffer( queue, csrSMatrix.rowOffsets, CL_TRUE, 0,
+                                            row_offsets.size( ) * sizeof( int ),
+                                            row_offsets.data( ),
+                                            0, NULL, NULL );
 
-        copy_status = clEnqueueWriteBuffer(queue, cl_f_values, 1, 0,
-                                           f_values.size() * sizeof(cl_float),
-                                           f_values.data(),
-                                           0, NULL, NULL);
-        copy_status = clEnqueueWriteBuffer(queue, cl_d_values, 1, 0,
-                                           d_values.size() * sizeof(cl_double),
-                                           d_values.data(),
-                                           0, NULL, NULL);
+        copy_status = clEnqueueReadBuffer( queue, csrSMatrix.colIndices, CL_TRUE, 0,
+                                            col_indices.size( ) * sizeof( int ),
+                                            col_indices.data( ),
+                                            0, NULL, NULL );
 
-        if(copy_status != CL_SUCCESS)
+        if( copy_status )
         {
-            TearDown();
-            exit(-5);
+            TearDown( );
+            exit( -5 );
         }
 
-        csrSMatrix.colIndices = cl_col_indices;
-        csrSMatrix.rowOffsets = cl_row_offsets;
-        csrSMatrix.values = cl_f_values;
-
-        csrDMatrix.colIndices = cl_col_indices;
-        csrDMatrix.rowOffsets = cl_row_offsets;
-        csrDMatrix.values = cl_d_values;
-
+        d_values = std::vector<double>( f_values.begin( ), f_values.end( ) );
     }
 
     //cleanup
-    void TearDown()
+    void TearDown( )
     {
         //release buffers;
-        clReleaseMemObject(cl_row_offsets);
-        clReleaseMemObject(cl_col_indices);
-        clReleaseMemObject(cl_f_values);
-        clReleaseMemObject(cl_d_values);
+        ::clReleaseMemObject( csrSMatrix.values );
+        ::clReleaseMemObject( csrSMatrix.colIndices );
+        ::clReleaseMemObject( csrSMatrix.rowOffsets );
+        ::clReleaseMemObject( csrSMatrix.rowBlocks );
+        ::clReleaseMemObject( csrDMatrix.values );
+        ::clReleaseMemObject( csrDMatrix.colIndices );
+        ::clReleaseMemObject( csrDMatrix.rowOffsets );
+        ::clReleaseMemObject( csrDMatrix.rowBlocks );
 
         //bring csrSMatrix csrDMatrix to its initial state
-        clsparseInitCsrMatrix(&csrSMatrix);
-        clsparseInitCsrMatrix(&csrDMatrix);
+        clsparseInitCsrMatrix( &csrSMatrix );
+        clsparseInitCsrMatrix( &csrDMatrix );
 
     }
 
@@ -130,16 +143,9 @@ public:
     static clsparseCsrMatrix csrSMatrix;
     static clsparseCsrMatrix csrDMatrix;
 
-    //matrix indexes are shared among csrSMatrix and csrDMatrix
-    static cl_mem cl_row_offsets;
-    static cl_mem cl_col_indices;
-
-    static cl_mem cl_f_values;
-    static cl_mem cl_d_values;
-
     static double alpha, beta;
 
-private :
+private:
     cl_command_queue queue;
     cl_context context;
     std::string file_name;

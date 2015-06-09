@@ -87,9 +87,9 @@ clsparseInitCsrMatrix( clsparseCsrMatrix* csrMatx )
 };
 
 clsparseStatus
-clsparseInitDenseMatrix (clsparseDenseMatrix *denseMatx)
+cldenseInitMatrix( cldenseMatrix* denseMatx )
 {
-    clsparseDenseMatrixPrivate* pDenseMatx = static_cast<clsparseDenseMatrixPrivate*> ( denseMatx );
+    cldenseMatrixPrivate* pDenseMatx = static_cast<cldenseMatrixPrivate*> ( denseMatx );
     pDenseMatx->clear();
 
     return clsparseSuccess;

@@ -24,9 +24,9 @@ clsparseStatus generateResult(cl_mem g_src, cl_mem g_dst, cl_mem g_value)
         return clsparseScsr2coo(CSRE::n_rows,
                                 CSRE::n_cols,
                                 CSRE::n_vals,
-                                CSRE::cl_row_offsets,
-                                CSRE::cl_col_indices,
-                                CSRE::cl_f_values,
+                                CSRE::csrSMatrix.rowOffsets,
+                                CSRE::csrSMatrix.colIndices,
+                                CSRE::csrSMatrix.values,
                                 g_src,
                                 g_dst,
                                 g_value,
@@ -39,9 +39,9 @@ clsparseStatus generateResult(cl_mem g_src, cl_mem g_dst, cl_mem g_value)
        return clsparseDcsr2coo(CSRE::n_rows,
                                CSRE::n_cols,
                                CSRE::n_vals,
-                               CSRE::cl_row_offsets,
-                               CSRE::cl_col_indices,
-                               CSRE::cl_d_values,
+                               CSRE::csrDMatrix.rowOffsets,
+                               CSRE::csrDMatrix.colIndices,
+                               CSRE::csrDMatrix.values,
                                g_src,
                                g_dst,
                                g_value,
@@ -49,6 +49,7 @@ clsparseStatus generateResult(cl_mem g_src, cl_mem g_dst, cl_mem g_value)
 
     }
 
+    return clsparseNotImplemented;
 }
 
 template <typename T>

@@ -14,7 +14,7 @@ cl_context ClSparseEnvironment::context = NULL;
 namespace po = boost::program_options;
 
 template<typename T>
-clsparseStatus generateResult(clsparseDenseMatrix& A)
+clsparseStatus generateResult(cldenseMatrix& A)
 {
     using CSRE = CSREnvironment;
     using CLSE = ClSparseEnvironment;
@@ -47,7 +47,7 @@ public:
 
     void SetUp()
     {
-        clsparseInitDenseMatrix(&A);
+        cldenseInitMatrix( &A );
 
         dense = std::vector<T>(CSRE::n_cols * CSRE::n_rows, 0);
 
@@ -78,7 +78,7 @@ public:
                       dense);
     }
 
-    clsparseDenseMatrix A;
+    cldenseMatrix A;
     std::vector<T> dense;
 
 };
