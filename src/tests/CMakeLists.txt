@@ -42,6 +42,7 @@ set( TESTS_CPP
   test_solver_cg
   test_solver_bicgStab
   test_csrmm
+  test_interface_cpp
 )
 
 set( TESTS_C
@@ -63,7 +64,7 @@ set( headers
 
 foreach( test ${TESTS_CPP} )
   add_executable( ${test} ${test}.cpp ${src} ${headers} )
-  target_link_libraries( ${test} clSPARSE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} )
+  target_link_libraries( ${test} clSPARSE ${CMAKE_DL_LIBS} ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENCL_LIBRARIES} )
   if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
    target_compile_options( ${test} PUBLIC -std=c++11 )
    if( CMAKE_COMPILER_IS_GNUCXX )

@@ -5,8 +5,6 @@
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 
-#include <clBLAS.h>
-
 clsparseStatus
 csr2coo_transform(const int m, const int n,
                     cl_mem csr_row_offsets,

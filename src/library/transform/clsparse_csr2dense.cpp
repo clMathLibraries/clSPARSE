@@ -5,8 +5,6 @@
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 
-#include <clBLAS.h>
-
 // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION >= 200 )
     #include "include/clSPARSE_2x.hpp"

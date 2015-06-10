@@ -147,6 +147,7 @@ install( FILES
 			"include/clSPARSE.h"
 			"include/clSPARSE_1x.h"
 			"include/clSPARSE_2x.h"
+                        "include/clSPARSE_xx.h"
 		DESTINATION
 			"./include" )
 

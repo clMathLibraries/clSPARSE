@@ -5,8 +5,6 @@
 #include "internal/clsparse_internal.hpp"
 #include "clSPARSE.version.h"
 
-#include <clAmdBlas.h>
-
 int clsparseInitialized = 0;
 
 clsparseStatus
@@ -29,8 +27,6 @@ clsparseSetup(void)
         return clsparseSuccess;
     }
 
-    clblasSetup();
-
     clsparseInitialized = 1;
     return clsparseSuccess;
 }
@@ -42,8 +38,6 @@ clsparseTeardown(void)
     {
         return clsparseSuccess;
     }
-
-    clblasTeardown();
 
     clsparseInitialized = 0;
     return clsparseSuccess;

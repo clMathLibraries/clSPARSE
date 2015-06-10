@@ -135,5 +135,5 @@ protected:
     clsparseControl control;
 };
 
-#endif // ifndef CLBLAS_BENCHMARK_COMMON_HXX__
+#endif // ifndef CLSPARSE_BENCHMARK_COMMON_HXX__
 

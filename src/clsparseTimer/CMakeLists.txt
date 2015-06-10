@@ -61,7 +61,7 @@ install( TARGETS clsparseTimer
 )
 
 install( FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/clsparseTimer_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/clsparsetimer_export.h
   DESTINATION
     include
 )
