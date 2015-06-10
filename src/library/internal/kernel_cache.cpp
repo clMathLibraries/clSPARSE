@@ -54,7 +54,7 @@ cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
     {
 
 #ifndef NDEBUG
-        std::cout << "kernel not found: " << hash <<std::endl;
+        std::cout << "kernel not found in cache: " << hash <<std::endl;
 #endif
 
         const cl::Program* program = NULL;

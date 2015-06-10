@@ -9,21 +9,40 @@
 #include <iostream>
 
 //get the wavefront size and max work group size
-void collectEnvParams(clsparseControl control)
+clsparseStatus collectEnvParams(clsparseControl control)
 {
     if(!clsparseInitialized)
     {
-        return;
+        return clsparseNotInitialized;
     }
 
     //check opencl elements
     if( control == nullptr )
     {
-        return;
+        return clsparseInvalidControlObject;
     }
 
+    cl_int status;
     //Query device if necessary;
-    cl::Device device = control->queue.getInfo<CL_QUEUE_DEVICE>( );
+    cl::Device device = control->queue.getInfo<CL_QUEUE_DEVICE>(&status);
+    if(status != CL_SUCCESS)
+    {
+        switch (status) {
+        case CL_INVALID_COMMAND_QUEUE:
+            return clsparseInvalidCommandQueue;
+            break;
+        case CL_INVALID_VALUE:
+            return clsparseInvalidValue;
+            break;
+        case CL_OUT_OF_HOST_MEMORY:
+            return clsparseOutOfHostMemory;
+        case CL_OUT_OF_RESOURCES:
+            return clsparseOutOfResources;
+        default:
+            return clsparseInvalidDevice;
+            break;
+        }
+    }
     control->max_wg_size = device.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>( );
 
     const size_t wg_size = control->max_wg_size;
@@ -48,11 +67,11 @@ void collectEnvParams(clsparseControl control)
 }
 
 clsparseControl
-clsparseCreateControl( cl_command_queue queue, cl_int *status )
+clsparseCreateControl( cl_command_queue queue, clsparseStatus *status )
 {
     clsparseControl control = new _clsparseControl( queue );
 
-    cl_int err;
+    clsparseStatus err = clsparseSuccess;
     if( !control )
     {
         control = nullptr;

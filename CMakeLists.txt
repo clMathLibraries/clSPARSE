@@ -65,10 +65,11 @@ option( BUILD_Boost "Install Boost as an external dependency" ON )
 option( BUILD_gMock "Install googleMock as an external dependency" ON )
 #option( BUILD_clBLAS "Install clBLAS as an external dependency" ON )
 option( BUILD_MTX "Download sparse matrix files for bench/test" OFF )
-
+option( BUILD_SAMPLES "Build sample program using clSPARSE lib" OFF )
 # Query the user for which version of OpenCL they wish to build the library for
 set( BUILD_CLVERSION "1.2" CACHE STRING "The version of OpenCL we wish to compile the library against" )
 set_property( CACHE BUILD_CLVERSION PROPERTY STRINGS 2.0 1.2 1.1 )
+
 
 # Comment this out because this does not work yet
 set( clSPARSE.Dependencies )
@@ -135,19 +136,54 @@ if( BUILD_MTX )
   include( ExternalMTX )
 endif( )
 
-# Main project
-if( BUILD_clSPARSE )
-  message( STATUS "Setting up clSPARSE external..." )
+if( BUILD_clSPARSE OR BUILD_SAMPLES )
   include( ExternalProject )
 
-  # Also add sparse as an external dependency.  The advantage of this is that sparse can be treated from cmake
-  # as an independant project.  The developer can rebuild sparse project without rebuilding all dependencies.
-  ExternalProject_Add(
-    clSPARSE
-    DEPENDS ${clSPARSE.Dependencies}
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/src
-    BINARY_DIR clSPARSE-build
-    CMAKE_ARGS ${clSPARSE.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION}
-    INSTALL_COMMAND ""
-  )
+  # Main project
+  if( BUILD_clSPARSE )
+    message( STATUS "Setting up clSPARSE external..." )
+
+    if ( BUILD_SAMPLES )
+      # If the user elects to build samples, then we must build and install clSPARSE
+      # The install location is set as a subdirectory of the SuperBuild
+      ExternalProject_Add(
+        clSPARSE
+        DEPENDS ${clSPARSE.Dependencies}
+        SOURCE_DIR ${PROJECT_SOURCE_DIR}/src
+        BINARY_DIR clSPARSE-build
+        INSTALL_DIR clSPARSE-package
+        CMAKE_ARGS ${clSPARSE.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION} -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+      )
+    else( )
+      # If the user does not want to build samples, then build clSPARSE but don't automatically
+      # install it
+      ExternalProject_Add(
+        clSPARSE
+        DEPENDS ${clSPARSE.Dependencies}
+        SOURCE_DIR ${PROJECT_SOURCE_DIR}/src
+        BINARY_DIR clSPARSE-build
+        CMAKE_ARGS ${clSPARSE.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION}
+        INSTALL_COMMAND ""
+      )
+    endif( )
+
+  endif( )
+
+  # Our goal with samples is to demonstrate two things
+  # 1.  Demonstrate what simple clSPARSE code looks like to set up and execute common functionality
+  # 2.  Demonstrate how an external program would find and link clSPARSE
+  if ( BUILD_SAMPLES )
+    message( STATUS "Setting up sample programs ...")
+    ExternalProject_Get_Property( clSPARSE install_dir )
+
+    ExternalProject_Add(
+      clSPARSE-samples
+      DEPENDS clSPARSE
+      SOURCE_DIR ${PROJECT_SOURCE_DIR}/samples
+      BINARY_DIR clSPARSE-samples-build
+      CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION} -DBUILD64=${BUILD64} -DCMAKE_PREFIX_PATH=${install_dir}
+      EXCLUDE_FROM_ALL 1
+      INSTALL_COMMAND ""
+    )
+  endif( )
 endif( )
