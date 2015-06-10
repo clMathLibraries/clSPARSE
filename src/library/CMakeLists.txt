@@ -10,7 +10,7 @@ message( STATUS "clSPARSE is building using CL interface ='${BUILD_CLVERSION}'" 
 find_package( OpenCL ${BUILD_CLVERSION} REQUIRED )
 
 # clSPARSE library requires clBLAS
-find_package( clBLAS REQUIRED )
+# find_package( clBLAS REQUIRED )
 
 if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
   add_definitions( -std=c++11 )
@@ -32,7 +32,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${clSPARSE_INCLUDE_DIRS}
-  ${clBLAS_INCLUDE_DIRS}
+# ${clBLAS_INCLUDE_DIRS}
   ${OPENCL_INCLUDE_DIRS}
   ${PROJECT_BINARY_DIR}/include
   ${PROJECT_BINARY_DIR}/clsparseTimer
@@ -221,7 +221,7 @@ add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   )
 
 # PRIVATE linking prevents transitive library linking of the clBLAS libraries
-target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${clBLAS_LIBRARIES} )
+target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ) #${clBLAS_LIBRARIES} )
 
 # Package that helps me set visibility for function names exported from shared library
 GENERATE_EXPORT_HEADER( clSPARSE )
@@ -237,23 +237,23 @@ endif( )
 
 # I think this would all be a bit easier if clBLAS started exporting its targets
 # similar to what clsparse is doing
-if( MSVC_IDE )
-  set( clBLAS_LIBRARY_SHARED ${CLMATH_BLAS_ROOT}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}clBLAS${CMAKE_SHARED_LIBRARY_SUFFIX} )
-  set( clblasCommand COMMAND ${CMAKE_COMMAND} -E copy_if_different ${clBLAS_LIBRARY_SHARED} ${PROJECT_BINARY_DIR}/staging/${CMAKE_CFG_INTDIR} )
-else( )
-  # UNIX based systems are using a SOLINK, link to it instead
-  set( clBLAS_LIBRARY_SOLINK ${CMAKE_SHARED_LIBRARY_PREFIX}clBLAS.2${CMAKE_SHARED_LIBRARY_SUFFIX} )
-  set( clblasCommand COMMAND ${CMAKE_COMMAND} -E create_symlink ${clBLAS_LIBRARY} ${PROJECT_BINARY_DIR}/staging/${CMAKE_CFG_INTDIR}/${clBLAS_LIBRARY_SOLINK} )
-endif( )
+#if( MSVC_IDE )
+#  set( clBLAS_LIBRARY_SHARED ${CLMATH_BLAS_ROOT}/bin/${CMAKE_SHARED_LIBRARY_PREFIX}clBLAS${CMAKE_SHARED_LIBRARY_SUFFIX} )
+#  set( clblasCommand COMMAND ${CMAKE_COMMAND} -E copy_if_different ${clBLAS_LIBRARY_SHARED} ${PROJECT_BINARY_DIR}/staging/${CMAKE_CFG_INTDIR} )
+#else( )
+#  # UNIX based systems are using a SOLINK, link to it instead
+#  set( clBLAS_LIBRARY_SOLINK ${CMAKE_SHARED_LIBRARY_PREFIX}clBLAS.2${CMAKE_SHARED_LIBRARY_SUFFIX} )
+#  set( clblasCommand COMMAND ${CMAKE_COMMAND} -E create_symlink ${clBLAS_LIBRARY} ${PROJECT_BINARY_DIR}/staging/${CMAKE_CFG_INTDIR}/${clBLAS_LIBRARY_SOLINK} )
+#endif( )
 
-add_custom_command( TARGET clSPARSE
-                   POST_BUILD
-                   ${clblasCommand}
-#                   [BYPRODUCTS [files...]]
-#                   [WORKING_DIRECTORY dir]
-                   COMMENT "Copying clBLAS library dependency into staging directory"
-                   VERBATIM
-                   )
+#add_custom_command( TARGET clSPARSE
+#                   POST_BUILD
+#                   ${clblasCommand}
+##                   [BYPRODUCTS [files...]]
+##                   [WORKING_DIRECTORY dir]
+#                   COMMENT "Copying clBLAS library dependency into staging directory"
+#                   VERBATIM
+#                   )
 
 # CPack configuration; include the executable into the package
 install( TARGETS clSPARSE
