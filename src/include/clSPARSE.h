@@ -351,6 +351,7 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     CLSPARSE_EXPORT clsparseStatus
         clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control );
 
+CLSPARSE_EXPORT clsparseStatus
 clsparseDcoomv(const clsparseScalar* alpha,
                const clsparseCooMatrix* matx,
                const clsparseVector* x,
@@ -361,12 +362,12 @@ clsparseDcoomv(const clsparseScalar* alpha,
 //CSR <--> Dense transformation routines
 CLSPARSE_EXPORT clsparseStatus
 clsparseScsr2dense(const clsparseCsrMatrix* csr,
-                   clsparseDenseMatrix* A,
+                   cldenseMatrix* A,
                    const clsparseControl control);
 
 CLSPARSE_EXPORT clsparseStatus
 clsparseDcsr2dense(const clsparseCsrMatrix* csr,
-                   clsparseDenseMatrix* A,
+                   cldenseMatrix* A,
                    clsparseControl control);
 
 //CSR <--> COO transformation routines
@@ -397,7 +398,7 @@ clsparseDcoo2csr_GPU(clsparseCooMatrix* coo,
 //DENSE <--> CSR
 CLSPARSE_EXPORT clsparseStatus
 clsparseSdense2csr(clsparseCsrMatrix* csr,
-                   clsparseDenseMatrix* A,
+                   cldenseMatrix* A,
                    clsparseControl control);
 
 

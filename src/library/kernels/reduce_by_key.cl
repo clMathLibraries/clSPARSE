@@ -16,12 +16,12 @@ __kernel void OffsetCalculation(
     size_t locId = get_local_id( 0 );
     size_t wgSize = get_local_size( 0 );
 
-    if (gloId >= vecSize) return;
+    //if (gloId >= vecSize) return;
+    if (gloId < vecSize){ 
+       int key, prev_key;
 
-    int key, prev_key;
-
-    if(gloId > 0){
-      key = ikeys[ gloId ];
+       if(gloId > 0){
+          key = ikeys[ gloId ];
 	  prev_key = ikeys[ gloId - 1];
 	  //if((*binaryPred)(key, prev_key))
 	  if(key == prev_key)
@@ -32,6 +32,7 @@ __kernel void OffsetCalculation(
 	else{
 		 tempArray[ gloId ] = 0;
 	}
+    }
 }
 
 /******************************************************************************

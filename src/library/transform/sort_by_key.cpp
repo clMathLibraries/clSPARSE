@@ -214,5 +214,10 @@ radix_sort_by_key(int keys_first,
 		
     }
 
+    clReleaseMemObject(clSwapKeys);
+    clReleaseMemObject(clSwapValues);
+    clReleaseMemObject(clSwapValues2);
+    clReleaseMemObject(clHistData);
+
     return clsparseSuccess;
 }

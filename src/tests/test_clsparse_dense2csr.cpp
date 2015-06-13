@@ -60,8 +60,8 @@ TYPED_TEST(TestDENSE2CSR, transform)
     using CSRE = CSREnvironment;
     using CLSE = ClSparseEnvironment;
 
-    clsparseDenseMatrix A;
-    clsparseInitDenseMatrix(&A);
+    cldenseMatrix A;
+    cldenseInitMatrix(&A);
 	
     cl_int status;
 
@@ -69,8 +69,8 @@ TYPED_TEST(TestDENSE2CSR, transform)
                               CL_MEM_READ_WRITE,
                               CSRE::n_cols * CSRE::n_rows * sizeof(cl_float), NULL, &status);
 
-    A.m = CSRE::n_rows;
-    A.n = CSRE::n_cols;
+    A.num_rows = CSRE::n_rows;
+    A.num_cols = CSRE::n_cols;
 	
     clsparseScsr2dense(&CSRE::csrSMatrix,
                        &A,

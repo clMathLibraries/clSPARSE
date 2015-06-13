@@ -194,5 +194,11 @@ reduce_by_key(
     *count = *(h_result);
     //printf("h_result = %d\n", *count );
 
+    //release buffers
+    clReleaseMemObject(tempArrayVec);
+    clReleaseMemObject(preSumArray);
+    clReleaseMemObject(postSumArray);
+    clReleaseMemObject(keySumArray);
+
     return clsparseSuccess;
 }   //end of reduce_by_key

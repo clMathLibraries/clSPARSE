@@ -119,6 +119,8 @@ scan( int first,
 
         status = kWrapper2.run(control, global2, local2);
 
+        clReleaseMemObject(preSumArray);
+
         if (status != CL_SUCCESS)
         {
           return clsparseInvalidKernelExecution;

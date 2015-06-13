@@ -21,7 +21,7 @@ class TestCOO2CSR : public ::testing::Test
     using CLSE = ClSparseEnvironment;
 
 public:
-
+#if 0
     void SetUp()
     {
         cl_int status;
@@ -42,6 +42,37 @@ public:
         row = (int *)malloc((cooMatx.m + 1) * sizeof(int));
         col = (int *)malloc((cooMatx.nnz) * sizeof(int));
         val = (T *)malloc(cooMatx.nnz * sizeof(T)); 
+    }
+#endif 
+
+    void SetUp()
+    {
+        cl_int status;
+
+        int nnz1, row1, col1;
+        clsparseStatus fileError = clsparseHeaderfromFile( &nnz1, &row1, &col1, path.c_str( ) );
+        if( fileError != clsparseSuccess )
+           throw std::runtime_error( "Could not read matrix market header from disk" );
+
+        clsparseInitCooMatrix( &cooMatx );
+        cooMatx.nnz = nnz1;
+        cooMatx.m = row1;
+        cooMatx.n = col1;
+
+        //clsparseCooHeaderfromFile( &cooMatx, path.c_str( ) );
+
+        cooMatx.values     = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+                                               cooMatx.nnz * sizeof(T), NULL, &status );
+
+        cooMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+                                           cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+        cooMatx.rowIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+                                           cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+        clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), CLSE::control );
+
+        row = (int *)malloc((cooMatx.m + 1) * sizeof(int));
+        col = (int *)malloc((cooMatx.nnz) * sizeof(int));
+        val = (T *)malloc(cooMatx.nnz * sizeof(T));
     }
 
     clsparseCooMatrix cooMatx;

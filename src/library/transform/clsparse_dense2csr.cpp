@@ -6,7 +6,7 @@
 #include "internal/kernel_wrap.hpp"
 #include "transform/transform_kernels.h"
 
-#include <clBLAS.h>
+//#include <clBLAS.h>
 #define HERE printf("HERE\n");fflush(stdout);
 // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION >= 200 )
@@ -17,11 +17,11 @@
 
 clsparseStatus
 clsparseSdense2csr(clsparseCsrMatrix* csr,
-                   clsparseDenseMatrix* A,
+                   cldenseMatrix* A,
                    const clsparseControl control)
 {
     clsparseCsrMatrixPrivate* pCsr = static_cast<clsparseCsrMatrixPrivate*>(csr);
-    clsparseDenseMatrixPrivate* pA = static_cast<clsparseDenseMatrixPrivate*>(A);
+    cldenseMatrixPrivate* pA = static_cast<cldenseMatrixPrivate*>(A);
 
     if (!clsparseInitialized)
     {
@@ -37,15 +37,15 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     clsparseStatus status;
     cl_int run_status;
 	
-    pCsr->m = pA->m;
-    pCsr->n = pA->n;
+    pCsr->m = pA->num_rows;
+    pCsr->n = pA->num_cols;
 	
     cl::Context cxt = control->getContext();
     cl_mem scan_input = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           A->m * A->n * sizeof( cl_int ), NULL, &run_status );
+                                           A->num_rows * A->num_cols * sizeof( cl_int ), NULL, &run_status );
 
     cl_mem scan_output = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           A->m * A->n * sizeof( cl_int ), NULL, &run_status );
+                                           A->num_rows * A->num_cols * sizeof( cl_int ), NULL, &run_status );
     
 
     const std::string params = std::string() +
@@ -57,15 +57,15 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
 
     KernelWrap kWrapper(kernel);
 
-    int total = pA->m * pA->n;
+    int total = pA->num_rows * pA->num_cols;
     
     kWrapper << total
              << pA->values
 	     << scan_input;
 
     cl_uint workgroup_size   = 	256;		 
-    cl_uint global_work_size = ((pA->m * pA->n) % workgroup_size == 0)? (pA->m * pA->n) :  (pA->m * pA->n) / workgroup_size * workgroup_size + workgroup_size;
-    if (pA->m * pA->n < workgroup_size) global_work_size = workgroup_size;
+    cl_uint global_work_size = ((pA->num_rows * pA->num_cols) % workgroup_size == 0)? (pA->num_rows * pA->num_cols) :  (pA->num_rows * pA->num_cols) / workgroup_size * workgroup_size + workgroup_size;
+    if (pA->num_rows * pA->num_cols < workgroup_size) global_work_size = workgroup_size;
 	
     cl::NDRange local(workgroup_size);
     cl::NDRange global(global_work_size);
@@ -78,13 +78,13 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     }
 	
     //temporarily on CPU
-    int *sum_temp =  (int *)malloc((pA->m * pA->n) * sizeof(int));
-    memset(sum_temp, 0, (pA->m * pA->n) * sizeof(int)); 
+    int *sum_temp =  (int *)malloc((pA->num_rows * pA->num_cols) * sizeof(int));
+    memset(sum_temp, 0, (pA->num_rows * pA->num_cols) * sizeof(int)); 
     run_status = clEnqueueReadBuffer(control->queue(), 
                                      scan_input, 
                                      1, 
                                      0, 
-                                    (pA->m *pA->n)  * sizeof(int), 
+                                    (pA->num_rows *pA->num_cols)  * sizeof(int), 
                                      sum_temp, 
                                      0, 
                                      0, 
@@ -93,7 +93,7 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     if(run_status != CL_SUCCESS) { fprintf(stderr, "ERROR: read %d\n", run_status);}
     //TODO: temporarily on GPU
     int nnz = 0;
-    for(int i = 0; i < pA->m * pA->n; i++)
+    for(int i = 0; i < pA->num_rows * pA->num_cols; i++)
         nnz += sum_temp[i];
     printf("nnz............nnz.........nnz = %d\n", nnz);
     //end on CPU
@@ -129,7 +129,7 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
 
     KernelWrap kWrapper1(kernel1);
 
-    kWrapper1 << pA->m << pA->n << total
+    kWrapper1 << (int)pA->num_rows << (int)pA->num_cols << total
               << pA->values << scan_input
 	      << scan_output
 	      << cooMatx.rowIndices

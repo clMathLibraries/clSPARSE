@@ -6,7 +6,7 @@
 #include "internal/kernel_wrap.hpp"
 #include "transform/transform_kernels.h"
 
-#include <clBLAS.h>
+//#include <clBLAS.h>
 
 // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION >= 200 )
@@ -67,8 +67,8 @@ clsparse_coo2csr_internal(clsparseCooMatrix* coo,
 
     cl_mem scan_input = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->m + 1)*sizeof(int), NULL, NULL);
     if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clCreateBuffer  %d\n",  err);
-    cl_mem scan_output = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->m + 1)*sizeof(int), NULL, NULL);
-    if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clCreateBuffer  %d\n",  err);
+    //cl_mem scan_output = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->m + 1)*sizeof(int), NULL, NULL);
+    //if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clCreateBuffer  %d\n",  err);
    
     int pattern = 1, zero = 0;
     err = clEnqueueFillBuffer(control->queue(), one_array, &pattern, sizeof(int), 0,
@@ -149,7 +149,12 @@ clsparse_coo2csr_internal(clsparseCooMatrix* coo,
                         0,
                         NULL,
                         NULL);
-   
+
+    clReleaseMemObject(one_array);
+    clReleaseMemObject(row_indices);
+    clReleaseMemObject(scan_input);
+    //clReleaseMemObject(scan_output); 
+     
     return clsparseSuccess;
 
 }
@@ -159,10 +164,11 @@ clsparseScoo2csr_GPU(clsparseCooMatrix* coo,
                      clsparseCsrMatrix* csr,
                      clsparseControl control){
 
-   clsparse_coo2csr_internal(coo,
-                             csr,
-                             control,
-                             0);
+   
+   return clsparse_coo2csr_internal(coo,
+                                    csr,
+                                    control,
+                                    0);
 
 }
 
@@ -171,10 +177,10 @@ clsparseDcoo2csr_GPU(clsparseCooMatrix* coo,
                      clsparseCsrMatrix* csr,
                      clsparseControl control){
 
-   clsparse_coo2csr_internal(coo,
-                             csr,
-                             control,
-                             1);
+   return clsparse_coo2csr_internal(coo,
+                                    csr,
+                                    control,
+                                    1);
 
 }
 

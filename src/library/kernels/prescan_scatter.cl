@@ -16,9 +16,10 @@ void prescan_scatter ( __global int *key,
 {
     const int i = get_global_id(0);
 
-    if (i >= size) return;
-
-    scan_input[key[i]] = value[i];
+    //if (i >= size) return;
+    if (i < size){
+        scan_input[key[i]] = value[i];
+    }
 }
 )"
 
