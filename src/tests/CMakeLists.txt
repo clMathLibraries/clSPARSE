@@ -42,6 +42,7 @@ set( TESTS_CPP
   test_solver_cg
   test_solver_bicgStab
   test_csrmm
+  test_interface_cpp
 )
 
 set( TESTS_C
