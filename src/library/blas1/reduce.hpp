@@ -196,7 +196,7 @@ reduce(clsparse::array_base<T>& pR,
     */
     const cl_ulong REDUCE_BLOCK_SIZE = 256;
 
-    init_scalar(pR, (T)0, control);
+    init_scalar(pR, (T)0.0, control);
 
     cl_int status;
     if (pX.size() > 0)
