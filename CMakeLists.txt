@@ -61,7 +61,7 @@ endif( )
 
 # Various options below on configuring the build, and how to generate the solution files
 option( BUILD_clSPARSE "Setup clSPARSE to use all the external dependencies" ON )
-option( BUILD_Boost "Install Boost as an external dependency" OFF )
+option( BUILD_Boost "Install Boost as an external dependency" ON )
 option( BUILD_gMock "Install googleMock as an external dependency" ON )
 #option( BUILD_clBLAS "Install clBLAS as an external dependency" ON )
 option( BUILD_MTX "Download sparse matrix files for bench/test" OFF )

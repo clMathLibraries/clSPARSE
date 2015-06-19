@@ -364,8 +364,9 @@ void permuteByKeyAscTemplate( __global const u32* restrict gKeys,
         GROUP_LDS_BARRIER;
     }
 }
+)"
 
-
+R"(
 #define DESCENDING
 
 void sort4BitsKeyValueDescending(u32 sortData[4],  int sortVal[4], const int startBit, int lIdx, __local u32* ldsSortData, __local int *ldsSortVal)

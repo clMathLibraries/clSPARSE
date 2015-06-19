@@ -1,18 +1,6 @@
 R"(
 /***************************************************************************                                                                                     
 *   © 2012,2014 Advanced Micro Devices, Inc. All rights reserved.                                     
-*                                                                                    
-*   Licensed under the Apache License, Version 2.0 (the "License");   
-*   you may not use this file except in compliance with the License.                 
-*   You may obtain a copy of the License at                                          
-*                                                                                    
-*       http://www.apache.org/licenses/LICENSE-2.0                      
-*                                                                                    
-*   Unless required by applicable law or agreed to in writing, software              
-*   distributed under the License is distributed on an "AS IS" BASIS,              
-*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.         
-*   See the License for the specific language governing permissions and              
-*   limitations under the License.                                                   
 ***************************************************************************/          
 #pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
 #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
@@ -94,7 +82,9 @@ uint4 localPrefixSum256V( uint4 pData, uint lIdx, uint* totalSum, __local u32* s
     u32 rank = scanLocalMemAndTotal( s4, sorterSharedMemory, totalSum,  1 );
     return pData + make_uint4( rank, rank, rank, rank );
 }
+)"
 
+R"(
 void sort4BitsSignedKeyValueAscending(u32 sortData[4], int sortVal[4], VALUE_TYPE sortVal2[4], const int startBit, int lIdx, __local u32* ldsSortData, __local int *ldsSortVal,  __local  VALUE_TYPE *ldsSortVal2 )
 {   
   u32 signedints[4];
@@ -343,8 +333,9 @@ void permuteByKeySignedAscTemplate( __global const u32* restrict gKeys,
         GROUP_LDS_BARRIER;
     }
 }
+)"
 
-
+R"(
 #define DESCENDING
 
 void sort4BitsSignedKeyValueDescending(u32 sortData[4], int sortVal[4], const int startBit, int lIdx, __local u32* ldsSortData, __local int *ldsSortVal)

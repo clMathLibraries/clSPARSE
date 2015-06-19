@@ -182,10 +182,6 @@ set( clSPARSE.Headers.internal
   internal/data_types/reference_base.hpp
   internal/data_types/iterator-base.hpp
   internal/computeRowBlocks.hpp
-  spmv/csrmv_vector/csrmv_vector.hpp
-# spmv/csrmv_vector/csrmv_vector_impl.hpp
-  spmv/csrmv_adaptive/csrmv_adaptive.hpp
-# scale/clsparse_scale.hpp
   transform/transform_kernels.h
   ${ocl_kernels_file_name}
 )

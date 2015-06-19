@@ -353,10 +353,6 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
         cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
         clsparseControl control );
 
-//TODO where should we put this for internal use
-//    CLSPARSE_EXPORT clsparseStatus
-//        clsparseScoo2csr_host( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control );
-
 CLSPARSE_EXPORT clsparseStatus
 clsparseDcoomv(const clsparseScalar* alpha,
                const clsparseCooMatrix* matx,
