@@ -128,11 +128,13 @@ TYPED_TEST(TestDENSE2CSR, transform)
                         0);
  
     for(int i = 0; i < csrMatx.m + 1; i++){
+         //std::cout << i << ":" << row[i] << " " << CSRE::row_offsets[i] << std::endl;
          ASSERT_EQ (row[i], CSRE::row_offsets[i]);
     }
 
     for(int i = 0; i < csrMatx.nnz; i++){
-        ASSERT_EQ(col[i], CSRE::col_indices[i]);
+         ASSERT_EQ(col[i], CSRE::col_indices[i]);
+         //std::cout << i << ":" << col[i] << " " << CSRE::col_indices[i] << std::endl;
     }
     if(typeid(TypeParam) == typeid(float)){
        for(int i = 0; i < csrMatx.nnz; i++){

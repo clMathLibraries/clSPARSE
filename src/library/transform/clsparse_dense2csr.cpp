@@ -17,11 +17,11 @@
 
 clsparseStatus
 clsparseSdense2csr(clsparseCsrMatrix* csr,
-                   cldenseMatrix* A,
+                   const cldenseMatrix* A,
                    const clsparseControl control)
 {
     clsparseCsrMatrixPrivate* pCsr = static_cast<clsparseCsrMatrixPrivate*>(csr);
-    cldenseMatrixPrivate* pA = static_cast<cldenseMatrixPrivate*>(A);
+    const cldenseMatrixPrivate* pA = static_cast<const cldenseMatrixPrivate*>(A);
 
     if (!clsparseInitialized)
     {
@@ -40,12 +40,14 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     pCsr->m = pA->num_rows;
     pCsr->n = pA->num_cols;
 	
-    cl::Context cxt = control->getContext();
+    int total = pA->num_rows * pA->num_cols;
+    cl::Context cxt = control->getContext();   
+
     cl_mem scan_input = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           A->num_rows * A->num_cols * sizeof( cl_int ), NULL, &run_status );
+                                           total * sizeof( cl_int ), NULL, &run_status );
 
     cl_mem scan_output = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           A->num_rows * A->num_cols * sizeof( cl_int ), NULL, &run_status );
+                                           total * sizeof( cl_int ), NULL, &run_status );
     
 
     const std::string params = std::string() +
@@ -57,15 +59,13 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
 
     KernelWrap kWrapper(kernel);
 
-    int total = pA->num_rows * pA->num_cols;
-    
     kWrapper << total
              << pA->values
 	     << scan_input;
 
     cl_uint workgroup_size   = 	256;		 
-    cl_uint global_work_size = ((pA->num_rows * pA->num_cols) % workgroup_size == 0)? (pA->num_rows * pA->num_cols) :  (pA->num_rows * pA->num_cols) / workgroup_size * workgroup_size + workgroup_size;
-    if (pA->num_rows * pA->num_cols < workgroup_size) global_work_size = workgroup_size;
+    cl_uint global_work_size = (total % workgroup_size == 0)? total :  total / workgroup_size * workgroup_size + workgroup_size;
+    if (total < workgroup_size) global_work_size = workgroup_size;
 	
     cl::NDRange local(workgroup_size);
     cl::NDRange global(global_work_size);
@@ -73,18 +73,19 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     run_status = kWrapper.run(control, global, local);
 
     if (run_status != CL_SUCCESS)
-    {
+   {
         return clsparseInvalidKernelExecution;
     }
-	
+
+#if 0 	
     //temporarily on CPU
-    int *sum_temp =  (int *)malloc((pA->num_rows * pA->num_cols) * sizeof(int));
-    memset(sum_temp, 0, (pA->num_rows * pA->num_cols) * sizeof(int)); 
+    int *sum_temp =  (int *)malloc(total * sizeof(int));
+    memset(sum_temp, 0, total * sizeof(int)); 
     run_status = clEnqueueReadBuffer(control->queue(), 
                                      scan_input, 
                                      1, 
                                      0, 
-                                    (pA->num_rows *pA->num_cols)  * sizeof(int), 
+                                     total  * sizeof(int), 
                                      sum_temp, 
                                      0, 
                                      0, 
@@ -93,10 +94,55 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     if(run_status != CL_SUCCESS) { fprintf(stderr, "ERROR: read %d\n", run_status);}
     //TODO: temporarily on GPU
     int nnz = 0;
-    for(int i = 0; i < pA->num_rows * pA->num_cols; i++)
+    for(int i = 0; i < total; i++){
         nnz += sum_temp[i];
+        //printf("%d ", sum_temp[i]);
+    }
     printf("nnz............nnz.........nnz = %d\n", nnz);
     //end on CPU
+#endif 
+    clsparseScalar sum;    
+    clsparseInitScalar(&sum);
+
+    clsparseVector gY;
+    clsparseInitVector(&gY);
+
+    gY.values = clCreateBuffer(cxt(),
+                               CL_MEM_READ_WRITE,
+                               total * sizeof(cl_int), NULL, &run_status);
+   
+    run_status =   clEnqueueCopyBuffer(control->queue(), 
+                                       scan_input,
+                                       gY.values,
+                                       0,
+                                       0,
+                                       total * sizeof(cl_int),
+                                       0, NULL, NULL);
+
+    gY.n      = total; 
+    sum.value = clCreateBuffer(cxt(), CL_MEM_READ_WRITE,
+                               sizeof(cl_int), NULL, &run_status);
+
+    run_status = cldenseIreduce(&sum, &gY, control);
+
+    if (run_status != CL_SUCCESS)
+    {
+        return clsparseInvalidKernelExecution;
+    }
+
+    int nnz = 0;
+    run_status = clEnqueueReadBuffer(control->queue(),
+                                     sum.value,
+                                     1,
+                                     0,
+                                     sizeof(cl_int),
+                                     &nnz,
+                                     0,
+                                     NULL,
+                                     NULL);
+
+
+    printf("nnz = %d\n", nnz);
 
     status = scan(
                   0,
@@ -117,6 +163,7 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     cooMatx.nnz = nnz;
     cooMatx.m = pCsr->m;
     cooMatx.n = pCsr->n;
+    //printf("m = %d, n = %d\n", cooMatx.m,  cooMatx.n); 
 	
     cooMatx.values     = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
                                            cooMatx.nnz * sizeof( cl_float ), NULL, &run_status );
@@ -129,7 +176,7 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
 
     KernelWrap kWrapper1(kernel1);
 
-    kWrapper1 << (int)pA->num_rows << (int)pA->num_cols << total
+    kWrapper1 << cooMatx.m << cooMatx.n << total
               << pA->values << scan_input
 	      << scan_output
 	      << cooMatx.rowIndices
@@ -143,12 +190,18 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
         return clsparseInvalidKernelExecution;
     }
 	
-    status = clsparseScoo2csr_GPU(&cooMatx,
-                                   csr,
-                                   control);
+    status = clsparseScoo2csr(&cooMatx,
+                               csr,
+                               control);
 
     if(status != clsparseSuccess)
         return status;
+
+    clReleaseMemObject(cooMatx.values);
+    clReleaseMemObject(cooMatx.colIndices);
+    clReleaseMemObject(cooMatx.rowIndices);
+    clReleaseMemObject(gY.values);
+    clReleaseMemObject(sum.value);
 
     return clsparseSuccess;
 

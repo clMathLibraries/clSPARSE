@@ -44,7 +44,6 @@ typedef unsigned int u32;
 #define m_startBit z
 #define m_nBlocksPerWG  w
 
-#define WG_SIZE 256
 #define BITS_PER_PASS 4
 #define NUM_BUCKET (1<<BITS_PER_PASS)
 

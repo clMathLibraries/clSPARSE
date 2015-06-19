@@ -112,12 +112,12 @@ TYPED_TEST(TestCOO2CSR, transform)
                                        ( this->cooMatx.m + 1 ) * sizeof( cl_int ), NULL, &status );
 
     if(typeid(TypeParam) == typeid(float))										   
-       clsparseScoo2csr_GPU(&(this->cooMatx),
+           clsparseScoo2csr(&(this->cooMatx),
                             &csrMatx,
                             CLSE::control);
 
     if(typeid(TypeParam) == typeid(double))
-       clsparseDcoo2csr_GPU(&(this->cooMatx),
+            clsparseDcoo2csr(&(this->cooMatx),
                             &csrMatx,
                             CLSE::control);	
 				  

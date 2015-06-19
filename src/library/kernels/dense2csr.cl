@@ -45,7 +45,7 @@ void spread_value( int m, int n, int total,
 	int tid   = get_global_id(0);
 	if (scan_input[tid] == 1 && tid < total){
 	    int x_idx = tid / n;
-            int y_idx = tid % m;
+            int y_idx = tid % n;
             row[scan_output[tid]] = x_idx;		
             col[scan_output[tid]] = y_idx;
             val[scan_output[tid]] = A[tid];

@@ -34,11 +34,12 @@ reduce_by_key(
     const int kernel1_WgSize = WAVESIZE*KERNEL1WAVES;
     const int kernel2_WgSize = WAVESIZE*KERNEL02WAVES;
 	
-    const std::string params = std::string() +
-              " -DKERNEL0WORKGROUPSIZE=" + std::to_string(kernel0_WgSize)
-            + " -DKERNEL1WORKGROUPSIZE=" + std::to_string(kernel1_WgSize)
-            + " -DKERNEL2WORKGROUPSIZE=" + std::to_string(kernel2_WgSize);
- 
+    //const std::string params = std::string() +
+    //          " -DKERNEL0WORKGROUPSIZE=" + std::to_string(kernel0_WgSize)
+    //        + " -DKERNEL1WORKGROUPSIZE=" + std::to_string(kernel1_WgSize)
+    //        + " -DKERNEL2WORKGROUPSIZE=" + std::to_string(kernel2_WgSize);
+    const std::string params; 
+
     cl::Context context = control->getContext();
     std::vector<cl::Device> dev = context.getInfo<CL_CONTEXT_DEVICES>(); 
     int computeUnits  = dev[0].getInfo< CL_DEVICE_MAX_COMPUTE_UNITS >( );
@@ -104,11 +105,11 @@ reduce_by_key(
     cl_mem preSumArray = clCreateBuffer(context(),CL_MEM_READ_WRITE, (sizeScanBuff)*sizeof(int), NULL, NULL );
     cl_mem postSumArray = clCreateBuffer(context(),CL_MEM_READ_WRITE,(sizeScanBuff)*sizeof(int), NULL, NULL );
     clEnqueueFillBuffer(control->queue(), keySumArray, &pattern, sizeof(int), 0,
-                        (sizeScanBuff)*sizeof(int), NULL, NULL, NULL);
+                        (sizeScanBuff)*sizeof(int), 0, NULL, NULL);
     clEnqueueFillBuffer(control->queue(), preSumArray, &pattern, sizeof(int), 0,
-                        (sizeScanBuff)*sizeof(int), NULL, NULL, NULL);
+                        (sizeScanBuff)*sizeof(int), 0, NULL, NULL);
     clEnqueueFillBuffer(control->queue(), postSumArray, &pattern, sizeof(int), 0,
-                        (sizeScanBuff)*sizeof(int), NULL, NULL, NULL);
+                        (sizeScanBuff)*sizeof(int), 0, NULL, NULL);
 
     
     /**********************************************************************************
