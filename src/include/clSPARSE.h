@@ -107,8 +107,8 @@ extern "C" {
 
     typedef struct _solverControl*  clSParseSolverControl;
 
-CLSPARSE_EXPORT clSParseSolverControl
-clsparseCreateSolverControl(PRECONDITIONER precond, cl_int maxIters,
+    CLSPARSE_EXPORT clSParseSolverControl
+    clsparseCreateSolverControl(PRECONDITIONER precond, cl_int maxIters,
                             cl_double relTol, cl_double absTol);
 
     CLSPARSE_EXPORT clsparseStatus
@@ -229,6 +229,11 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
 
     /* Reduce (sum) */
     CLSPARSE_EXPORT clsparseStatus
+        cldenseIreduce( clsparseScalar* s,
+        const clsparseVector* x,
+        const clsparseControl control );
+
+    CLSPARSE_EXPORT clsparseStatus
         cldenseSreduce( clsparseScalar* s,
         const clsparseVector* x,
         const clsparseControl control );
@@ -348,8 +353,55 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
         cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
         clsparseControl control );
 
-    CLSPARSE_EXPORT clsparseStatus
-        clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control );
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcoomv(const clsparseScalar* alpha,
+               const clsparseCooMatrix* matx,
+               const clsparseVector* x,
+               const clsparseScalar* beta,
+               clsparseVector* y,
+               const clsparseControl control);
+
+//CSR <--> Dense transformation routines
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsr2dense(const clsparseCsrMatrix* csr,
+                   cldenseMatrix* A,
+                   const clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcsr2dense(const clsparseCsrMatrix* csr,
+                   cldenseMatrix* A,
+                   clsparseControl control);
+
+//CSR <--> COO transformation routines
+CLSPARSE_EXPORT clsparseStatus
+clsparseScsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
+                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
+                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
+                 clsparseControl control);
+
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
+                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
+                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
+                 clsparseControl control);
+
+//COO <--> CSR
+CLSPARSE_EXPORT clsparseStatus
+clsparseScoo2csr(const clsparseCooMatrix* coo,
+                 clsparseCsrMatrix* csr,
+                 const clsparseControl control);
+
+//COO <--> CSR
+CLSPARSE_EXPORT clsparseStatus
+clsparseDcoo2csr(const clsparseCooMatrix* coo,
+                 clsparseCsrMatrix* csr,
+                 const clsparseControl control);
+
+//DENSE <--> CSR
+CLSPARSE_EXPORT clsparseStatus
+clsparseSdense2csr(clsparseCsrMatrix* csr,
+                   const cldenseMatrix* A,
+                   const clsparseControl control);
 
 
 #ifdef __cplusplus

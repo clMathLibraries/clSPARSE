@@ -42,6 +42,11 @@ atomic_reduce(clsparseScalarPrivate* pR,
         std::string options = std::string() + " -DATOMIC_DOUBLE";
         params.append(options);
     }
+    else if (typeid(cl_int) == typeid(T))
+    {
+        std::string options = std::string() + " -DATOMIC_INT";
+        params.append(options);
+    }
     else
     {
         return clsparseInvalidType;
@@ -99,6 +104,11 @@ atomic_reduce(clsparse::array_base<T>& pR,
     else if (typeid(cl_double) == typeid(T))
     {
         std::string options = std::string() + " -DATOMIC_DOUBLE";
+        params.append(options);
+    }
+    else if (typeid(cl_int) == typeid(T))
+    {
+        std::string options = std::string() + " -DATOMIC_INT";
         params.append(options);
     }
     else

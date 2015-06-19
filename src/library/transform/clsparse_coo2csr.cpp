@@ -93,7 +93,7 @@ clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control )
 // Pre-condition: The CL device memory for CSR values, colIndices, rowOffsets has to be allocated prior to entering this routine
 // and the offset variables for cl1.2 set
 clsparseStatus
-clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control )
+clsparseScoo2csr_host( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control )
 {
     if( !clsparseInitialized )
     {
@@ -133,7 +133,7 @@ clsparseScoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, 
 }
 
 clsparseStatus
-clsparseDcoo2csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control )
+clsparseDcoo2csr_host( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx, clsparseControl control )
 {
     if( !clsparseInitialized )
     {

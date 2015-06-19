@@ -8,6 +8,28 @@
 
 #include <algorithm>
 
+clsparseStatus
+cldenseIreduce(clsparseScalar *s,
+               const clsparseVector *x,
+               const clsparseControl control)
+{
+    if (!clsparseInitialized)
+    {
+        return clsparseNotInitialized;
+    }
+
+    //check opencl elements
+    if (control == nullptr)
+    {
+        return clsparseInvalidControlObject;
+    }
+
+    clsparseScalarPrivate* pSum = static_cast<clsparseScalarPrivate*> ( s );
+    const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+
+    return reduce<cl_int, RO_PLUS>(pSum, pX, control);
+}
+
 
 clsparseStatus
 cldenseSreduce(clsparseScalar *s,

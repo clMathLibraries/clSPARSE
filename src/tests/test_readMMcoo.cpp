@@ -65,7 +65,8 @@ TEST( MM_file, load )
                                        cooMatx.nnz * sizeof( cl_int ), NULL, &status );
     csrMatx.rowOffsets = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
                                            ( cooMatx.m + 1 ) * sizeof( cl_int ), NULL, &status );
-    clsparseScoo2csr( &csrMatx, &cooMatx, CLSE::control );
+    //clsparseScoo2csr_host( &csrMatx, &cooMatx, CLSE::control );
+    clsparseScoo2csr( &cooMatx, &csrMatx, CLSE::control );    
 
     clsparseCsrMetaSize( &csrMatx, CLSE::control );
 

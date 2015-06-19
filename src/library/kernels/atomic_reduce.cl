@@ -65,7 +65,11 @@ void reduce_block (__global VALUE_TYPE* pSum,
 {
     SIZE_TYPE idx = get_global_id(0);
 
+#ifdef ATOMIC_INT
+    atomic_add(&pSum[0], pX[idx]);
+#else
     atomic_add_float(&pSum[0], pX[idx]);
+#endif
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
