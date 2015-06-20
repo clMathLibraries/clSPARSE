@@ -39,7 +39,8 @@ public:
         csrDMatrix.nnz = n_vals;
         csrDMatrix.m = n_rows;
         csrDMatrix.n = n_cols;
-        clsparseCsrMetaSize( &csrDMatrix, CLSE::control );
+        //clsparseCsrMetaSize( &csrDMatrix, CLSE::control );
+
 
         this->alpha = alpha;
         this->beta = beta;
@@ -67,6 +68,15 @@ public:
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk" );
 
+        //reassign the new matrix dimmesnions calculated clsparseCCsrMatrixFromFile to global variables
+        n_vals = csrSMatrix.nnz;
+        n_cols = csrSMatrix.n;
+        n_rows = csrSMatrix.m;
+
+        csrDMatrix.nnz = csrSMatrix.nnz;
+        csrDMatrix.n = csrSMatrix.n;
+        csrDMatrix.m = csrSMatrix.m;
+
         //  Intialize double precision data, all the indices can be reused.
         csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrDMatrix.nnz * sizeof( cl_double ), NULL, &status );
@@ -77,8 +87,9 @@ public:
         csrDMatrix.rowOffsets = csrSMatrix.rowOffsets;
         ::clRetainMemObject( csrDMatrix.rowOffsets );
 
-        csrDMatrix.rowBlocks = csrSMatrix.rowBlocks;
-        ::clRetainMemObject( csrDMatrix.rowBlocks );
+        // Don't use adaptive kernel in double precision yet.
+        //csrDMatrix.rowBlocks = csrSMatrix.rowBlocks;
+        //::clRetainMemObject( csrDMatrix.rowBlocks );
 
         //  Download sparse matrix data to host
         //  First, create space on host to hold the data

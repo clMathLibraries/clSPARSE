@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
                           sizeof(float), &alpha, &cl_status);
     if (cl_status != CL_SUCCESS )
     {
-        std::cout << "Problem with allocating alpha buffer on GPU\n " << std::cout;
+        std::cout << "Problem with allocating alpha buffer on GPU\n " << std::endl;
     }
 
 
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 
     if (cl_status != CL_SUCCESS )
     {
-        std::cout << "Problem with allocating Y buffer on GPU\n " << std::cout;
+        std::cout << "Problem with allocating Y buffer on GPU\n " << std::endl;
     }
 
    gpuX.values = ::clCreateBuffer (context(), CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 
     if (cl_status != CL_SUCCESS )
     {
-        std::cout << "Problem with allocating X buffer on GPU\n " << std::cout;
+        std::cout << "Problem with allocating X buffer on GPU\n " << std::endl;
     }
 
 
@@ -189,7 +189,7 @@ int main(int argc, char* argv[])
     ::clReleaseMemObject(gpuAlpha.value);
     ::clReleaseMemObject(gpuY.values);
     gpuY.n = 0;
-    ::clReleaseMemObject(gpuY.values);
+    ::clReleaseMemObject(gpuX.values);
     gpuX.n = 0;
 
     //OpenCL Wrapper automatically release allocated resources

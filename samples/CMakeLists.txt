@@ -1,4 +1,5 @@
 cmake_minimum_required( VERSION 2.8.12 )
+project(samples)
 
 message( STATUS "BUILDING EXAMPLES")
 message( STATUS "BUILD64: ${BUILD64}")
