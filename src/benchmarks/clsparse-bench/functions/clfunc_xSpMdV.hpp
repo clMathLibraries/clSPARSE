@@ -93,7 +93,7 @@ public:
         int nnz, row, col;
         clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, sparseFile.c_str( ) );
         if( fileError != clsparseSuccess )
-            throw std::runtime_error( "Could not read matrix market header from disk" );
+            throw clsparse::io_exception( "Could not read matrix market header from disk" );
 
         // Now initialise a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );
@@ -127,7 +127,7 @@ public:
             fileError = clsparseInvalidType;
 
         if( fileError != clsparseSuccess )
-            throw std::runtime_error( "Could not read matrix market data from disk" );
+            throw clsparse::io_exception( "Could not read matrix market data from disk" );
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );

@@ -13,6 +13,7 @@ set( CLIENT_SRC
 set( CLIENT_HEADER
   include/statisticalTimer.h
   include/mm_reader.hpp
+  include/io-exception.hpp
   functions/cufunc_common.hpp
   functions/cufunc_xSpMdV.hpp
   functions/cufunc_xCsr2dense.hpp

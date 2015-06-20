@@ -6,6 +6,7 @@
 #define CUBLAS_BENCHMARK_xCsr2dense_HXX__
 
 #include "cufunc_common.hpp"
+#include "include/io-exception.hpp"
 
 template <typename T>
 class xCsr2dense : public cusparseFunc
@@ -65,7 +66,10 @@ public:
     {
         initialize_scalars( alpha, beta );
 
-        csrMatrixfromFile( row_offsets, col_indices, values, path.c_str( ) );
+        if (csrMatrixfromFile( row_offsets, col_indices, values, path.c_str( ) ) )
+        {
+            throw clsparse::io_exception( "Could not read matrix market header from disk" );
+        }
         n_rows = row_offsets.size( );
         n_cols = col_indices.size( );
         n_vals = values.size( );

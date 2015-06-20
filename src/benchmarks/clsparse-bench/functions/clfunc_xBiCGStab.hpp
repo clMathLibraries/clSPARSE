@@ -95,7 +95,7 @@ public:
         int nnz, row, col;
         clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, sparseFile.c_str( ) );
         if( fileError != clsparseSuccess )
-            throw std::runtime_error( "Could not read matrix market header from disk" );
+            throw clsparse::io_exception( "Could not read matrix market header from disk" );
 
         // Now initialise a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );

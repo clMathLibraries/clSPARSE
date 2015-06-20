@@ -142,7 +142,7 @@ bool MatrixMarketReader<FloatType>::MMReadHeader( FILE* mm_file )
 
     if( !mm_is_coordinate( Typecode ) )
     {
-        printf( " only handling coordinate format\n" ); return( 1 );
+        printf( "Handling only coordinate format\n" ); return( 1 );
     }
 
     if( mm_is_complex( Typecode ) )
@@ -174,7 +174,11 @@ bool MatrixMarketReader<FloatType>::MMReadHeader( const std::string &filename )
         return 1;
     }
 
-    MMReadHeader( mm_file );
+    if ( MMReadHeader( mm_file ) )
+    {
+        printf ("Matrix not supported !\n");
+        return 2;
+    }
 
     // If symmetric MM stored file, double the reported size
     if( mm_is_symmetric( Typecode ) )
@@ -197,7 +201,11 @@ bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename )
         return 1;
     }
 
-    MMReadHeader( mm_file );
+    if ( MMReadHeader( mm_file ) )
+    {
+        printf ("Matrix not supported !\n");
+        return 2;
+    }
 
     if( mm_is_symmetric( Typecode ) )
         unsym_coords = new Coordinate<FloatType>[ 2 * nNZ ];
