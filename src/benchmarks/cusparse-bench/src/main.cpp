@@ -23,6 +23,17 @@
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
+struct recursive_directory_range
+{
+    typedef fs::recursive_directory_iterator dir_iterator;
+
+    recursive_directory_range(fs::path p) : p_(p) {}
+
+    dir_iterator begin() { return fs::recursive_directory_iterator(p_); }
+    dir_iterator end() { return fs::recursive_directory_iterator(); }
+
+    fs::path p_;
+};
 /**
 * @brief findMatrices
 * @param root path to the directory where to search for files with extension
@@ -31,41 +42,43 @@ namespace fs = boost::filesystem;
 * @return true if any files were found
 */
 bool findMatrices( const std::string& root,
-                   const std::string& extension,
-                   std::vector<fs::path>& matrix_files )
+    const std::string& extension,
+    std::vector<fs::path>& matrix_files )
 {
-
-
     fs::path dir( root );
-    fs::directory_iterator end_iter;
-    const boost::regex filter( ".*\\.\\" + extension );
-    std::cout << "Searching for files like: " << filter.str( ) << std::endl;
-    bool found = false;
 
-    if( fs::exists( dir ) && fs::is_directory( dir ) )
-    {
-        for( fs::directory_iterator dir_iter( dir ); dir_iter != end_iter; ++dir_iter )
+        recursive_directory_range recursive_directory_it(dir);
+
+        const boost::regex filter( ".*\\.\\" + extension );
+        bool found = false;
+
+        if( fs::exists( dir ) && fs::is_directory( dir ) )
         {
-            if( fs::is_regular_file( dir_iter->status( ) ) )
+            for (auto it : recursive_directory_range(dir))
             {
-                std::string fname = dir_iter->path( ).filename( ).string( );
-
-                if( boost::regex_match( fname, filter ) )
+                //std::cout << "Checking:" << it << std::endl;
+                if( fs::is_regular_file( it.status( ) ) )
                 {
-                    std::cout << "Adding: " << dir_iter->path( ) << std::endl;
-                    matrix_files.push_back( dir_iter->path( ) );
-                    found = true;
+                    std::string fname = it.path( ).filename( ).string( );
+
+                    std::string fname_suffix = fname.substr(fname.size() - 6);
+
+                    if( boost::regex_match( fname, filter ) )
+                    {
+                        std::cout << "\tAdding:" << it.path( ) << std::endl;
+                        matrix_files.push_back( it.path( ) );
+                        found = true;
+                    }
                 }
             }
         }
-    }
-    else
-    {
-        std::cerr << dir << " does not name a directory or directory does not exists!" << std::endl;
-        return false;
-    }
+        else
+        {
+            std::cerr << dir << " does not name a directory or directory does not exists!" << std::endl;
+            return false;
+        }
 
-    return found;
+        return found;
 }
 
 std::vector< fs::path > enumMatrices( const std::string& root_dir )
@@ -168,7 +181,17 @@ int main(int argc, char *argv[])
           timer.Reset( );
 
           std::string path = file.string( );
-          my_function->setup_buffer( alpha, beta, path );
+          try {
+              my_function->setup_buffer( alpha, beta, path );
+          }
+          // I expect to catch trow from clsparseHeaderfromFile
+          // If io_exception then we don't need to cleanup.
+          // If runtime_exception is catched we are doomed!
+          catch (clsparse::io_exception& io_exc)
+          {
+              std::cout << io_exc.what() << std::endl;
+              continue;
+          }
           my_function->initialize_cpu_buffer( );
           my_function->initialize_gpu_buffer( );
 

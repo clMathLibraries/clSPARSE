@@ -9,6 +9,7 @@ set( clsparse.bench.src
 
 set( clsparse.bench.hdr
   include/statisticalTimer.h
+  include/io-exception.hpp
   functions/clfunc_common.hpp
   functions/clfunc_xSpMdV.hpp
   functions/clfunc-xSpMdM.hpp

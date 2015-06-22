@@ -19,6 +19,7 @@
 
 #include "clSPARSE.h"
 #include "clsparse.error.hpp"
+#include "include/io-exception.hpp"
 
 inline cl_ulong
 queryMemAllocSize( cl_device_id device )

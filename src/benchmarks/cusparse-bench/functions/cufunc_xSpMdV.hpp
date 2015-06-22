@@ -7,6 +7,7 @@
 
 #include "cufunc_common.hpp"
 #include "include/mm_reader.hpp"
+#include "include/io-exception.hpp"
 
 template <typename T>
 class xSpMdV : public cusparseFunc
@@ -66,7 +67,10 @@ public:
     {
         initialize_scalars( alpha, beta );
 
-        csrMatrixfromFile( row_offsets, col_indices, values, path.c_str( ) );
+        if (csrMatrixfromFile( row_offsets, col_indices, values, path.c_str( ) ) )
+        {
+            throw clsparse::io_exception( "Could not read matrix market header from disk" );
+        }
         n_rows = row_offsets.size( );
         n_cols = col_indices.size( );
         n_vals = values.size( );
@@ -114,7 +118,7 @@ public:
     void reset_gpu_write_buffer( )
     {
         cudaError_t err = cudaMemset( device_y, 0x0, n_rows * sizeof( T ) );
-        CUDA_V_THROW( err, "cudaMalloc device_row_offsets" );
+        CUDA_V_THROW( err, "cudaMemset device_y " + std::to_string(n_rows)  );
     }
 
     void read_gpu_buffer( )
