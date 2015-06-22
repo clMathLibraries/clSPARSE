@@ -443,7 +443,7 @@ clsparseHeaderfromFile( cl_int* nnz, cl_int* row, cl_int* col, const char* fileP
 // Pre-condition: This function assumes that the device memory buffers have been
 // pre-allocated by the caller
 clsparseStatus
-clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control )
+clsparseSCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control )
 {
     clsparseCooMatrixPrivate* pCooMatx = static_cast<clsparseCooMatrixPrivate*>( cooMatx );
 
@@ -478,6 +478,52 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cls
     cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
 
     Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
+    for( cl_int c = 0; c < pCooMatx->num_nonzeros; ++c )
+    {
+        iCooRowIndices[ c ] = coords[ c ].x;
+        iCooColIndices[ c ] = coords[ c ].y;
+        fCooValues[ c ] = coords[ c ].val;
+    }
+
+    return clsparseSuccess;
+}
+
+clsparseStatus
+clsparseDCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control )
+{
+    clsparseCooMatrixPrivate* pCooMatx = static_cast<clsparseCooMatrixPrivate*>( cooMatx );
+
+    // Check that the file format is matrix market; the only format we can read right now
+    // This is not a complete solution, and fails for directories with file names etc...
+    // TODO: Should we use boost filesystem?
+    std::string strPath( filePath );
+    if( strPath.find_last_of( '.' ) != std::string::npos )
+    {
+        std::string ext = strPath.substr( strPath.find_last_of( '.' ) + 1 );
+        if( ext != "mtx" )
+            return clsparseInvalidFileFormat;
+    }
+    else
+        return clsparseInvalidFileFormat;
+
+    MatrixMarketReader< cl_double > mm_reader;
+    if( mm_reader.MMReadFormat( filePath ) )
+        return clsparseInvalidFile;
+
+    pCooMatx->num_rows = mm_reader.GetNumRows( );
+    pCooMatx->num_cols = mm_reader.GetNumCols( );
+    pCooMatx->num_nonzeros = mm_reader.GetNumNonZeroes( );
+
+    // Transfers data from CPU buffer to GPU buffers
+    clMemRAII< cl_double > rCooValues( control->queue( ), pCooMatx->values );
+    clMemRAII< cl_int > rCooColIndices( control->queue( ), pCooMatx->colIndices );
+    clMemRAII< cl_int > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
+
+    cl_double* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->valOffset( ), pCooMatx->num_nonzeros );
+    cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->colIndOffset( ), pCooMatx->num_nonzeros );
+    cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
+
+    Coordinate< cl_double >* coords = mm_reader.GetUnsymCoordinates( );
     for( cl_int c = 0; c < pCooMatx->num_nonzeros; ++c )
     {
         iCooRowIndices[ c ] = coords[ c ].x;

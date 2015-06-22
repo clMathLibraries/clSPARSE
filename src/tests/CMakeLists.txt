@@ -9,7 +9,6 @@ set( Boost_ADDITIONAL_VERSIONS 1.57.0 1.57 )
 # set( Boost_DEBUG ON )
 
 find_package( Boost COMPONENTS program_options )
-
 # Unit tests requires OpenCL
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
 find_package( OpenCL REQUIRED )
@@ -20,31 +19,28 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_BINARY_DIR}/library
   resources
+  #resources/uBLAS-linalg
   ${GTEST_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${OPENCL_INCLUDE_DIRS}
   )
 
 set( TESTS_CPP
-  test_clsparse_init
-  test_csrmv_simple
-  test_clsparse_csr2dense
-  test_cl_traits
-  test_readMMcoo
-  test_clsparse_csr2coo
-  test_cl_axpy
-  test_cl_axpby
-  test_cl_scale
-  test_reduce
-  test_dot
-  test_norm1
-  test_norm2
-  test_solver_cg
-  test_solver_bicgStab
-  test_csrmm
-  test_interface_cpp
-  test_clsparse_coo2csr
-  test_clsparse_dense2csr
+  #test_clsparse_csr2dense
+  #test_readMMcoo
+  #test_clsparse_csr2coo
+  #test_solver_cg
+  #test_solver_bicgStab
+  #test_csrmm
+  #test_interface_cpp
+  #test_clsparse_coo2csr
+  #test_clsparse_dense2csr
+  test-blas1
+  test-blas2
+  test-blas3
+  test-solvers
+  test-conversion
+  test-clsparse-utils
 )
 
 set( TESTS_C
@@ -62,6 +58,9 @@ set( headers
   resources/clsparse_environment.h
   resources/matrix_utils.h
   resources/csr_matrix_environment.h
+  #resources/uBLAS-linalg/ublas_pcg.hpp
+  #resources/uBLAS-linalg/precond.hpp
+  #resources/uBLAS-linalg/cholesky.hpp
 )
 
 foreach( test ${TESTS_CPP} )

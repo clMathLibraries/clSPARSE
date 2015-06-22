@@ -17,17 +17,17 @@ csrmv (const clsparseScalarPrivate *pAlpha,
        cldenseVectorPrivate *pY,
        clsparseControl control)
 {
-   if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
-   {
-        return csrmv_vector<T>(pAlpha, pCsrMatx, pX, pBeta, pY, control);
-   }
-   else
+    if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
     {
-       if( ( pCsrMatx->rowBlocks == nullptr ) || ( pCsrMatx->rowBlockSize == 0 ) )
-       {
+        return csrmv_vector<T>(pAlpha, pCsrMatx, pX, pBeta, pY, control);
+    }
+    else
+    {
+        if( ( pCsrMatx->rowBlocks == nullptr ) || ( pCsrMatx->rowBlockSize == 0 ) )
+        {
             // rowBlockSize varible is not zero but no pointer
             return clsparseStructInvalid;
-       }
+        }
 
        //   We have problems with failing test cases with csrmv_adaptive on double precision
        //   fall back to csrmv_vector
@@ -55,7 +55,6 @@ csrmv (const clsparse::array_base<T>& pAlpha,
        clsparse::array_base<T>& pY,
        clsparseControl control)
 {
-
     if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
     {
         return csrmv_vector<T>(pAlpha, pCsrMatx, pX, pBeta, pY, control);

@@ -5,8 +5,12 @@
 #include <clSPARSE.h>
 
 #include "clsparse_environment.h"
-
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix_sparse.hpp>
+#include <boost/numeric/ublas/io.hpp>
 using CLSE = ClSparseEnvironment;
+
+namespace uBLAS = boost::numeric::ublas;
 
 /**
  * @brief The CSREnvironment class will keep the input parameters for tests
@@ -15,14 +19,21 @@ using CLSE = ClSparseEnvironment;
 class CSREnvironment: public ::testing::Environment
 {
 public:
+
+    // We need this long declaration because index vector need to be cl_int.
+    // Also it is more flexible for future use if we will start to play with
+    // row_major / column_major or base indexing which is 0 for now.
+    using sMatrixType = uBLAS::compressed_matrix<cl_float,  uBLAS::row_major, 0, uBLAS::unbounded_array<int> >;
+    using dMatrixType = uBLAS::compressed_matrix<cl_double, uBLAS::row_major, 0, uBLAS::unbounded_array<int> >;
+
     explicit CSREnvironment( const std::string& path,
-                             double alpha, double beta,
+                             cl_double alpha, cl_double beta,
                              cl_command_queue queue,
                              cl_context context ):
-                             file_name( path ),
                              queue( queue ),
                              context( context )
     {
+        file_name = path;
         clsparseStatus read_status = clsparseHeaderfromFile( &n_vals, &n_rows, &n_cols, file_name.c_str( ) );
         if( read_status )
         {
@@ -35,22 +46,7 @@ public:
         csrSMatrix.num_cols = n_cols;
         clsparseCsrMetaSize( &csrSMatrix, CLSE::control );
 
-        clsparseInitCsrMatrix( &csrDMatrix );
-        csrDMatrix.num_nonzeros = n_vals;
-        csrDMatrix.num_rows = n_rows;
-        csrDMatrix.num_cols = n_cols;
-        //clsparseCsrMetaSize( &csrDMatrix, CLSE::control );
-
-
-        this->alpha = alpha;
-        this->beta = beta;
-
-    }
-
-
-    void SetUp( )
-    {
-        //  Load single precision data from file; this API loads straight into GPU memory
+         //  Load single precision data from file; this API loads straight into GPU memory
         cl_int status;
         csrSMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrSMatrix.num_nonzeros * sizeof( cl_float ), NULL, &status );
@@ -75,42 +71,45 @@ public:
 
         //  Download sparse matrix data to host
         //  First, create space on host to hold the data
-        f_values.resize( csrSMatrix.num_nonzeros );
-        col_indices.resize( csrSMatrix.num_nonzeros );
-        row_offsets.resize( csrSMatrix.num_rows + 1 );
+        ublasSCsr = sMatrixType(n_rows, n_cols, n_vals);
+
+        // This is nasty. Without that call ublasSCsr is not working correctly.
+        ublasSCsr.complete_index1_data();
 
         // copy host matrix arrays to device;
         cl_int copy_status;
+
         copy_status = clEnqueueReadBuffer( queue, csrSMatrix.values, CL_TRUE, 0,
-                                           f_values.size( ) * sizeof( cl_float ),
-                                           f_values.data( ),
+                                           ublasSCsr.value_data().size( ) * sizeof( cl_float ),
+                                           ublasSCsr.value_data().begin( ),
                                            0, NULL, NULL );
 
         copy_status = clEnqueueReadBuffer( queue, csrSMatrix.rowOffsets, CL_TRUE, 0,
-                                            row_offsets.size( ) * sizeof( int ),
-                                            row_offsets.data( ),
+                                            ublasSCsr.index1_data().size( ) * sizeof( cl_int ),
+                                            ublasSCsr.index1_data().begin(),
                                             0, NULL, NULL );
 
         copy_status = clEnqueueReadBuffer( queue, csrSMatrix.colIndices, CL_TRUE, 0,
-                                            col_indices.size( ) * sizeof( int ),
-                                            col_indices.data( ),
+                                            ublasSCsr.index2_data().size( ) * sizeof( cl_int ),
+                                            ublasSCsr.index2_data().begin(),
                                             0, NULL, NULL );
 
-        if( copy_status )
-        {
-            TearDown( );
-            exit( -5 );
-        }
+        // Create matrix in double precision on host;
+        // Ha! another trap, if you dont give nnz parameter ublas will create larger matrix!
+        ublasDCsr = dMatrixType(ublasSCsr, n_vals);
 
-        d_values = std::vector<double>( f_values.begin( ), f_values.end( ) );
-
-        // Don't use adaptive kernel in double precision yet.
-        //csrDMatrix.rowBlocks = csrSMatrix.rowBlocks;
-        //::clRetainMemObject( csrDMatrix.rowBlocks );
+        // Create matrix in double precision on device;
+        // Init double precision matrix;
+        clsparseInitCsrMatrix( &csrDMatrix );
 
         csrDMatrix.num_nonzeros = csrSMatrix.num_nonzeros;
         csrDMatrix.num_cols = csrSMatrix.num_cols;
         csrDMatrix.num_rows = csrSMatrix.num_rows;
+        csrDMatrix.rowBlockSize = csrSMatrix.rowBlockSize;
+
+        // Don't use adaptive kernel in double precision yet.
+        csrDMatrix.rowBlocks = csrSMatrix.rowBlocks;
+        ::clRetainMemObject( csrDMatrix.rowBlocks );
 
         csrDMatrix.colIndices = csrSMatrix.colIndices;
         ::clRetainMemObject( csrDMatrix.colIndices );
@@ -118,22 +117,48 @@ public:
         csrDMatrix.rowOffsets = csrSMatrix.rowOffsets;
         ::clRetainMemObject( csrDMatrix.rowOffsets );
 
-        //  Intialize double precision data, all the indices can be reused.
         csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrDMatrix.num_nonzeros * sizeof( cl_double ), NULL, &status );
 
-        status = ::clEnqueueWriteBuffer( queue, csrDMatrix.values, CL_TRUE, 0,
-                                              csrDMatrix.num_nonzeros * sizeof( cl_double ), d_values.data( ), 0, NULL, NULL );
+        // copy the values in double precision to double precision matrix container
+        copy_status = clEnqueueWriteBuffer( queue, csrDMatrix.values, CL_TRUE, 0,
+                                            ublasDCsr.value_data().size( ) * sizeof( cl_double ),
+                                            ublasDCsr.value_data().begin( ),
+                                            0, NULL, NULL);
 
         if( copy_status )
         {
             TearDown( );
             exit( -5 );
         }
+
+        this->alpha = alpha;
+        this->beta = beta;
+
+    }
+
+
+    void SetUp( )
+    {
+
+        // Prepare data to it's default state
+
+
     }
 
     //cleanup
     void TearDown( )
+    {
+
+
+    }
+
+    std::string getFileName()
+    {
+        return file_name;
+    }
+
+    ~CSREnvironment()
     {
         //release buffers;
         ::clReleaseMemObject( csrSMatrix.values );
@@ -151,24 +176,22 @@ public:
 
     }
 
+    static sMatrixType ublasSCsr;
+    static dMatrixType ublasDCsr;
 
-    static std::vector<int> row_offsets;
-    static std::vector<int> col_indices;
-    static std::vector<float> f_values;
-    static std::vector<double> d_values;
-    static int n_rows, n_cols, n_vals;
+    static cl_int n_rows, n_cols, n_vals;
 
     //cl buffers for above matrix definition;
 
     static clsparseCsrMatrix csrSMatrix;
     static clsparseCsrMatrix csrDMatrix;
 
-    static double alpha, beta;
+    static cl_double alpha, beta;
+    static std::string file_name;
 
 private:
     cl_command_queue queue;
     cl_context context;
-    std::string file_name;
 
 };
 

@@ -110,6 +110,7 @@ public:
     {
         cudaError_t err = cudaMemset( device_A, 0x0, n_rows * n_cols * sizeof( T ) );
         CUDA_V_THROW( err, "cudaMemset reset_gpu_write_buffer" );
+
     }
 
     void read_gpu_buffer( )

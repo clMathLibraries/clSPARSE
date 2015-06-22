@@ -7,11 +7,28 @@
 #include "resources/csr_matrix_environment.h"
 #include "resources/matrix_utils.h"
 
+//boost ublas
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/matrix_sparse.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/traits.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/operation_sparse.hpp>
+
+
 clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 
 namespace po = boost::program_options;
+namespace uBLAS = boost::numeric::ublas;
+
+//number of columns in dense B matrix;
+cl_int B_num_cols;
+cl_double B_values;
+
 
 
 template<typename T>
@@ -29,12 +46,13 @@ clsparseStatus generateResult( cldenseMatrix& matB, clsparseScalar& alpha,
 
 
     }
-    //if(typeid(T) == typeid(double))
-    //{
-    //    return clsparseDcsrmm( &alpha, &CSRE::csrDMatrix, &matB,
-    //                           &beta, &matC, CLSE::control );
 
-    //}
+    if(typeid(T) == typeid(double))
+    {
+        return clsparseDcsrmm( &alpha, &CSRE::csrDMatrix, &matB,
+                               &beta, &matC, CLSE::control );
+
+    }
     return clsparseSuccess;
 }
 
@@ -48,35 +66,36 @@ public:
 
     void SetUp()
     {
+        // alpha and beta scalars are not yet supported in generating reference result;
         alpha = T(CSRE::alpha);
         beta = T(CSRE::beta);
 
-        // This needs to be more flexible, to be able to specify matB column values from command line
-        matB = matrix<T>( CSRE::n_cols, CSRE::n_cols, CSRE::n_cols );
-        matC = matrix<T>( CSRE::n_rows, CSRE::n_cols, CSRE::n_cols );
+        B = uBLASDenseM(CSRE::n_cols, B_num_cols, T(B_values));
+        C = uBLASDenseM(CSRE::n_rows, B_num_cols, T(0));
 
-        std::fill( matB.data.begin( ), matB.data.end( ), T( 1 ) );
-        std::fill( matC.data.begin( ), matC.data.end( ), T( 2 ) );
 
         cl_int status;
         cldenseInitMatrix( &deviceMatB );
         deviceMatB.values = clCreateBuffer( CLSE::context,
                                    CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                                   matB.data.size( ) * sizeof( T ), matB.data.data( ), &status );
-        deviceMatB.num_rows = matB.num_rows;
-        deviceMatB.num_cols = matB.num_cols;
-        deviceMatB.lead_dim = matB.leading_dim;
+                                   B.data().size( ) * sizeof( T ), B.data().begin(), &status );
+
+        deviceMatB.num_rows = B.size1();
+        deviceMatB.num_cols = B.size2();
+        deviceMatB.lead_dim = std::min(B.size1(), B.size2());
+
 
         ASSERT_EQ(CL_SUCCESS, status);
 
         cldenseInitMatrix( &deviceMatC );
         deviceMatC.values = clCreateBuffer( CLSE::context,
                                    CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                                   matC.data.size( ) * sizeof( T ), matC.data.data( ), &status );
+                                   C.data().size( ) * sizeof( T ), C.data().begin(), &status );
 
-        deviceMatC.num_rows = matC.num_rows;
-        deviceMatC.num_cols = matC.num_cols;
-        deviceMatC.lead_dim = matC.leading_dim;
+
+        deviceMatC.num_rows = C.size1();
+        deviceMatC.num_cols = C.size2();
+        deviceMatC.lead_dim = std::min(C.size1(), C.size2());
         ASSERT_EQ(CL_SUCCESS, status);
 
         clsparseInitScalar( &gAlpha );
@@ -91,34 +110,29 @@ public:
                                      sizeof(T), &beta, &status);
         ASSERT_EQ(CL_SUCCESS, status);
 
-
-        generateReference( matB, alpha, matC, beta );
-
     }
 
-
-    void generateReference (const matrix<float>& x,
-                            const float alpha,
-                            matrix<float>& y,
-                            const float beta)
+    void TearDown()
     {
-        csrmm(CSRE::n_rows, CSRE::n_cols, CSRE::n_vals,
-              CSRE::row_offsets, CSRE::col_indices, CSRE::f_values,
-              x, alpha, y, beta);
+        ::clReleaseMemObject(gAlpha.value);
+        ::clReleaseMemObject(gBeta.value);
+
+        clsparseInitScalar(&gAlpha);
+        clsparseInitScalar(&gBeta);
+
+        ::clReleaseMemObject(deviceMatB.values);
+        ::clReleaseMemObject(deviceMatC.values);
+
+        cldenseInitMatrix( &deviceMatB );
+        cldenseInitMatrix( &deviceMatC );
+
     }
 
-    void generateReference( const matrix<double>& x,
-                            const double alpha,
-                            matrix<double>& y,
-                            const double beta)
-    {
-        csrmm(CSRE::n_rows, CSRE::n_cols, CSRE::n_vals,
-              CSRE::row_offsets, CSRE::col_indices, CSRE::d_values,
-              x, alpha, y, beta);
-    }
 
-    matrix<T> matB;
-    matrix<T> matC;
+    typedef typename uBLAS::matrix<T, uBLAS::row_major, uBLAS::unbounded_array<T> > uBLASDenseM;
+    uBLASDenseM B;
+    uBLASDenseM C;
+
 
     cldenseMatrix deviceMatB;
     cldenseMatrix deviceMatC;
@@ -130,14 +144,20 @@ public:
     clsparseScalar gBeta;
 };
 
-//typedef ::testing::Types<float,double> TYPES;
-typedef ::testing::Types<float> TYPES;
+typedef ::testing::Types<float,double> TYPES;
+//typedef ::testing::Types<float> TYPES;
 TYPED_TEST_CASE( TestCSRMM, TYPES );
 
+
+
+// This test may give you false failure result due to multiplication order.
 TYPED_TEST(TestCSRMM, multiply)
 {
+    using CSRE = CSREnvironment;
+    using CLSE = ClSparseEnvironment;
+
     cl::Event event;
-    clsparseEnableAsync(ClSparseEnvironment::control, true);
+    clsparseEnableAsync(CLSE::control, true);
 
     //control object is global and it is updated here;
     clsparseStatus status =
@@ -146,24 +166,43 @@ TYPED_TEST(TestCSRMM, multiply)
 
     EXPECT_EQ(clsparseSuccess, status);
 
-    status = clsparseGetEvent(ClSparseEnvironment::control, &event());
+    status = clsparseGetEvent(CLSE::control, &event());
     EXPECT_EQ(clsparseSuccess, status);
     event.wait();
 
-    std::vector<TypeParam> result(this->matC.data.size());
+    std::vector<TypeParam> result(this->C.data().size());
 
-    clEnqueueReadBuffer(ClSparseEnvironment::queue,
-                         this->deviceMatC.values, CL_TRUE, 0,
-                        result.size()*sizeof(TypeParam),
-                        result.data(), 0, NULL, NULL);
+    cl_int cl_status = clEnqueueReadBuffer(CLSE::queue,
+                                            this->deviceMatC.values, CL_TRUE, 0,
+                                            result.size()*sizeof(TypeParam),
+                                            result.data(), 0, NULL, NULL);
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+    // Generate referencee result;
+    if (typeid(TypeParam) == typeid(float))
+    {
+         this->C = uBLAS::sparse_prod(CSRE::ublasSCsr, this->B, this->C, false);
+    }
+
+    if (typeid(TypeParam) == typeid(double))
+    {
+         this->C = uBLAS::sparse_prod(CSRE::ublasDCsr, this->B, this->C, false);
+    }
+
 
     if(typeid(TypeParam) == typeid(float))
-        for( int i = 0; i < this->matC.data.size( ); i++ )
-            ASSERT_NEAR( this->matC.data[ i ], result[ i ], 5e-4 );
+        for (int l = 0; l < std::min(this->C.size1(), this->C.size2()); l++)
+            for( int i = 0; i < this->C.data().size(); i++ )
+            {
+                ASSERT_NEAR(this->C.data()[i], result[i], 5e-3);
+            }
 
     if(typeid(TypeParam) == typeid(double))
-        for( int i = 0; i < this->matC.data.size( ); i++ )
-            ASSERT_NEAR( this->matC.data[ i ], result[ i ], 5e-14 );
+        for (int l = 0; l < std::min(this->C.size1(), this->C.size2()); l++)
+            for( int i = 0; i < this->C.data().size(); i++ )
+            {
+                ASSERT_NEAR(this->C.data()[i], result[i], 5e-10);
+            };
 }
 
 
@@ -192,7 +231,12 @@ int main (int argc, char* argv[])
             ("alpha,a", po::value(&alpha)->default_value(1.0),
              "Alpha parameter for eq: \n\ty = alpha * M * x + beta * y")
             ("beta,b", po::value(&beta)->default_value(0.0),
-             "Beta parameter for eq: \n\ty = alpha * M * x + beta * y");
+             "Beta parameter for eq: \n\ty = alpha * M * x + beta * y")
+            ("cols,c", po::value(&B_num_cols)->default_value(8),
+             "Number of columns in B matrix while calculating sp_A * d_B = d_C")
+            ("vals,v", po::value(&B_values)->default_value(1.0),
+             "Initial value of B columns");
+
 
     //	Parse the command line options, ignore unrecognized options and collect them into a vector of strings
     //  Googletest itself accepts command line flags that we wish to pass further on
