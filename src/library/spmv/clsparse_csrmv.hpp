@@ -17,23 +17,21 @@ csrmv (const clsparseScalarPrivate *pAlpha,
        clsparseVectorPrivate *pY,
        clsparseControl control)
 {
-
-    if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
-    {
+   if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
+   {
         return csrmv_vector<T>(pAlpha, pCsrMatx, pX, pBeta, pY, control);
-    }
-    else
+   }
+   else
     {
-        if( ( pCsrMatx->rowBlocks == nullptr ) || ( pCsrMatx->rowBlockSize == 0 ) )
-        {
+       if( ( pCsrMatx->rowBlocks == nullptr ) || ( pCsrMatx->rowBlockSize == 0 ) )
+       {
             // rowBlockSize varible is not zero but no pointer
             return clsparseStructInvalid;
-        }
+       }
 
         // Call adaptive CSR kernels
         return csrmv_adaptive<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
     }
-
 }
 
 /*

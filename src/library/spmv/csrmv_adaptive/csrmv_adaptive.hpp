@@ -17,20 +17,24 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
                 clsparseVectorPrivate* pY,
                 clsparseControl control )
 {
-    if(typeid(T) == typeid(cl_double))
-    {
-        return clsparseNotImplemented;
-    }
+
 
     const cl_uint group_size = 256;
 
-    const std::string params = std::string( )
+    std::string params = std::string( )
     + " -DROWBITS=" + std::to_string( ROW_BITS )
     + " -DWGBITS=" + std::to_string( WG_BITS )
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE );
 #ifdef DOUBLE
     buildFlags += " -DDOUBLE";
 #endif
+
+    if(typeid(T) == typeid(cl_double))
+    {
+            std::string options = std::string() + " -DDOUBLE";
+            params.append(options);
+    }
+
 
     cl::Kernel kernel = KernelCache::get( control->queue,
                                           "csrmv_adaptive",

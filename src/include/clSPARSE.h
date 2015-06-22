@@ -67,7 +67,7 @@ extern "C" {
 
     //setup the control from external queue;
     CLSPARSE_EXPORT clsparseControl
-        clsparseCreateControl( cl_command_queue queue, cl_int *status );
+        clsparseCreateControl( cl_command_queue queue, clsparseStatus *status );
 
     //enable/disable asynchronous behavior for clSPARSE;
     CLSPARSE_EXPORT clsparseStatus
