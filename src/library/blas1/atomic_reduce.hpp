@@ -5,8 +5,8 @@
 #include <typeinfo>
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
 #include "reduce_operators.hpp"
 #include "internal/data_types/clarray_base.hpp"
 

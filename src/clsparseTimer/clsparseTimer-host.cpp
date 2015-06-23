@@ -13,7 +13,7 @@
 #include <cmath>
 #include <limits>
 
-#include "clsparseTimer.host.hpp"
+#include "clsparseTimer-host.hpp"
 
 #if defined( _WIN32 )
 #define NOMINMAX

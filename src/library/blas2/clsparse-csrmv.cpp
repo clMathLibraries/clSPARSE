@@ -1,6 +1,6 @@
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_control.hpp"
-#include "clsparse_csrmv.hpp"
+#include "internal/clsparse-control.hpp"
+#include "clsparse-csrmv.hpp"
 
 clsparseStatus
 clsparseScsrmv( const clsparseScalar* alpha,

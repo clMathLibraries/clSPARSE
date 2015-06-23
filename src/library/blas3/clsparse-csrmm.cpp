@@ -1,6 +1,6 @@
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_internal.hpp"
-#include "internal/clsparse_control.hpp"
+#include "internal/clsparse-internal.hpp"
+#include "internal/clsparse-control.hpp"
 #include "clsparse-csrmm.hpp"
 
 clsparseStatus

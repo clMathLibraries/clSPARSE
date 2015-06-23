@@ -1,4 +1,4 @@
-#include "kernel_wrap.hpp"
+#include "kernel-wrap.hpp"
 #include "clSPARSE-error.hpp"
 
 KernelWrap::KernelWrap( cl::Kernel &kernel ): kernel( kernel ), argCounter( 0 ), addrBits( 0 )

@@ -3,9 +3,9 @@
 #define _CLSPARSE_CSRMV_ADAPTIVE_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_validate.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
+#include "internal/clsparse-validate.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
 #include "internal/data_types/clvector.hpp"
 
 template <typename T>

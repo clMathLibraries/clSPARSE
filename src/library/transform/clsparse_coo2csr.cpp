@@ -2,8 +2,8 @@
 #include <algorithm>
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_internal.hpp"
-#include "internal/clsparse_control.hpp"
+#include "internal/clsparse-internal.hpp"
+#include "internal/clsparse-control.hpp"
 #include "internal/computeRowBlocks.hpp"
 
 template<typename FloatType>
@@ -60,7 +60,7 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control )
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
 
     // This allocates up front the maximum size of rowBlocks at start; likely not all the memory is used but
-    // this is the fastest 
+    // this is the fastest
     pCsrMatx->rowBlockSize = 3 * ( pCsrMatx->nnz / BLKSIZE ) + 1;
 
     return clsparseSuccess;
@@ -151,4 +151,3 @@ clsparseDcoo2csr_host( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooM
 
     return clsparseSuccess;
 }
-

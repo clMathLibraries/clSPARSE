@@ -3,9 +3,9 @@
 #define _CLSPARSE_ELEMENTWISE_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
-#include "internal/clsparse_internal.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
+#include "internal/clsparse-internal.hpp"
 
 #include "elementwise_operators.hpp"
 

@@ -1,19 +1,19 @@
 #include "clSPARSE.h"
-#include "internal/clsparse_internal.hpp"
-#include "internal/clsparse_validate.hpp"
-#include "internal/clsparse_control.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
+#include "internal/clsparse-internal.hpp"
+#include "internal/clsparse-validate.hpp"
+#include "internal/clsparse-control.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
 
 
 clsparseStatus
-radix_sort_by_key(int keys_first, 
+radix_sort_by_key(int keys_first,
                   int keys_last,
                   int values_first,
                   cl_mem clInputKeys,
                   cl_mem clInputValues,
                   cl_mem clInputValues2,
-                  int float_type, 
+                  int float_type,
                   clsparseControl control)
 {
 
@@ -23,13 +23,13 @@ radix_sort_by_key(int keys_first,
 
     const int RADICES = (1 << RADIX); //Values handeled by each work-item?
 
-    int orig_szElements = keys_last - keys_first + 1; 
+    int orig_szElements = keys_last - keys_first + 1;
     int szElements = orig_szElements;
 
     int kernel0_WgSize = 256;
     int kernel1_WgSize = 256;
     int kernel2_WgSize = 256;
-    std::string params; 
+    std::string params;
 
     if(float_type == 0){ //TODO make it a template with type
       params = std::string() +
@@ -63,7 +63,7 @@ radix_sort_by_key(int keys_first,
     cl_mem clSwapValues2;
     if(float_type == 0)
        clSwapValues2 = clCreateBuffer(context(),CL_MEM_READ_WRITE, (szElements)*sizeof(cl_float), NULL, NULL );
-    else 
+    else
        clSwapValues2 = clCreateBuffer(context(),CL_MEM_READ_WRITE, (szElements)*sizeof(cl_double), NULL, NULL );
 
     cl_mem clHistData    = clCreateBuffer(context(),CL_MEM_READ_WRITE, (localSize * RADICES)*sizeof(unsigned int), NULL, NULL );
@@ -79,7 +79,7 @@ radix_sort_by_key(int keys_first,
     const int ELEMENTS_PER_WORK_ITEM = 4;
     int blockSize = (int)(ELEMENTS_PER_WORK_ITEM*localSize);//set at 1024
     int nBlocks = (int)(szElements + blockSize-1)/(blockSize);
-	
+
     struct b3ConstData
     {
       int m_n;
@@ -93,7 +93,7 @@ radix_sort_by_key(int keys_first,
     cdata.m_nWGs = (int)numGroups;
     //cdata.m_startBit = shift; //Shift value is set inside the for loop.
     cdata.m_nBlocksPerWG = (int)(nBlocks + numGroups - 1)/numGroups;
-	
+
     if(nBlocks < numGroups)
     {
       cdata.m_nBlocksPerWG = 1;
@@ -112,19 +112,19 @@ radix_sort_by_key(int keys_first,
     //permuteSignedKernel
 
     cl::Kernel kernel4 = KernelCache::get(control->queue,"sort_by_key_int", "permuteByKeySignedAscTemplate", params);
-  
+
     cl::NDRange local0(localSize);
     cl::NDRange global0(numGroups*localSize);
-	
+
     cl::NDRange local1(localSize);
     cl::NDRange global1(numGroups*localSize);
-	
+
     cl::NDRange local2(localSize);
     cl::NDRange global2(localSize);
-	
+
     cl::NDRange local3(localSize);
     cl::NDRange global3(numGroups*localSize);
-	
+
     cl::NDRange local4(localSize);
     cl::NDRange global4(numGroups*localSize);
 
@@ -134,7 +134,7 @@ radix_sort_by_key(int keys_first,
     {
         KernelWrap kWrapper0(kernel0);
         KernelWrap kWrapper2(kernel2);
-        KernelWrap kWrapper3(kernel3);   
+        KernelWrap kWrapper3(kernel3);
         //Launch Kernel
         cdata.m_startBit = bits;
         //Histogram Kernel
@@ -142,43 +142,43 @@ radix_sort_by_key(int keys_first,
            kWrapper0 << clInputKeys << clHistData << cdata.m_n << cdata.m_nWGs << cdata.m_startBit << cdata.m_nBlocksPerWG;
         else
            kWrapper0 << clSwapKeys << clHistData << cdata.m_n <<  cdata.m_nWGs << cdata.m_startBit << cdata.m_nBlocksPerWG;
- 		
+
         status = kWrapper0.run(control, global0, local0);
-       
+
         if (status != CL_SUCCESS)
         {
           return clsparseInvalidKernelExecution;
         }
-		
+
         //Launch Local Scan Kernel
         kWrapper2 << clHistData << (int)numGroups;
-		
+
         status = kWrapper2.run(control, global2, local2);
-        		
+
         if (status != CL_SUCCESS)
         {
           return clsparseInvalidKernelExecution;
         }
-		
+
 
         //Launch Permute Kernel
         if (swap == 0)
            kWrapper3 << clInputKeys <<  clInputValues << clInputValues2 << clHistData << clSwapKeys << clSwapValues << clSwapValues2 <<cdata.m_n << cdata.m_nWGs << cdata.m_startBit << cdata.m_nBlocksPerWG;
         else
            kWrapper3 << clSwapKeys <<  clSwapValues << clSwapValues2 << clHistData << clInputKeys << clInputValues  << clInputValues2 << cdata.m_n << cdata.m_nWGs << cdata.m_startBit << cdata.m_nBlocksPerWG;
-	   
+
         status = kWrapper3.run(control, global3, local3);
-		
+
         if (status != CL_SUCCESS)
         {
            return clsparseInvalidKernelExecution;
         }
-		
+
         /*For swapping the buffers*/
         swap = swap? 0: 1;
     }
     //Perform Signed nibble radix sort operations here operations here
-    { 
+    {
         //Histogram Kernel
         KernelWrap kWrapper1(kernel1);
         KernelWrap kWrapper2(kernel2);
@@ -186,14 +186,14 @@ radix_sort_by_key(int keys_first,
         cdata.m_startBit = bits;
 
         kWrapper1 << clSwapKeys << clHistData << cdata.m_n << cdata.m_nWGs << cdata.m_startBit << cdata.m_nBlocksPerWG;
-		
+
         status = kWrapper1.run(control, global1, local1);
 
         if (status != CL_SUCCESS)
         {
 			return clsparseInvalidKernelExecution;
         }
-		
+
         kWrapper2 << clHistData << (int)numGroups;
         //Launch Scan Kernel
         status = kWrapper2.run(control, global2, local2);
@@ -206,12 +206,12 @@ radix_sort_by_key(int keys_first,
         //Launch Permute Kernel
         kWrapper4 << clSwapKeys << clSwapValues << clSwapValues2 << clHistData << clInputKeys << clInputValues << clInputValues2 <<  cdata.m_n << cdata.m_nWGs << cdata.m_startBit << cdata.m_nBlocksPerWG;
         status = kWrapper4.run(control, global4, local4);
-		
+
         if (status != CL_SUCCESS)
         {
            return clsparseInvalidKernelExecution;
         }
-		
+
     }
 
     clReleaseMemObject(clSwapKeys);

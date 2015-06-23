@@ -6,8 +6,8 @@
 //
 
 #include "clsparseTimer-extern.hpp"
-#include "clsparseTimer.host.hpp"
-#include "clsparseTimer.device.hpp"
+#include "clsparseTimer-host.hpp"
+#include "clsparseTimer-device.hpp"
 
 //	Even though the individual getInstance functions of the timer classes return references,
 //	we convert those to pointers before returning from here so that the clients can initialize

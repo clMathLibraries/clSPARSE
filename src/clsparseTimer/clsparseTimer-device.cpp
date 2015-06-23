@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <functional>
 #include <cmath>
-#include "clsparseTimer.device.hpp"
+#include "clsparseTimer-device.hpp"
 
 //	Format an unsigned number with comma thousands separator
 //

@@ -3,7 +3,7 @@
 #define _CLSPARSE_ARRAY_BASE_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_control.hpp"
+#include "internal/clsparse-control.hpp"
 
 #include "blas1/elementwise_transform.hpp"
 

@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "../library/internal/ocl_type_traits.hpp"
+#include "../library/internal/ocl-type-traits.hpp"
 
 
 TEST (CL_TRAITS, cl_mem_type)

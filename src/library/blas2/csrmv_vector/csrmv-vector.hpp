@@ -2,8 +2,8 @@
 #ifndef _CLSPARSE_CSRMV_VECTOR_HPP_
 #define _CLSPARSE_CSRMV_VECTOR_HPP_
 
-#include "internal/clsparse_validate.hpp"
-#include "internal/clsparse_internal.hpp"
+#include "internal/clsparse-validate.hpp"
+#include "internal/clsparse-internal.hpp"
 #include "internal/data_types/clvector.hpp"
 
 template<typename T>

@@ -1,9 +1,9 @@
 #include "clSPARSE.h"
-#include "internal/clsparse_internal.hpp"
-#include "internal/clsparse_validate.hpp"
-#include "internal/clsparse_control.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
+#include "internal/clsparse-internal.hpp"
+#include "internal/clsparse-validate.hpp"
+#include "internal/clsparse-control.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
 
 clsparseStatus
 csr2coo_transform(const int m, const int n,
@@ -235,4 +235,3 @@ clsparseDcsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
                              control);
 
 }
-

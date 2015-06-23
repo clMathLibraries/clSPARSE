@@ -3,7 +3,7 @@
 #define _CLSPARSE_SOLVER_BICGSTAB_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_internal.hpp"
+#include "internal/clsparse-internal.hpp"
 #include "internal/data_types/clvector.hpp"
 #include "internal/data_types/clarray.hpp"
 
@@ -12,7 +12,7 @@
 #include "preconditioners/void.hpp"
 
 //matrix multiply
-#include "blas2/clsparse_csrmv.hpp"
+#include "blas2/clsparse-csrmv.hpp"
 
 //dense vector operations
 #include "blas1/cldense_dot.hpp"

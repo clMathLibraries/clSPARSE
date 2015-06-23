@@ -2,7 +2,7 @@
 #define _CLSPARSE_CONTROL_H_
 
 #include "clSPARSE.h"
-#include "../clsparseTimer/clsparseTimer.device.hpp"
+#include "../clsparseTimer/clsparseTimer-device.hpp"
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <OpenCL/cl.hpp>

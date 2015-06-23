@@ -1,9 +1,9 @@
 #include "clSPARSE.h"
-#include "internal/clsparse_internal.hpp"
-#include "internal/clsparse_validate.hpp"
-#include "internal/clsparse_control.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
+#include "internal/clsparse-internal.hpp"
+#include "internal/clsparse-validate.hpp"
+#include "internal/clsparse-control.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
 
 // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION >= 200 )
@@ -52,7 +52,7 @@ csr2dense_transform(const clsparseCsrMatrixPrivate* pCsr,
     pA->num_cols = pCsr->n;
 
     return clsparseSuccess;
- 
+
 }
 
 clsparseStatus
@@ -74,7 +74,7 @@ clsparseScsr2dense(const clsparseCsrMatrix* csr,
         return clsparseInvalidControlObject;
     }
 
-    clsparseStatus status; 
+    clsparseStatus status;
 
     //validate cl_mem objects
     status = validateMemObject(pA->values, sizeof(cl_float)*pCsr->n*pCsr->m);
@@ -110,7 +110,7 @@ clsparseScsr2dense(const clsparseCsrMatrix* csr,
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
     //fill the buffer A with zeros
-    cl_float pattern = 0.0f; 
+    cl_float pattern = 0.0f;
 #if (BUILD_CLVERSION >= 200)
     clEnqueueSVMMemFill(control->queue(), pA->values, &pattern, sizeof(cl_float),
                         sizeof(cl_float) * pCsr->m * pCsr->n, 0, NULL, NULL);
@@ -200,4 +200,3 @@ cldenseMatrix* A,
                                control);
 
 }
-

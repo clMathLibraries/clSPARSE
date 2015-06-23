@@ -1,8 +1,8 @@
-#include "kernel_cache.hpp"
+#include "kernel-cache.hpp"
 
 #include <iostream>
 #include <iterator>
-#include "source_provider.hpp"
+#include "source-provider.hpp"
 
 KernelCache KernelCache::singleton;
 

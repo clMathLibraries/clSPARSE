@@ -1,8 +1,8 @@
 #include "clSPARSE.h"
-#include "clsparse_control.hpp"
-#include "internal/clsparse_internal.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
+#include "clsparse-control.hpp"
+#include "internal/clsparse-internal.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
 #include "loadDynamicLibrary.hpp"
 #include "clsparseTimer-extern.hpp"
 

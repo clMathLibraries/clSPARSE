@@ -1,9 +1,9 @@
 #include "clSPARSE.h"
-#include "internal/clsparse_internal.hpp"
-#include "internal/clsparse_validate.hpp"
-#include "internal/clsparse_control.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
+#include "internal/clsparse-internal.hpp"
+#include "internal/clsparse-validate.hpp"
+#include "internal/clsparse-control.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
 #include "transform/transform_kernels.h"
 
 #define KERNEL02WAVES 4
@@ -16,7 +16,7 @@ reduce_by_key(
     int keys_first,
     int keys_last,
     int values_first,
-    cl_mem keys_input, 
+    cl_mem keys_input,
     cl_mem values_input,
     cl_mem keys_output,
     cl_mem values_output,
@@ -33,22 +33,22 @@ reduce_by_key(
     const int kernel0_WgSize = WAVESIZE*KERNEL02WAVES;
     const int kernel1_WgSize = WAVESIZE*KERNEL1WAVES;
     const int kernel2_WgSize = WAVESIZE*KERNEL02WAVES;
-	
+
     //const std::string params = std::string() +
     //          " -DKERNEL0WORKGROUPSIZE=" + std::to_string(kernel0_WgSize)
     //        + " -DKERNEL1WORKGROUPSIZE=" + std::to_string(kernel1_WgSize)
     //        + " -DKERNEL2WORKGROUPSIZE=" + std::to_string(kernel2_WgSize);
-    const std::string params; 
+    const std::string params;
 
     cl::Context context = control->getContext();
-    std::vector<cl::Device> dev = context.getInfo<CL_CONTEXT_DEVICES>(); 
+    std::vector<cl::Device> dev = context.getInfo<CL_CONTEXT_DEVICES>();
     int computeUnits  = dev[0].getInfo< CL_DEVICE_MAX_COMPUTE_UNITS >( );
     int wgPerComputeUnit = dev[0].getInfo< CL_DEVICE_MAX_WORK_GROUP_SIZE >( );
 
 
     int resultCnt = computeUnits * wgPerComputeUnit;
     cl_uint numElements = keys_last - keys_first + 1;
-	
+
     size_t sizeInputBuff = numElements;
     int modWgSize = (sizeInputBuff & (kernel0_WgSize-1));
     if( modWgSize )
@@ -71,9 +71,9 @@ reduce_by_key(
     /**********************************************************************************
      *  Kernel 0
      *********************************************************************************/
-	 
+
     cl::Kernel kernel0 = KernelCache::get(control->queue,"reduce_by_key", "OffsetCalculation", params);
-	
+
     KernelWrap kWrapper0(kernel0);
 
     kWrapper0 << keys_input << tempArrayVec
@@ -91,7 +91,7 @@ reduce_by_key(
 
     int init = 0;
 
-    scan(0, 
+    scan(0,
 	 numElements - 1,
          tempArrayVec,
          tempArrayVec,
@@ -111,11 +111,11 @@ reduce_by_key(
     clEnqueueFillBuffer(control->queue(), postSumArray, &pattern, sizeof(int), 0,
                         (sizeScanBuff)*sizeof(int), 0, NULL, NULL);
 
-    
+
     /**********************************************************************************
      *  Kernel 1
      *********************************************************************************/
-	
+
     cl::Kernel kernel1 = KernelCache::get(control->queue,"reduce_by_key", "perBlockScanByKey", params);
 
     KernelWrap kWrapper1(kernel1);
@@ -135,12 +135,12 @@ reduce_by_key(
     {
         return clsparseInvalidKernelExecution;
     }
- 
+
     /**********************************************************************************
      *  Kernel 2
      *********************************************************************************/
     cl_uint workPerThread = static_cast< cl_uint >( sizeScanBuff / kernel1_WgSize );
-	
+
     cl::Kernel kernel2 = KernelCache::get(control->queue,"reduce_by_key", "intraBlockInclusiveScanByKey", params);
 
     KernelWrap kWrapper2(kernel2);
@@ -161,11 +161,11 @@ reduce_by_key(
     /**********************************************************************************
      *  Kernel 3
      *********************************************************************************/
-	 
+
     cl::Kernel kernel3 = KernelCache::get(control->queue,"reduce_by_key", "keyValueMapping", params);
 
     KernelWrap kWrapper3(kernel3);
-	
+
     kWrapper3 << keys_input << keys_output
               << values_input << values_output << tempArrayVec
               << keySumArray << postSumArray << numElements;
@@ -179,18 +179,18 @@ reduce_by_key(
     {
         return clsparseInvalidKernelExecution;
     }
-    
+
     int *h_result = (int *) malloc (sizeof(int));
-	
-    clEnqueueReadBuffer(control->queue(), 
-                        tempArrayVec, 
-                        1, 
+
+    clEnqueueReadBuffer(control->queue(),
+                        tempArrayVec,
+                        1,
                        (numElements-1)*sizeof(int),
-                        sizeof(int), 
-                        h_result, 
-                        0, 
-                        0, 
-                        0);	
+                        sizeof(int),
+                        h_result,
+                        0,
+                        0,
+                        0);
 
     *count = *(h_result);
     //printf("h_result = %d\n", *count );

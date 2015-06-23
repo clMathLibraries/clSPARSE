@@ -14,8 +14,8 @@
 #include <type_traits>
 
 #include "clSPARSE.h"
-#include "clsparse_control.hpp"
-#include "ocl_type_traits.hpp"
+#include "clsparse-control.hpp"
+#include "ocl-type-traits.hpp"
 
 //! \brief Class interface for specifying NDRange values.
 //! not to include cl.hpp this is moved here and implementation

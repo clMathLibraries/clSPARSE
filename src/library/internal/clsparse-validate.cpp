@@ -1,5 +1,5 @@
-#include "clsparse_validate.hpp"
-#include "ocl_type_traits.hpp"
+#include "clsparse-validate.hpp"
+#include "ocl-type-traits.hpp"
 #include <iostream>
 
 clsparseStatus

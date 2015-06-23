@@ -2,7 +2,7 @@
 #ifndef _CLSPARSE_CLVECTOR_HPP_
 #define _CLSPARSE_CLVECTOR_HPP_
 
-#include "internal/clsparse_control.hpp"
+#include "internal/clsparse-control.hpp"
 #include "include/clSPARSE-private.hpp"
 #include "clSPARSE-error.hpp"
 

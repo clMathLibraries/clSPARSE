@@ -3,7 +3,7 @@
 #define _CLSPARSE_PREC_DIAGONAL_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_control.hpp"
+#include "internal/clsparse-control.hpp"
 #include "preconditioner.hpp"
 
 #include "blas1/elementwise_transform.hpp"

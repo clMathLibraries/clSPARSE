@@ -38,7 +38,7 @@ include_directories(
   ${PROJECT_BINARY_DIR}/clsparseTimer
 )
 
-set(ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/source_provider.cpp)
+set(ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/source-provider.cpp)
 add_custom_command(
   OUTPUT "${ocl_kernels_file_name}"
   COMMAND ${CMAKE_COMMAND}
@@ -72,15 +72,15 @@ set( clSPARSE.source.cl
 
 set( clSPARSE.source.cpp
   clsparse_init.cpp
-  matrixMarket/mm_reader.cpp
+  matrixMarket/mm-reader.cpp
 )
 
 set( clSPARSE.source.internal
-  internal/clsparse_control.cpp
-  internal/clsparse_validate.cpp
-  internal/kernel_cache.cpp
-  internal/ocl_type_traits.cpp
-  internal/kernel_wrap.cpp
+  internal/clsparse-control.cpp
+  internal/clsparse-validate.cpp
+  internal/kernel-cache.cpp
+  internal/ocl-type-traits.cpp
+  internal/kernel-wrap.cpp
 )
 
 set( clSPARSE.source.transform
@@ -107,7 +107,7 @@ set( clSPARSE.source.blas1
 )
 
 set( clSPARSE.source.blas2
-  blas2/clsparse_csrmv.cpp
+  blas2/clsparse-csrmv.cpp
 )
 
 set( clSPARSE.source.blas3
@@ -149,9 +149,9 @@ set( clSPARSE.Headers.blas1
 )
 
 set( clSPARSE.Headers.blas2
-  blas2/clsparse_csrmv.hpp
-  blas2/csrmv_vector/csrmv_vector.hpp
-  blas2/csrmv_adaptive/csrmv_adaptive.hpp
+  blas2/clsparse-csrmv.hpp
+  blas2/csrmv_vector/csrmv-vector.hpp
+  blas2/csrmv_adaptive/csrmv-adaptive.hpp
 )
 
 set( clSPARSE.Headers.blas3
@@ -169,13 +169,13 @@ set( clSPARSE.Headers.solvers
 )
 
 set( clSPARSE.Headers.internal
-  internal/clsparse_internal.hpp
-  internal/clsparse_control.hpp
-  internal/clsparse_validate.hpp
-  internal/source_provider.hpp
-  internal/kernel_cache.hpp
-  internal/ocl_type_traits.hpp
-  internal/kernel_wrap.hpp
+  internal/clsparse-internal.hpp
+  internal/clsparse-control.hpp
+  internal/clsparse-validate.hpp
+  internal/source-provider.hpp
+  internal/kernel-cache.hpp
+  internal/ocl-type-traits.hpp
+  internal/kernel-wrap.hpp
   internal/data_types/clvector.hpp
   internal/data_types/clarray.hpp
   internal/data_types/clarray_base.hpp

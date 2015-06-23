@@ -1,4 +1,4 @@
-#include "ocl_type_traits.hpp"
+#include "ocl-type-traits.hpp"
 
 
 #define DECLARE_TYPE_STR(TYPE, TYPE_STR) \

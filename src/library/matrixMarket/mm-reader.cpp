@@ -44,7 +44,7 @@ to copyright protection within the United States.
 #include "include/clSPARSE-private.hpp"
 #include "include/external/mmio.h"
 #include "clSPARSE.hpp"
-#include "internal/clsparse_control.hpp"
+#include "internal/clsparse-control.hpp"
 #include "internal/computeRowBlocks.hpp"
 
 // Class declarations
@@ -406,7 +406,7 @@ int MatrixMarketReader<FloatType>::MMReadMtxCrdSize( FILE *infile )
 }
 
 // This function reads the file header at the given filepath, and returns the size
-// of the sparse matrix in the clsparseCooMatrix parameter.  
+// of the sparse matrix in the clsparseCooMatrix parameter.
 // Post-condition: clears clsparseCooMatrix, then sets pCooMatx->m, pCooMatx->n
 // pCooMatx->nnz
 clsparseStatus
@@ -440,7 +440,7 @@ clsparseHeaderfromFile( cl_int* nnz, cl_int* row, cl_int* col, const char* fileP
 
 // This function reads the file at the given filepath, and returns the sparse
 // matrix in the COO struct.  All matrix data is written to device memory
-// Pre-condition: This function assumes that the device memory buffers have been 
+// Pre-condition: This function assumes that the device memory buffers have been
 // pre-allocated by the caller
 clsparseStatus
 clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control )
