@@ -4,7 +4,7 @@
 #include "internal/clsparse-control.hpp"
 #include "internal/kernel-cache.hpp"
 #include "internal/kernel-wrap.hpp"
-#include "transform/transform_kernels.h"
+#include "transform/transform-kernels.h"
 
 //#include <clBLAS.h>
 

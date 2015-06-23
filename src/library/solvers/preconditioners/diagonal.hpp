@@ -8,7 +8,7 @@
 
 #include "blas1/elementwise_transform.hpp"
 #include "preconditioner_utils.hpp"
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 #include <memory>
 
 /* The simplest preconditioner consists of just the

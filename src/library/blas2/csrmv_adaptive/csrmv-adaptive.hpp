@@ -6,7 +6,7 @@
 #include "internal/clsparse-validate.hpp"
 #include "internal/kernel-cache.hpp"
 #include "internal/kernel-wrap.hpp"
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 template <typename T>
 clsparseStatus

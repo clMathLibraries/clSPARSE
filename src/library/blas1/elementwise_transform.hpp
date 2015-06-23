@@ -9,7 +9,7 @@
 
 #include "elementwise_operators.hpp"
 
-//#include "internal/data_types/clvector.hpp"
+//#include "internal/data-types/clvector.hpp"
 //forward declaration of clsparse::vector class for proper interface
 namespace clsparse
 {

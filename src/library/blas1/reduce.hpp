@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 template <typename T, ReduceOperator OP>
 clsparseStatus

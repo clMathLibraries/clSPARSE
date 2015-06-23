@@ -2,7 +2,7 @@
 #include "internal/kernel-cache.hpp"
 #include "internal/kernel-wrap.hpp"
 #include "internal/clsparse-internal.hpp"
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 
 //TODO:: add offset to the scale kernel

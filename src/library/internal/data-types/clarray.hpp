@@ -6,8 +6,8 @@
 #include "include/clSPARSE-private.hpp"
 #include "clSPARSE-error.hpp"
 
-#include "clarray_base.hpp"
-#include "reference_base.hpp"
+#include "clarray-base.hpp"
+#include "reference-base.hpp"
 #include "iterator-base.hpp"
 
 #include "blas1/elementwise_transform.hpp"

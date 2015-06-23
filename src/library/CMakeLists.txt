@@ -84,14 +84,14 @@ set( clSPARSE.source.internal
 )
 
 set( clSPARSE.source.transform
-  transform/clsparse_csr2dense.cpp
-  transform/clsparse_coo2csr.cpp
-  transform/clsparse_csr2coo.cpp
+  transform/clsparse-csr2dense.cpp
+  transform/clsparse-coo2csr.cpp
+  transform/clsparse-csr2coo.cpp
   transform/scan.cpp
-  transform/reduce_by_key.cpp
-  transform/sort_by_key.cpp
-  transform/clsparse_coo2csr_GPU.cpp
-  transform/clsparse_dense2csr.cpp
+  transform/reduce-by-key.cpp
+  transform/sort-by-key.cpp
+  transform/clsparse-coo2csr-GPU.cpp
+  transform/clsparse-dense2csr.cpp
 )
 
 set( clSPARSE.source.blas1
@@ -176,13 +176,13 @@ set( clSPARSE.Headers.internal
   internal/kernel-cache.hpp
   internal/ocl-type-traits.hpp
   internal/kernel-wrap.hpp
-  internal/data_types/clvector.hpp
-  internal/data_types/clarray.hpp
-  internal/data_types/clarray_base.hpp
-  internal/data_types/reference_base.hpp
-  internal/data_types/iterator-base.hpp
+  internal/data-types/clvector.hpp
+  internal/data-types/clarray.hpp
+  internal/data-types/clarray-base.hpp
+  internal/data-types/reference-base.hpp
+  internal/data-types/iterator-base.hpp
   internal/computeRowBlocks.hpp
-  transform/transform_kernels.h
+  transform/transform-kernels.h
   ${ocl_kernels_file_name}
 )
 

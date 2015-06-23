@@ -8,7 +8,7 @@
 #include "internal/clsparse-internal.hpp"
 
 #include "elementwise_operators.hpp"
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus

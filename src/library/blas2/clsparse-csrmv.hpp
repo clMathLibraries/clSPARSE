@@ -6,7 +6,7 @@
 #include "internal/clsparse-control.hpp"
 #include "blas2/csrmv_adaptive/csrmv-adaptive.hpp"
 #include "blas2/csrmv_vector/csrmv-vector.hpp"
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 template <typename T>
 clsparseStatus

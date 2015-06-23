@@ -2,7 +2,7 @@
 #ifndef _CLSPARSE_NRM_1_HPP_
 #define _CLSPARSE_NRM_1_HPP_
 
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 #include "reduce.hpp"
 
 

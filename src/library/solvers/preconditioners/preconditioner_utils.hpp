@@ -7,7 +7,7 @@
 #include "internal/kernel-wrap.hpp"
 #include "internal/clsparse-internal.hpp"
 
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 template<typename T, bool inverse = false>
 clsparseStatus

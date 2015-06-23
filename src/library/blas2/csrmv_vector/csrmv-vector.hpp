@@ -4,7 +4,7 @@
 
 #include "internal/clsparse-validate.hpp"
 #include "internal/clsparse-internal.hpp"
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 template<typename T>
 clsparseStatus

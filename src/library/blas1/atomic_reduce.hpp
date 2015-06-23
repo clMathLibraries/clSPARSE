@@ -8,7 +8,7 @@
 #include "internal/kernel-cache.hpp"
 #include "internal/kernel-wrap.hpp"
 #include "reduce_operators.hpp"
-#include "internal/data_types/clarray_base.hpp"
+#include "internal/data-types/clarray-base.hpp"
 
 /* Helper function used in reduce type operations
  * pR = \sum pX

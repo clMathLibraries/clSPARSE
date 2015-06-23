@@ -4,8 +4,8 @@
 
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse-internal.hpp"
-#include "internal/data_types/clvector.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/data-types/clvector.hpp"
+#include "internal/data-types/clarray.hpp"
 
 #include "preconditioners/preconditioner.hpp"
 #include "preconditioners/diagonal.hpp"
