@@ -107,7 +107,7 @@ set( clSPARSE.source.blas1
 )
 
 set( clSPARSE.source.blas2
-  spmv/clsparse_csrmv.cpp
+  blas2/clsparse_csrmv.cpp
 )
 
 set( clSPARSE.source.blas3
@@ -122,15 +122,15 @@ set( clSPARSE.source.solvers
 
 set( clSPARSE.Headers.public
   ../include/clSPARSE.h
-  ../include/clSPARSE_1x.h
-  ../include/clSPARSE_2x.h
-  ../include/clsparse.error.hpp
-  ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
+  ../include/clSPARSE-1x.h
+  ../include/clSPARSE-2x.h
+  ../include/clSPARSE-error.hpp
+  ${PROJECT_BINARY_DIR}/include/clSPARSE-version.h
 )
 
 set( clSPARSE.Headers.private
-  include/clSPARSE_1x.hpp
-  include/clSPARSE_2x.hpp
+  include/clSPARSE-1x.hpp
+  include/clSPARSE-2x.hpp
   include/clSPARSE-private.hpp
 )
 
@@ -149,9 +149,9 @@ set( clSPARSE.Headers.blas1
 )
 
 set( clSPARSE.Headers.blas2
-  spmv/clsparse_csrmv.hpp
-  spmv/csrmv_vector/csrmv_vector.hpp
-  spmv/csrmv_adaptive/csrmv_adaptive.hpp
+  blas2/clsparse_csrmv.hpp
+  blas2/csrmv_vector/csrmv_vector.hpp
+  blas2/csrmv_adaptive/csrmv_adaptive.hpp
 )
 
 set( clSPARSE.Headers.blas3

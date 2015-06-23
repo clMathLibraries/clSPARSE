@@ -4,8 +4,8 @@
 
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse_control.hpp"
-#include "spmv/csrmv_adaptive/csrmv_adaptive.hpp"
-#include "spmv/csrmv_vector/csrmv_vector.hpp"
+#include "blas2/csrmv_adaptive/csrmv_adaptive.hpp"
+#include "blas2/csrmv_vector/csrmv_vector.hpp"
 #include "internal/data_types/clvector.hpp"
 
 template <typename T>

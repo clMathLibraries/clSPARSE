@@ -11,7 +11,7 @@
 
 #include <clSPARSE.h>
 
-#include "clsparseTimer.extern.hpp"
+#include "clsparseTimer-extern.hpp"
 #include "loadDynamicLibrary.hpp"
 #include "functions/clfunc_xSpMdV.hpp"
 #include "functions/clfunc-xSpMdM.hpp"

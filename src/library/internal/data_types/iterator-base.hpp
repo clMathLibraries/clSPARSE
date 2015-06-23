@@ -4,7 +4,7 @@
 
 
 #include "include/clSPARSE-private.hpp"
-#include "clsparse.error.hpp"
+#include "clSPARSE-error.hpp"
 #include "reference_base.hpp"
 #include <cassert>
 #include <iterator>

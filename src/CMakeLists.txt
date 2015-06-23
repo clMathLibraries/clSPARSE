@@ -141,13 +141,13 @@ message( STATUS "CMAKE_EXE_LINKER link flags: " ${CMAKE_EXE_LINKER_FLAGS} )
 
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
 message( STATUS "PROJECT SRC DIR = ${PROJECT_SOURCE_DIR}")
-configure_file( "${PROJECT_SOURCE_DIR}/include/clSPARSE.version.h.in" "${PROJECT_BINARY_DIR}/include/clSPARSE.version.h" )
+configure_file( "${PROJECT_SOURCE_DIR}/include/clSPARSE-version.h.in" "${PROJECT_BINARY_DIR}/include/clSPARSE-version.h" )
 install( FILES
-			"${PROJECT_BINARY_DIR}/include/clSPARSE.version.h"
+			"${PROJECT_BINARY_DIR}/include/clSPARSE-version.h"
 			"include/clSPARSE.h"
-			"include/clSPARSE_1x.h"
-			"include/clSPARSE_2x.h"
-                        "include/clSPARSE_xx.h"
+			"include/clSPARSE-1x.h"
+			"include/clSPARSE-2x.h"
+    	"include/clSPARSE-xx.h"
 		DESTINATION
 			"./include" )
 

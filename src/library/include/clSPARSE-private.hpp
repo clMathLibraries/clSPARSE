@@ -17,9 +17,9 @@
 
 // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION < 200 )
-#include "include/clSPARSE_1x.hpp"
+#include "include/clSPARSE-1x.hpp"
 #else
-#include "include/clSPARSE_2x.hpp"
+#include "include/clSPARSE-2x.hpp"
 #endif
 
 // Constants used to help generate kernels for the CSR adaptive algorithm; used between coo2csr and csrmv_adaptive

@@ -4,7 +4,7 @@
 #include "internal/kernel_cache.hpp"
 #include "internal/kernel_wrap.hpp"
 #include "loadDynamicLibrary.hpp"
-#include "clsparseTimer.extern.hpp"
+#include "clsparseTimer-extern.hpp"
 
 #include <iostream>
 

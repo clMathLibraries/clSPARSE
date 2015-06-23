@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include <type_traits>
-#include "clSPARSE_1x.h"
-#include "clsparse.error.hpp"
+#include "clSPARSE-1x.h"
+#include "clSPARSE-error.hpp"
 
 // C++ wrapper classes that inherit from the extenrally visible C classes, 
 // for the purpose of providing convenience methods to abstract away the 

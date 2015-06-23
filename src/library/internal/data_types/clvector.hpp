@@ -4,7 +4,7 @@
 
 #include "internal/clsparse_control.hpp"
 #include "include/clSPARSE-private.hpp"
-#include "clsparse.error.hpp"
+#include "clSPARSE-error.hpp"
 
 #include "clarray_base.hpp"
 #include "reference_base.hpp"

@@ -3,7 +3,7 @@
 #define _CL_SPARSE_2x_HPP_
 
 #include <type_traits>
-#include "clSPARSE_2x.h"
+#include "clSPARSE-2x.h"
 
 // C++ wrapper classes that inherit from the externally visible C classes, 
 // for the purpose of providing convenience methods to abstract away the 

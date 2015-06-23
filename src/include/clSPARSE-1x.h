@@ -1,8 +1,8 @@
 #pragma once
-#ifndef _CL_SPARSE_2x_H_
-#define _CL_SPARSE_2x_H_
+#ifndef _CL_SPARSE_1x_H_
+#define _CL_SPARSE_1x_H_
 
-#include "clSPARSE_xx.h"
+#include "clSPARSE-xx.h"
 
 // Data types used to pass OpenCL objects into the clSPARSE library
 // These are plain PoD containers; no methods defined
@@ -12,7 +12,10 @@
 typedef struct clsparseScalar_
 {
     // OpenCL state
-    void* value;
+    cl_mem value;
+
+    //OpenCL meta
+    cl_ulong offValue;
 } clsparseScalar;
 
 typedef struct clsparseVector_
@@ -21,7 +24,10 @@ typedef struct clsparseVector_
     cl_int n;
 
     // OpenCL state
-    void* values;
+    cl_mem values;
+
+    //OpenCL meta
+    cl_ulong offValues;
 } clsparseVector;
 
 typedef struct clsparseCsrMatrix_
@@ -32,11 +38,16 @@ typedef struct clsparseCsrMatrix_
     cl_int nnz;
 
     // OpenCL state
-    void* values;
-    void* colIndices;
-    void* rowOffsets;
-    void* rowBlocks;      // It is possible that this pointer may be NULL
+    cl_mem values;
+    cl_mem colIndices;
+    cl_mem rowOffsets;
+    cl_mem rowBlocks;      // It is possible that this pointer may be NULL
 
+    //OpenCL meta
+    cl_ulong offValues;
+    cl_ulong offColInd;
+    cl_ulong offRowOff;
+    cl_ulong offRowBlocks;
     size_t rowBlockSize;
 } clsparseCsrMatrix;
 
@@ -48,11 +59,17 @@ typedef struct clsparseCooMatrix_
     cl_int nnz;
 
     // OpenCL state
-    void* values;
-    void* colIndices;
-    void* rowIndices;
+    cl_mem values;
+    cl_mem colIndices;
+    cl_mem rowIndices;
+
+    //OpenCL meta
+    cl_ulong offValues;
+    cl_ulong offColInd;
+    cl_ulong offRowInd;
 } clsparseCooMatrix;
 
+//for sake of clarity in the interface
 typedef struct cldenseMatrix_
 {
     size_t num_rows;
@@ -60,7 +77,10 @@ typedef struct cldenseMatrix_
     size_t lead_dim;
     cldenseMajor major;
 
-    void* values;
+    cl_mem values;
+
+    //OpenCL meta
+    cl_ulong offValues;
 
 } cldenseMatrix;
 

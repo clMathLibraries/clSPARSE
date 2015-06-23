@@ -18,7 +18,7 @@ endif( )
 set( clsparseTimer.Headers
 	${PROJECT_SOURCE_DIR}/include/clSPARSE.h
 	${PROJECT_SOURCE_DIR}/include/clsparseTimer.hpp
-	${PROJECT_SOURCE_DIR}/include/clsparseTimer.extern.hpp
+	${PROJECT_SOURCE_DIR}/include/clsparseTimer-extern.hpp
 	clsparseTimer.host.hpp
 	clsparseTimer.device.hpp
  )

@@ -5,7 +5,7 @@
 // StatTimer.cpp : Defines the exported functions for the DLL application.
 //
 
-#include "clsparseTimer.extern.hpp"
+#include "clsparseTimer-extern.hpp"
 #include "clsparseTimer.host.hpp"
 #include "clsparseTimer.device.hpp"
 

@@ -12,7 +12,8 @@
 #include "preconditioners/void.hpp"
 
 //matrix multiply
-#include "spmv/clsparse_csrmv.hpp"
+#include "blas2/clsparse_csrmv.hpp"
+
 //dense vector operations
 #include "blas1/cldense_dot.hpp"
 #include "blas1/cldense_axpy.hpp"
