@@ -3,7 +3,7 @@
 
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse-internal.hpp"
-#include "clSPARSE.version.h"
+#include "clSPARSE-version.h"
 
 int clsparseInitialized = 0;
 
