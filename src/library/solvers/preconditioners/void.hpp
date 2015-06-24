@@ -6,7 +6,7 @@
 #include "internal/clsparse-control.hpp"
 #include "preconditioner.hpp"
 
-#include "blas1/elementwise_transform.hpp"
+#include "blas1/elementwise-transform.hpp"
 #include "preconditioner_utils.hpp"
 #include <memory>
 

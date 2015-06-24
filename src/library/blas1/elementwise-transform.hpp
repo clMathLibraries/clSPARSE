@@ -7,7 +7,7 @@
 #include "internal/kernel-wrap.hpp"
 #include "internal/clsparse-internal.hpp"
 
-#include "elementwise_operators.hpp"
+#include "elementwise-operators.hpp"
 
 //#include "internal/data-types/clvector.hpp"
 //forward declaration of clsparse::vector class for proper interface

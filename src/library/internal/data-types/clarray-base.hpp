@@ -5,7 +5,7 @@
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse-control.hpp"
 
-#include "blas1/elementwise_transform.hpp"
+#include "blas1/elementwise-transform.hpp"
 
 #include <cassert>
 

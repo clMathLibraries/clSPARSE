@@ -7,7 +7,7 @@
 #include "internal/kernel-wrap.hpp"
 #include "internal/clsparse-internal.hpp"
 
-#include "blas1/elementwise_operators.hpp"
+#include "blas1/elementwise-operators.hpp"
 
 #include "internal/data-types/clvector.hpp"
 

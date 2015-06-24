@@ -1,5 +1,5 @@
 #include "include/clSPARSE-private.hpp"
-#include "cldense_axpby.hpp"
+#include "cldense-axpby.hpp"
 
 clsparseStatus
 cldenseSaxpby(clsparseVector *y,

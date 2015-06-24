@@ -7,7 +7,7 @@
 #include "internal/clsparse-internal.hpp"
 
 #include "commons.hpp"
-#include "atomic_reduce.hpp"
+#include "atomic-reduce.hpp"
 #include "internal/data-types/clvector.hpp"
 
 template<typename T>

@@ -8,8 +8,8 @@
 #include "internal/clsparse-internal.hpp"
 
 #include "commons.hpp"
-#include "reduce_operators.hpp"
-#include "atomic_reduce.hpp"
+#include "reduce-operators.hpp"
+#include "atomic-reduce.hpp"
 
 #include <algorithm>
 

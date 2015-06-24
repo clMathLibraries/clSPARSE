@@ -1,5 +1,5 @@
 #include "include/clSPARSE-private.hpp"
-#include "cldense_nrm2.hpp"
+#include "cldense-nrm2.hpp"
 
 clsparseStatus
 cldenseSnrm2(clsparseScalar* s,

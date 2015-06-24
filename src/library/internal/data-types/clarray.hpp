@@ -10,7 +10,7 @@
 #include "reference-base.hpp"
 #include "iterator-base.hpp"
 
-#include "blas1/elementwise_transform.hpp"
+#include "blas1/elementwise-transform.hpp"
 
 #include <cassert>
 

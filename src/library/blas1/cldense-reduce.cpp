@@ -2,7 +2,7 @@
 #include "internal/kernel-cache.hpp"
 #include "internal/kernel-wrap.hpp"
 
-#include "atomic_reduce.hpp"
+#include "atomic-reduce.hpp"
 
 #include "reduce.hpp"
 

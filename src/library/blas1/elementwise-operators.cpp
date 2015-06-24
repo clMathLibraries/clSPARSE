@@ -1,4 +1,4 @@
-#include "elementwise_operators.hpp"
+#include "elementwise-operators.hpp"
 
 const char* ElementWiseOperatorTrait<EW_PLUS>::operation = "OP_EW_PLUS";
 const char* ElementWiseOperatorTrait<EW_MINUS>::operation = "OP_EW_MINUS";

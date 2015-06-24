@@ -15,12 +15,12 @@
 #include "blas2/clsparse-csrmv.hpp"
 
 //dense vector operations
-#include "blas1/cldense_dot.hpp"
-#include "blas1/cldense_axpy.hpp"
-#include "blas1/cldense_axpby.hpp"
-#include "blas1/cldense_nrm1.hpp"
+#include "blas1/cldense-dot.hpp"
+#include "blas1/cldense-axpy.hpp"
+#include "blas1/cldense-axpby.hpp"
+#include "blas1/cldense-nrm1.hpp"
 
-#include "solver_control.hpp"
+#include "solver-control.hpp"
 
 
 /*

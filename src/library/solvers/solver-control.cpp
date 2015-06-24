@@ -5,7 +5,7 @@
     #include <CL/cl.hpp>
 #endif
 
-#include "solver_control.hpp"
+#include "solver-control.hpp"
 
 clSParseSolverControl
 clsparseCreateSolverControl(PRECONDITIONER precond, cl_int maxIters,

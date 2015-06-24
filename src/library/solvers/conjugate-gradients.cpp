@@ -1,4 +1,4 @@
-#include "conjugate_gradients.hpp"
+#include "conjugate-gradients.hpp"
 clsparseStatus
 clsparseScsrcg(clsparseVector *x,
                const clsparseCsrMatrix *A,

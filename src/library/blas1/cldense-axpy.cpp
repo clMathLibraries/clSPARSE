@@ -1,5 +1,5 @@
 #include "include/clSPARSE-private.hpp"
-#include "blas1/cldense_axpy.hpp"
+#include "blas1/cldense-axpy.hpp"
 
 
 clsparseStatus

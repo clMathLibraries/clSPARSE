@@ -71,8 +71,8 @@ set( clSPARSE.source.cl
 )
 
 set( clSPARSE.source.cpp
-  clsparse_init.cpp
-  matrixMarket/mm-reader.cpp
+  clsparse-init.cpp
+  io/mm-reader.cpp
 )
 
 set( clSPARSE.source.internal
@@ -95,15 +95,15 @@ set( clSPARSE.source.transform
 )
 
 set( clSPARSE.source.blas1
-  blas1/cldense_axpy.cpp
-  blas1/cldense_axpby.cpp
-  blas1/cldense_scale.cpp
-  blas1/cldense_reduce.cpp
-  blas1/cldense_dot.cpp
-  blas1/reduce_operators.cpp
-  blas1/cldense_nrm1.cpp
-  blas1/cldense_nrm2.cpp
-  blas1/elementwise_operators.cpp
+  blas1/cldense-axpy.cpp
+  blas1/cldense-axpby.cpp
+  blas1/cldense-scale.cpp
+  blas1/cldense-reduce.cpp
+  blas1/cldense-dot.cpp
+  blas1/reduce-operators.cpp
+  blas1/cldense-nrm1.cpp
+  blas1/cldense-nrm2.cpp
+  blas1/elementwise-operators.cpp
 )
 
 set( clSPARSE.source.blas2
@@ -115,8 +115,8 @@ set( clSPARSE.source.blas3
 )
 
 set( clSPARSE.source.solvers
-  solvers/solver_control.cpp
-  solvers/conjugate_gradients.cpp
+  solvers/solver-control.cpp
+  solvers/conjugate-gradients.cpp
   solvers/biconjugate-gradients-stabilized.cpp
 )
 
@@ -136,22 +136,22 @@ set( clSPARSE.Headers.private
 
 set( clSPARSE.Headers.blas1
   blas1/reduce.hpp
-  blas1/atomic_reduce.hpp
-  blas1/reduce_operators.hpp
+  blas1/atomic-reduce.hpp
+  blas1/reduce-operators.hpp
   blas1/commons.hpp
-  blas1/cldense_dot.hpp
-  blas1/cldense_axpy.hpp
-  blas1/cldense_axpby.hpp
-  blas1/cldense_nrm1.hpp
-  blas1/cldense_nrm2.hpp
-  blas1/elementwise_transform.hpp
-  blas1/elementwise_operators.hpp
+  blas1/cldense-dot.hpp
+  blas1/cldense-axpy.hpp
+  blas1/cldense-axpby.hpp
+  blas1/cldense-nrm1.hpp
+  blas1/cldense-nrm2.hpp
+  blas1/elementwise-transform.hpp
+  blas1/elementwise-operators.hpp
 )
 
 set( clSPARSE.Headers.blas2
   blas2/clsparse-csrmv.hpp
-  blas2/csrmv_vector/csrmv-vector.hpp
-  blas2/csrmv_adaptive/csrmv-adaptive.hpp
+  blas2/csrmv-vector.hpp
+  blas2/csrmv-adaptive.hpp
 )
 
 set( clSPARSE.Headers.blas3
@@ -159,12 +159,12 @@ set( clSPARSE.Headers.blas3
 )
 
 set( clSPARSE.Headers.solvers
-  solvers/solver_control.hpp
+  solvers/solver-control.hpp
   solvers/preconditioners/preconditioner.hpp
   solvers/preconditioners/diagonal.hpp
   solvers/preconditioners/void.hpp
   solvers/preconditioners/preconditioner_utils.hpp
-  solvers/conjugate_gradients.hpp
+  solvers/conjugate-gradients.hpp
   solvers/biconjugate-gradients-stabilized.hpp
 )
 

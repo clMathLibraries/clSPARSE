@@ -1,5 +1,5 @@
 #include "include/clSPARSE-private.hpp"
-#include "cldense_dot.hpp"
+#include "cldense-dot.hpp"
 clsparseStatus
 cldenseSdot (clsparseScalar* r,
              const clsparseVector* x,
