@@ -125,20 +125,20 @@ extern "C" {
 
     /* Conjugate Gradients solver */
     CLSPARSE_EXPORT clsparseStatus
-        clsparseScsrcg( clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+        clsparseScsrcg( cldenseVector* x, const clsparseCsrMatrix *A, const cldenseVector *b,
         clSParseSolverControl solverControl, clsparseControl control );
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseDcsrcg(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+clsparseDcsrcg(cldenseVector* x, const clsparseCsrMatrix *A, const cldenseVector *b,
                clSParseSolverControl solverControl, clsparseControl control);
 
 /* Bi-Conjugate Gradients Stabilized solver */
 CLSPARSE_EXPORT clsparseStatus
-clsparseScsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+clsparseScsrbicgStab(cldenseVector* x, const clsparseCsrMatrix *A, const cldenseVector *b,
                clSParseSolverControl solverControl, clsparseControl control);
 
 CLSPARSE_EXPORT clsparseStatus
-clsparseDcsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+clsparseDcsrbicgStab(cldenseVector* x, const clsparseCsrMatrix *A, const cldenseVector *b,
                clSParseSolverControl solverControl, clsparseControl control);
     //  Library initialization and deconstruction functions
     CLSPARSE_EXPORT clsparseStatus
@@ -155,7 +155,7 @@ clsparseDcsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clspar
         clsparseInitScalar( clsparseScalar* scalar );
 
     CLSPARSE_EXPORT clsparseStatus
-        clsparseInitVector( clsparseVector* vec );
+        clsparseInitVector( cldenseVector* vec );
 
     CLSPARSE_EXPORT clsparseStatus
         clsparseInitCooMatrix( clsparseCooMatrix* cooMatx );
@@ -194,53 +194,53 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     /* SCALE y = alpha * y */
 
     CLSPARSE_EXPORT clsparseStatus
-        cldenseSscale( clsparseVector* y,
+        cldenseSscale( cldenseVector* y,
         const clsparseScalar* alpha,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
-        cldenseDscale( clsparseVector* y,
+        cldenseDscale( cldenseVector* y,
         const clsparseScalar* alpha,
         const clsparseControl control );
 
     /* AXPY: y = alpha*x + y*/
     CLSPARSE_EXPORT clsparseStatus
-        cldenseSaxpy( clsparseVector* y,
-        const clsparseScalar* alpha, const clsparseVector* x,
+        cldenseSaxpy( cldenseVector* y,
+        const clsparseScalar* alpha, const cldenseVector* x,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
-        cldenseDaxpy( clsparseVector* y,
-        const clsparseScalar* alpha, const clsparseVector* x,
+        cldenseDaxpy( cldenseVector* y,
+        const clsparseScalar* alpha, const cldenseVector* x,
         const clsparseControl control );
 
     /* AXPY: y = alpha*x + beta*y*/
     CLSPARSE_EXPORT clsparseStatus
-        cldenseSaxpby( clsparseVector* y,
-        const clsparseScalar* alpha, const clsparseVector* x,
+        cldenseSaxpby( cldenseVector* y,
+        const clsparseScalar* alpha, const cldenseVector* x,
         const clsparseScalar* beta,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
-        cldenseDaxpby( clsparseVector* y,
-        const clsparseScalar* alpha, const clsparseVector* x,
+        cldenseDaxpby( cldenseVector* y,
+        const clsparseScalar* alpha, const cldenseVector* x,
         const clsparseScalar* beta,
         const clsparseControl control );
 
     /* Reduce (sum) */
     CLSPARSE_EXPORT clsparseStatus
         cldenseIreduce( clsparseScalar* s,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseSreduce( clsparseScalar* s,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDreduce( clsparseScalar* s,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseControl control );
 
     /* norms */
@@ -248,36 +248,36 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     /* L1 norm */
     CLSPARSE_EXPORT clsparseStatus
         cldenseSnrm1( clsparseScalar* s,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDnrm1( clsparseScalar *s,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseControl control );
 
     /* L2 norm */
     CLSPARSE_EXPORT clsparseStatus
         cldenseSnrm2( clsparseScalar* s,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDnrm2( clsparseScalar* s,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseControl control );
 
     /* dot product */
     CLSPARSE_EXPORT clsparseStatus
         cldenseSdot( clsparseScalar* r,
-        const clsparseVector* x,
-        const clsparseVector* y,
+        const cldenseVector* x,
+        const cldenseVector* y,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDdot( clsparseScalar* r,
-        const clsparseVector* x,
-        const clsparseVector* y,
+        const cldenseVector* x,
+        const cldenseVector* y,
         const clsparseControl control );
 
     // BLAS 2 routines
@@ -288,34 +288,34 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     CLSPARSE_EXPORT clsparseStatus
         clsparseScsrmv( const clsparseScalar* alpha,
         const clsparseCsrMatrix* matx,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseScalar* beta,
-        clsparseVector* y,
+        cldenseVector* y,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         clsparseDcsrmv( const clsparseScalar* alpha,
         const clsparseCsrMatrix* matx,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseScalar* beta,
-        clsparseVector* y,
+        cldenseVector* y,
         const clsparseControl control );
 
 
     CLSPARSE_EXPORT clsparseStatus
         clsparseScoomv( const clsparseScalar* alpha,
         const clsparseCooMatrix* matx,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseScalar* beta,
-        clsparseVector* y,
+        cldenseVector* y,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         clsparseDcoomv( const clsparseScalar* alpha,
         const clsparseCooMatrix* matx,
-        const clsparseVector* x,
+        const cldenseVector* x,
         const clsparseScalar* beta,
-        clsparseVector* y,
+        cldenseVector* y,
         const clsparseControl control );
 
     // Sparse BLAS 3 routines
@@ -356,9 +356,9 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
 CLSPARSE_EXPORT clsparseStatus
 clsparseDcoomv(const clsparseScalar* alpha,
                const clsparseCooMatrix* matx,
-               const clsparseVector* x,
+               const cldenseVector* x,
                const clsparseScalar* beta,
-               clsparseVector* y,
+               cldenseVector* y,
                const clsparseControl control);
 
 //CSR <--> Dense transformation routines

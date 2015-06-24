@@ -52,7 +52,7 @@ scale(clsparse::array_base<T>& pVector,
 
 
 clsparseStatus
-cldenseSscale (clsparseVector* y,
+cldenseSscale (cldenseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control)
 {
@@ -88,7 +88,7 @@ cldenseSscale (clsparseVector* y,
 }
 
 clsparseStatus
-cldenseDscale (clsparseVector* y,
+cldenseDscale (cldenseVector* y,
                 const clsparseScalar* alpha,
                 const clsparseControl control)
 {

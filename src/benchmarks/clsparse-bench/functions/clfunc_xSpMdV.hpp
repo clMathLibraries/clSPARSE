@@ -226,8 +226,8 @@ private:
 
     //device values
     clsparseCsrMatrix csrMtx;
-    clsparseVector x;
-    clsparseVector y;
+    cldenseVector x;
+    cldenseVector y;
     clsparseScalar a;
     clsparseScalar b;
 

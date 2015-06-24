@@ -148,7 +148,7 @@ public:
     }
 };
 
-class clsparseVectorPrivate: public clsparseVector
+class clsparseVectorPrivate: public cldenseVector
 {
 public:
     void clear( )

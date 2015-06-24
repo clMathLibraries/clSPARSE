@@ -15,14 +15,14 @@ typedef struct clsparseScalar_
     void* value;
 } clsparseScalar;
 
-typedef struct clsparseVector_
+typedef struct cldenseVector_
 {
     // Matrix meta
     cl_int n;
 
     // OpenCL state
     void* values;
-} clsparseVector;
+} cldenseVector;
 
 typedef struct clsparseCsrMatrix_
 {

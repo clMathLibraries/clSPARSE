@@ -21,8 +21,8 @@ TEST (CG, float)
     std::vector<cl_float> x(CSRE::n_cols, 10.0);
     std::vector<cl_float> b(CSRE::n_rows, 1.0);
 
-    clsparseVector gx;
-    clsparseVector gb;
+    cldenseVector gx;
+    cldenseVector gb;
     clsparseInitVector(&gx);
     clsparseInitVector(&gb);
 

@@ -18,7 +18,7 @@ typedef struct clsparseScalar_
     cl_ulong offValue;
 } clsparseScalar;
 
-typedef struct clsparseVector_
+typedef struct cldenseVector_
 {
     // Matrix meta
     cl_int n;
@@ -28,7 +28,7 @@ typedef struct clsparseVector_
 
     //OpenCL meta
     cl_ulong offValues;
-} clsparseVector;
+} cldenseVector;
 
 typedef struct clsparseCsrMatrix_
 {

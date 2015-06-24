@@ -104,7 +104,7 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     clsparseScalar sum;
     clsparseInitScalar(&sum);
 
-    clsparseVector gY;
+    cldenseVector gY;
     clsparseInitVector(&gY);
 
     gY.values = clCreateBuffer(cxt(),

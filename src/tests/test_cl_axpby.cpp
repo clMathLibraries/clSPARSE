@@ -21,8 +21,8 @@ TEST (AXPBY, float_simple)
     cl_float hAlpha = 2.0f;
     cl_float hBeta = 4.0f;
 
-    clsparseVector gX;
-    clsparseVector gY;
+    cldenseVector gX;
+    cldenseVector gY;
     clsparseScalar gAlpha;
     clsparseScalar gBeta;
     clsparseInitVector(&gX);
@@ -88,8 +88,8 @@ TEST (AXPBY, double_simple)
     cl_double hAlpha = 2.0;
     cl_double hBeta = 4.0;
 
-    clsparseVector gX;
-    clsparseVector gY;
+    cldenseVector gX;
+    cldenseVector gY;
     clsparseScalar gAlpha;
     clsparseScalar gBeta;
     clsparseInitVector(&gX);
@@ -162,8 +162,8 @@ TEST (AXPBY, float_offset)
     cl_float hAlpha = 2.0f;
     cl_float hBeta = 2.0f;
 
-    clsparseVector gX;
-    clsparseVector gY;
+    cldenseVector gX;
+    cldenseVector gY;
     clsparseScalar gAlpha;
     clsparseScalar gBeta;
     clsparseInitVector(&gX);

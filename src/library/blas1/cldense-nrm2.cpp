@@ -3,7 +3,7 @@
 
 clsparseStatus
 cldenseSnrm2(clsparseScalar* s,
-             const clsparseVector* x,
+             const cldenseVector* x,
              const clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -26,7 +26,7 @@ cldenseSnrm2(clsparseScalar* s,
 
 clsparseStatus
 cldenseDnrm2(clsparseScalar* s,
-             const clsparseVector* x,
+             const cldenseVector* x,
              const clsparseControl control)
 {
     if (!clsparseInitialized)

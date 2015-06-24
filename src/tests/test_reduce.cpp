@@ -26,7 +26,7 @@ TEST (REDUCE, opencl20_float)
     clsparseInitScalar(&sum);
 
 
-    clsparseVector gY;
+    cldenseVector gY;
     clsparseInitVector(&gY);
     gY.n = y.size();
 
@@ -67,7 +67,7 @@ TEST (REDUCE, float_simple)
     clsparseInitScalar(&sum);
 
 
-    clsparseVector gY;
+    cldenseVector gY;
     clsparseInitVector(&gY);
 
     cl_int status;
@@ -111,7 +111,7 @@ TEST (REDUCE, double_simple)
     clsparseInitScalar(&sum);
 
 
-    clsparseVector gY;
+    cldenseVector gY;
     clsparseInitVector(&gY);
 
     cl_int status;

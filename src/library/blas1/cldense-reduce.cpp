@@ -10,7 +10,7 @@
 
 clsparseStatus
 cldenseIreduce(clsparseScalar *s,
-               const clsparseVector *x,
+               const cldenseVector *x,
                const clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -33,7 +33,7 @@ cldenseIreduce(clsparseScalar *s,
 
 clsparseStatus
 cldenseSreduce(clsparseScalar *s,
-               const clsparseVector *x,
+               const cldenseVector *x,
                const clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -55,7 +55,7 @@ cldenseSreduce(clsparseScalar *s,
 
 clsparseStatus
 cldenseDreduce(clsparseScalar *s,
-               const clsparseVector *x,
+               const cldenseVector *x,
                const clsparseControl control)
 {
     if (!clsparseInitialized)

@@ -21,8 +21,8 @@ TEST (BiCGStab, float)
     std::vector<cl_float> x(CSRE::n_cols, 0.0);
     std::vector<cl_float> b(CSRE::n_rows, 0.05);
 
-    clsparseVector gx;
-    clsparseVector gb;
+    cldenseVector gx;
+    cldenseVector gb;
     clsparseInitVector(&gx);
     clsparseInitVector(&gb);
 

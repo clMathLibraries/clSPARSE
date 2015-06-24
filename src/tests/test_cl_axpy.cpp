@@ -20,8 +20,8 @@ TEST (AXPY, float_simple)
     std::vector<cl_float> x(size, 1.0f);
     cl_float hAlpha = 2.0f;
 
-    clsparseVector gX;
-    clsparseVector gY;
+    cldenseVector gX;
+    cldenseVector gY;
     clsparseScalar gAlpha;
     clsparseInitVector(&gX);
     clsparseInitVector(&gY);
@@ -78,8 +78,8 @@ TEST (AXPY, double_simple)
     std::vector<cl_double> x(size, 1.0f);
     cl_double hAlpha = 2.0f;
 
-    clsparseVector gX;
-    clsparseVector gY;
+    cldenseVector gX;
+    cldenseVector gY;
     clsparseScalar gAlpha;
     clsparseInitVector(&gX);
     clsparseInitVector(&gY);
@@ -138,8 +138,8 @@ TEST (AXPY, float_xOffset)
     std::vector<cl_float> x(size, 1.0f);
     cl_float hAlpha = 2.0f;
 
-    clsparseVector gX;
-    clsparseVector gY;
+    cldenseVector gX;
+    cldenseVector gY;
     clsparseScalar gAlpha;
     clsparseInitVector(&gX);
     clsparseInitVector(&gY);
@@ -199,8 +199,8 @@ TEST (AXPY, float_different_sizes)
     std::vector<cl_float> x(xsize, 1.0f);
     cl_float hAlpha = 2.0f;
 
-    clsparseVector gX;
-    clsparseVector gY;
+    cldenseVector gX;
+    cldenseVector gY;
     clsparseScalar gAlpha;
     clsparseInitVector(&gX);
     clsparseInitVector(&gY);

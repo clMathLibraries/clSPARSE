@@ -3,9 +3,9 @@
 
 
 clsparseStatus
-cldenseSaxpy(clsparseVector *y,
+cldenseSaxpy(cldenseVector *y,
               const clsparseScalar *alpha,
-              const clsparseVector *x,
+              const cldenseVector *x,
               const clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -42,8 +42,8 @@ cldenseSaxpy(clsparseVector *y,
 }
 
 clsparseStatus
-cldenseDaxpy(clsparseVector *y,
-              const clsparseScalar *alpha, const clsparseVector *x,
+cldenseDaxpy(cldenseVector *y,
+              const clsparseScalar *alpha, const cldenseVector *x,
               const clsparseControl control)
 {
     if (!clsparseInitialized)
