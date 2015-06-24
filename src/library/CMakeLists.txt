@@ -38,7 +38,7 @@ include_directories(
   ${PROJECT_BINARY_DIR}/clsparseTimer
 )
 
-set(ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/source_provider.cpp)
+set(ocl_kernels_file_name ${PROJECT_BINARY_DIR}/include/kernels/source-provider.cpp)
 add_custom_command(
   OUTPUT "${ocl_kernels_file_name}"
   COMMAND ${CMAKE_COMMAND}
@@ -71,43 +71,43 @@ set( clSPARSE.source.cl
 )
 
 set( clSPARSE.source.cpp
-  clsparse_init.cpp
-  matrixMarket/mm_reader.cpp
+  clsparse-init.cpp
+  io/mm-reader.cpp
 )
 
 set( clSPARSE.source.internal
-  internal/clsparse_control.cpp
-  internal/clsparse_validate.cpp
-  internal/kernel_cache.cpp
-  internal/ocl_type_traits.cpp
-  internal/kernel_wrap.cpp
+  internal/clsparse-control.cpp
+  internal/clsparse-validate.cpp
+  internal/kernel-cache.cpp
+  internal/ocl-type-traits.cpp
+  internal/kernel-wrap.cpp
 )
 
 set( clSPARSE.source.transform
-  transform/clsparse_csr2dense.cpp
-  transform/clsparse_coo2csr.cpp
-  transform/clsparse_csr2coo.cpp
+  transform/clsparse-csr2dense.cpp
+  transform/clsparse-coo2csr.cpp
+  transform/clsparse-csr2coo.cpp
   transform/scan.cpp
-  transform/reduce_by_key.cpp
-  transform/sort_by_key.cpp
-  transform/clsparse_coo2csr_GPU.cpp
-  transform/clsparse_dense2csr.cpp
+  transform/reduce-by-key.cpp
+  transform/sort-by-key.cpp
+  transform/clsparse-coo2csr-GPU.cpp
+  transform/clsparse-dense2csr.cpp
 )
 
 set( clSPARSE.source.blas1
-  blas1/cldense_axpy.cpp
-  blas1/cldense_axpby.cpp
-  blas1/cldense_scale.cpp
-  blas1/cldense_reduce.cpp
-  blas1/cldense_dot.cpp
-  blas1/reduce_operators.cpp
-  blas1/cldense_nrm1.cpp
-  blas1/cldense_nrm2.cpp
-  blas1/elementwise_operators.cpp
+  blas1/cldense-axpy.cpp
+  blas1/cldense-axpby.cpp
+  blas1/cldense-scale.cpp
+  blas1/cldense-reduce.cpp
+  blas1/cldense-dot.cpp
+  blas1/reduce-operators.cpp
+  blas1/cldense-nrm1.cpp
+  blas1/cldense-nrm2.cpp
+  blas1/elementwise-operators.cpp
 )
 
 set( clSPARSE.source.blas2
-  spmv/clsparse_csrmv.cpp
+  blas2/clsparse-csrmv.cpp
 )
 
 set( clSPARSE.source.blas3
@@ -115,43 +115,43 @@ set( clSPARSE.source.blas3
 )
 
 set( clSPARSE.source.solvers
-  solvers/solver_control.cpp
-  solvers/conjugate_gradients.cpp
+  solvers/solver-control.cpp
+  solvers/conjugate-gradients.cpp
   solvers/biconjugate-gradients-stabilized.cpp
 )
 
 set( clSPARSE.Headers.public
   ../include/clSPARSE.h
-  ../include/clSPARSE_1x.h
-  ../include/clSPARSE_2x.h
-  ../include/clsparse.error.hpp
-  ${PROJECT_BINARY_DIR}/include/clSPARSE.version.h
+  ../include/clSPARSE-1x.h
+  ../include/clSPARSE-2x.h
+  ../include/clSPARSE-error.hpp
+  ${PROJECT_BINARY_DIR}/include/clSPARSE-version.h
 )
 
 set( clSPARSE.Headers.private
-  include/clSPARSE_1x.hpp
-  include/clSPARSE_2x.hpp
+  include/clSPARSE-1x.hpp
+  include/clSPARSE-2x.hpp
   include/clSPARSE-private.hpp
 )
 
 set( clSPARSE.Headers.blas1
   blas1/reduce.hpp
-  blas1/atomic_reduce.hpp
-  blas1/reduce_operators.hpp
+  blas1/atomic-reduce.hpp
+  blas1/reduce-operators.hpp
   blas1/commons.hpp
-  blas1/cldense_dot.hpp
-  blas1/cldense_axpy.hpp
-  blas1/cldense_axpby.hpp
-  blas1/cldense_nrm1.hpp
-  blas1/cldense_nrm2.hpp
-  blas1/elementwise_transform.hpp
-  blas1/elementwise_operators.hpp
+  blas1/cldense-dot.hpp
+  blas1/cldense-axpy.hpp
+  blas1/cldense-axpby.hpp
+  blas1/cldense-nrm1.hpp
+  blas1/cldense-nrm2.hpp
+  blas1/elementwise-transform.hpp
+  blas1/elementwise-operators.hpp
 )
 
 set( clSPARSE.Headers.blas2
-  spmv/clsparse_csrmv.hpp
-  spmv/csrmv_vector/csrmv_vector.hpp
-  spmv/csrmv_adaptive/csrmv_adaptive.hpp
+  blas2/clsparse-csrmv.hpp
+  blas2/csrmv-vector.hpp
+  blas2/csrmv-adaptive.hpp
 )
 
 set( clSPARSE.Headers.blas3
@@ -159,30 +159,30 @@ set( clSPARSE.Headers.blas3
 )
 
 set( clSPARSE.Headers.solvers
-  solvers/solver_control.hpp
+  solvers/solver-control.hpp
   solvers/preconditioners/preconditioner.hpp
   solvers/preconditioners/diagonal.hpp
   solvers/preconditioners/void.hpp
   solvers/preconditioners/preconditioner_utils.hpp
-  solvers/conjugate_gradients.hpp
+  solvers/conjugate-gradients.hpp
   solvers/biconjugate-gradients-stabilized.hpp
 )
 
 set( clSPARSE.Headers.internal
-  internal/clsparse_internal.hpp
-  internal/clsparse_control.hpp
-  internal/clsparse_validate.hpp
-  internal/source_provider.hpp
-  internal/kernel_cache.hpp
-  internal/ocl_type_traits.hpp
-  internal/kernel_wrap.hpp
-  internal/data_types/clvector.hpp
-  internal/data_types/clarray.hpp
-  internal/data_types/clarray_base.hpp
-  internal/data_types/reference_base.hpp
-  internal/data_types/iterator-base.hpp
+  internal/clsparse-internal.hpp
+  internal/clsparse-control.hpp
+  internal/clsparse-validate.hpp
+  internal/source-provider.hpp
+  internal/kernel-cache.hpp
+  internal/ocl-type-traits.hpp
+  internal/kernel-wrap.hpp
+  internal/data-types/clvector.hpp
+  internal/data-types/clarray.hpp
+  internal/data-types/clarray-base.hpp
+  internal/data-types/reference-base.hpp
+  internal/data-types/iterator-base.hpp
   internal/computeRowBlocks.hpp
-  transform/transform_kernels.h
+  transform/transform-kernels.h
   ${ocl_kernels_file_name}
 )
 

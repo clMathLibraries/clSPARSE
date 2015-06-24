@@ -5,9 +5,9 @@ include( GenerateExportHeader )
 
 # List the names of the files to compile for the external client . . .
 set( clsparseTimer.Source
-	clsparseTimer.host.cpp
-	clsparseTimer.device.cpp
-	clsparseTimer.extern.cpp
+	clsparseTimer-host.cpp
+	clsparseTimer-device.cpp
+	clsparseTimer-extern.cpp
  )
 
 # Windows only uses dllmain
@@ -18,9 +18,9 @@ endif( )
 set( clsparseTimer.Headers
 	${PROJECT_SOURCE_DIR}/include/clSPARSE.h
 	${PROJECT_SOURCE_DIR}/include/clsparseTimer.hpp
-	${PROJECT_SOURCE_DIR}/include/clsparseTimer.extern.hpp
-	clsparseTimer.host.hpp
-	clsparseTimer.device.hpp
+	${PROJECT_SOURCE_DIR}/include/clsparseTimer-extern.hpp
+	clsparseTimer-host.hpp
+	clsparseTimer-device.hpp
  )
 
 set( clsparseTimer.Files ${clsparseTimer.Source} ${clsparseTimer.Headers} )

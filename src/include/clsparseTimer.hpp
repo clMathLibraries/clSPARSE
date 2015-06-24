@@ -15,7 +15,7 @@
 #   include <CL/cl.h>
 #endif
 
-#include "clsparse.error.hpp"
+#include "clSPARSE-error.hpp"
 
 /**
  * \file clSPARSE.StatisticalTimer.h

@@ -3,9 +3,9 @@
 #define _CLSPARSE_CSRMM_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_control.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
+#include "internal/clsparse-control.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
 
 //template <typename T>
 //clsparseStatus
@@ -44,7 +44,7 @@
 //  KernelWrap kWrapper( kernel );
 //
 //  kWrapper << pSparseCsrA.values << pSparseCsrA.colIndices << pSparseCsrA.rowOffsets << pSparseCsrA.rowBlocks
-//      << pDenseB.values << pDenseB.lead_dim 
+//      << pDenseB.values << pDenseB.lead_dim
 //      << pDenseC.values << pDenseC.num_rows << pDenseC.num_cols << pDenseC.lead_dim
 //      << pAlpha.value << pBeta.value;
 //

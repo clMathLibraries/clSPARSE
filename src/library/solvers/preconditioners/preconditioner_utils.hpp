@@ -3,11 +3,11 @@
 #define _CLSPARSE_PRECOND_UTILS_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
-#include "internal/clsparse_internal.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
+#include "internal/clsparse-internal.hpp"
 
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 template<typename T, bool inverse = false>
 clsparseStatus

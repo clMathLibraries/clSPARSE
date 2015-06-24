@@ -11,9 +11,9 @@ extern "C" {
 
     // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION < 200 )
-#include "clSPARSE_1x.h"
+#include "clSPARSE-1x.h"
 #else
-#include "clSPARSE_2x.h"
+#include "clSPARSE-2x.h"
 #endif
 
     typedef enum clsparseStatus_ {

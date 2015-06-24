@@ -3,7 +3,7 @@
 #define _CLSPARSE_PRECONDITIONER_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 //enum PRECONDITIONER
 //{

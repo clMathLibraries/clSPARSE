@@ -4,7 +4,7 @@ file(GLOB cl_list "${CL_DIR}/*.cl" )
 
 file(WRITE ${OUTPUT} "// This file is auto-generated. Do not edit!
 
-#include \"internal/source_provider.hpp\"
+#include \"internal/source-provider.hpp\"
 
 namespace internal
 {
@@ -56,4 +56,3 @@ file(APPEND ${OUTPUT} "
 	return internal_map;
 }
 ")
-

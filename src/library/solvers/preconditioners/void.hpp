@@ -3,10 +3,10 @@
 #define _CLSPARSE_PREC_VOID_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_control.hpp"
+#include "internal/clsparse-control.hpp"
 #include "preconditioner.hpp"
 
-#include "blas1/elementwise_transform.hpp"
+#include "blas1/elementwise-transform.hpp"
 #include "preconditioner_utils.hpp"
 #include <memory>
 

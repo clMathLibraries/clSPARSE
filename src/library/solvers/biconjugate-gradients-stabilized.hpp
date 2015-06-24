@@ -3,23 +3,24 @@
 #define _CLSPARSE_SOLVER_BICGSTAB_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/clsparse_internal.hpp"
-#include "internal/data_types/clvector.hpp"
-#include "internal/data_types/clarray.hpp"
+#include "internal/clsparse-internal.hpp"
+#include "internal/data-types/clvector.hpp"
+#include "internal/data-types/clarray.hpp"
 
 #include "preconditioners/preconditioner.hpp"
 #include "preconditioners/diagonal.hpp"
 #include "preconditioners/void.hpp"
 
 //matrix multiply
-#include "spmv/clsparse_csrmv.hpp"
-//dense vector operations
-#include "blas1/cldense_dot.hpp"
-#include "blas1/cldense_axpy.hpp"
-#include "blas1/cldense_axpby.hpp"
-#include "blas1/cldense_nrm1.hpp"
+#include "blas2/clsparse-csrmv.hpp"
 
-#include "solver_control.hpp"
+//dense vector operations
+#include "blas1/cldense-dot.hpp"
+#include "blas1/cldense-axpy.hpp"
+#include "blas1/cldense-axpby.hpp"
+#include "blas1/cldense-nrm1.hpp"
+
+#include "solver-control.hpp"
 
 template <typename T, typename PTYPE>
 clsparseStatus

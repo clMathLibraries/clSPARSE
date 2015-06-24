@@ -3,7 +3,7 @@
 #define _CLSPARSE_COMMONS_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/data_types/clarray_base.hpp"
+#include "internal/data-types/clarray-base.hpp"
 template <typename T>
 inline void init_scalar(clsparseScalarPrivate* scalar, T value,
                         const clsparseControl control)

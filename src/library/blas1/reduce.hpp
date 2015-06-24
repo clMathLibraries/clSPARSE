@@ -3,17 +3,17 @@
 #define _CLSPARSE_REDUCE_HPP_
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/kernel_cache.hpp"
-#include "internal/kernel_wrap.hpp"
-#include "internal/clsparse_internal.hpp"
+#include "internal/kernel-cache.hpp"
+#include "internal/kernel-wrap.hpp"
+#include "internal/clsparse-internal.hpp"
 
 #include "commons.hpp"
-#include "reduce_operators.hpp"
-#include "atomic_reduce.hpp"
+#include "reduce-operators.hpp"
+#include "atomic-reduce.hpp"
 
 #include <algorithm>
 
-#include "internal/data_types/clvector.hpp"
+#include "internal/data-types/clvector.hpp"
 
 template <typename T, ReduceOperator OP>
 clsparseStatus

@@ -18,7 +18,7 @@
 #endif
 
 #include "clSPARSE.h"
-#include "clsparse.error.hpp"
+#include "clSPARSE-error.hpp"
 #include "include/io-exception.hpp"
 
 inline cl_ulong
