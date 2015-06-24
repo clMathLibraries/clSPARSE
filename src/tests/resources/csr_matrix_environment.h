@@ -73,24 +73,6 @@ public:
         n_cols = csrSMatrix.n;
         n_rows = csrSMatrix.m;
 
-        csrDMatrix.nnz = csrSMatrix.nnz;
-        csrDMatrix.n = csrSMatrix.n;
-        csrDMatrix.m = csrSMatrix.m;
-
-        //  Intialize double precision data, all the indices can be reused.
-        csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                              csrDMatrix.nnz * sizeof( cl_double ), NULL, &status );
-
-        csrDMatrix.colIndices = csrSMatrix.colIndices;
-        ::clRetainMemObject( csrDMatrix.colIndices );
-
-        csrDMatrix.rowOffsets = csrSMatrix.rowOffsets;
-        ::clRetainMemObject( csrDMatrix.rowOffsets );
-
-        // Don't use adaptive kernel in double precision yet.
-        //csrDMatrix.rowBlocks = csrSMatrix.rowBlocks;
-        //::clRetainMemObject( csrDMatrix.rowBlocks );
-
         //  Download sparse matrix data to host
         //  First, create space on host to hold the data
         f_values.resize( csrSMatrix.nnz );
@@ -121,6 +103,33 @@ public:
         }
 
         d_values = std::vector<double>( f_values.begin( ), f_values.end( ) );
+
+        // Don't use adaptive kernel in double precision yet.
+        //csrDMatrix.rowBlocks = csrSMatrix.rowBlocks;
+        //::clRetainMemObject( csrDMatrix.rowBlocks );
+
+        csrDMatrix.nnz = csrSMatrix.nnz;
+        csrDMatrix.n = csrSMatrix.n;
+        csrDMatrix.m = csrSMatrix.m;
+
+        csrDMatrix.colIndices = csrSMatrix.colIndices;
+        ::clRetainMemObject( csrDMatrix.colIndices );
+
+        csrDMatrix.rowOffsets = csrSMatrix.rowOffsets;
+        ::clRetainMemObject( csrDMatrix.rowOffsets );
+
+        //  Intialize double precision data, all the indices can be reused.
+        csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                              csrDMatrix.nnz * sizeof( cl_double ), NULL, &status );
+
+        status = ::clEnqueueWriteBuffer( queue, csrDMatrix.values, CL_TRUE, 0,
+                                              csrDMatrix.nnz * sizeof( cl_double ), d_values.data( ), 0, NULL, NULL );
+
+        if( copy_status )
+        {
+            TearDown( );
+            exit( -5 );
+        }
     }
 
     //cleanup

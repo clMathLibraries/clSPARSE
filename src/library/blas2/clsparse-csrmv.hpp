@@ -29,8 +29,16 @@ csrmv (const clsparseScalarPrivate *pAlpha,
             return clsparseStructInvalid;
        }
 
-        // Call adaptive CSR kernels
-        return csrmv_adaptive<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
+       //   We have problems with failing test cases with csrmv_adaptive on double precision
+       //   fall back to csrmv_vector
+       if( typeid( T ) == typeid( cl_double ) )
+       {
+           return csrmv_vector<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
+       }
+
+       // Call adaptive CSR kernels
+       return csrmv_adaptive<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
+
     }
 }
 
@@ -58,6 +66,13 @@ csrmv (const clsparse::array_base<T>& pAlpha,
         {
             // rowBlockSize varible is not zero but no pointer
             return clsparseStructInvalid;
+        }
+
+        //   We have problems with failing test cases with csrmv_adaptive on double precision
+        //   fall back to csrmv_vector
+        if( typeid( T ) == typeid( cl_double ) )
+        {
+            return csrmv_vector<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
         }
 
         // Call adaptive CSR kernels
