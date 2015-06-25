@@ -15,8 +15,8 @@ namespace po = boost::program_options;
 
 
 template<typename T>
-clsparseStatus generateResult(clsparseVector& x, clsparseScalar& alpha,
-                              clsparseVector& y, clsparseScalar& beta)
+clsparseStatus generateResult(cldenseVector& x, clsparseScalar& alpha,
+                              cldenseVector& y, clsparseScalar& beta)
 {
     using CSRE = CSREnvironment;
     using CLSE = ClSparseEnvironment;
@@ -124,8 +124,8 @@ public:
     std::vector<T> x;
     std::vector<T> y;
 
-    clsparseVector vx;
-    clsparseVector vy;
+    cldenseVector vx;
+    cldenseVector vy;
 
     T alpha;
     T beta;

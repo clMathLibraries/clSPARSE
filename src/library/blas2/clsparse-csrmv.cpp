@@ -5,9 +5,9 @@
 clsparseStatus
 clsparseScsrmv( const clsparseScalar* alpha,
             const clsparseCsrMatrix* matx,
-            const clsparseVector* x,
+            const cldenseVector* x,
             const clsparseScalar* beta,
-            clsparseVector* y,
+            cldenseVector* y,
             const clsparseControl control )
 {
     if (!clsparseInitialized)
@@ -34,9 +34,9 @@ clsparseScsrmv( const clsparseScalar* alpha,
 clsparseStatus
 clsparseDcsrmv( const clsparseScalar* alpha,
             const clsparseCsrMatrix* matx,
-            const clsparseVector* x,
+            const cldenseVector* x,
             const clsparseScalar* beta,
-            clsparseVector* y,
+            cldenseVector* y,
             const clsparseControl control )
 {
     if (!clsparseInitialized)

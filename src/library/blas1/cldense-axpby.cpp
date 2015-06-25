@@ -2,9 +2,9 @@
 #include "cldense-axpby.hpp"
 
 clsparseStatus
-cldenseSaxpby(clsparseVector *y,
+cldenseSaxpby(cldenseVector *y,
                const clsparseScalar *alpha,
-               const clsparseVector *x,
+               const cldenseVector *x,
                const clsparseScalar *beta,
                const clsparseControl control)
 {
@@ -48,9 +48,9 @@ cldenseSaxpby(clsparseVector *y,
 }
 
 clsparseStatus
-cldenseDaxpby(clsparseVector *y,
+cldenseDaxpby(cldenseVector *y,
                const clsparseScalar *alpha,
-               const clsparseVector *x,
+               const cldenseVector *x,
                const clsparseScalar *beta,
                const clsparseControl control)
 {

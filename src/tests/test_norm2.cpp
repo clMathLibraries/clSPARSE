@@ -24,7 +24,7 @@ TEST (NORM2, float)
     clsparseInitScalar(&sum);
 
 
-    clsparseVector gY;
+    cldenseVector gY;
     clsparseInitVector(&gY);
 
     cl_int status;
@@ -74,7 +74,7 @@ TEST (NORM2, double)
     clsparseInitScalar(&sum);
 
 
-    clsparseVector gY;
+    cldenseVector gY;
     clsparseInitVector(&gY);
 
     cl_int status;

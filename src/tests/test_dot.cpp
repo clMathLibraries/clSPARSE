@@ -26,8 +26,8 @@ TEST (DOT, float)
     clsparseInitScalar(&dot);
 
 
-    clsparseVector gX;
-    clsparseVector gY;
+    cldenseVector gX;
+    cldenseVector gY;
     clsparseInitVector(&gX);
     clsparseInitVector(&gY);
 
@@ -81,8 +81,8 @@ TEST (DOT, double)
     clsparseInitScalar(&dot);
 
 
-    clsparseVector gX;
-    clsparseVector gY;
+    cldenseVector gX;
+    cldenseVector gY;
     clsparseInitVector(&gX);
     clsparseInitVector(&gY);
 

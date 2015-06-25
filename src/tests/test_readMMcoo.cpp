@@ -76,8 +76,8 @@ TEST( MM_file, load )
 
     clsparseScalar alpha;
     clsparseScalar beta;
-    clsparseVector x;
-    clsparseVector y;
+    cldenseVector x;
+    cldenseVector y;
     clsparseInitScalar( &alpha );
     clsparseInitScalar( &beta );
     clsparseInitVector( &x );

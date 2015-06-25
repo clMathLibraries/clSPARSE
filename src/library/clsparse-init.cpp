@@ -54,7 +54,7 @@ clsparseInitScalar( clsparseScalar* scalar )
 };
 
 clsparseStatus
-clsparseInitVector( clsparseVector* vec )
+clsparseInitVector( cldenseVector* vec )
 {
     clsparseVectorPrivate* pVec = static_cast<clsparseVectorPrivate*>( vec );
     pVec->clear( );

@@ -20,7 +20,7 @@ TEST (SCALE, float_simple)
     cl_float hAlpha = 2.0f;
 
 
-    clsparseVector gY;
+    cldenseVector gY;
     clsparseScalar gAlpha;
 
     clsparseInitVector(&gY);
@@ -70,7 +70,7 @@ TEST (SCALE, double_simple)
     cl_double hAlpha = 2.0f;
 
 
-    clsparseVector gY;
+    cldenseVector gY;
     clsparseScalar gAlpha;
     clsparseInitVector(&gY);
     clsparseInitScalar(&gAlpha);

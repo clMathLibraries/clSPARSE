@@ -1,8 +1,8 @@
 #include "conjugate-gradients.hpp"
 clsparseStatus
-clsparseScsrcg(clsparseVector *x,
+clsparseScsrcg(cldenseVector *x,
                const clsparseCsrMatrix *A,
-               const clsparseVector *b,
+               const cldenseVector *b,
                clSParseSolverControl solverControl,
                clsparseControl control)
 {
@@ -50,9 +50,9 @@ clsparseScsrcg(clsparseVector *x,
 }
 
 clsparseStatus
-clsparseDcsrcg(clsparseVector *x,
+clsparseDcsrcg(cldenseVector *x,
                const clsparseCsrMatrix *A,
-               const clsparseVector *b,
+               const cldenseVector *b,
                clSParseSolverControl solverControl,
                clsparseControl control)
 {

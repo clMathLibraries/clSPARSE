@@ -224,8 +224,8 @@ private:
 
     //device values
     clsparseCsrMatrix csrMtx;
-    clsparseVector x;
-    clsparseVector y;
+    cldenseVector x;
+    cldenseVector y;
 
 
     //  OpenCL state

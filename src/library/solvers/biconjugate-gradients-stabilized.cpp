@@ -1,7 +1,7 @@
 #include "biconjugate-gradients-stabilized.hpp"
 
 clsparseStatus
-clsparseScsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+clsparseScsrbicgStab(cldenseVector* x, const clsparseCsrMatrix *A, const cldenseVector *b,
                clSParseSolverControl solverControl, clsparseControl control)
 {
     using T = cl_float;
@@ -50,7 +50,7 @@ clsparseScsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clspar
 }
 
 clsparseStatus
-clsparseDcsrbicgStab(clsparseVector* x, const clsparseCsrMatrix *A, const clsparseVector *b,
+clsparseDcsrbicgStab(cldenseVector* x, const clsparseCsrMatrix *A, const cldenseVector *b,
                clSParseSolverControl solverControl, clsparseControl control)
 {
     using T = cl_double;

@@ -14,7 +14,7 @@ validateMemObject(clsparseScalarPrivate &scalar, size_t required_size)
 }
 
 clsparseStatus
-validateMemObject(clsparseVector &vector, size_t required_size)
+validateMemObject(cldenseVector &vector, size_t required_size)
 {
 #if (BUILD_CLVERSION >= 200)
     std::cout << "Don't know how to validate SVM void* buffer" << std::endl;

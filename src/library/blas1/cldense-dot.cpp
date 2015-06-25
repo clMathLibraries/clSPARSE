@@ -2,8 +2,8 @@
 #include "cldense-dot.hpp"
 clsparseStatus
 cldenseSdot (clsparseScalar* r,
-             const clsparseVector* x,
-             const clsparseVector* y,
+             const cldenseVector* x,
+             const cldenseVector* y,
              const clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -27,8 +27,8 @@ cldenseSdot (clsparseScalar* r,
 
 clsparseStatus
 cldenseDdot (clsparseScalar* r,
-             const clsparseVector* x,
-             const clsparseVector* y,
+             const cldenseVector* x,
+             const cldenseVector* y,
              const clsparseControl control)
 {
     if (!clsparseInitialized)
