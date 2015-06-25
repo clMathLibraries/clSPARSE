@@ -34,15 +34,15 @@ public:
                                    CSRE::row_offsets.data(),
                                    0, NULL, NULL);
 								   
-	CSRE::csrSMatrix.colIndices = clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE, (CSRE::csrSMatrix).nnz * sizeof(float), NULL, &err );
+	CSRE::csrSMatrix.colIndices = clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE, (CSRE::csrSMatrix).num_nonzeros * sizeof(float), NULL, &err );
 	err = clEnqueueWriteBuffer(CLSE::queue, CSRE::csrSMatrix.colIndices, 1, 0,
-                                  (CSRE::csrSMatrix.nnz) * sizeof(int),
+                                  (CSRE::csrSMatrix.num_nonzeros) * sizeof(int),
                                    CSRE::col_indices.data(),
                                    0, NULL, NULL);
 
-	CSRE::csrSMatrix.values = clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE, (CSRE::csrSMatrix).nnz * sizeof(float), NULL, &err );
+	CSRE::csrSMatrix.values = clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE, (CSRE::csrSMatrix).num_nonzeros * sizeof(float), NULL, &err );
 	err = clEnqueueWriteBuffer(CLSE::queue, CSRE::csrSMatrix.values, 1, 0,
-				  (CSRE::csrSMatrix).nnz * sizeof(float),
+				  (CSRE::csrSMatrix).num_nonzeros * sizeof(float),
                                   (CSRE::f_values).data(),
                                    0, NULL, NULL);
 
@@ -80,9 +80,9 @@ TYPED_TEST(TestDENSE2CSR, transform)
     clsparseInitCsrMatrix( &csrMatx );
 
     csrMatx.values = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                           (CSRE::csrSMatrix).nnz * sizeof( cl_float ), NULL, &status );
+                                           (CSRE::csrSMatrix).num_nonzeros * sizeof( cl_float ), NULL, &status );
     csrMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                           (CSRE::csrSMatrix).nnz * sizeof( cl_int ), NULL, &status );
+                                           (CSRE::csrSMatrix).num_nonzeros * sizeof( cl_int ), NULL, &status );
     csrMatx.rowOffsets = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
                                            (CSRE::n_rows + 1) * sizeof( cl_int ), NULL, &status );
 
@@ -91,17 +91,17 @@ TYPED_TEST(TestDENSE2CSR, transform)
                        &A,
                        CLSE::control);				   
 
-    int *row = (int *)malloc(sizeof(int) * (csrMatx.m + 1));
-    int *col = (int *)malloc(sizeof(int) * csrMatx.nnz);
-    float *val = (float *)malloc(sizeof(float) * csrMatx.nnz);
+    int *row = (int *)malloc(sizeof(int) * (csrMatx.num_rows + 1));
+    int *col = (int *)malloc(sizeof(int) * csrMatx.num_nonzeros);
+    float *val = (float *)malloc(sizeof(float) * csrMatx.num_nonzeros);
 
-    //std::cout<< "csrMatx.m: " << csrMatx.m <<std::endl;
+    //std::cout<< "csrMatx.num_rows: " << csrMatx.num_rows <<std::endl;
 
     clEnqueueReadBuffer(CLSE::queue,
                         csrMatx.rowOffsets,
                         1,
                         0,
-                        (csrMatx.m + 1) * sizeof(int),
+                        (csrMatx.num_rows + 1) * sizeof(int),
                         row,
                         0,
                         0,
@@ -111,7 +111,7 @@ TYPED_TEST(TestDENSE2CSR, transform)
                         csrMatx.colIndices,
                         1,
                         0,
-                       (csrMatx.nnz) * sizeof(int),
+                       (csrMatx.num_nonzeros) * sizeof(int),
                         col,
                         0,
                         0,
@@ -121,23 +121,23 @@ TYPED_TEST(TestDENSE2CSR, transform)
                         csrMatx.values,
                         1,
                         0,
-                       (csrMatx.nnz) * sizeof(float),
+                       (csrMatx.num_nonzeros) * sizeof(float),
                         val,
                         0,
                         0,
                         0);
  
-    for(int i = 0; i < csrMatx.m + 1; i++){
+    for(int i = 0; i < csrMatx.num_rows + 1; i++){
          //std::cout << i << ":" << row[i] << " " << CSRE::row_offsets[i] << std::endl;
          ASSERT_EQ (row[i], CSRE::row_offsets[i]);
     }
 
-    for(int i = 0; i < csrMatx.nnz; i++){
+    for(int i = 0; i < csrMatx.num_nonzeros; i++){
          ASSERT_EQ(col[i], CSRE::col_indices[i]);
          //std::cout << i << ":" << col[i] << " " << CSRE::col_indices[i] << std::endl;
     }
     if(typeid(TypeParam) == typeid(float)){
-       for(int i = 0; i < csrMatx.nnz; i++){
+       for(int i = 0; i < csrMatx.num_nonzeros; i++){
           //std::cout << i << ":" << val[i] << " " << CSRE::f_values[i] << std::endl; 
           ASSERT_EQ(val[i], CSRE::f_values[i]);
         }

@@ -37,8 +37,8 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     clsparseStatus status;
     cl_int run_status;
 
-    pCsr->m = pA->num_rows;
-    pCsr->n = pA->num_cols;
+    pCsr->num_rows = pA->num_rows;
+    pCsr->num_cols = pA->num_cols;
 
     int total = pA->num_rows * pA->num_cols;
     cl::Context cxt = control->getContext();
@@ -161,9 +161,9 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     clsparseInitCooMatrix( &cooMatx );
 
     cooMatx.num_nonzeros = nnz;
-    cooMatx.num_rows = pCsr->m;
-    cooMatx.num_cols = pCsr->n;
-    //printf("m = %d, n = %d\n", cooMatx.m,  cooMatx.n);
+    cooMatx.num_rows = pCsr->num_rows;
+    cooMatx.num_cols = pCsr->num_cols;
+    //printf("num_rows = %d, num_cols = %d\n", cooMatx.num_rows,  cooMatx.num_cols);
 
     cooMatx.values     = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
                                            cooMatx.num_nonzeros * sizeof( cl_float ), NULL, &run_status );
@@ -228,8 +228,8 @@ clsparseDdense2csr(clsparseCsrMatrix* csr,
     clsparseStatus status;
     cl_int run_status;
 
-    pCsr->m = pA->num_rows;
-    pCsr->n = pA->num_cols;
+    pCsr->num_rows = pA->num_rows;
+    pCsr->num_cols = pA->num_cols;
 
     int total = pA->num_rows * pA->num_cols;
     cl::Context cxt = control->getContext();
@@ -328,9 +328,9 @@ clsparseDdense2csr(clsparseCsrMatrix* csr,
     clsparseInitCooMatrix( &cooMatx );
 
     cooMatx.num_nonzeros = nnz;
-    cooMatx.num_rows = pCsr->m;
-    cooMatx.num_cols = pCsr->n;
-    //printf("m = %d, n = %d\n", cooMatx.m,  cooMatx.n);
+    cooMatx.num_rows = pCsr->num_rows;
+    cooMatx.num_cols = pCsr->num_cols;
+    //printf("num_rows = %d, num_cols = %d\n", cooMatx.num_rows,  cooMatx.num_cols);
 
     cooMatx.values     = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
                                            cooMatx.num_nonzeros * sizeof( cl_double ), NULL, &run_status );

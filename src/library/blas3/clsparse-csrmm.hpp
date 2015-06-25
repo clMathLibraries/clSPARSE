@@ -110,7 +110,7 @@ const clsparseControl control )
                                           params );
     KernelWrap kWrapper( kernel );
 
-    kWrapper << pSparseCsrA.m
+    kWrapper << pSparseCsrA.num_rows
         << pAlpha.value << pAlpha.offset( )
         << pSparseCsrA.rowOffsets << pSparseCsrA.colIndices << pSparseCsrA.values
         << pDenseB.values << pDenseB.lead_dim << pDenseB.offset( )
@@ -119,7 +119,7 @@ const clsparseControl control )
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
-    cl_uint predicted = subwave_size * pSparseCsrA.m;
+    cl_uint predicted = subwave_size * pSparseCsrA.num_rows;
 
     // if NVIDIA is used it does not allow to run the group size
     // which is not a multiplication of group_size. Don't know if that

@@ -111,14 +111,14 @@ extract_diagonal(clsparse::vector<T>& pDiag,
         return clsparseInvalidControlObject;
     }
 
-    assert (pA->m > 0);
-    assert (pA->n > 0);
-    assert (pA->nnz > 0);
+    assert( pA->num_rows > 0 );
+    assert( pA->num_cols > 0 );
+    assert( pA->num_nonzeros > 0 );
 
-    assert (pDiag.size() == std::min(pA->n, pA->m));
+    assert( pDiag.size( ) == std::min( pA->num_cols, pA->num_rows ) );
 
     cl_ulong wg_size = 256;
-    cl_ulong size = pA->m;
+    cl_ulong size = pA->num_rows;
 
     cl_ulong nnz_per_row = pA->nnz_per_row();
     cl_ulong wave_size = control->wavefront_size;

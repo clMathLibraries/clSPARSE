@@ -73,7 +73,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m ) ) / time_in_ns( );
+        return ( sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows ) ) / time_in_ns( );
     }
 
     std::string bandwidth_formula( )
@@ -135,11 +135,11 @@ public:
 		int scalar_i = 0;
 		T scalar_f = 0;
 		OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMtx.rowOffsets, &scalar_i, sizeof( int ), 0,
-                              sizeof( int ) * (csrMtx.m + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" ); 
+                              sizeof( int ) * (csrMtx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" ); 
 		OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMtx.colIndices, &scalar_i, sizeof( int ), 0,
-                              sizeof( int ) * csrMtx.nnz, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
+                              sizeof( int ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
 		OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMtx.values, &scalar_f, sizeof( T ), 0,
-                              sizeof( T ) * csrMtx.nnz, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
+                              sizeof( T ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
     }
 
     void read_gpu_buffer( )

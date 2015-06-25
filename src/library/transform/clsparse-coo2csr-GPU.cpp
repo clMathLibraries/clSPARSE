@@ -42,11 +42,11 @@ clsparse_coo2csr_internal(const clsparseCooMatrix* coo,
     }
 
     cl::Context context = control->getContext();
-    pCsr->m = pCoo->num_rows;
-    pCsr->n = pCoo->num_cols;
-    pCsr->nnz = pCoo->num_nonzeros;
+    pCsr->num_rows = pCoo->num_rows;
+    pCsr->num_cols = pCoo->num_cols;
+    pCsr->num_nonzeros = pCoo->num_nonzeros;
 
-    cl_mem rowIndices  = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->nnz)*sizeof(int), NULL, &err );
+    cl_mem rowIndices  = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->num_nonzeros)*sizeof(int), NULL, &err );
     if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clCreateBuffer  %d\n",  err);
 
     clEnqueueCopyBuffer(control->queue(),
@@ -54,7 +54,7 @@ clsparse_coo2csr_internal(const clsparseCooMatrix* coo,
                         rowIndices,
                         0,
                         0,
-                        sizeof(cl_int) * pCsr->nnz,
+                        sizeof(cl_int) * pCsr->num_nonzeros,
                         0,
                         NULL,
                         NULL);
@@ -65,7 +65,7 @@ clsparse_coo2csr_internal(const clsparseCooMatrix* coo,
                         pCsr-> colIndices,
                         0,
                         0,
-                        sizeof(cl_int) * pCsr->nnz,
+                        sizeof(cl_int) * pCsr->num_nonzeros,
                         0,
                         NULL,
                         NULL);
@@ -77,7 +77,7 @@ clsparse_coo2csr_internal(const clsparseCooMatrix* coo,
                         pCsr-> values,
                         0,
                         0,
-                        f_size * pCsr->nnz,
+                        f_size * pCsr->num_nonzeros,
                         0,
                         NULL,
                         NULL);
@@ -96,22 +96,22 @@ clsparse_coo2csr_internal(const clsparseCooMatrix* coo,
     if(status != clsparseSuccess)
         return status;
 
-    cl_mem one_array  = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->nnz)*sizeof(int), NULL, &err );
+    cl_mem one_array  = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->num_nonzeros)*sizeof(int), NULL, &err );
     if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clCreateBuffer  %d\n",  err);
-    cl_mem row_indices_out  = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->nnz)*sizeof(int), NULL, &err );
+    cl_mem row_indices_out  = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->num_nonzeros)*sizeof(int), NULL, &err );
     if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clCreateBuffer  %d\n",  err);
 
-    cl_mem scan_input = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->m + 1)*sizeof(int), NULL, NULL);
+    cl_mem scan_input = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->num_rows + 1)*sizeof(int), NULL, NULL);
     if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clCreateBuffer  %d\n",  err);
-    //cl_mem scan_output = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->m + 1)*sizeof(int), NULL, NULL);
+    //cl_mem scan_output = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->num_rows + 1)*sizeof(int), NULL, NULL);
     //if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clCreateBuffer  %d\n",  err);
 
     int pattern = 1, zero = 0;
     err = clEnqueueFillBuffer(control->queue(), one_array, &pattern, sizeof(int), 0,
-                          (pCsr->nnz)*sizeof(int), 0, NULL, NULL);
+                          (pCsr->num_nonzeros)*sizeof(int), 0, NULL, NULL);
     if(err != CL_SUCCESS) fprintf(stderr, "ERROR: clFillBuffer  %d\n",  err);
     err = clEnqueueFillBuffer(control->queue(), scan_input, &zero, sizeof(int), 0,
-                          (pCsr->m + 1)*sizeof(int), 0, NULL, NULL);
+                          (pCsr->num_rows + 1)*sizeof(int), 0, NULL, NULL);
     if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clFillBuffer  %d\n",  err);
 
     int count;
@@ -154,7 +154,7 @@ clsparse_coo2csr_internal(const clsparseCooMatrix* coo,
     }
 
     status = scan( 0,
-             pCsr->m,
+             pCsr->num_rows,
              scan_input,
              pCsr->rowOffsets,
              0,

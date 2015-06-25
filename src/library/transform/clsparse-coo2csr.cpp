@@ -61,7 +61,7 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control )
 
     // This allocates up front the maximum size of rowBlocks at start; likely not all the memory is used but
     // this is the fastest
-    pCsrMatx->rowBlockSize = 3 * ( pCsrMatx->nnz / BLKSIZE ) + 1;
+    pCsrMatx->rowBlockSize = 3 * ( pCsrMatx->num_nonzeros / BLKSIZE ) + 1;
 
     return clsparseSuccess;
 }
@@ -72,19 +72,19 @@ clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control )
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
 
     // Check to ensure nRows can fit in 32 bits
-    if( static_cast<cl_ulong>( pCsrMatx->m ) > static_cast<cl_ulong>( pow( 2, ( 64 - ROW_BITS ) ) ) )
+    if( static_cast<cl_ulong>( pCsrMatx->num_rows ) > static_cast<cl_ulong>( pow( 2, ( 64 - ROW_BITS ) ) ) )
     {
         printf( "Number of Rows in the Sparse Matrix is greater than what is supported at present ((64-WG_BITS) bits) !" );
         return clsparseOutOfResources;
     }
 
     clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
-    cl_int* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
+    cl_int* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
 
     clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
     cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize );
 
-    ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, rowDelimiters, pCsrMatx->m, BLKSIZE );
+    ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, rowDelimiters, pCsrMatx->num_rows, BLKSIZE );
 
     return clsparseSuccess;
 }
@@ -108,9 +108,9 @@ clsparseScoo2csr_host( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooM
 
     const clsparseCooMatrixPrivate* pCooMatx = static_cast<const clsparseCooMatrixPrivate*>( cooMatx );
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
-    pCsrMatx->m = pCooMatx->num_rows;
-    pCsrMatx->n = pCooMatx->num_cols;
-    pCsrMatx->nnz = pCooMatx->num_nonzeros;
+    pCsrMatx->num_rows = pCooMatx->num_rows;
+    pCsrMatx->num_cols = pCooMatx->num_cols;
+    pCsrMatx->num_nonzeros = pCooMatx->num_nonzeros;
 
     clMemRAII< cl_float > rCooValues( control->queue( ), pCooMatx->values );
     clMemRAII< cl_int > rCooColIndices( control->queue( ), pCooMatx->colIndices );
@@ -123,9 +123,9 @@ clsparseScoo2csr_host( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooM
     cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_READ, pCooMatx->colIndOffset( ), pCooMatx->num_nonzeros );
     cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_READ, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
 
-    cl_float* fCsrValues = rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->valOffset( ), pCsrMatx->nnz );
-    cl_int* iCsrColIndices = rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->nnz );
-    cl_int* iCsrRowOffsets = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
+    cl_float* fCsrValues = rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->valOffset( ), pCsrMatx->num_nonzeros );
+    cl_int* iCsrColIndices = rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->num_nonzeros );
+    cl_int* iCsrRowOffsets = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
 
     coo2csr_transform( fCooValues, iCooColIndices, iCooRowIndices, pCooMatx->num_nonzeros, fCsrValues, iCsrColIndices, iCsrRowOffsets );
 

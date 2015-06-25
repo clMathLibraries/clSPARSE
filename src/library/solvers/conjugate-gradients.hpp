@@ -38,9 +38,9 @@ cg(clsparseVectorPrivate *pX,
    clsparseControl control)
 {
 
-    assert (pA->n == pB->n);
-    assert (pA->m == pX->n);
-    if ( (pA->n != pB->n) || (pA->m != pX->n) )
+    assert( pA->num_cols == pB->n );
+    assert( pA->num_rows == pX->n );
+    if( ( pA->num_cols != pB->n ) || ( pA->num_rows != pX->n ) )
     {
         return clsparseInvalidSystemSize;
     }
@@ -80,7 +80,7 @@ cg(clsparseVectorPrivate *pX,
 
 
     //continuing "normal" execution of cg algorithm
-    const auto N = pA->n;
+    const auto N = pA->num_cols;
 
     //helper containers, all need to be zeroed
     clsparse::vector<T> y(control, N, 0, CL_MEM_READ_WRITE, true);

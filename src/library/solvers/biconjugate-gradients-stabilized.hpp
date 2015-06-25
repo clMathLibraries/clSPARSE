@@ -31,9 +31,9 @@ bicgStab(clsparseVectorPrivate *pX,
          clSParseSolverControl solverControl,
          clsparseControl control)
 {
-    assert (pA->n == pB->n);
-    assert (pA->m == pX->n);
-    if ( (pA->n != pB->n) || (pA->m != pX->n) )
+    assert( pA->num_cols == pB->n );
+    assert( pA->num_rows == pX->n );
+    if( ( pA->num_cols != pB->n ) || ( pA->num_rows != pX->n ) )
     {
         return clsparseInvalidSystemSize;
     }
@@ -69,7 +69,7 @@ bicgStab(clsparseVectorPrivate *pX,
 
 
     //n == number of rows;
-    const auto N = pA->n;
+    const auto N = pA->num_cols;
 
     vector y   (control, N, 0, CL_MEM_READ_WRITE, false);
     vector p   (control, N, 0, CL_MEM_READ_WRITE, false);

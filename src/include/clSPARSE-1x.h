@@ -33,9 +33,9 @@ typedef struct cldenseVector_
 typedef struct clsparseCsrMatrix_
 {
     // Matrix meta
-    cl_int m;
-    cl_int n;
-    cl_int nnz;
+    cl_int num_rows;
+    cl_int num_cols;
+    cl_int num_nonzeros;
 
     // OpenCL state
     cl_mem values;

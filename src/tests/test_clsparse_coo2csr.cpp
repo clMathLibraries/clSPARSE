@@ -39,7 +39,7 @@ public:
                                            cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), CLSE::control );
         
-        row = (int *)malloc((cooMatx.m + 1) * sizeof(int));
+        row = (int *)malloc((cooMatx.num_rows + 1) * sizeof(int));
         col = (int *)malloc((cooMatx.num_nonzeros) * sizeof(int));
         val = (T *)malloc(cooMatx.num_nonzeros * sizeof(T)); 
     }
@@ -125,7 +125,7 @@ TYPED_TEST(TestCOO2CSR, transform)
                         csrMatx.rowOffsets,
                         1,
                         0,
-                       (csrMatx.m+1) * sizeof(int),
+                       (csrMatx.num_rows+1) * sizeof(int),
                         this->row,
                         0,
                         0,
@@ -135,7 +135,7 @@ TYPED_TEST(TestCOO2CSR, transform)
                         csrMatx.colIndices,
                         1,
                         0,
-                       (csrMatx.nnz) * sizeof(int),
+                       (csrMatx.num_nonzeros) * sizeof(int),
                         this->col,
                         0,
                         0,
@@ -146,7 +146,7 @@ TYPED_TEST(TestCOO2CSR, transform)
                            csrMatx.values,
                            1,
                            0,
-                          (csrMatx.nnz) * sizeof(float),
+                          (csrMatx.num_nonzeros) * sizeof(float),
                            this->val,
                            0,
                            0,
@@ -158,45 +158,45 @@ TYPED_TEST(TestCOO2CSR, transform)
                            csrMatx.values,
                            1,
                            0,
-                          (csrMatx.nnz) * sizeof(double),
+                          (csrMatx.num_nonzeros) * sizeof(double),
                            this->val,
                            0,
                            0,
      	                   0);
     }
 #if 0
-    double *temp = (double *)malloc(sizeof(double) *  csrMatx.nnz);
+    double *temp = (double *)malloc(sizeof(double) *  csrMatx.num_nonzeros);
     clEnqueueReadBuffer(CLSE::queue,
                             csrMatx.values,
                             1,
                             0,
-                           (csrMatx.nnz) * sizeof(double),
+                           (csrMatx.num_nonzeros) * sizeof(double),
                             temp,
                             0,
                             0,
                             0);
 
 
-     for(int i = 0; i < csrMatx.nnz; i++){
+     for(int i = 0; i < csrMatx.num_nonzeros; i++){
          std::cout << std::setprecision (16) << temp[i] << " ";
      }
 #endif		
-     for(int i = 0; i < csrMatx.m + 1; i++){
+     for(int i = 0; i < csrMatx.num_rows + 1; i++){
          ASSERT_EQ (this->row[i], CSRE::row_offsets[i]);
      }
 		
-     for(int i = 0; i < csrMatx.nnz; i++){
+     for(int i = 0; i < csrMatx.num_nonzeros; i++){
         ASSERT_EQ(this->col[i], CSRE::col_indices[i]);
      }
 
      if(typeid(TypeParam) == typeid(float)){    
-        for(int i = 0; i < csrMatx.nnz; i++){
+        for(int i = 0; i < csrMatx.num_nonzeros; i++){
             ASSERT_EQ(this->val[i], CSRE::f_values[i]);
         }
      }
 
      if(typeid(TypeParam) == typeid(double)){
-        for(int i = 0; i < csrMatx.nnz; i++){
+        for(int i = 0; i < csrMatx.num_nonzeros; i++){
             //std::cout << std::setprecision (16) << this->val[i] << " " <<  CSRE::d_values[i] << std::endl;
             ASSERT_EQ(this->val[i], CSRE::d_values[i]);
         }

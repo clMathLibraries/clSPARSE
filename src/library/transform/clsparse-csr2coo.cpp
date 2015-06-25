@@ -54,9 +54,9 @@ clsparseScsr2coo(const clsparseCsrMatrix* csr,
     const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
     clsparseCooMatrixPrivate* pCoo = static_cast<clsparseCooMatrixPrivate*>(coo);
 
-    pCoo->num_rows = pCsr->m;
-    pCoo->num_cols = pCsr->n;
-    pCoo->num_nonzeros = pCsr->nnz;  
+    pCoo->num_rows = pCsr->num_rows;
+    pCoo->num_cols = pCsr->num_cols;
+    pCoo->num_nonzeros = pCsr->num_nonzeros;  
 
     if (!clsparseInitialized)
     {
@@ -157,9 +157,9 @@ clsparseDcsr2coo(const clsparseCsrMatrix* csr,
     const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
     clsparseCooMatrixPrivate* pCoo = static_cast<clsparseCooMatrixPrivate*>(coo);
 
-    pCoo->num_rows = pCsr->m;
-    pCoo->num_cols = pCsr->n;
-    pCoo->num_nonzeros = pCsr->nnz;
+    pCoo->num_rows = pCsr->num_rows;
+    pCoo->num_cols = pCsr->num_cols;
+    pCoo->num_nonzeros = pCsr->num_nonzeros;
 
     if (!clsparseInitialized)
     {

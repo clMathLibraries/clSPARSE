@@ -47,7 +47,7 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
                                          params);
     KernelWrap kWrapper(kernel);
 
-    kWrapper << pMatx->m
+    kWrapper << pMatx->num_rows
              << pAlpha->value << pAlpha->offset()
              << pMatx->rowOffsets
              << pMatx->colIndices
@@ -58,7 +58,7 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
-    cl_uint predicted = subwave_size * pMatx->m;
+    cl_uint predicted = subwave_size * pMatx->num_rows;
 
     // if NVIDIA is used it does not allow to run the group size
     // which is not a multiplication of group_size. Don't know if that
@@ -125,7 +125,7 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
 
     cl_ulong offset  = 0;
 
-    kWrapper << pMatx->m
+    kWrapper << pMatx->num_rows
              << pAlpha.data() << offset
              << pMatx->rowOffsets
              << pMatx->colIndices
@@ -136,7 +136,7 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
-    cl_uint predicted = subwave_size * pMatx->m;
+    cl_uint predicted = subwave_size * pMatx->num_rows;
 
     // if NVIDIA is used it does not allow to run the group size
     // which is not a multiplication of group_size. Don't know if that

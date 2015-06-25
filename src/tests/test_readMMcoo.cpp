@@ -83,8 +83,8 @@ TEST( MM_file, load )
     clsparseInitVector( &x );
     clsparseInitVector( &y );
 
-    std::vector< cl_float > xHost( csrMatx.n );
-    std::vector< cl_float > yHost( csrMatx.m );
+    std::vector< cl_float > xHost( csrMatx.num_cols );
+    std::vector< cl_float > yHost( csrMatx.num_rows );
     std::fill( xHost.begin( ), xHost.end( ), 1.0f );
     std::fill( yHost.begin( ), yHost.end( ), 2.0f );
     cl_float aHost = 1.0f;

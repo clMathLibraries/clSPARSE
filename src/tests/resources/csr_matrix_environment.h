@@ -30,15 +30,15 @@ public:
         }
 
         clsparseInitCsrMatrix( &csrSMatrix );
-        csrSMatrix.nnz = n_vals;
-        csrSMatrix.m = n_rows;
-        csrSMatrix.n = n_cols;
+        csrSMatrix.num_nonzeros = n_vals;
+        csrSMatrix.num_rows = n_rows;
+        csrSMatrix.num_cols = n_cols;
         clsparseCsrMetaSize( &csrSMatrix, CLSE::control );
 
         clsparseInitCsrMatrix( &csrDMatrix );
-        csrDMatrix.nnz = n_vals;
-        csrDMatrix.m = n_rows;
-        csrDMatrix.n = n_cols;
+        csrDMatrix.num_nonzeros = n_vals;
+        csrDMatrix.num_rows = n_rows;
+        csrDMatrix.num_cols = n_cols;
         //clsparseCsrMetaSize( &csrDMatrix, CLSE::control );
 
 
@@ -53,13 +53,13 @@ public:
         //  Load single precision data from file; this API loads straight into GPU memory
         cl_int status;
         csrSMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                              csrSMatrix.nnz * sizeof( cl_float ), NULL, &status );
+                                              csrSMatrix.num_nonzeros * sizeof( cl_float ), NULL, &status );
 
         csrSMatrix.colIndices = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                                  csrSMatrix.nnz * sizeof( cl_int ), NULL, &status );
+                                                  csrSMatrix.num_nonzeros * sizeof( cl_int ), NULL, &status );
 
         csrSMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                                  ( csrSMatrix.m + 1 ) * sizeof( cl_int ), NULL, &status );
+                                                  ( csrSMatrix.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
 
         csrSMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                                  csrSMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
@@ -69,15 +69,15 @@ public:
             throw std::runtime_error( "Could not read matrix market data from disk" );
 
         //reassign the new matrix dimmesnions calculated clsparseCCsrMatrixFromFile to global variables
-        n_vals = csrSMatrix.nnz;
-        n_cols = csrSMatrix.n;
-        n_rows = csrSMatrix.m;
+        n_vals = csrSMatrix.num_nonzeros;
+        n_cols = csrSMatrix.num_cols;
+        n_rows = csrSMatrix.num_rows;
 
         //  Download sparse matrix data to host
         //  First, create space on host to hold the data
-        f_values.resize( csrSMatrix.nnz );
-        col_indices.resize( csrSMatrix.nnz );
-        row_offsets.resize( csrSMatrix.m + 1 );
+        f_values.resize( csrSMatrix.num_nonzeros );
+        col_indices.resize( csrSMatrix.num_nonzeros );
+        row_offsets.resize( csrSMatrix.num_rows + 1 );
 
         // copy host matrix arrays to device;
         cl_int copy_status;
@@ -108,9 +108,9 @@ public:
         //csrDMatrix.rowBlocks = csrSMatrix.rowBlocks;
         //::clRetainMemObject( csrDMatrix.rowBlocks );
 
-        csrDMatrix.nnz = csrSMatrix.nnz;
-        csrDMatrix.n = csrSMatrix.n;
-        csrDMatrix.m = csrSMatrix.m;
+        csrDMatrix.num_nonzeros = csrSMatrix.num_nonzeros;
+        csrDMatrix.num_cols = csrSMatrix.num_cols;
+        csrDMatrix.num_rows = csrSMatrix.num_rows;
 
         csrDMatrix.colIndices = csrSMatrix.colIndices;
         ::clRetainMemObject( csrDMatrix.colIndices );
@@ -120,10 +120,10 @@ public:
 
         //  Intialize double precision data, all the indices can be reused.
         csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                              csrDMatrix.nnz * sizeof( cl_double ), NULL, &status );
+                                              csrDMatrix.num_nonzeros * sizeof( cl_double ), NULL, &status );
 
         status = ::clEnqueueWriteBuffer( queue, csrDMatrix.values, CL_TRUE, 0,
-                                              csrDMatrix.nnz * sizeof( cl_double ), d_values.data( ), 0, NULL, NULL );
+                                              csrDMatrix.num_nonzeros * sizeof( cl_double ), d_values.data( ), 0, NULL, NULL );
 
         if( copy_status )
         {
