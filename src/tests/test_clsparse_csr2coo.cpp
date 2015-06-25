@@ -13,45 +13,6 @@ cl_context ClSparseEnvironment::context = NULL;
 
 namespace po = boost::program_options;
 
-template<typename T>
-clsparseStatus generateResult(cl_mem g_src, cl_mem g_dst, cl_mem g_value)
-{
-    using CSRE = CSREnvironment;
-    using CLSE = ClSparseEnvironment;
-
-    if(typeid(T) == typeid(float))
-    {
-        return clsparseScsr2coo(CSRE::n_rows,
-                                CSRE::n_cols,
-                                CSRE::n_vals,
-                                CSRE::csrSMatrix.rowOffsets,
-                                CSRE::csrSMatrix.colIndices,
-                                CSRE::csrSMatrix.values,
-                                g_src,
-                                g_dst,
-                                g_value,
-                                CLSE::control);
-
-    }
-
-    if(typeid(T) == typeid(double))
-    {
-       return clsparseDcsr2coo(CSRE::n_rows,
-                               CSRE::n_cols,
-                               CSRE::n_vals,
-                               CSRE::csrDMatrix.rowOffsets,
-                               CSRE::csrDMatrix.colIndices,
-                               CSRE::csrDMatrix.values,
-                               g_src,
-                               g_dst,
-                               g_value,
-                               CLSE::control);
-
-    }
-
-    return clsparseNotImplemented;
-}
-
 template <typename T>
 class TestCSR2COO : public ::testing::Test
 {
@@ -68,25 +29,20 @@ public:
         dst   = std::vector<int>(CSRE::n_vals, 0);
         value = std::vector<T>(CSRE::n_vals, 0);
 
+        clsparseInitCooMatrix( &cooMatx );
+        
+        cooMatx.nnz = CSRE::n_vals;
+        cooMatx.m   = CSRE::n_rows;
+        cooMatx.n   = CSRE::n_cols;
+
         cl_int status;
-        g_src = clCreateBuffer(CLSE::context,
-                               CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                               src.size() * sizeof(int), src.data(), &status);
+        cooMatx.values     = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+                                               CSRE::n_vals * sizeof(T), NULL, &status );
 
-        ASSERT_EQ(CL_SUCCESS, status); //is it wise to use this here?
-
-        g_dst = clCreateBuffer(CLSE::context,
-                               CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                               dst.size() * sizeof(int), dst.data(), &status);
-
-        ASSERT_EQ(CL_SUCCESS, status); //is it wise to use this here?
-
-        g_value = clCreateBuffer(CLSE::context,
-                                 CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                                 value.size() * sizeof(T), value.data(), &status);
-
-        ASSERT_EQ(CL_SUCCESS, status); //is it wise to use this here?
-
+        cooMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+                                               CSRE::n_vals * sizeof( cl_int ), NULL, &status );
+        cooMatx.rowIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+                                               CSRE::n_vals * sizeof( cl_int ), NULL, &status );
 
         generateReference(src, dst, value);
 
@@ -107,9 +63,7 @@ public:
                     src, dst, value);
     }
 
-    cl_mem g_src;
-    cl_mem g_dst;
-    cl_mem g_value;
+    clsparseCooMatrix cooMatx;
 
     std::vector<int> src;
     std::vector<int> dst;
@@ -123,14 +77,29 @@ TYPED_TEST_CASE(TestCSR2COO, TYPES);
 TYPED_TEST(TestCSR2COO, transform)
 {
 
+    using CSRE = CSREnvironment;
+    using CLSE = ClSparseEnvironment;
+
     cl_event event = NULL;
     //clsparseSetupEvent(ClSparseEnvironment::control, &event );
 
     clsparseStatus status;
 
-    status = generateResult<TypeParam>(this->g_src, this->g_dst, this->g_value);
+    if(typeid(TypeParam) == typeid(float))
+    {
+        status = clsparseScsr2coo(&CSRE::csrSMatrix,
+                                  &(this->cooMatx),
+                                  CLSE::control);
 
-    EXPECT_EQ(clsparseSuccess, status);
+    }
+
+    if(typeid(TypeParam) == typeid(double))
+    {
+        status = clsparseDcsr2coo(&CSRE::csrDMatrix,
+                                  &(this->cooMatx),
+                                  CLSE::control);
+
+    }
 
     //clsparseSynchronize(ClSparseEnvironment::control);
 
@@ -140,17 +109,17 @@ TYPED_TEST(TestCSR2COO, transform)
 
 
     clEnqueueReadBuffer(ClSparseEnvironment::queue,
-                        this->g_src, 1, 0,
+                        (this->cooMatx).rowIndices, 1, 0,
                         resultS.size()*sizeof(int),
                         resultS.data(), 0, NULL, NULL);
 
     clEnqueueReadBuffer(ClSparseEnvironment::queue,
-                        this->g_dst, 1, 0,
+                        (this->cooMatx).colIndices, 1, 0,
                         resultD.size()*sizeof(int),
                         resultD.data(), 0, NULL, NULL);
 
     clEnqueueReadBuffer(ClSparseEnvironment::queue,
-                        this->g_value, 1, 0,
+                        (this->cooMatx).values, 1, 0,
                         resultV.size()*sizeof(TypeParam),
                         resultV.data(), 0, NULL, NULL);
 

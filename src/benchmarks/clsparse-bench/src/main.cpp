@@ -17,6 +17,8 @@
 #include "functions/clfunc-xSpMdM.hpp"
 #include "functions/clfunc_xCG.hpp"
 #include "functions/clfunc_xBiCGStab.hpp"
+#include "functions/clfunc_xCoo2Csr.hpp"
+#include "functions/clfunc_xDense2Csr.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -184,6 +186,20 @@ int main( int argc, char *argv[ ] )
             my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns ) );
         else
             my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns ) );
+    }
+    else if( boost::iequals( function, "Coo2Csr" ) )
+    {
+        if( precision == "s" )
+            my_function = std::unique_ptr< clsparseFunc >( new xCoo2Csr< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+        else
+            my_function = std::unique_ptr< clsparseFunc >( new xCoo2Csr< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+    }
+    else if( boost::iequals( function, "Dense2Csr" ) )
+    {
+        if( precision == "s" )
+            my_function = std::unique_ptr< clsparseFunc >( new xDense2Csr< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+        else
+            my_function = std::unique_ptr< clsparseFunc >( new xDense2Csr< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
     }
     else
     {

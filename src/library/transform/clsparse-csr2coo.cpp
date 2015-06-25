@@ -46,11 +46,18 @@ csr2coo_transform(const int m, const int n,
 }
 
 clsparseStatus
-clsparseScsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
-                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
-                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
-                 clsparseControl control)
+clsparseScsr2coo(const clsparseCsrMatrix* csr,
+                 clsparseCooMatrix* coo,
+                 const clsparseControl control)
 {
+
+    const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
+    clsparseCooMatrixPrivate* pCoo = static_cast<clsparseCooMatrixPrivate*>(coo);
+
+    pCoo->m = pCsr->m;
+    pCoo->n = pCsr->n;
+    pCoo->nnz = pCsr->nnz;  
+
     if (!clsparseInitialized)
     {
         return clsparseNotInitialized;
@@ -65,21 +72,21 @@ clsparseScsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
     clsparseStatus status;
 
     //validate cl_mem objects
-    status = validateMemObject(coo_row_indices, sizeof(cl_int)*nnz);
+    status = validateMemObject(pCoo->rowIndices, sizeof(cl_int)* pCoo->nnz);
     if(status != clsparseSuccess)
         return status;
 
-    status = validateMemObject(coo_col_indices, sizeof(cl_int)*nnz);
+    status = validateMemObject(pCoo->colIndices, sizeof(cl_int)* pCoo->nnz);
     if(status != clsparseSuccess)
         return status;
 
-    status = validateMemObject(coo_values, sizeof(cl_float)*nnz);
+    status = validateMemObject(pCoo->values, sizeof(cl_float)* pCoo->nnz);
     if(status != clsparseSuccess)
         return status;
 
     //validate cl_mem sizes
     //TODO: ask about validateMemObjectSize
-    cl_uint nnz_per_row = nnz / m; //average nnz per row
+    cl_uint nnz_per_row = pCoo->nnz / pCoo->m; //average nnz per row
     cl_uint wave_size = control->wavefront_size;
     cl_uint group_size = 256; //wave_size * 8;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
@@ -110,30 +117,30 @@ clsparseScsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
     //TODO add error handling
     //copy indices
     clEnqueueCopyBuffer(control->queue(),
-                        csr_col_indices,
-                        coo_col_indices,
+                        pCsr-> colIndices,
+                        pCoo-> colIndices,
                         0,
                         0,
-                        sizeof(cl_int) * nnz,
+                        sizeof(cl_int) * pCoo->nnz,
                         0,
                         NULL,
                         NULL);
 
     //copy values
     clEnqueueCopyBuffer(control->queue(),
-                        csr_values,
-                        coo_values,
+                        pCsr-> values,
+                        pCoo-> values,
                         0,
                         0,
-                        sizeof(cl_float) * nnz,
+                        sizeof(cl_float) * pCoo->nnz,
                         0,
                         NULL,
                         NULL);
 
 
-    return csr2coo_transform(m, n,
-                             csr_row_indices,
-                             coo_row_indices,
+    return csr2coo_transform(pCoo->m, pCoo->n,
+                             pCsr->rowOffsets,
+                             pCoo->rowIndices,
                              params,
                              group_size,
                              subwave_size,
@@ -142,11 +149,18 @@ clsparseScsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
 }
 
 clsparseStatus
-clsparseDcsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
-                 cl_mem csr_row_indices, cl_mem csr_col_indices, cl_mem csr_values,
-                 cl_mem coo_row_indices, cl_mem coo_col_indices, cl_mem coo_values,
-                 clsparseControl control)
+clsparseDcsr2coo(const clsparseCsrMatrix* csr,
+                 clsparseCooMatrix* coo,
+                 const clsparseControl control)
 {
+
+    const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
+    clsparseCooMatrixPrivate* pCoo = static_cast<clsparseCooMatrixPrivate*>(coo);
+
+    pCoo->m = pCsr->m;
+    pCoo->n = pCsr->n;
+    pCoo->nnz = pCsr->nnz;
+
     if (!clsparseInitialized)
     {
         return clsparseNotInitialized;
@@ -161,24 +175,23 @@ clsparseDcsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
     clsparseStatus status;
 
     //validate cl_mem objects
-    status = validateMemObject(coo_row_indices, sizeof(cl_int)*nnz);
+    status = validateMemObject(pCoo->rowIndices, sizeof(cl_int)* pCoo->nnz);
     if(status != clsparseSuccess)
         return status;
 
-    status = validateMemObject(coo_col_indices, sizeof(cl_int)*nnz);
+    status = validateMemObject(pCoo->colIndices, sizeof(cl_int)*  pCoo->nnz);
     if(status != clsparseSuccess)
         return status;
 
-    status = validateMemObject(coo_values, sizeof(cl_double)*nnz);
+    status = validateMemObject(pCoo->values, sizeof(cl_double)*  pCoo->nnz);
     if(status != clsparseSuccess)
         return status;
 
       //validate cl_mem sizes
     //TODO: ask about validateMemObjectSize
-
-    cl_uint nnz_per_row = nnz / m; //average nnz per row
+    cl_uint nnz_per_row = pCoo->nnz / pCoo->m; //average nnz per row
     cl_uint wave_size = control->wavefront_size;
-    cl_uint group_size = wave_size * 4;    // 256 gives best performance!
+    cl_uint group_size = 256; //wave_size * 8;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
@@ -193,6 +206,7 @@ clsparseDcsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
+
     const std::string params = std::string() +
             "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
@@ -202,36 +216,38 @@ clsparseDcsr2coo(const cl_int m, const cl_int n, const cl_int nnz,
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
 
+
     //TODO add error handling
     //copy indices
     clEnqueueCopyBuffer(control->queue(),
-                        csr_col_indices,
-                        coo_col_indices,
+                        pCsr-> colIndices,
+                        pCoo-> colIndices,
                         0,
                         0,
-                        sizeof(cl_int) * nnz,
+                        sizeof(cl_int) * pCoo->nnz,
                         0,
                         NULL,
                         NULL);
 
     //copy values
     clEnqueueCopyBuffer(control->queue(),
-                        csr_values,
-                        coo_values,
+                        pCsr-> values,
+                        pCoo-> values,
                         0,
                         0,
-                        sizeof(cl_double) * nnz,
+                        sizeof(cl_double) * pCoo->nnz,
                         0,
                         NULL,
                         NULL);
 
 
-    return csr2coo_transform(m, n,
-                             csr_row_indices,
-                             coo_row_indices,
+    return csr2coo_transform(pCoo->m, pCoo->n,
+                             pCsr->rowOffsets,
+                             pCoo->rowIndices,
                              params,
                              group_size,
                              subwave_size,
                              control);
 
 }
+
