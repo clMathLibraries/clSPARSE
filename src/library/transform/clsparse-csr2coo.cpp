@@ -54,9 +54,9 @@ clsparseScsr2coo(const clsparseCsrMatrix* csr,
     const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
     clsparseCooMatrixPrivate* pCoo = static_cast<clsparseCooMatrixPrivate*>(coo);
 
-    pCoo->m = pCsr->m;
-    pCoo->n = pCsr->n;
-    pCoo->nnz = pCsr->nnz;  
+    pCoo->num_rows = pCsr->m;
+    pCoo->num_cols = pCsr->n;
+    pCoo->num_nonzeros = pCsr->nnz;  
 
     if (!clsparseInitialized)
     {
@@ -72,21 +72,21 @@ clsparseScsr2coo(const clsparseCsrMatrix* csr,
     clsparseStatus status;
 
     //validate cl_mem objects
-    status = validateMemObject(pCoo->rowIndices, sizeof(cl_int)* pCoo->nnz);
+    status = validateMemObject(pCoo->rowIndices, sizeof(cl_int)* pCoo->num_nonzeros);
     if(status != clsparseSuccess)
         return status;
 
-    status = validateMemObject(pCoo->colIndices, sizeof(cl_int)* pCoo->nnz);
+    status = validateMemObject(pCoo->colIndices, sizeof(cl_int)* pCoo->num_nonzeros);
     if(status != clsparseSuccess)
         return status;
 
-    status = validateMemObject(pCoo->values, sizeof(cl_float)* pCoo->nnz);
+    status = validateMemObject(pCoo->values, sizeof(cl_float)* pCoo->num_nonzeros);
     if(status != clsparseSuccess)
         return status;
 
     //validate cl_mem sizes
     //TODO: ask about validateMemObjectSize
-    cl_uint nnz_per_row = pCoo->nnz / pCoo->m; //average nnz per row
+    cl_uint nnz_per_row = pCoo->num_nonzeros / pCoo->num_rows; //average num_nonzeros per row
     cl_uint wave_size = control->wavefront_size;
     cl_uint group_size = 256; //wave_size * 8;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
@@ -121,7 +121,7 @@ clsparseScsr2coo(const clsparseCsrMatrix* csr,
                         pCoo-> colIndices,
                         0,
                         0,
-                        sizeof(cl_int) * pCoo->nnz,
+                        sizeof(cl_int) * pCoo->num_nonzeros,
                         0,
                         NULL,
                         NULL);
@@ -132,13 +132,13 @@ clsparseScsr2coo(const clsparseCsrMatrix* csr,
                         pCoo-> values,
                         0,
                         0,
-                        sizeof(cl_float) * pCoo->nnz,
+                        sizeof(cl_float) * pCoo->num_nonzeros,
                         0,
                         NULL,
                         NULL);
 
 
-    return csr2coo_transform(pCoo->m, pCoo->n,
+    return csr2coo_transform( pCoo->num_rows, pCoo->num_cols,
                              pCsr->rowOffsets,
                              pCoo->rowIndices,
                              params,
@@ -157,9 +157,9 @@ clsparseDcsr2coo(const clsparseCsrMatrix* csr,
     const clsparseCsrMatrixPrivate* pCsr = static_cast<const clsparseCsrMatrixPrivate*>(csr);
     clsparseCooMatrixPrivate* pCoo = static_cast<clsparseCooMatrixPrivate*>(coo);
 
-    pCoo->m = pCsr->m;
-    pCoo->n = pCsr->n;
-    pCoo->nnz = pCsr->nnz;
+    pCoo->num_rows = pCsr->m;
+    pCoo->num_cols = pCsr->n;
+    pCoo->num_nonzeros = pCsr->nnz;
 
     if (!clsparseInitialized)
     {
@@ -175,21 +175,21 @@ clsparseDcsr2coo(const clsparseCsrMatrix* csr,
     clsparseStatus status;
 
     //validate cl_mem objects
-    status = validateMemObject(pCoo->rowIndices, sizeof(cl_int)* pCoo->nnz);
+    status = validateMemObject(pCoo->rowIndices, sizeof(cl_int)* pCoo->num_nonzeros);
     if(status != clsparseSuccess)
         return status;
 
-    status = validateMemObject(pCoo->colIndices, sizeof(cl_int)*  pCoo->nnz);
+    status = validateMemObject(pCoo->colIndices, sizeof(cl_int)*  pCoo->num_nonzeros);
     if(status != clsparseSuccess)
         return status;
 
-    status = validateMemObject(pCoo->values, sizeof(cl_double)*  pCoo->nnz);
+    status = validateMemObject(pCoo->values, sizeof(cl_double)*  pCoo->num_nonzeros);
     if(status != clsparseSuccess)
         return status;
 
       //validate cl_mem sizes
     //TODO: ask about validateMemObjectSize
-    cl_uint nnz_per_row = pCoo->nnz / pCoo->m; //average nnz per row
+    cl_uint nnz_per_row = pCoo->num_nonzeros / pCoo->num_rows; //average num_nonzeros per row
     cl_uint wave_size = control->wavefront_size;
     cl_uint group_size = 256; //wave_size * 8;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
@@ -224,7 +224,7 @@ clsparseDcsr2coo(const clsparseCsrMatrix* csr,
                         pCoo-> colIndices,
                         0,
                         0,
-                        sizeof(cl_int) * pCoo->nnz,
+                        sizeof(cl_int) * pCoo->num_nonzeros,
                         0,
                         NULL,
                         NULL);
@@ -235,13 +235,13 @@ clsparseDcsr2coo(const clsparseCsrMatrix* csr,
                         pCoo-> values,
                         0,
                         0,
-                        sizeof(cl_double) * pCoo->nnz,
+                        sizeof(cl_double) * pCoo->num_nonzeros,
                         0,
                         NULL,
                         NULL);
 
 
-    return csr2coo_transform(pCoo->m, pCoo->n,
+    return csr2coo_transform( pCoo->num_rows, pCoo->num_cols,
                              pCsr->rowOffsets,
                              pCoo->rowIndices,
                              params,

@@ -31,9 +31,9 @@ public:
 
         clsparseInitCooMatrix( &cooMatx );
         
-        cooMatx.nnz = CSRE::n_vals;
-        cooMatx.m   = CSRE::n_rows;
-        cooMatx.n   = CSRE::n_cols;
+        cooMatx.num_nonzeros = CSRE::n_vals;
+        cooMatx.num_rows = CSRE::n_rows;
+        cooMatx.num_cols = CSRE::n_cols;
 
         cl_int status;
         cooMatx.values     = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,

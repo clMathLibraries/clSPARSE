@@ -464,21 +464,21 @@ clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cls
     if( mm_reader.MMReadFormat( filePath ) )
         return clsparseInvalidFile;
 
-    pCooMatx->m = mm_reader.GetNumRows( );
-    pCooMatx->n = mm_reader.GetNumCols( );
-    pCooMatx->nnz = mm_reader.GetNumNonZeroes( );
+    pCooMatx->num_rows = mm_reader.GetNumRows( );
+    pCooMatx->num_cols = mm_reader.GetNumCols( );
+    pCooMatx->num_nonzeros = mm_reader.GetNumNonZeroes( );
 
     // Transfers data from CPU buffer to GPU buffers
     clMemRAII< cl_float > rCooValues( control->queue( ), pCooMatx->values );
     clMemRAII< cl_int > rCooColIndices( control->queue( ), pCooMatx->colIndices );
     clMemRAII< cl_int > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
 
-    cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->valOffset( ), pCooMatx->nnz );
-    cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->colIndOffset( ), pCooMatx->nnz );
-    cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->nnz );
+    cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->valOffset( ), pCooMatx->num_nonzeros );
+    cl_int* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->colIndOffset( ), pCooMatx->num_nonzeros );
+    cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
 
     Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
-    for( cl_int c = 0; c < pCooMatx->nnz; ++c )
+    for( cl_int c = 0; c < pCooMatx->num_nonzeros; ++c )
     {
         iCooRowIndices[ c ] = coords[ c ].x;
         iCooColIndices[ c ] = coords[ c ].y;

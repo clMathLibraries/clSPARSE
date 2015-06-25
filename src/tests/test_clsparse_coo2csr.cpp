@@ -31,17 +31,17 @@ public:
 	clsparseCooHeaderfromFile( &cooMatx, path.c_str( ) );
 	
         cooMatx.values     = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof(T), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof(T), NULL, &status );
 
         cooMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                           cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         cooMatx.rowIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                           cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), CLSE::control );
         
         row = (int *)malloc((cooMatx.m + 1) * sizeof(int));
-        col = (int *)malloc((cooMatx.nnz) * sizeof(int));
-        val = (T *)malloc(cooMatx.nnz * sizeof(T)); 
+        col = (int *)malloc((cooMatx.num_nonzeros) * sizeof(int));
+        val = (T *)malloc(cooMatx.num_nonzeros * sizeof(T)); 
     }
 #endif 
 
@@ -55,24 +55,24 @@ public:
            throw std::runtime_error( "Could not read matrix market header from disk" );
 
         clsparseInitCooMatrix( &cooMatx );
-        cooMatx.nnz = nnz1;
-        cooMatx.m = row1;
-        cooMatx.n = col1;
+        cooMatx.num_nonzeros = nnz1;
+        cooMatx.num_rows = row1;
+        cooMatx.num_cols = col1;
 
         //clsparseCooHeaderfromFile( &cooMatx, path.c_str( ) );
 
         cooMatx.values     = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof(T), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof(T), NULL, &status );
 
         cooMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                           cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         cooMatx.rowIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                           cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), CLSE::control );
 
-        row = (int *)malloc((cooMatx.m + 1) * sizeof(int));
-        col = (int *)malloc((cooMatx.nnz) * sizeof(int));
-        val = (T *)malloc(cooMatx.nnz * sizeof(T));
+        row = (int *)malloc( ( cooMatx.num_rows + 1 ) * sizeof( int ) );
+        col = (int *)malloc((cooMatx.num_nonzeros) * sizeof(int));
+        val = (T *)malloc(cooMatx.num_nonzeros * sizeof(T));
     }
 
     clsparseCooMatrix cooMatx;
@@ -100,16 +100,16 @@ TYPED_TEST(TestCOO2CSR, transform)
 
     if(typeid(TypeParam) == typeid(float))
       csrMatx.values = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                         this->cooMatx.nnz * sizeof( cl_float ), NULL, &status );
+                                         this->cooMatx.num_nonzeros * sizeof( cl_float ), NULL, &status );
 
     if(typeid(TypeParam) == typeid(double))
       csrMatx.values = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                         this->cooMatx.nnz * sizeof( cl_double ), NULL, &status );
+                                         this->cooMatx.num_nonzeros * sizeof( cl_double ), NULL, &status );
 
     csrMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                          this->cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                          this->cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
     csrMatx.rowOffsets = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                       ( this->cooMatx.m + 1 ) * sizeof( cl_int ), NULL, &status );
+                                           ( this->cooMatx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
 
     if(typeid(TypeParam) == typeid(float))										   
            clsparseScoo2csr(&(this->cooMatx),

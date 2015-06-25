@@ -94,16 +94,16 @@ public:
            throw std::runtime_error( "Could not read matrix market header from disk" );
 
         clsparseInitCooMatrix( &cooMatx );
-        cooMatx.nnz = nnz1;
-        cooMatx.m = row1;
-        cooMatx.n = col1;
+        cooMatx.num_nonzeros = nnz1;
+        cooMatx.num_rows = row1;
+        cooMatx.num_cols = col1;
          
         cooMatx.values     = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof(T), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof(T), NULL, &status );
         cooMatx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         cooMatx.rowIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
 											   
         clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), control );
         
@@ -111,12 +111,12 @@ public:
         clsparseInitCsrMatrix( &csrMtx );
  
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                           cooMatx.nnz * sizeof( T ), NULL, &status );
+                                           cooMatx.num_nonzeros * sizeof( T ), NULL, &status );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                              (cooMatx.m + 1) * sizeof( cl_int ), NULL, &status );
+                                              ( cooMatx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
 
     }
 

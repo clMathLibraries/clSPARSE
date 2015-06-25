@@ -206,14 +206,14 @@ class clsparseCooMatrixPrivate: public clsparseCooMatrix
 public:
     void clear( )
     {
-        m = n = nnz = 0;
+        num_rows = num_cols = num_nonzeros = 0;
         values = colIndices = rowIndices = nullptr;
         offValues = offColInd = offRowInd = 0;
     }
 
     cl_uint nnz_per_row( ) const
     {
-        return nnz / m;
+        return num_nonzeros / num_rows;
     }
 
     cl_ulong valOffset( ) const

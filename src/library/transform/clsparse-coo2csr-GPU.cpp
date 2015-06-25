@@ -42,9 +42,9 @@ clsparse_coo2csr_internal(const clsparseCooMatrix* coo,
     }
 
     cl::Context context = control->getContext();
-    pCsr->m = pCoo->m;
-    pCsr->n = pCoo->n;
-    pCsr->nnz = pCoo->nnz;
+    pCsr->m = pCoo->num_rows;
+    pCsr->n = pCoo->num_cols;
+    pCsr->nnz = pCoo->num_nonzeros;
 
     cl_mem rowIndices  = clCreateBuffer(context(), CL_MEM_READ_WRITE, (pCsr->nnz)*sizeof(int), NULL, &err );
     if(err != CL_SUCCESS)  fprintf(stderr, "ERROR: clCreateBuffer  %d\n",  err);
@@ -85,7 +85,7 @@ clsparse_coo2csr_internal(const clsparseCooMatrix* coo,
 
     status = radix_sort_by_key(
                                0,
-                               pCoo->nnz - 1,
+                               pCoo->num_nonzeros - 1,
                                0,
                                rowIndices,
                                pCsr->colIndices,
@@ -116,7 +116,7 @@ clsparse_coo2csr_internal(const clsparseCooMatrix* coo,
 
     int count;
     status = reduce_by_key(0,
-                           pCoo->nnz -1,
+                            pCoo->num_nonzeros - 1,
                            0,
                            rowIndices,
                            one_array,
