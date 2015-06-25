@@ -13,9 +13,9 @@
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus
 axpy(cl_ulong size,
-     clsparseVectorPrivate* pY,
+     cldenseVectorPrivate* pY,
      const clsparseScalarPrivate* pAlpha,
-     const clsparseVectorPrivate* pX,
+     const cldenseVectorPrivate* pX,
      const clsparseControl control)
 {
     const int group_size = 256; // this or higher? control->max_wg_size?

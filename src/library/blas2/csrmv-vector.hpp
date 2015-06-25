@@ -10,9 +10,9 @@ template<typename T>
 clsparseStatus
 csrmv_vector(const clsparseScalarPrivate* pAlpha,
        const clsparseCsrMatrixPrivate* pMatx,
-       const clsparseVectorPrivate* pX,
+       const cldenseVectorPrivate* pX,
        const clsparseScalarPrivate* pBeta,
-       clsparseVectorPrivate* pY,
+       cldenseVectorPrivate* pY,
        clsparseControl control)
 {
     cl_uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row

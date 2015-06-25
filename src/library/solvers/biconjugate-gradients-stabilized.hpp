@@ -24,16 +24,16 @@
 
 template <typename T, typename PTYPE>
 clsparseStatus
-bicgStab(clsparseVectorPrivate *pX,
+bicgStab(cldenseVectorPrivate *pX,
          const clsparseCsrMatrixPrivate* pA,
-         const clsparseVectorPrivate *pB,
+         const cldenseVectorPrivate *pB,
          PTYPE& M,
          clSParseSolverControl solverControl,
          clsparseControl control)
 {
-    assert( pA->num_cols == pB->n );
-    assert( pA->num_rows == pX->n );
-    if( ( pA->num_cols != pB->n ) || ( pA->num_rows != pX->n ) )
+    assert( pA->num_cols == pB->num_values );
+    assert( pA->num_rows == pX->num_values );
+    if( ( pA->num_cols != pB->num_values ) || ( pA->num_rows != pX->num_values ) )
     {
         return clsparseInvalidSystemSize;
     }
@@ -42,8 +42,8 @@ bicgStab(clsparseVectorPrivate *pX,
     typedef typename clsparse::scalar<T> scalar;
 
     //opaque input parameters with clsparse::array type;
-    vector x(control, pX->values, pX->n);
-    vector b(control, pB->values, pB->n);
+    vector x(control, pX->values, pX->num_values);
+    vector b(control, pB->values, pB->num_values);
 
     cl_int status;
 

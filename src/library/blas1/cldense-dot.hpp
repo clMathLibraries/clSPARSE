@@ -12,9 +12,9 @@
 
 template<typename T>
 clsparseStatus
-inner_product (clsparseVectorPrivate* partial,
-     const clsparseVectorPrivate* pX,
-     const clsparseVectorPrivate* pY,
+inner_product (cldenseVectorPrivate* partial,
+     const cldenseVectorPrivate* pX,
+     const cldenseVectorPrivate* pY,
      const cl_ulong size,
      const cl_ulong REDUCE_BLOCKS_NUMBER,
      const cl_ulong REDUCE_BLOCK_SIZE,
@@ -56,8 +56,8 @@ inner_product (clsparseVectorPrivate* partial,
 
 template<typename T>
 clsparseStatus dot(clsparseScalarPrivate* pR,
-                   const clsparseVectorPrivate* pX,
-                   const clsparseVectorPrivate* pY,
+                   const cldenseVectorPrivate* pX,
+                   const cldenseVectorPrivate* pY,
                    const clsparseControl control)
 {
 
@@ -76,8 +76,8 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
     */
     const cl_ulong REDUCE_BLOCK_SIZE = 256;
 
-    cl_ulong xSize = pX->n - pX->offset();
-    cl_ulong ySize = pY->n - pY->offset();
+    cl_ulong xSize = pX->num_values - pX->offset();
+    cl_ulong ySize = pY->num_values - pY->offset();
 
     assert (xSize == ySize);
 
@@ -89,11 +89,11 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
         cl::Context context = control->getContext();
 
         //partial result
-        clsparseVectorPrivate partial;
+        cldenseVectorPrivate partial;
         clsparseInitVector(&partial);
-        partial.n = REDUCE_BLOCKS_NUMBER;
+        partial.num_values = REDUCE_BLOCKS_NUMBER;
 
-        clMemRAII<T> rPartial (control->queue(), &partial.values, partial.n);
+        clMemRAII<T> rPartial (control->queue(), &partial.values, partial.num_values);
 
         status = inner_product<T>(&partial, pX, pY, size,  REDUCE_BLOCKS_NUMBER,
                                REDUCE_BLOCK_SIZE, control);

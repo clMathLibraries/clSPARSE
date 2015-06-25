@@ -11,7 +11,7 @@
 
 template<typename T, bool inverse = false>
 clsparseStatus
-extract_diagonal(clsparseVectorPrivate* pDiag,
+extract_diagonal(cldenseVectorPrivate* pDiag,
                  const clsparseCsrMatrixPrivate* pA,
                  clsparseControl control)
 {

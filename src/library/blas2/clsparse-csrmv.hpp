@@ -12,9 +12,9 @@ template <typename T>
 clsparseStatus
 csrmv (const clsparseScalarPrivate *pAlpha,
        const clsparseCsrMatrixPrivate *pCsrMatx,
-       const clsparseVectorPrivate *pX,
+       const cldenseVectorPrivate *pX,
        const clsparseScalarPrivate *pBeta,
-       clsparseVectorPrivate *pY,
+       cldenseVectorPrivate *pY,
        clsparseControl control)
 {
    if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )

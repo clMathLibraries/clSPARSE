@@ -30,24 +30,24 @@
  */
 template<typename T, typename PTYPE>
 clsparseStatus
-cg(clsparseVectorPrivate *pX,
+cg(cldenseVectorPrivate *pX,
    const clsparseCsrMatrixPrivate* pA,
-   const clsparseVectorPrivate *pB,
+   const cldenseVectorPrivate *pB,
    PTYPE& M,
    clSParseSolverControl solverControl,
    clsparseControl control)
 {
 
-    assert( pA->num_cols == pB->n );
-    assert( pA->num_rows == pX->n );
-    if( ( pA->num_cols != pB->n ) || ( pA->num_rows != pX->n ) )
+    assert( pA->num_cols == pB->num_values );
+    assert( pA->num_rows == pX->num_values );
+    if( ( pA->num_cols != pB->num_values ) || ( pA->num_rows != pX->num_values ) )
     {
         return clsparseInvalidSystemSize;
     }
 
     //opaque input parameters with clsparse::array type;
-    clsparse::vector<T> x(control, pX->values, pX->n);
-    clsparse::vector<T> b(control, pB->values, pB->n);
+    clsparse::vector<T> x(control, pX->values, pX->num_values);
+    clsparse::vector<T> b(control, pB->values, pB->num_values);
 
     cl_int status;
 

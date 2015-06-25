@@ -119,7 +119,7 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
                                        total * sizeof(cl_int),
                                        0, NULL, NULL);
 
-    gY.n      = total;
+    gY.num_values      = total;
     sum.value = clCreateBuffer(cxt(), CL_MEM_READ_WRITE,
                                sizeof(cl_int), NULL, &run_status);
 
@@ -286,7 +286,7 @@ clsparseDdense2csr(clsparseCsrMatrix* csr,
                                        total * sizeof(cl_int),
                                        0, NULL, NULL);
 
-    gY.n      = total;
+    gY.num_values      = total;
     sum.value = clCreateBuffer(cxt(), CL_MEM_READ_WRITE,
                                sizeof(cl_int), NULL, &run_status);
 

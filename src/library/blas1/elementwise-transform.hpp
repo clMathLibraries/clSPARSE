@@ -21,9 +21,9 @@ template <typename T> class array_base;
 
 template<typename T, ElementWiseOperator OP>
 clsparseStatus
-elementwise_transform(clsparseVectorPrivate* r,
-                      const clsparseVectorPrivate* x,
-                      const clsparseVectorPrivate* y,
+elementwise_transform(cldenseVectorPrivate* r,
+                      const cldenseVectorPrivate* x,
+                      const cldenseVectorPrivate* y,
                       clsparseControl control)
 {
     if (!clsparseInitialized)

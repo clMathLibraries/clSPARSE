@@ -131,15 +131,15 @@ public:
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );
-        x.n = csrMtx.num_cols;
+        x.num_values = csrMtx.num_cols;
         x.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                     x.n * sizeof( T ), NULL, &status );
+                                     x.num_values * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer x.values" );
 
         clsparseInitVector( &y );
-        y.n = csrMtx.num_rows;
+        y.num_values = csrMtx.num_rows;
         y.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                     y.n * sizeof( T ), NULL, &status );
+                                     y.num_values * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer y.values" );
 
         // Initialize the scalar alpha & beta parameters
@@ -162,11 +162,11 @@ public:
     {
         T scalarOne = 1.0;
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, x.values, &scalarOne, sizeof( T ), 0,
-            sizeof( T ) * x.n, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
+            sizeof( T ) * x.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
 
         T scalarZero = 0.0;
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, y.values, &scalarZero, sizeof( T ), 0,
-            sizeof( T ) * y.n, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
+            sizeof( T ) * y.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
 
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, a.value, &alpha, sizeof( T ), 0,
             sizeof( T ) * 1, 0, NULL, NULL ), "::clEnqueueFillBuffer alpha.value" );
@@ -179,7 +179,7 @@ public:
     {
         T scalar = 0;
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, y.values, &scalar, sizeof( T ), 0,
-                             sizeof( T ) * y.n, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
+                             sizeof( T ) * y.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
     }
 
     void read_gpu_buffer( )

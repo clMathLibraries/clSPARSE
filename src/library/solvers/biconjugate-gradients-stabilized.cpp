@@ -21,9 +21,9 @@ clsparseScsrbicgStab(cldenseVector* x, const clsparseCsrMatrix *A, const cldense
         return clsparseInvalidSolverControlObject;
     }
 
-    clsparseVectorPrivate* pX = static_cast<clsparseVectorPrivate*> ( x );
+    cldenseVectorPrivate* pX = static_cast<cldenseVectorPrivate*> ( x );
     const clsparseCsrMatrixPrivate* pA = static_cast<const clsparseCsrMatrixPrivate*> ( A );
-    const clsparseVectorPrivate* pB = static_cast<const clsparseVectorPrivate*> ( b );
+    const cldenseVectorPrivate* pB = static_cast<const cldenseVectorPrivate*> ( b );
 
 
     std::shared_ptr<PreconditionerHandler<T>> preconditioner;
@@ -70,9 +70,9 @@ clsparseDcsrbicgStab(cldenseVector* x, const clsparseCsrMatrix *A, const cldense
         return clsparseInvalidSolverControlObject;
     }
 
-    clsparseVectorPrivate* pX = static_cast<clsparseVectorPrivate*> ( x );
+    cldenseVectorPrivate* pX = static_cast<cldenseVectorPrivate*> ( x );
     const clsparseCsrMatrixPrivate* pA = static_cast<const clsparseCsrMatrixPrivate*> ( A );
-    const clsparseVectorPrivate* pB = static_cast<const clsparseVectorPrivate*> ( b );
+    const cldenseVectorPrivate* pB = static_cast<const cldenseVectorPrivate*> ( b );
 
 
     std::shared_ptr<PreconditionerHandler<T>> preconditioner;

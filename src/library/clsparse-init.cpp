@@ -56,7 +56,7 @@ clsparseInitScalar( clsparseScalar* scalar )
 clsparseStatus
 clsparseInitVector( cldenseVector* vec )
 {
-    clsparseVectorPrivate* pVec = static_cast<clsparseVectorPrivate*>( vec );
+    cldenseVectorPrivate* pVec = static_cast<cldenseVectorPrivate*>( vec );
     pVec->clear( );
 
     return clsparseSuccess;

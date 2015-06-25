@@ -17,8 +17,8 @@
 
 template <typename T, ReduceOperator OP>
 clsparseStatus
-global_reduce (clsparseVectorPrivate* partial,
-               const clsparseVectorPrivate* pX,
+global_reduce (cldenseVectorPrivate* partial,
+               const cldenseVectorPrivate* pX,
                const cl_ulong REDUCE_BLOCKS_NUMBER,
                const cl_ulong REDUCE_BLOCK_SIZE,
                const clsparseControl control)
@@ -38,7 +38,7 @@ global_reduce (clsparseVectorPrivate* partial,
 
     KernelWrap kWrapper(kernel);
 
-    kWrapper << (cl_ulong)pX->n
+    kWrapper << (cl_ulong)pX->num_values
              << pX->values
              << partial->values;
 
@@ -62,7 +62,7 @@ global_reduce (clsparseVectorPrivate* partial,
 template<typename T, ReduceOperator G_OP, ReduceOperator F_OP = RO_DUMMY>
 clsparseStatus
 reduce(clsparseScalarPrivate* pR,
-       const clsparseVectorPrivate* pX,
+       const cldenseVectorPrivate* pX,
        const clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -92,18 +92,18 @@ reduce(clsparseScalarPrivate* pR,
 
 
     cl_int status;
-    if (pX->n > 0)
+    if (pX->num_values > 0)
     {
         cl::Context context = control->getContext();
 
         //vector for partial sums of X;
         //partial result
-        clsparseVectorPrivate partial;
+        cldenseVectorPrivate partial;
         clsparseInitVector(&partial);
-        partial.n = REDUCE_BLOCKS_NUMBER;
+        partial.num_values = REDUCE_BLOCKS_NUMBER;
 
         //partial will be deleted according to this object lifetime
-        clMemRAII<T> rPartial (control->queue(), &partial.values, partial.n);
+        clMemRAII<T> rPartial (control->queue(), &partial.values, partial.num_values);
 
 
         status = global_reduce<T, G_OP>(&partial, pX, REDUCE_BLOCKS_NUMBER,

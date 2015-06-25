@@ -21,7 +21,7 @@ typedef struct clsparseScalar_
 typedef struct cldenseVector_
 {
     // Matrix meta
-    cl_int n;
+    cl_int num_values;
 
     // OpenCL state
     cl_mem values;

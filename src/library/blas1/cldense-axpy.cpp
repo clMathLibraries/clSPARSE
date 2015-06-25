@@ -20,9 +20,9 @@ cldenseSaxpy(cldenseVector *y,
     }
 
 
-    clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
+    cldenseVectorPrivate* pY = static_cast<cldenseVectorPrivate*> ( y );
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
-    const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
 
      clMemRAII<cl_float> rAlpha (control->queue(), pAlpha->value);
      cl_float* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
@@ -31,8 +31,8 @@ cldenseSaxpy(cldenseVector *y,
      if (*fAlpha == 0) return clsparseSuccess;
 
      //leading dimmension is the shorter lenght
-     cl_ulong y_size = pY->n - pY->offset();
-     cl_ulong x_size = pX->n - pX->offset();
+     cl_ulong y_size = pY->num_values - pY->offset();
+     cl_ulong x_size = pX->num_values - pX->offset();
 
      cl_ulong size = (x_size >= y_size) ? y_size : x_size;
 
@@ -57,9 +57,9 @@ cldenseDaxpy(cldenseVector *y,
         return clsparseInvalidControlObject;
     }
 
-    clsparseVectorPrivate* pY = static_cast<clsparseVectorPrivate*> ( y );
+    cldenseVectorPrivate* pY = static_cast<cldenseVectorPrivate*> ( y );
     const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
-    const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
 
 
      clMemRAII<cl_double> rAlpha (control->queue(), pAlpha->value);
@@ -69,8 +69,8 @@ cldenseDaxpy(cldenseVector *y,
      if (*fAlpha == 0) return clsparseSuccess;
 
      //leading dimmension is the shorter lenght
-     cl_ulong y_size = pY->n - pY->offset();
-     cl_ulong x_size = pX->n - pX->offset();
+     cl_ulong y_size = pY->num_values - pY->offset();
+     cl_ulong x_size = pX->num_values - pX->offset();
 
      cl_ulong size = (x_size >= y_size) ? y_size : x_size;
 

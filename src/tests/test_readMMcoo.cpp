@@ -93,12 +93,12 @@ TEST( MM_file, load )
     x.values = ::clCreateBuffer( CLSE::context,
                                 CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                 xHost.size( ) * sizeof( cl_float ), xHost.data( ), &status );
-    x.n = yHost.size( );
+    x.num_values = yHost.size( );
 
     y.values = ::clCreateBuffer( CLSE::context,
                                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                yHost.size( ) * sizeof( cl_float ), yHost.data( ), &status );
-    y.n = yHost.size( );
+    y.num_values = yHost.size( );
 
     alpha.value = ::clCreateBuffer( CLSE::context,
                                    CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,

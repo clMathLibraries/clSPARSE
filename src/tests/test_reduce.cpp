@@ -28,9 +28,9 @@ TEST (REDUCE, opencl20_float)
 
     cldenseVector gY;
     clsparseInitVector(&gY);
-    gY.n = y.size();
+    gY.num_values = y.size();
 
-    gY.values = (cl_float*)::clSVMAlloc(CLSE::context, CL_MEM_READ_WRITE, gY.n * sizeof(cl_float), 0);
+    gY.values = (cl_float*)::clSVMAlloc(CLSE::context, CL_MEM_READ_WRITE, gY.num_values * sizeof(cl_float), 0);
     ASSERT_NE(gY.values, nullptr);
 
     sum.value = (cl_float*)::clSVMAlloc(CLSE::context, CL_MEM_READ_WRITE, sizeof(cl_float), 0);
@@ -74,7 +74,7 @@ TEST (REDUCE, float_simple)
     gY.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                  y.size() * sizeof(cl_float), y.data(), &status);
-    gY.n = y.size();
+    gY.num_values = y.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 
@@ -118,7 +118,7 @@ TEST (REDUCE, double_simple)
     gY.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                  y.size() * sizeof(cl_double), y.data(), &status);
-    gY.n = y.size();
+    gY.num_values = y.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 

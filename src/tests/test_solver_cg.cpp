@@ -30,12 +30,12 @@ TEST (CG, float)
     gx.values = clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                x.size() * sizeof(cl_float), x.data(), &status);
 
-    gx.n = x.size();
+    gx.num_values = x.size();
     ASSERT_EQ(CL_SUCCESS, status);
 
     gb.values = clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                b.size() * sizeof(cl_float), b.data(), &status);
-    gb.n = b.size();
+    gb.num_values = b.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 
