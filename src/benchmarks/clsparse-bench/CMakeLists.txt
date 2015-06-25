@@ -15,6 +15,8 @@ set( clsparse.bench.hdr
   functions/clfunc-xSpMdM.hpp
   functions/clfunc_xCG.hpp
   functions/clfunc_xBiCGStab.hpp
+  functions/clfunc_xCoo2Csr.hpp
+  functions/clfunc_xDense2Csr.hpp
   )
 
 include_directories(
