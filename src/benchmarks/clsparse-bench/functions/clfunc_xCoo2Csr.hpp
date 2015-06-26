@@ -134,11 +134,11 @@ public:
 		
 		int scalar_i = 0;
 		T scalar_f = 0;
-		OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMtx.rowOffsets, &scalar_i, sizeof( int ), 0,
+		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.rowOffsets, &scalar_i, sizeof( int ), 0,
                               sizeof( int ) * (csrMtx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" ); 
-		OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMtx.colIndices, &scalar_i, sizeof( int ), 0,
+		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.colIndices, &scalar_i, sizeof( int ), 0,
                               sizeof( int ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
-		OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMtx.values, &scalar_f, sizeof( T ), 0,
+		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.values, &scalar_f, sizeof( T ), 0,
                               sizeof( T ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
     }
 
@@ -163,13 +163,13 @@ public:
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
 
-        OPENCL_V_THROW( ::clReleaseMemObject( cooMatx.values ), "clReleaseMemObject cooMtx.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( cooMatx.colIndices ), "clReleaseMemObject cooMtx.colIndices" );
-        OPENCL_V_THROW( ::clReleaseMemObject( cooMatx.rowIndices ), "clReleaseMemObject cooMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( cooMatx.values ), "clReleaseMemObject cooMtx.values" );
+        CLSPARSE_V( ::clReleaseMemObject( cooMatx.colIndices ), "clReleaseMemObject cooMtx.colIndices" );
+        CLSPARSE_V( ::clReleaseMemObject( cooMatx.rowIndices ), "clReleaseMemObject cooMtx.rowOffsets" );
     }
 
 private:

@@ -264,10 +264,10 @@ void clsparseDeviceTimer::queryOpenCL( size_t id )
             for( size_t i = 0; i < sd.outEvents.size( ); ++i )
             {
                 profStart = sd.outEvents[ i ].getProfilingInfo<CL_PROFILING_COMMAND_START>( &err );
-                OPENCL_V_THROW( err, "clsparseDeviceTimer::queryOpenCL" );
+                CLSPARSE_V( err, "clsparseDeviceTimer::queryOpenCL" );
 
                 profEnd = sd.outEvents[ i ].getProfilingInfo<CL_PROFILING_COMMAND_END>( &err );
-                OPENCL_V_THROW( err, "clsparseDeviceTimer::queryOpenCL" );
+                CLSPARSE_V( err, "clsparseDeviceTimer::queryOpenCL" );
 
                 sd.deltaNanoSec += ( profEnd - profStart );
             }

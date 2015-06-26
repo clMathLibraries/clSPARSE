@@ -40,7 +40,7 @@ public:
                                             NULL, NULL, &status)
                     );
 
-        OPENCL_V_THROW( status, "Mapping device buffer on host failed" );
+        CLSPARSE_V( status, "Mapping device buffer on host failed" );
     }
 
 
@@ -56,9 +56,9 @@ public:
         if (host_buffer)
         {
             ::cl::Event unmapEvent;
-            OPENCL_V_THROW( queue.enqueueUnmapMemObject( container.data(), host_buffer, NULL, &unmapEvent ),
+            CLSPARSE_V( queue.enqueueUnmapMemObject( container.data(), host_buffer, NULL, &unmapEvent ),
                             "Array failed to unmap host buffer back to device memory" );
-            OPENCL_V_THROW( unmapEvent.wait( ), "Failed to wait for unmap event" );
+            CLSPARSE_V( unmapEvent.wait( ), "Failed to wait for unmap event" );
         }
     }
 
@@ -73,14 +73,14 @@ public:
                                             NULL, NULL, &status)
                     );
 
-        OPENCL_V_THROW( status, "Array failed map device memory to host memory for operator[]" );
+        CLSPARSE_V( status, "Array failed map device memory to host memory for operator[]" );
 
         value_type valTmp = *result;
 
         ::cl::Event unmapEvent;
-        OPENCL_V_THROW( queue.enqueueUnmapMemObject( container.data(), result, NULL, &unmapEvent ),
+        CLSPARSE_V( queue.enqueueUnmapMemObject( container.data(), result, NULL, &unmapEvent ),
                         "Array failed to unmap host memory back to device memory" );
-        OPENCL_V_THROW( unmapEvent.wait( ), "Failed to wait for unmap event" );
+        CLSPARSE_V( unmapEvent.wait( ), "Failed to wait for unmap event" );
 
         return valTmp;
     }
@@ -92,14 +92,14 @@ public:
                     queue.enqueueMapBuffer(container.data(), true, CL_MAP_WRITE_INVALIDATE_REGION,
                                            index * sizeof( value_type ), sizeof( value_type ),
                                            NULL, NULL, &status ) );
-        OPENCL_V_THROW( status, "Array failed map device memory to host memory for operator[]" );
+        CLSPARSE_V( status, "Array failed map device memory to host memory for operator[]" );
 
         *result = rhs;
 
         ::cl::Event unmapEvent;
-        OPENCL_V_THROW( queue.enqueueUnmapMemObject( container.data(), result, NULL, &unmapEvent ),
+        CLSPARSE_V( queue.enqueueUnmapMemObject( container.data(), result, NULL, &unmapEvent ),
                         "Array failed to unmap host memory back to device memory" );
-        OPENCL_V_THROW( unmapEvent.wait( ), "Failed to wait for unmap event" );
+        CLSPARSE_V( unmapEvent.wait( ), "Failed to wait for unmap event" );
 
         return *this;
     }
@@ -113,14 +113,14 @@ public:
                     queue.enqueueMapBuffer(container.data(), true, CL_MAP_WRITE_INVALIDATE_REGION,
                                            index * sizeof( value_type ), sizeof( value_type ),
                                            NULL, NULL, &status) );
-        OPENCL_V_THROW( status, "Array failed map device memory to host memory for operator[]" );
+        CLSPARSE_V( status, "Array failed map device memory to host memory for operator[]" );
 
         *result = value;
 
         cl::Event unmapEvent;
-        OPENCL_V_THROW( queue.enqueueUnmapMemObject( container.data(), result, NULL, &unmapEvent ),
+        CLSPARSE_V( queue.enqueueUnmapMemObject( container.data(), result, NULL, &unmapEvent ),
                         "Array failed to unmap host memory back to device memory" );
-        OPENCL_V_THROW( unmapEvent.wait( ), "Failed to wait for unmap event" );
+        CLSPARSE_V( unmapEvent.wait( ), "Failed to wait for unmap event" );
 
         return *this;
     }

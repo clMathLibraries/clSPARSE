@@ -38,8 +38,8 @@ public:
         cl_int err;
 
         // Setup OpenCL environment
-        OPENCL_V_THROW( ::clGetPlatformIDs( 1, &platform, NULL ), "getting platform IDs" );
-        OPENCL_V_THROW( ::clGetDeviceIDs( platform, devType, 1, &device, NULL ), "getting device IDs" );
+        CLSPARSE_V( ::clGetPlatformIDs( 1, &platform, NULL ), "getting platform IDs" );
+        CLSPARSE_V( ::clGetDeviceIDs( platform, devType, 1, &device, NULL ), "getting device IDs" );
 
         {
             char buffer [1024];
@@ -53,10 +53,10 @@ public:
         props[ 2 ] = 0;
 
         ctx = ::clCreateContext( props, 1, &device, NULL, NULL, &err );
-        OPENCL_V_THROW( err, "creating context" );
+        CLSPARSE_V( err, "creating context" );
 
         queue = ::clCreateCommandQueue( ctx, device, cqProp, &err );
-        OPENCL_V_THROW( err, "clCreateCommandQueue" );
+        CLSPARSE_V( err, "clCreateCommandQueue" );
 
         maxMemAllocSize = queryMemAllocSize( device );
 
@@ -64,8 +64,8 @@ public:
         if( clsparseSetup( ) != clsparseSuccess )
         {
             std::cerr << "clsparseSetup() failed with %d\n";
-            OPENCL_V_THROW( ::clReleaseCommandQueue( queue ), "releasing command queue" );
-            OPENCL_V_THROW( ::clReleaseContext( ctx ), "releasing context" );
+            CLSPARSE_V( ::clReleaseCommandQueue( queue ), "releasing command queue" );
+            CLSPARSE_V( ::clReleaseContext( ctx ), "releasing context" );
         }
 
         control = clsparseCreateControl( queue, NULL );
@@ -80,8 +80,8 @@ public:
         }
 
         clsparseTeardown( );
-        OPENCL_V_THROW( ::clReleaseCommandQueue( queue ), "releasing command queue" );
-        OPENCL_V_THROW( ::clReleaseContext( ctx ), "releasing context" );
+        CLSPARSE_V( ::clReleaseCommandQueue( queue ), "releasing command queue" );
+        CLSPARSE_V( ::clReleaseContext( ctx ), "releasing context" );
     }
 
     void wait_and_check( )

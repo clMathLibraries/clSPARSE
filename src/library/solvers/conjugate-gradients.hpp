@@ -59,7 +59,7 @@ cg(cldenseVectorPrivate *pX,
 
     //norm of rhs of equation
     status = Norm1<T>(norm_b, b, control);
-    OPENCL_V_THROW(status, "Norm B Failed");
+    CLSPARSE_V(status, "Norm B Failed");
 
     //norm_b is calculated once
     T h_norm_b = norm_b[0];
@@ -93,16 +93,16 @@ cg(cldenseVectorPrivate *pX,
 
     // y = A*x
     status = csrmv<T>(one, pA, x, zero, y, control);
-    OPENCL_V_THROW(status, "csrmv Failed");
+    CLSPARSE_V(status, "csrmv Failed");
 
     //r = b - y
     status = r.sub(b, y, control);
     //status = elementwise_transform<T, EW_MINUS>(r, b, y, control);
-    OPENCL_V_THROW(status, "b - y Failed");
+    CLSPARSE_V(status, "b - y Failed");
 
     clsparse::scalar<T> norm_r(control, 0, CL_MEM_WRITE_ONLY, false);
     status = Norm1<T>(norm_r, r, control);
-    OPENCL_V_THROW(status, "norm r Failed");
+    CLSPARSE_V(status, "norm r Failed");
 
     //T residuum = 0;
     clsparse::scalar<T> residuum(control, 0, CL_MEM_WRITE_ONLY, false);
@@ -129,7 +129,7 @@ cg(cldenseVectorPrivate *pX,
     //rz = <r, z>, here actually should be conjugate(r)) but we do not support complex type.
     clsparse::scalar<T> rz(control, 0, CL_MEM_WRITE_ONLY, false);
     status = dot<T>(rz, r, z, control);
-    OPENCL_V_THROW(status, "<r, z> Failed");
+    CLSPARSE_V(status, "<r, z> Failed");
 
     int iteration = 0;
 
@@ -149,11 +149,11 @@ cg(cldenseVectorPrivate *pX,
 
         //y = A*p
         status = csrmv<T>(one, pA, p, zero, y, control);
-        OPENCL_V_THROW(status, "csrmv Failed");
+        CLSPARSE_V(status, "csrmv Failed");
 
 
         status = dot<T>(yp, y, p, control);
-        OPENCL_V_THROW(status, "<y,p> Failed");
+        CLSPARSE_V(status, "<y,p> Failed");
 
         // alpha = <r,z> / <y,p>
         //alpha[0] = rz[0] / yp[0];
@@ -165,11 +165,11 @@ cg(cldenseVectorPrivate *pX,
 
         //x = x + alpha*p
         status = axpy<T>(x, alpha, p, x, control);
-        OPENCL_V_THROW(status, "x = x + alpha * p Failed");
+        CLSPARSE_V(status, "x = x + alpha * p Failed");
 
         //r = r - alpha * y;
         status = axpy<T, EW_MINUS>(r, alpha, y, r, control);
-        OPENCL_V_THROW(status, "r = r - alpha * y Failed");
+        CLSPARSE_V(status, "r = r - alpha * y Failed");
 
 
         //apply preconditioner z = M*r
@@ -181,7 +181,7 @@ cg(cldenseVectorPrivate *pX,
 
         //rz = <r,z>
         status = dot<T>(rz, r, z, control);
-        OPENCL_V_THROW(status, "<r,z> Failed");
+        CLSPARSE_V(status, "<r,z> Failed");
 
         // beta = <r^(i), r^(i)>/<r^(i-1),r^(i-1)> // i: iteration index;
         // beta is ratio of dot product in current iteration compared
@@ -193,15 +193,15 @@ cg(cldenseVectorPrivate *pX,
 
         //p = z + beta*p;
         status = axpby<T>(p, one, z, beta, p, control );
-        OPENCL_V_THROW(status, "p = z + beta*p Failed");
+        CLSPARSE_V(status, "p = z + beta*p Failed");
 
         //calculate norm of r
         status = Norm1<T>(norm_r, r, control);
-        OPENCL_V_THROW(status, "norm r Failed");
+        CLSPARSE_V(status, "norm r Failed");
 
         //residuum = norm_r[0] / h_norm_b;
         status = residuum.div(norm_r, norm_b, control);
-        OPENCL_V_THROW(status, "residuum");
+        CLSPARSE_V(status, "residuum");
 
         iteration++;
         converged = solverControl->finished(residuum[0]);

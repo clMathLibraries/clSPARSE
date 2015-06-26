@@ -58,7 +58,7 @@ public:
         if (init)
         {
             cl_int status = fill(control, value);
-            OPENCL_V_THROW(status, "array.fill");
+            CLSPARSE_V(status, "array.fill");
         }
     }
 
@@ -72,7 +72,7 @@ public:
 
         cl_mem_flags flags;
         status = src.getInfo(CL_MEM_FLAGS, &flags);
-        OPENCL_V_THROW(status, "Array cpy constr, getInfo<CL_MEM_FLAGS>");
+        CLSPARSE_V(status, "Array cpy constr, getInfo<CL_MEM_FLAGS>");
 
         assert (BASE::_size > 0);
 
@@ -83,9 +83,9 @@ public:
             status = queue.enqueueCopyBuffer(src, dst, 0, 0,
                                          sizeof(value_type) * other.size(),
                                          NULL, &controlEvent);
-            OPENCL_V_THROW(status, "operator= queue.enqueueCopyBuffer");
+            CLSPARSE_V(status, "operator= queue.enqueueCopyBuffer");
             status = controlEvent.wait();
-            OPENCL_V_THROW(status, "operator= controlEvent.wait");
+            CLSPARSE_V(status, "operator= controlEvent.wait");
         }
     }
 
@@ -104,9 +104,9 @@ public:
             status = queue.enqueueCopyBuffer(src, dst, 0, 0,
                                              sizeof(value_type) * other.size(),
                                              NULL, &controlEvent);
-            OPENCL_V_THROW(status, "operator= queue.enqueueCopyBuffer");
+            CLSPARSE_V(status, "operator= queue.enqueueCopyBuffer");
             status = controlEvent.wait();
-            OPENCL_V_THROW(status, "operator= controlEvent.wait");
+            CLSPARSE_V(status, "operator= controlEvent.wait");
         }
         return *this;
 

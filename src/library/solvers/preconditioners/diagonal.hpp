@@ -40,7 +40,7 @@ public:
         // extract inverse diagonal from matrix A and store it in invDiag_A
         // easy to check with poisson matrix;
         status = extract_diagonal<T, true>(invDiag_A, A, control);
-        OPENCL_V_THROW(status, "Invalid extract_diagonal kernel execution");
+        CLSPARSE_V(status, "Invalid extract_diagonal kernel execution");
 
     }
 
@@ -52,7 +52,7 @@ public:
         //element wise multiply y = x*invDiag_A;
         clsparseStatus status =
                 elementwise_transform<T, EW_MULTIPLY>(y, x, invDiag_A, control);
-        OPENCL_V_THROW(status, "Diagonal operator()");
+        CLSPARSE_V(status, "Diagonal operator()");
     }
 
 private:

@@ -6,9 +6,6 @@
 #define __CLSPARSE_ERROR_HPP__
 
 #include <string>
-#include <sstream>
-#include <iostream>
-#include <stdexcept>
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #   include <OpenCL/cl.h>
@@ -16,8 +13,8 @@
 #   include <CL/cl.h>
 #endif
 
-inline std::string
-prettyPrintClStatus( const cl_int& status )
+inline char*
+stringifyStatus( const cl_int& status )
 {
     switch( status )
     {
@@ -116,7 +113,7 @@ prettyPrintClStatus( const cl_int& status )
     case CL_SUCCESS:
         return "CL_SUCCESS";
     default:
-        return "Error code not defined";
+        return "Unrecognized status code";
         break;
     }
 }
@@ -127,7 +124,7 @@ prettyPrintClStatus( const cl_int& status )
 // Note: std::runtime_error does not take unicode strings as input, so
 // only strings supported
 inline cl_int
-OpenCL_V_Throw( cl_int res, const std::string& msg, const char *file, size_t lineno )
+clSPARSE_V( cl_int res, const char* msg, const char* file, size_t lineno )
 {
     switch( res )
     {
@@ -135,24 +132,19 @@ OpenCL_V_Throw( cl_int res, const std::string& msg, const char *file, size_t lin
         break;
     default:
     {
-        std::stringstream tmp;
-
-        tmp << "OPENCL_V_THROWERROR< ";
-        tmp << prettyPrintClStatus( res );
-        tmp << " >";
-        tmp << "[" << file << "]";
-        tmp << " (" << lineno;
-        tmp << "): ";
-        tmp << msg;
-        std::string errorm( tmp.str( ) );
-        std::cout << errorm << std::endl;
-        throw std::runtime_error( errorm );
+#ifndef NDEBUG
+#if defined( _WIN32 )
+        printf( "CLSPARSE_V [%s:%Iu] ( %s ) - %s", file, lineno, stringifyStatus( res ), msg );
+#else
+        printf( "CLSPARSE_V [%s:%zu] ( %s ) - %s", file, lineno, stringifyStatus( res ), msg );
+#endif
+#endif
     }
     }
 
     return res;
 }
 
-#define OPENCL_V_THROW( _status, _message ) OpenCL_V_Throw( _status, _message, __FILE__, __LINE__ )
+#define CLSPARSE_V( _status, _message ) clSPARSE_V( _status, _message, __FILE__, __LINE__ )
 
 #endif

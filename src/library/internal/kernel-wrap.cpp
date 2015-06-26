@@ -26,7 +26,7 @@ cl_int KernelWrap::run( clsparseControl control,
         cl::NullRange,
         global, local,
         &eventWaitList, &tmp );
-    OPENCL_V_THROW( status, "queue.enqueueNDRangeKernel" );
+    CLSPARSE_V( status, "queue.enqueueNDRangeKernel" );
 
     if( control->pDeviceTimer )
     {
@@ -44,7 +44,7 @@ cl_int KernelWrap::run( clsparseControl control,
     else
     {
         status = tmp.wait( );
-        OPENCL_V_THROW( status, "tmp.wait" );
+        CLSPARSE_V( status, "tmp.wait" );
     }
 
     return status;
