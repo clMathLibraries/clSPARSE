@@ -37,10 +37,10 @@ elementwise_transform(cldenseVectorPrivate* r,
         return clsparseInvalidControlObject;
     }
 
-    assert(x->n == y->n);
-    assert(x->n == r->n);
+    assert(x->num_values == y->num_values);
+    assert(x->num_values== r->num_values);
 
-    cl_ulong size = x->n;
+    cl_ulong size = x->num_values;
     cl_uint wg_size = 256;
 
     std::string params = std::string()
