@@ -14,9 +14,9 @@
 template<typename T, ElementWiseOperator OP = EW_PLUS>
 clsparseStatus
 axpby(cl_ulong size,
-      clsparseVectorPrivate* pY,
+      cldenseVectorPrivate* pY,
       const clsparseScalarPrivate* pAlpha,
-      const clsparseVectorPrivate* pX,
+      const cldenseVectorPrivate* pX,
       const clsparseScalarPrivate* pBeta,
       const clsparseControl control)
 {

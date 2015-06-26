@@ -73,7 +73,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m ) ) / time_in_ns( );
+        return ( sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows ) ) / time_in_ns( );
     }
 
     std::string bandwidth_formula( )
@@ -97,19 +97,19 @@ public:
 
         // Now initialise a CSR matrix from the CSR matrix
         clsparseInitCsrMatrix( &csrMtx );
-        csrMtx.nnz = nnz;
-        csrMtx.m = row;
-        csrMtx.n = col;
+        csrMtx.num_nonzeros = nnz;
+        csrMtx.num_rows = row;
+        csrMtx.num_cols = col;
         clsparseCsrMetaSize( &csrMtx, control );
 
         cl_int status;
-        csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.nnz * sizeof( T ), NULL, &status );
+        csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.values" );
 
-        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.nnz * sizeof( cl_int ), NULL, &status );
+        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.colIndices" );
 
-        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, ( csrMtx.m + 1 ) * sizeof( cl_int ), NULL, &status );
+        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
@@ -123,7 +123,7 @@ public:
         // We are shaping B, such that no matter what shape A is, C will result in a square matrix
         cldenseInitMatrix( &denseB );
         denseB.major = rowMajor;
-        denseB.num_rows = csrMtx.n;
+        denseB.num_rows = csrMtx.num_cols;
         denseB.num_cols = num_columns;
         denseB.lead_dim = denseB.num_cols;
         denseB.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
@@ -133,7 +133,7 @@ public:
         //  C is square because the B columns is equal to the A rows
         cldenseInitMatrix( &denseC );
         denseC.major = rowMajor;
-        denseC.num_rows = csrMtx.m;
+        denseC.num_rows = csrMtx.num_rows;
         denseC.num_cols = num_columns;
         denseC.lead_dim = denseC.num_cols;
         denseC.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
@@ -189,7 +189,7 @@ public:
         if( gpuTimer && cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-          size_t sparseBytes = sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m );
+          size_t sparseBytes = sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows );
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
           cpuTimer->Reset( );

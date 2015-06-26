@@ -12,9 +12,9 @@ template <typename T>
 clsparseStatus
 csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
                 const clsparseCsrMatrixPrivate* pCsrMatx,
-                const clsparseVectorPrivate* pX,
+                const cldenseVectorPrivate* pX,
                 const clsparseScalarPrivate* pBeta,
-                clsparseVectorPrivate* pY,
+                cldenseVectorPrivate* pY,
                 clsparseControl control )
 {
 

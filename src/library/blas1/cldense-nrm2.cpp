@@ -18,7 +18,7 @@ cldenseSnrm2(clsparseScalar* s,
     }
 
     clsparseScalarPrivate* pS = static_cast<clsparseScalarPrivate*> ( s );
-    const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
 
     return Norm2<cl_float>(pS, pX, control);
 
@@ -41,7 +41,7 @@ cldenseDnrm2(clsparseScalar* s,
     }
 
     clsparseScalarPrivate* pS = static_cast<clsparseScalarPrivate*> ( s );
-    const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
 
     return Norm2<cl_double>(pS, pX, control);
 }

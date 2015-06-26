@@ -73,7 +73,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m ) ) / time_in_ns( );
+        return ( sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows ) ) / time_in_ns( );
     }
 
     std::string bandwidth_formula( )
@@ -97,22 +97,22 @@ public:
 
         // Now initialise a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );
-        csrMtx.nnz = nnz;
-        csrMtx.m = row;
-        csrMtx.n = col;
+        csrMtx.num_nonzeros = nnz;
+        csrMtx.num_rows = row;
+        csrMtx.num_cols = col;
         clsparseCsrMetaSize( &csrMtx, control );
 
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.nnz * sizeof( T ), NULL, &status );
+            csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.nnz * sizeof( cl_int ), NULL, &status );
+            csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            ( csrMtx.m + 1 ) * sizeof( cl_int ), NULL, &status );
+            ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
@@ -131,15 +131,15 @@ public:
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );
-        x.n = csrMtx.n;
+        x.num_values = csrMtx.num_cols;
         x.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                     x.n * sizeof( T ), NULL, &status );
+                                     x.num_values * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer x.values" );
 
         clsparseInitVector( &y );
-        y.n = csrMtx.m;
+        y.num_values = csrMtx.num_rows;
         y.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                     y.n * sizeof( T ), NULL, &status );
+                                     y.num_values * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer y.values" );
 
         // Initialize the scalar alpha & beta parameters
@@ -162,11 +162,11 @@ public:
     {
         T scalarOne = 1.0;
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, x.values, &scalarOne, sizeof( T ), 0,
-            sizeof( T ) * x.n, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
+            sizeof( T ) * x.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
 
         T scalarZero = 0.0;
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, y.values, &scalarZero, sizeof( T ), 0,
-            sizeof( T ) * y.n, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
+            sizeof( T ) * y.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
 
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, a.value, &alpha, sizeof( T ), 0,
             sizeof( T ) * 1, 0, NULL, NULL ), "::clEnqueueFillBuffer alpha.value" );
@@ -179,7 +179,7 @@ public:
     {
         T scalar = 0;
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, y.values, &scalar, sizeof( T ), 0,
-                             sizeof( T ) * y.n, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
+                             sizeof( T ) * y.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
     }
 
     void read_gpu_buffer( )
@@ -191,7 +191,7 @@ public:
         if( gpuTimer && cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-          size_t sparseBytes = sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m );
+          size_t sparseBytes = sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows );
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
           cpuTimer->Reset( );

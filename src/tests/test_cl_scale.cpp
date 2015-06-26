@@ -35,7 +35,7 @@ TEST (SCALE, float_simple)
     gY.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
                                  y.size() * sizeof(cl_float), y.data(), &status);
-    gY.n = y.size();
+    gY.num_values = y.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 
@@ -84,7 +84,7 @@ TEST (SCALE, double_simple)
     gY.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
                                  y.size() * sizeof(cl_double), y.data(), &status);
-    gY.n = y.size();
+    gY.num_values = y.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 

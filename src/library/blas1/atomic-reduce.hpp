@@ -20,11 +20,11 @@
 template<typename T, ReduceOperator OP = RO_DUMMY>
 clsparseStatus
 atomic_reduce(clsparseScalarPrivate* pR,
-              const clsparseVectorPrivate* pX,
+              const cldenseVectorPrivate* pX,
               const cl_ulong wg_size,
               const clsparseControl control)
 {
-    assert(wg_size == pX->n);
+    assert(wg_size == pX->num_values);
 
     std::string params = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
@@ -61,7 +61,7 @@ atomic_reduce(clsparseScalarPrivate* pR,
     kWrapper << pR->value;
     kWrapper << pX->values;
 
-    int blocksNum = (pX->n + wg_size - 1) / wg_size;
+    int blocksNum = (pX->num_values + wg_size - 1) / wg_size;
     int globalSize = blocksNum * wg_size;
 
     cl::NDRange local(wg_size);

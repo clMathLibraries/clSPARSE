@@ -69,7 +69,7 @@ public:
         vx.values = clCreateBuffer(CLSE::context,
                                    CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                    x.size() * sizeof(T), x.data(), &status);
-        vx.n = x.size();
+        vx.num_values = x.size();
 
         ASSERT_EQ(CL_SUCCESS, status);
 
@@ -78,7 +78,7 @@ public:
                                    CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                    y.size() * sizeof(T), y.data(), &status);
 
-        vy.n = y.size();
+        vy.num_values = y.size();
 
         ASSERT_EQ(CL_SUCCESS, status);
 

@@ -98,22 +98,22 @@ public:
 
         // Now initialise a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );
-        csrMtx.nnz = nnz;
-        csrMtx.m = row;
-        csrMtx.n = col;
+        csrMtx.num_nonzeros = nnz;
+        csrMtx.num_rows = row;
+        csrMtx.num_cols = col;
         clsparseCsrMetaSize( &csrMtx, control );
 
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.nnz * sizeof( T ), NULL, &status );
+            csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.nnz * sizeof( cl_int ), NULL, &status );
+            csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            ( csrMtx.m + 1 ) * sizeof( cl_int ), NULL, &status );
+            ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
@@ -132,15 +132,15 @@ public:
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );
-        x.n = csrMtx.m;
+        x.num_values = csrMtx.num_rows;
         x.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
-                                     x.n * sizeof( T ), NULL, &status );
+                                     x.num_values * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer x.values" );
 
         clsparseInitVector( &y );
-        y.n = csrMtx.n;
+        y.num_values = csrMtx.num_cols;
         y.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
-                                     y.n * sizeof( T ), NULL, &status );
+                                     y.num_values * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer y.values" );
 
 
@@ -160,10 +160,10 @@ public:
         T yValue = 1.0;
 
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, x.values, &xValue, sizeof( T ), 0,
-            sizeof( T ) * x.n, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
+            sizeof( T ) * x.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
 
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, y.values, &yValue, sizeof( T ), 0,
-            sizeof( T ) * y.n, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
+            sizeof( T ) * y.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
 
 
     }
@@ -173,7 +173,7 @@ public:
         // we will solve A*x = y, where initial guess of x will be 0
         T scalar = 0;
         OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, x.values, &scalar, sizeof( T ), 0,
-                             sizeof( T ) * x.n, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
+                             sizeof( T ) * x.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
 
         // reset solverControl for next call
         clsparseSetSolverParams(solverControl, NOPRECOND, 10000, 1e-4, 1e-8);
@@ -188,7 +188,7 @@ public:
         if(/* gpuTimer && */cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-          size_t sparseBytes = sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m );
+          size_t sparseBytes = sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows );
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
           cpuTimer->Reset( );

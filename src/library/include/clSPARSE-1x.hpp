@@ -148,12 +148,12 @@ public:
     }
 };
 
-class clsparseVectorPrivate: public cldenseVector
+class cldenseVectorPrivate: public cldenseVector
 {
 public:
     void clear( )
     {
-        n = 0;
+        num_values = 0;
         values = nullptr;
         offValues = 0;
     }
@@ -169,14 +169,14 @@ class clsparseCsrMatrixPrivate: public clsparseCsrMatrix
 public:
     void clear( )
     {
-        m = n = nnz = 0;
+        num_rows = num_cols = num_nonzeros = 0;
         values = colIndices = rowOffsets = rowBlocks = nullptr;
         offValues = offColInd = offRowOff = offRowBlocks = rowBlockSize = 0;
     }
 
     cl_uint nnz_per_row() const
     {
-        return nnz/m;
+        return num_nonzeros / num_rows;
     }
 
     cl_ulong valOffset () const
@@ -206,14 +206,14 @@ class clsparseCooMatrixPrivate: public clsparseCooMatrix
 public:
     void clear( )
     {
-        m = n = nnz = 0;
+        num_rows = num_cols = num_nonzeros = 0;
         values = colIndices = rowIndices = nullptr;
         offValues = offColInd = offRowInd = 0;
     }
 
     cl_uint nnz_per_row( ) const
     {
-        return nnz / m;
+        return num_nonzeros / num_rows;
     }
 
     cl_ulong valOffset( ) const
@@ -251,7 +251,7 @@ public:
 
 // Check that it is OK to static_cast a C struct pointer to a C++ class pointer
 static_assert( std::is_standard_layout< clsparseScalarPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
-static_assert( std::is_standard_layout< clsparseVectorPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
+static_assert( std::is_standard_layout< cldenseVectorPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
 static_assert( std::is_standard_layout< clsparseCsrMatrixPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
 static_assert( std::is_standard_layout< clsparseCooMatrixPrivate >::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );
 static_assert( std::is_standard_layout< cldenseMatrixPrivate>::value, "The C++ wrapper classes have to have same memory layout as the C class they inherit from" );

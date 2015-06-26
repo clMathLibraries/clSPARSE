@@ -8,7 +8,7 @@ clsparseStatus
 validateMemObject(clsparseScalarPrivate& scalar, size_t required_size);
 
 clsparseStatus
-validateMemObject(clsparseVectorPrivate& vector, size_t required_size);
+validateMemObject(cldenseVectorPrivate& vector, size_t required_size);
 
 
 clsparseStatus

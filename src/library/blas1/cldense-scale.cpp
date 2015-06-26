@@ -66,7 +66,7 @@ cldenseSscale (cldenseVector* y,
         return clsparseInvalidControlObject;
     }
 
-    clsparse::vector<cl_float> pY(control, y->values, y->n );
+    clsparse::vector<cl_float> pY(control, y->values, y->num_values );
     clsparse::vector<cl_float> pAlpha(control, alpha->value, 1);
 
     cl_float pattern = 0.0f;
@@ -102,7 +102,7 @@ cldenseDscale (cldenseVector* y,
         return clsparseInvalidControlObject;
     }
 
-    clsparse::vector<cl_double> pY(control, y->values, y->n );
+    clsparse::vector<cl_double> pY(control, y->values, y->num_values );
     clsparse::vector<cl_double> pAlpha(control, alpha->value, 1);
 
     cl_double pattern = 0.0;

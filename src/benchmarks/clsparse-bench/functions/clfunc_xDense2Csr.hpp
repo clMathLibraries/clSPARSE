@@ -73,7 +73,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m ) ) / time_in_ns( );
+        return ( sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows ) ) / time_in_ns( );
     }
 
     std::string bandwidth_formula( )
@@ -94,21 +94,21 @@ public:
 
         // Now initialise a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );
-        csrMtx.nnz = nnz;
-        csrMtx.m = row;
-        csrMtx.n = col;
+        csrMtx.num_nonzeros = nnz;
+        csrMtx.num_rows = row;
+        csrMtx.num_cols = col;
 
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.nnz * sizeof( T ), NULL, &status );
+            csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.nnz * sizeof( cl_int ), NULL, &status );
+            csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            ( csrMtx.m + 1 ) * sizeof( cl_int ), NULL, &status );
+            ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
         OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         if(typeid(T) == typeid(float))
@@ -142,11 +142,11 @@ public:
 	clsparseInitCsrMatrix( &csrMatx );
 
         csrMatx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                           csrMtx.nnz * sizeof( T ), NULL, &status );
+                                           csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         csrMatx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                           csrMtx.nnz * sizeof( cl_int ), NULL, &status );
+                                           csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         csrMatx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                           (csrMtx.m + 1) * sizeof( cl_int ), NULL, &status );
+                                           (csrMtx.num_rows + 1) * sizeof( cl_int ), NULL, &status );
 					   
     }
 
@@ -165,11 +165,11 @@ public:
                 int scalar_i = 0;
                 T scalar_f = 0;
                 OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMatx.rowOffsets, &scalar_i, sizeof( int ), 0,
-                              sizeof( int ) * (csrMatx.m + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" );
+                              sizeof( int ) * (csrMatx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" );
                 OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMatx.colIndices, &scalar_i, sizeof( int ), 0,
-                              sizeof( int ) * csrMatx.nnz, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
+                              sizeof( int ) * csrMatx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
                 OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMatx.values, &scalar_f, sizeof( T ), 0,
-                              sizeof( T ) * csrMatx.nnz, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
+                              sizeof( T ) * csrMatx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
     }
 
     void read_gpu_buffer( )

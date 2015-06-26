@@ -30,24 +30,24 @@
  */
 template<typename T, typename PTYPE>
 clsparseStatus
-cg(clsparseVectorPrivate *pX,
+cg(cldenseVectorPrivate *pX,
    const clsparseCsrMatrixPrivate* pA,
-   const clsparseVectorPrivate *pB,
+   const cldenseVectorPrivate *pB,
    PTYPE& M,
    clSParseSolverControl solverControl,
    clsparseControl control)
 {
 
-    assert (pA->n == pB->n);
-    assert (pA->m == pX->n);
-    if ( (pA->n != pB->n) || (pA->m != pX->n) )
+    assert( pA->num_cols == pB->num_values );
+    assert( pA->num_rows == pX->num_values );
+    if( ( pA->num_cols != pB->num_values ) || ( pA->num_rows != pX->num_values ) )
     {
         return clsparseInvalidSystemSize;
     }
 
     //opaque input parameters with clsparse::array type;
-    clsparse::vector<T> x(control, pX->values, pX->n);
-    clsparse::vector<T> b(control, pB->values, pB->n);
+    clsparse::vector<T> x(control, pX->values, pX->num_values);
+    clsparse::vector<T> b(control, pB->values, pB->num_values);
 
     cl_int status;
 
@@ -80,7 +80,7 @@ cg(clsparseVectorPrivate *pX,
 
 
     //continuing "normal" execution of cg algorithm
-    const auto N = pA->n;
+    const auto N = pA->num_cols;
 
     //helper containers, all need to be zeroed
     clsparse::vector<T> y(control, N, 0, CL_MEM_READ_WRITE, true);

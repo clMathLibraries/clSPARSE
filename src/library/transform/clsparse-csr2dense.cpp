@@ -25,13 +25,13 @@ csr2dense_transform(const clsparseCsrMatrixPrivate* pCsr,
 
     KernelWrap kWrapper(kernel);
 
-    kWrapper << pCsr->m << pCsr->n
+    kWrapper << pCsr->num_rows << pCsr->num_cols
              << pCsr->rowOffsets << pCsr->colIndices << pCsr->values
              << pA->values;
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
-    cl_uint predicted = subwave_size * pCsr->m;
+    cl_uint predicted = subwave_size * pCsr->num_rows;
 
     //cl::NDRange local(group_size);
     //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
@@ -48,8 +48,8 @@ csr2dense_transform(const clsparseCsrMatrixPrivate* pCsr,
         return clsparseInvalidKernelExecution;
     }
 
-    pA->num_rows = pCsr->m;
-    pA->num_cols = pCsr->n;
+    pA->num_rows = pCsr->num_rows;
+    pA->num_cols = pCsr->num_cols;
 
     return clsparseSuccess;
 
@@ -77,13 +77,13 @@ clsparseScsr2dense(const clsparseCsrMatrix* csr,
     clsparseStatus status;
 
     //validate cl_mem objects
-    status = validateMemObject(pA->values, sizeof(cl_float)*pCsr->n*pCsr->m);
+    status = validateMemObject(pA->values, sizeof(cl_float)*pCsr->num_cols*pCsr->num_rows);
     if(status != clsparseSuccess)
         return status;
 
     //validate cl_mem sizes
     //TODO: ask about validateMemObjectSize
-    cl_uint nnz_per_row = pCsr->nnz_per_row(); //average nnz per row
+    cl_uint nnz_per_row = pCsr->nnz_per_row(); //average num_nonzeros per row
     cl_uint wave_size = control->wavefront_size;
     cl_uint group_size = 256; //wave_size * 8;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
@@ -113,10 +113,10 @@ clsparseScsr2dense(const clsparseCsrMatrix* csr,
     cl_float pattern = 0.0f;
 #if (BUILD_CLVERSION >= 200)
     clEnqueueSVMMemFill(control->queue(), pA->values, &pattern, sizeof(cl_float),
-                        sizeof(cl_float) * pCsr->m * pCsr->n, 0, NULL, NULL);
+                        sizeof(cl_float) * pCsr->num_rows * pCsr->num_cols, 0, NULL, NULL);
 #else
     clEnqueueFillBuffer(control->queue(), pA->values, &pattern, sizeof(cl_float), 0,
-                        sizeof(cl_float) * pCsr->m * pCsr->n, 0, NULL, NULL);
+                        sizeof(cl_float) * pCsr->num_rows * pCsr->num_cols, 0, NULL, NULL);
 #endif
 
     return csr2dense_transform(pCsr,
@@ -150,14 +150,14 @@ cldenseMatrix* A,
     clsparseStatus status;
 
     //validate cl_mem objects
-    status = validateMemObject(pA->values, sizeof(cl_double)*pCsr->n*pCsr->m);
+    status = validateMemObject(pA->values, sizeof(cl_double)*pCsr->num_cols*pCsr->num_rows);
     if(status != clsparseSuccess)
         return status;
 
     //validate cl_mem sizes
     //TODO: ask about validateMemObjectSize
 
-    cl_uint nnz_per_row = pCsr->nnz_per_row(); //average nnz per row
+    cl_uint nnz_per_row = pCsr->nnz_per_row(); //average num_nonzeros per row
     cl_uint wave_size = control->wavefront_size;
     cl_uint group_size = wave_size * 4;    // 256 gives best performance!
     cl_uint subwave_size = wave_size;
@@ -187,10 +187,10 @@ cldenseMatrix* A,
 
 #if (BUILD_CLVERSION >= 200)
     clEnqueueSVMMemFill(control->queue(), pA->values, &pattern, sizeof(cl_double),
-                        sizeof(cl_double) * pCsr->m * pCsr->n, 0, NULL, NULL);
+                        sizeof(cl_double) * pCsr->num_rows * pCsr->num_cols, 0, NULL, NULL);
 #else
     clEnqueueFillBuffer(control->queue(), pA->values, &pattern, sizeof(cl_double), 0,
-                        sizeof(cl_double) * pCsr->m * pCsr->n, 0, NULL, NULL);
+                        sizeof(cl_double) * pCsr->num_rows * pCsr->num_cols, 0, NULL, NULL);
 #endif
     return csr2dense_transform(pCsr,
                                pA,

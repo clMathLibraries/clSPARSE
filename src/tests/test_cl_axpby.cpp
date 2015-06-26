@@ -45,14 +45,14 @@ TEST (AXPBY, float_simple)
     gX.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                  x.size() * sizeof(cl_float), x.data(), &status);
-    gX.n = x.size();
+    gX.num_values = x.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 
     gY.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
                                  y.size() * sizeof(cl_float), y.data(), &status);
-    gY.n = y.size();
+    gY.num_values = y.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 
@@ -111,14 +111,14 @@ TEST (AXPBY, double_simple)
     gX.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                  x.size() * sizeof(cl_double), x.data(), &status);
-    gX.n = x.size();
+    gX.num_values = x.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 
     gY.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
                                  y.size() * sizeof(cl_double), y.data(), &status);
-    gY.n = y.size();
+    gY.num_values = y.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 
@@ -185,7 +185,7 @@ TEST (AXPBY, float_offset)
     gX.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                  x.size() * sizeof(cl_float), x.data(), &status);
-    gX.n = x.size();
+    gX.num_values = x.size();
     gX.offValues = size2;
 
     ASSERT_EQ(CL_SUCCESS, status);
@@ -193,7 +193,7 @@ TEST (AXPBY, float_offset)
     gY.values = ::clCreateBuffer(CLSE::context,
                                  CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
                                  y.size() * sizeof(cl_float), y.data(), &status);
-    gY.n = y.size();
+    gY.num_values = y.size();
 
     ASSERT_EQ(CL_SUCCESS, status);
 

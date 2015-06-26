@@ -73,7 +73,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( cl_int )*( csrMtx.nnz + csrMtx.m ) + sizeof( T ) * ( csrMtx.nnz + csrMtx.n + csrMtx.m ) ) / time_in_ns( );
+        return ( sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows ) ) / time_in_ns( );
     }
 
     std::string bandwidth_formula( )
@@ -94,16 +94,16 @@ public:
            throw std::runtime_error( "Could not read matrix market header from disk" );
 
         clsparseInitCooMatrix( &cooMatx );
-        cooMatx.nnz = nnz1;
-        cooMatx.m = row1;
-        cooMatx.n = col1;
+        cooMatx.num_nonzeros = nnz1;
+        cooMatx.num_rows = row1;
+        cooMatx.num_cols = col1;
          
         cooMatx.values     = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof(T), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof(T), NULL, &status );
         cooMatx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         cooMatx.rowIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
 											   
         clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), control );
         
@@ -111,12 +111,12 @@ public:
         clsparseInitCsrMatrix( &csrMtx );
  
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                           cooMatx.nnz * sizeof( T ), NULL, &status );
+                                           cooMatx.num_nonzeros * sizeof( T ), NULL, &status );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                              (cooMatx.m + 1) * sizeof( cl_int ), NULL, &status );
+                                              ( cooMatx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
 
     }
 
@@ -135,11 +135,11 @@ public:
 		int scalar_i = 0;
 		T scalar_f = 0;
 		OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMtx.rowOffsets, &scalar_i, sizeof( int ), 0,
-                              sizeof( int ) * (csrMtx.m + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" ); 
+                              sizeof( int ) * (csrMtx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" ); 
 		OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMtx.colIndices, &scalar_i, sizeof( int ), 0,
-                              sizeof( int ) * csrMtx.nnz, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
+                              sizeof( int ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
 		OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMtx.values, &scalar_f, sizeof( T ), 0,
-                              sizeof( T ) * csrMtx.nnz, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
+                              sizeof( T ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
     }
 
     void read_gpu_buffer( )

@@ -7,7 +7,7 @@
 template<typename T>
 clsparseStatus
 Norm2(clsparseScalarPrivate* pS,
-      const clsparseVectorPrivate* pX,
+      const cldenseVectorPrivate* pX,
       const clsparseControl control)
 {
     return reduce<T, RO_SQR, RO_SQRT>(pS, pX, control);

@@ -25,7 +25,7 @@ cldenseIreduce(clsparseScalar *s,
     }
 
     clsparseScalarPrivate* pSum = static_cast<clsparseScalarPrivate*> ( s );
-    const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
 
     return reduce<cl_int, RO_PLUS>(pSum, pX, control);
 }
@@ -48,7 +48,7 @@ cldenseSreduce(clsparseScalar *s,
     }
 
     clsparseScalarPrivate* pSum = static_cast<clsparseScalarPrivate*> ( s );
-    const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
 
     return reduce<cl_float, RO_PLUS>(pSum, pX, control);
 }
@@ -70,7 +70,7 @@ cldenseDreduce(clsparseScalar *s,
     }
 
     clsparseScalarPrivate* pSum = static_cast<clsparseScalarPrivate*> ( s );
-    const clsparseVectorPrivate* pX = static_cast<const clsparseVectorPrivate*> ( x );
+    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
 
     return reduce<cl_double, RO_PLUS>(pSum, pX, control);
 }

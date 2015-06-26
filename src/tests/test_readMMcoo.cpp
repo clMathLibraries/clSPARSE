@@ -43,28 +43,28 @@ TEST( MM_file, load )
     // Now initialise a CSR matrix from the COO matrix
     clsparseCooMatrix cooMatx;
     clsparseInitCooMatrix( &cooMatx );
-    cooMatx.nnz = nnz;
-    cooMatx.m = row;
-    cooMatx.n = col;
+    cooMatx.num_nonzeros = nnz;
+    cooMatx.num_rows = row;
+    cooMatx.num_cols = col;
 
     cl_int status;
     cooMatx.values = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                       cooMatx.nnz * sizeof( cl_float ), NULL, &status );
+                                       cooMatx.num_nonzeros * sizeof( cl_float ), NULL, &status );
     cooMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                           cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
     cooMatx.rowIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                           cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
     clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), CLSE::control );
 
     clsparseCsrMatrix csrMatx;
     clsparseInitCsrMatrix( &csrMatx );
 
     csrMatx.values = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                       cooMatx.nnz * sizeof( cl_float ), NULL, &status );
+                                       cooMatx.num_nonzeros * sizeof( cl_float ), NULL, &status );
     csrMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                       cooMatx.nnz * sizeof( cl_int ), NULL, &status );
+                                       cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
     csrMatx.rowOffsets = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                           ( cooMatx.m + 1 ) * sizeof( cl_int ), NULL, &status );
+                                           ( cooMatx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
     //clsparseScoo2csr_host( &csrMatx, &cooMatx, CLSE::control );
     clsparseScoo2csr( &cooMatx, &csrMatx, CLSE::control );    
 
@@ -83,8 +83,8 @@ TEST( MM_file, load )
     clsparseInitVector( &x );
     clsparseInitVector( &y );
 
-    std::vector< cl_float > xHost( csrMatx.n );
-    std::vector< cl_float > yHost( csrMatx.m );
+    std::vector< cl_float > xHost( csrMatx.num_cols );
+    std::vector< cl_float > yHost( csrMatx.num_rows );
     std::fill( xHost.begin( ), xHost.end( ), 1.0f );
     std::fill( yHost.begin( ), yHost.end( ), 2.0f );
     cl_float aHost = 1.0f;
@@ -93,12 +93,12 @@ TEST( MM_file, load )
     x.values = ::clCreateBuffer( CLSE::context,
                                 CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                 xHost.size( ) * sizeof( cl_float ), xHost.data( ), &status );
-    x.n = yHost.size( );
+    x.num_values = yHost.size( );
 
     y.values = ::clCreateBuffer( CLSE::context,
                                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                yHost.size( ) * sizeof( cl_float ), yHost.data( ), &status );
-    y.n = yHost.size( );
+    y.num_values = yHost.size( );
 
     alpha.value = ::clCreateBuffer( CLSE::context,
                                    CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
