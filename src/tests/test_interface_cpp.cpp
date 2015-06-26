@@ -1,5 +1,7 @@
 #include <iostream>
 #include <clSPARSE.h>
+#include <clSPARSE-error.h>
+
 #include <CL/cl.hpp>
 
 int main (int argc, char* argv[])
@@ -12,7 +14,7 @@ int main (int argc, char* argv[])
 
     cl_status = cl::Platform::get(&platforms);
 
-    if (cl_status != CL_SUCCESS)
+    if( CLSPARSE_V( cl_status, "cl::Platform::get" ) )
     {
         std::cout << "Problem with getting OpenCL platforms"
                   << " [" << cl_status << "]" << std::endl;
@@ -35,7 +37,7 @@ int main (int argc, char* argv[])
     std::vector<cl::Device> devices;
     cl_status = platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
 
-    if (cl_status != CL_SUCCESS)
+    if( CLSPARSE_V( cl_status, "platform.getDevices" ) )
     {
         std::cout << "Problem with getting devices from platform"
                   << " [" << platform_id << "] " << platform.getInfo<CL_PLATFORM_NAME>()
@@ -64,7 +66,7 @@ int main (int argc, char* argv[])
     cl::CommandQueue queue(context, device);
 
     clsparseStatus status = clsparseSetup();
-    if (status != clsparseSuccess)
+    if( CLSPARSE_V( status, "clsparseSetup" ) )
     {
         std::cout << "Problem with executing clsparseSetup()" << std::endl;
         return -1;
@@ -73,14 +75,15 @@ int main (int argc, char* argv[])
 
     // Create clsparseControl object
     clsparseControl control = clsparseCreateControl(queue(), &status);
-    if (status != CL_SUCCESS)
+    if( CLSPARSE_V( status, "clsparseCreateControl" ) )
     {
         std::cout << "Problem with creating clSPARSE control object"
                   <<" error [" << status << "]" << std::endl;
     }
 
+    // Library termination
+    clsparseReleaseControl( control );
+    clsparseTeardown( );
 
     return 0;
-
-
 }

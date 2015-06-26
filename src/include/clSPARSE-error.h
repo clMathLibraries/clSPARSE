@@ -2,10 +2,8 @@
 * Copyright 2015 Advanced Micro Devices, Inc.
 * ************************************************************************/
 #pragma once
-#ifndef __CLSPARSE_ERROR_HPP__
-#define __CLSPARSE_ERROR_HPP__
-
-#include <string>
+#ifndef __CLSPARSE_ERROR_H__
+#define __CLSPARSE_ERROR_H__
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #   include <OpenCL/cl.h>
@@ -13,8 +11,17 @@
 #   include <CL/cl.h>
 #endif
 
-inline char*
-stringifyStatus( const cl_int& status )
+#if !defined( NDEBUG )
+#include <stdio.h>  // for printf
+#endif
+
+// On windows 'C' compiler, compiler only understands __inline
+#if defined( _WIN32 ) && !defined( __cplusplus )
+#define inline __inline
+#endif
+
+inline const char*
+stringifyStatus( const cl_int status )
 {
     switch( status )
     {
@@ -132,11 +139,11 @@ clSPARSE_V( cl_int res, const char* msg, const char* file, size_t lineno )
         break;
     default:
     {
-#ifndef NDEBUG
+#if !defined( NDEBUG )
 #if defined( _WIN32 )
-        printf( "CLSPARSE_V [%s:%Iu] ( %s ) - %s", file, lineno, stringifyStatus( res ), msg );
+        printf( "[%s:%Iu]\nCLSPARSE_V( %s ) - %s", file, lineno, stringifyStatus( res ), msg );
 #else
-        printf( "CLSPARSE_V [%s:%zu] ( %s ) - %s", file, lineno, stringifyStatus( res ), msg );
+        printf( "[%s:%zu]\nCLSPARSE_V( %s ) - %s", file, lineno, stringifyStatus( res ), msg );
 #endif
 #endif
     }

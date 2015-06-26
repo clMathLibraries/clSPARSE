@@ -1,5 +1,5 @@
 #include "kernel-wrap.hpp"
-#include "clSPARSE-error.hpp"
+#include "clSPARSE-error.h"
 
 KernelWrap::KernelWrap( cl::Kernel &kernel ): kernel( kernel ), argCounter( 0 ), addrBits( 0 )
 {

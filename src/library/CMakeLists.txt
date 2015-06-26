@@ -124,7 +124,7 @@ set( clSPARSE.Headers.public
   ../include/clSPARSE.h
   ../include/clSPARSE-1x.h
   ../include/clSPARSE-2x.h
-  ../include/clSPARSE-error.hpp
+  ../include/clSPARSE-error.h
   ${PROJECT_BINARY_DIR}/include/clSPARSE-version.h
 )
 
