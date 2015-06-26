@@ -104,16 +104,16 @@ public:
 
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.values" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.colIndices" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowOffsets" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowBlocks" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
 
         fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
         if( fileError != clsparseSuccess )
@@ -128,7 +128,7 @@ public:
         denseB.lead_dim = denseB.num_cols;
         denseB.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                           denseB.num_rows * denseB.lead_dim * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer denseB.values" );
+        CLSPARSE_V( status, "::clCreateBuffer denseB.values" );
 
         //  C is square because the B columns is equal to the A rows
         cldenseInitMatrix( &denseC );
@@ -138,18 +138,18 @@ public:
         denseC.lead_dim = denseC.num_cols;
         denseC.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                           denseC.num_rows * denseC.lead_dim * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer denseC.values" );
+        CLSPARSE_V( status, "::clCreateBuffer denseC.values" );
 
         // Initialize the scalar alpha & beta parameters
         clsparseInitScalar( &a );
         a.value = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                      1 * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer x.values" );
+        CLSPARSE_V( status, "::clCreateBuffer x.values" );
 
         clsparseInitScalar( &b );
         b.value = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                      1 * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer y.values" );
+        CLSPARSE_V( status, "::clCreateBuffer y.values" );
     }
 
     void initialize_cpu_buffer( )
@@ -159,24 +159,24 @@ public:
     void initialize_gpu_buffer( )
     {
         T scalarOne = 1.0;
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, denseB.values, &scalarOne, sizeof( T ), 0,
+        CLSPARSE_V( ::clEnqueueFillBuffer( queue, denseB.values, &scalarOne, sizeof( T ), 0,
             denseB.num_rows * denseB.num_cols * sizeof( T ), 0, NULL, NULL ), "::clEnqueueFillBuffer denseB.values" );
 
         T scalarZero = 0.0;
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, denseC.values, &scalarZero, sizeof( T ), 0,
+        CLSPARSE_V( ::clEnqueueFillBuffer( queue, denseC.values, &scalarZero, sizeof( T ), 0,
             denseC.num_rows * denseC.num_cols * sizeof( T ), 0, NULL, NULL ), "::clEnqueueFillBuffer denseC.values" );
 
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, a.value, &alpha, sizeof( T ), 0,
+        CLSPARSE_V( ::clEnqueueFillBuffer( queue, a.value, &alpha, sizeof( T ), 0,
             sizeof( T ) * 1, 0, NULL, NULL ), "::clEnqueueFillBuffer alpha.value" );
 
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, b.value, &beta, sizeof( T ), 0,
+        CLSPARSE_V( ::clEnqueueFillBuffer( queue, b.value, &beta, sizeof( T ), 0,
             sizeof( T ) * 1, 0, NULL, NULL ), "::clEnqueueFillBuffer beta.value" );
     }
 
     void reset_gpu_write_buffer( )
     {
         T scalar = 0;
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, denseC.values, &scalar, sizeof( T ), 0,
+        CLSPARSE_V( ::clEnqueueFillBuffer( queue, denseC.values, &scalar, sizeof( T ), 0,
             denseC.num_rows * denseC.num_cols * sizeof( T ), 0, NULL, NULL ), "::clEnqueueFillBuffer denseC.values" );
     }
 
@@ -201,15 +201,15 @@ public:
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.rowBlocks ), "clReleaseMemObject csrMtx.rowBlocks" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowBlocks ), "clReleaseMemObject csrMtx.rowBlocks" );
 
-        OPENCL_V_THROW( ::clReleaseMemObject( denseB.values ), "clReleaseMemObject x.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( denseC.values ), "clReleaseMemObject y.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( a.value ), "clReleaseMemObject alpha.value" );
-        OPENCL_V_THROW( ::clReleaseMemObject( b.value ), "clReleaseMemObject beta.value" );
+        CLSPARSE_V( ::clReleaseMemObject( denseB.values ), "clReleaseMemObject x.values" );
+        CLSPARSE_V( ::clReleaseMemObject( denseC.values ), "clReleaseMemObject y.values" );
+        CLSPARSE_V( ::clReleaseMemObject( a.value ), "clReleaseMemObject alpha.value" );
+        CLSPARSE_V( ::clReleaseMemObject( b.value ), "clReleaseMemObject beta.value" );
     }
 
 private:

@@ -101,15 +101,15 @@ public:
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.values" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.colIndices" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowOffsets" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         if(typeid(T) == typeid(float))
             fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
@@ -164,11 +164,11 @@ public:
 
                 int scalar_i = 0;
                 T scalar_f = 0;
-                OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMatx.rowOffsets, &scalar_i, sizeof( int ), 0,
+                CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMatx.rowOffsets, &scalar_i, sizeof( int ), 0,
                               sizeof( int ) * (csrMatx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" );
-                OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMatx.colIndices, &scalar_i, sizeof( int ), 0,
+                CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMatx.colIndices, &scalar_i, sizeof( int ), 0,
                               sizeof( int ) * csrMatx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
-                OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, csrMatx.values, &scalar_f, sizeof( T ), 0,
+                CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMatx.values, &scalar_f, sizeof( T ), 0,
                               sizeof( T ) * csrMatx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
     }
 
@@ -193,15 +193,15 @@ public:
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
 
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMatx.values ), "clReleaseMemObject csrMtx.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMatx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMatx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMatx.values ), "clReleaseMemObject csrMtx.values" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMatx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMatx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
 		
-		OPENCL_V_THROW( ::clReleaseMemObject( A.values ), "clReleaseMemObject A.values" );
+		CLSPARSE_V( ::clReleaseMemObject( A.values ), "clReleaseMemObject A.values" );
 		
     }
 

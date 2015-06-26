@@ -107,19 +107,19 @@ public:
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.values" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.colIndices" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowOffsets" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer csrMtx.rowBlocks" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
 
         if(typeid(T) == typeid(float))
             fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
@@ -136,13 +136,13 @@ public:
         x.num_values = csrMtx.num_rows;
         x.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                      x.num_values * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer x.values" );
+        CLSPARSE_V( status, "::clCreateBuffer x.values" );
 
         clsparseInitVector( &y );
         y.num_values = csrMtx.num_cols;
         y.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                      y.num_values * sizeof( T ), NULL, &status );
-        OPENCL_V_THROW( status, "::clCreateBuffer y.values" );
+        CLSPARSE_V( status, "::clCreateBuffer y.values" );
 
 
     }
@@ -160,10 +160,10 @@ public:
         T xValue = 0.0;
         T yValue = 1.0;
 
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, x.values, &xValue, sizeof( T ), 0,
+        CLSPARSE_V( ::clEnqueueFillBuffer( queue, x.values, &xValue, sizeof( T ), 0,
             sizeof( T ) * x.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
 
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, y.values, &yValue, sizeof( T ), 0,
+        CLSPARSE_V( ::clEnqueueFillBuffer( queue, y.values, &yValue, sizeof( T ), 0,
             sizeof( T ) * y.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer y.values" );
 
 
@@ -173,7 +173,7 @@ public:
     {
         // we will solve A*x = y, where initial guess of x will be 0
         T scalar = 0;
-        OPENCL_V_THROW( ::clEnqueueFillBuffer( queue, x.values, &scalar, sizeof( T ), 0,
+        CLSPARSE_V( ::clEnqueueFillBuffer( queue, x.values, &scalar, sizeof( T ), 0,
                              sizeof( T ) * x.num_values, 0, NULL, NULL ), "::clEnqueueFillBuffer x.values" );
 
         // reset solverControl for next call
@@ -201,13 +201,13 @@ public:
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor     
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
-        OPENCL_V_THROW( ::clReleaseMemObject( csrMtx.rowBlocks ), "clReleaseMemObject csrMtx.rowBlocks" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowBlocks ), "clReleaseMemObject csrMtx.rowBlocks" );
 
-        OPENCL_V_THROW( ::clReleaseMemObject( x.values ), "clReleaseMemObject x.values" );
-        OPENCL_V_THROW( ::clReleaseMemObject( y.values ), "clReleaseMemObject y.values" );
+        CLSPARSE_V( ::clReleaseMemObject( x.values ), "clReleaseMemObject x.values" );
+        CLSPARSE_V( ::clReleaseMemObject( y.values ), "clReleaseMemObject y.values" );
 
 
     }

@@ -99,10 +99,10 @@ cl_int fill(Container& c, const T & value, cl::CommandQueue& queue)
         status = queue.enqueueFillBuffer(c.data(), value, 0,
                                          c.size() * sizeof(T),
                                          NULL, &controlEvent);
-        OPENCL_V_THROW(status, "queue.enqueueFillBuffer");
+        CLSPARSE_V(status, "queue.enqueueFillBuffer");
 
         status = controlEvent.wait();
-        OPENCL_V_THROW(status, "controlEvent.wait");
+        CLSPARSE_V(status, "controlEvent.wait");
     }
 
     return status;
@@ -120,10 +120,10 @@ cl_int fill(Container& c, const T & value)
         status = c.getQueue().enqueueFillBuffer(c.data(), value, 0,
                                          c.size() * sizeof(T),
                                          NULL, &controlEvent);
-        OPENCL_V_THROW(status, "queue.enqueueFillBuffer");
+        CLSPARSE_V(status, "queue.enqueueFillBuffer");
 
         status = controlEvent.wait();
-        OPENCL_V_THROW(status, "controlEvent.wait");
+        CLSPARSE_V(status, "controlEvent.wait");
     }
 
     return status;

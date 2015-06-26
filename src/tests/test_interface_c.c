@@ -1,4 +1,5 @@
 #include <clSPARSE.h>
+#include <clSPARSE-error.h>
 
 #include <assert.h>
 
@@ -22,15 +23,15 @@ int main( int argc, char* argv[ ] )
     platforms = (cl_platform_id*) malloc( num_platforms * sizeof( cl_platform_id ) );
 
     status = clGetPlatformIDs( num_platforms, platforms, NULL );
-    assert( CL_SUCCESS == status );
+    CLSPARSE_V( status, "clGetPlatformIDs" );
 
     //get count of given device types
     status = clGetDeviceIDs( platforms[ 0 ], CL_DEVICE_TYPE_DEFAULT, 0, NULL, &num_devices );
-    assert( CL_SUCCESS == status );
+    CLSPARSE_V( status, "clGetDeviceIDs num_devices" );
 
     devices = (cl_device_id*) malloc( num_devices * sizeof( cl_device_id ) );
     status = clGetDeviceIDs( platforms[ 0 ], CL_DEVICE_TYPE_DEFAULT, num_devices, devices, NULL );
-    assert( CL_SUCCESS == status );
+    CLSPARSE_V( status, "clGetDeviceIDs CL_DEVICE_TYPE_DEFAULT" );
 
     cl_context context = clCreateContext( NULL, 1, devices, NULL, NULL, NULL );
     cl_command_queue queue = clCreateCommandQueue( context, devices[ 0 ], 0, NULL );
@@ -42,12 +43,6 @@ int main( int argc, char* argv[ ] )
 
     clsparseCooMatrix myCooMatx;
     clsparseInitCooMatrix( &myCooMatx );
-
-    // clsparseCooMatrixfromFile( &myCooMatx, "/some/random/path" );
-
-    clsparseCsrMatrix myCsrMatx;
-    //clsparseScoo2csr_host( &myCsrMatx, &myCooMatx, control );
-    clsparseScoo2csr(&myCooMatx, &myCsrMatx, control );    
 
     // Library termination
     clsparseReleaseControl( control );
