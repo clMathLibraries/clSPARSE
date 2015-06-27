@@ -136,7 +136,7 @@ public:
         denseC.num_rows = csrMtx.num_rows;
         denseC.num_cols = num_columns;
         denseC.lead_dim = denseC.num_cols;
-        denseC.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        denseC.values = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,//CL_MEM_READ_ONLY,
                                           denseC.num_rows * denseC.lead_dim * sizeof( T ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer denseC.values" );
 
