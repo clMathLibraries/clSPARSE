@@ -1,3 +1,7 @@
+#if defined ( _WIN32 )
+#define NOMINMAX
+#endif
+
 #include <gtest/gtest.h>
 #include <vector>
 #include <string>

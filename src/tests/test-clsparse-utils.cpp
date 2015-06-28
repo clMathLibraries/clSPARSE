@@ -39,8 +39,8 @@ TEST (clSparseInit, version)
     clsparseGetVersion (&major, &minor, &patch, &tweak );
 
     EXPECT_EQ (0, major);
-    EXPECT_EQ (0, minor);
-    EXPECT_EQ (1, patch);
+    EXPECT_EQ (6, minor);
+    EXPECT_EQ (0, patch);
     EXPECT_EQ( 0, tweak );
 }
 

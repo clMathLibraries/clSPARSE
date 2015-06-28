@@ -8,7 +8,7 @@ set( Boost_NO_SYSTEM_PATHS ON )
 set( Boost_ADDITIONAL_VERSIONS 1.57.0 1.57 )
 # set( Boost_DEBUG ON )
 
-find_package( Boost COMPONENTS program_options )
+find_package( Boost COMPONENTS program_options serialization )
 # Unit tests requires OpenCL
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
 find_package( OpenCL REQUIRED )
@@ -46,7 +46,7 @@ set( TESTS_CPP
 set( TESTS_C
   test_interface_c
   )
-  
+
 #additional headers and sources
 set( src
   resources/csr_matrix_environment.cpp
