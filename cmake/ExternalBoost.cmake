@@ -43,7 +43,7 @@ else( )
   # If we could not detect # of cores, assume 1 core and add an additional build thread
   set( Cores "2" )
 endif( )
-list( APPEND Boost.Command -j ${Cores} --with-program_options --with-filesystem --with-system --with-regex )
+list( APPEND Boost.Command -j ${Cores} --with-program_options --with-serialization --with-filesystem --with-system --with-regex )
 
 if( BUILD64 )
   list( APPEND Boost.Command address-model=64 )

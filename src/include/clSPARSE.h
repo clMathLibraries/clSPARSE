@@ -171,8 +171,10 @@ clsparseDcsrbicgStab(cldenseVector* x, const clsparseCsrMatrix *A, const cldense
         clsparseHeaderfromFile( cl_int* nnz, cl_int* row, cl_int* col, const char* filePath );
 
     CLSPARSE_EXPORT clsparseStatus
-        clsparseCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control );
+        clsparseSCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control );
 
+    CLSPARSE_EXPORT clsparseStatus
+        clsparseDCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control );
 //    CLSPARSE_EXPORT clsparseStatus
 //        clsparseCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
 
@@ -323,6 +325,14 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     // C = \alpha * A * B  + \beta * C
     CLSPARSE_EXPORT clsparseStatus
         clsparseScsrmm( const clsparseScalar* alpha,
+        const clsparseCsrMatrix* sparseMatA,
+        const cldenseMatrix* denseMatB,
+        const clsparseScalar* beta,
+        cldenseMatrix* denseMatC,
+        const clsparseControl control );
+
+    CLSPARSE_EXPORT clsparseStatus
+        clsparseDcsrmm( const clsparseScalar* alpha,
         const clsparseCsrMatrix* sparseMatA,
         const cldenseMatrix* denseMatB,
         const clsparseScalar* beta,

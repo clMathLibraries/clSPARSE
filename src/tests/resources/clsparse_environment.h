@@ -10,9 +10,9 @@ class ClSparseEnvironment : public ::testing::Environment
 {
 public:
 
-    ClSparseEnvironment(cl_platform_type pID = AMD, cl_uint dID = 0)
+    ClSparseEnvironment(cl_platform_type pID = AMD, cl_uint dID = 0, cl_uint N = 1024)
     {
-        // init cl environment
+
         cl_int status = CL_SUCCESS;
 
         cl::Device device = getDevice(pID, dID);
@@ -26,19 +26,26 @@ public:
 
         control = clsparseCreateControl(queue, NULL);
 
+        //size of the vector used in blas1 test.
+        //this->N = N;
+
         //free(platforms);
     }
 
 
     void SetUp()
     {
+
     }
 
     //cleanup
     void TearDown()
     {
-        //release cl structures
 
+    }
+
+    ~ClSparseEnvironment()
+    {
         clReleaseCommandQueue(queue);
         clReleaseContext(context);
         cl_int status  = clsparseReleaseControl(control);
@@ -53,6 +60,11 @@ public:
     static cl_context context;
     static cl_command_queue queue;
     static clsparseControl control;
+
+    cl_platform_type platform_type;
+    cl_uint device_id;
+
+    //static cl_uint N;
 
 };
 

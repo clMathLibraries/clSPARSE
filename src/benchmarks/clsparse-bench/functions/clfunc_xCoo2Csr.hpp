@@ -104,12 +104,18 @@ public:
                                                cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
         cooMatx.rowIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                                cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
-											   
-        clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), control );
+
+        //JPA: Bug fix: That will not work for double precision
+        //clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), control );
+        if (typeid(T) == typeid(float))
+            clsparseSCooMatrixfromFile(&cooMatx, path.c_str(), control);
+        if (typeid(T) == typeid(double))
+            clsparseDCooMatrixfromFile(&cooMatx, path.c_str(), control);
         
         //clsparseCsrMatrix csrMatx;
         clsparseInitCsrMatrix( &csrMtx );
  
+        //JPA:: Shouldn't be CL_MEM_WRITE_ONLY since coo ---> csr???
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                            cooMatx.num_nonzeros * sizeof( T ), NULL, &status );
 
