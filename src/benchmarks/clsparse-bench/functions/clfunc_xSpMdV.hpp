@@ -138,7 +138,7 @@ public:
 
         clsparseInitVector( &y );
         y.num_values = csrMtx.num_rows;
-        y.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        y.values = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY, //CL_MEM_READ_ONLY,
                                      y.num_values * sizeof( T ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer y.values" );
 
