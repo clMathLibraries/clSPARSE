@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
       if( precision == "s" )
           my_function = std::unique_ptr< cusparseFunc >( new xCsr2Dense< float >( timer ) );
       else if( precision == "d" )
-          my_function = std::make_unique< xCsr2Dense< double > >( timer );
+          my_function = std::unique_ptr< cusparseFunc >( new xCsr2Dense< double >( timer ) );
       else
       {
           std::cerr << "Unknown xCsr2Dense precision" << std::endl;
