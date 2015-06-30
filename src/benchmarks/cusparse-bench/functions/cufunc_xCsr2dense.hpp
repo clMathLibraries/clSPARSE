@@ -2,17 +2,17 @@
  * Copyright 2015 Advanced Micro Devices, Inc.
  * ************************************************************************/
 
-#ifndef CUBLAS_BENCHMARK_xCsr2dense_HXX__
-#define CUBLAS_BENCHMARK_xCsr2dense_HXX__
+#ifndef CUBLAS_BENCHMARK_xCsr2Dense_HXX__
+#define CUBLAS_BENCHMARK_xCsr2Dense_HXX__
 
 #include "cufunc_common.hpp"
 #include "include/io-exception.hpp"
 
 template <typename T>
-class xCsr2dense : public cusparseFunc
+class xCsr2Dense : public cusparseFunc
 {
 public:
-    xCsr2dense( StatisticalTimer& timer ): cusparseFunc( timer )
+    xCsr2Dense( StatisticalTimer& timer ): cusparseFunc( timer )
     {
         cusparseStatus_t err = cusparseCreateMatDescr( &descrA );
         CUDA_V_THROW( err, "cusparseCreateMatDescr failed" );
@@ -22,9 +22,13 @@ public:
 
         err = cusparseSetMatIndexBase( descrA, CUSPARSE_INDEX_BASE_ZERO );
         CUDA_V_THROW( err, "cusparseSetMatIndexBase failed" );
+
+        n_rows = 0;
+        n_cols = 0;
+        n_vals = 0;
     }
 
-    ~xCsr2dense( )
+    ~xCsr2Dense( )
     {
         cusparseDestroyMatDescr( descrA );
     }
@@ -32,7 +36,7 @@ public:
     void call_func( )
     {
         timer.Start( timer_id );
-        xCsr2dense_Function( true );
+        xCsr2Dense_Function( true );
         timer.Stop( timer_id );
     }
 
@@ -64,23 +68,28 @@ public:
 
     void setup_buffer( double alpha, double beta, const std::string& path )
     {
-        initialize_scalars( alpha, beta );
+        int fileError = sparseHeaderfromFile(&n_vals, &n_rows, &n_cols, path.c_str());
+        if (fileError != 0)
+        {
+            throw clsparse::io_exception("Could not read matrix market header from disk");
+        }
 
         if (csrMatrixfromFile( row_offsets, col_indices, values, path.c_str( ) ) )
         {
             throw clsparse::io_exception( "Could not read matrix market header from disk" );
         }
-        n_rows = row_offsets.size( );
-        n_cols = col_indices.size( );
-        n_vals = values.size( );
+        
+        //n_rows = row_offsets.size( );
+        //n_cols = col_indices.size( );
+        //n_vals = values.size( );
 
-        cudaError_t err = cudaMalloc( (void**) &device_row_offsets, row_offsets.size( ) * sizeof( int ) );
+        cudaError_t err = cudaMalloc( (void**) &device_row_offsets, (n_rows + 1) * sizeof( int ) );
         CUDA_V_THROW( err, "cudaMalloc device_row_offsets" );
 
-        err = cudaMalloc( (void**) &device_col_indices, col_indices.size( ) * sizeof( int ) );
+        err = cudaMalloc( (void**) &device_col_indices, n_vals * sizeof( int ) );
         CUDA_V_THROW( err, "cudaMalloc device_col_indices" );
 
-        err = cudaMalloc( (void**) &device_values, values.size( ) * sizeof( T ) );
+        err = cudaMalloc( (void**) &device_values, n_vals * sizeof( T ) );
         CUDA_V_THROW( err, "cudaMalloc device_values" );
 
         err = cudaMalloc( (void**) &device_A, n_rows * n_cols * sizeof( T ) );
@@ -110,6 +119,7 @@ public:
     {
         cudaError_t err = cudaMemset( device_A, 0x0, n_rows * n_cols * sizeof( T ) );
         CUDA_V_THROW( err, "cudaMemset reset_gpu_write_buffer" );
+
     }
 
     void read_gpu_buffer( )
@@ -136,15 +146,16 @@ protected:
     }
 
 private:
-    void xCsr2dense_Function( bool flush );
+    void xCsr2Dense_Function( bool flush );
 
     //host matrix definition
     std::vector< int > row_offsets;
     std::vector< int > col_indices;
     std::vector< T > values;
-    int n_rows;
-    int n_cols;
-    int n_vals;
+
+    int  n_rows; // number of rows
+    int  n_cols; // number of cols
+    int  n_vals; // number of Non-Zero Values (nnz)
 
     cusparseMatDescr_t descrA;
 
@@ -154,12 +165,12 @@ private:
     T* device_values;
     T* device_A;
 
-}; // class xCsr2dense
+}; // class xCsr2Dense
 
 template<>
 void
-xCsr2dense<float>::
-xCsr2dense_Function( bool flush )
+xCsr2Dense<float>::
+xCsr2Dense_Function( bool flush )
 {
     cuSparseStatus =  cusparseScsr2dense( handle,
                                           n_rows,
@@ -175,23 +186,23 @@ xCsr2dense_Function( bool flush )
     cudaDeviceSynchronize( );
 }
 
-//template<>
-//void
-//xCsr2dense<double>::
-//xCsr2dense_Function( bool flush )
-//{
-//    cuSparseStatus = cusparseDcsr2dense( handle,
-//                                         n_rows,
-//                                         n_cols,
-//                                         descrA,
-//                                         device_values,
-//                                         device_row_offsets,
-//                                         device_col_indices,
-//                                         device_A,
-//                                         n_rows );
-//    CUDA_V_THROW( cuSparseStatus, "cusparseDcsr2dense" );
-//
-//    cudaDeviceSynchronize( );
-//}
+template<>
+void
+xCsr2Dense<double>::
+xCsr2Dense_Function( bool flush )
+{
+    cuSparseStatus = cusparseDcsr2dense( handle,
+                                         n_rows,
+                                         n_cols,
+                                         descrA,
+                                         device_values,
+                                         device_row_offsets,
+                                         device_col_indices,
+                                         device_A,
+                                         n_rows );
+    CUDA_V_THROW( cuSparseStatus, "cusparseDcsr2dense" );
 
-#endif // ifndef CUBLAS_BENCHMARK_xCsr2dense_HXX__
+    cudaDeviceSynchronize( );
+}
+
+#endif // ifndef CUBLAS_BENCHMARK_xCsr2Dense_HXX__

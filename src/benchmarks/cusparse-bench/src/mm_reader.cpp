@@ -502,4 +502,90 @@ std::vector< float >& values, const char* filePath )
     row_offsets.push_back( nnz );
 
     return 0;
+}// end
+
+
+// This function reads the file at the given filepath, and returns the sparse
+// matrix in the COO struct.
+int
+csrMatrixfromFile(std::vector< int >& row_offsets, std::vector< int >& col_indices,
+std::vector< double >& values, const char* filePath)
+{
+    // Check that the file format is matrix market; the only format we can read right now
+    // This is not a complete solution, and fails for directories with file names etc...
+    // TODO: Should we use boost filesystem?
+    std::string strPath(filePath);
+    if (strPath.find_last_of('.') != std::string::npos)
+    {
+        std::string ext = strPath.substr(strPath.find_last_of('.') + 1);
+        if (ext != "mtx")
+            return 1;
+    }
+    else
+        return 1;
+
+    MatrixMarketReader< double > mm_reader;
+    if (mm_reader.MMReadFormat(filePath))
+        return 2;
+
+    int m = mm_reader.GetNumRows();
+    int n = mm_reader.GetNumCols();
+    int nnz = mm_reader.GetNumNonZeroes();
+
+    row_offsets.clear();
+    col_indices.clear();
+    values.clear();
+    row_offsets.reserve(m);
+    col_indices.reserve(n);
+    values.reserve(nnz);
+
+    Coordinate< double >* coords = mm_reader.GetUnsymCoordinates();
+
+    std::sort(coords, coords + nnz, CoordinateCompare< double >);
+
+    int current_row = 1;
+    row_offsets.push_back(0);
+    for (int i = 0; i < nnz; i++)
+    {
+        col_indices.push_back(coords[i].y);
+        values.push_back(coords[i].val);
+
+        if (coords[i].x >= current_row)
+        {
+            row_offsets.push_back(i);
+            ++current_row;
+        }
+    }
+    row_offsets.push_back(nnz);
+
+    return 0;
+}// end
+
+
+
+
+// This function reads the file header at the given filepath, and gets the 
+// matrix dimensions
+int sparseHeaderfromFile(int* nnz, int* rows, int* cols, const char* filePath)
+{
+    std::string strPath(filePath);
+    if (strPath.find_last_of(".") != std::string::npos)
+    {
+        std::string ext = strPath.substr(strPath.find('.') + 1);
+        if (ext != "mtx")
+            return 1;
+    }
+    else
+        return 1;
+    MatrixMarketReader< float > mm_reader;
+    if (mm_reader.MMReadHeader(filePath))
+    {
+        return 2;
+    }
+
+    *nnz  = mm_reader.GetNumNonZeroes();
+    *rows = mm_reader.GetNumRows();
+    *cols = mm_reader.GetNumCols();
+
+    return 0; // success
 }
