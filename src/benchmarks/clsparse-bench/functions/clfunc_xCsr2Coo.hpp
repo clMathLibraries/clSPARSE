@@ -72,6 +72,10 @@ public:
 	double bandwidth()
 	{
 		//Check VK
+		//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
+		//GPU to Host: Coo - > row_indices + Col_indices + Values- > [sizeof(T) * num_nonzero] + sizeof(int) 
+		size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) +
+			sizeof(T) * (cooMtx.num_nonzeros) + sizeof(cl_int) * (cooMtx.num_nonzeros * 2);
 		return (sparseBytes / time_in_ns());
 	}// end
 
@@ -185,7 +189,7 @@ public:
 			//size_t sparseBytes = sizeof(cl_int) * (csrMtx.nnz + csrMtx.m) + sizeof(T) * (csrMtx.nnz + csrMtx.n + csrMtx.m);
 			//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
 			//GPU to Host: Coo - > row_indices + Col_indices + Values- > [sizeof(T) * num_nonzero] + sizeof(int) 
-			sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) + 
+			size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) + 
 				          sizeof(T) * (cooMtx.num_nonzeros) + sizeof(cl_int) * (cooMtx.num_nonzeros * 2);
 			cpuTimer->pruneOutliers(3.0);
 			cpuTimer->Print(sparseBytes, "GiB/s");
@@ -223,10 +227,7 @@ private:
 	clsparseCsrMatrix csrMtx;
 	clsparseCooMatrix cooMtx;
 
-	//host values
 	
-	size_t sparseBytes;
-
 	//OpenCL state
 	cl_command_queue_properties cqProp;
 
