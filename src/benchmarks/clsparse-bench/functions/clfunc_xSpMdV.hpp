@@ -138,7 +138,7 @@ public:
 
         clsparseInitVector( &y );
         y.num_values = csrMtx.num_rows;
-        y.values = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY, //CL_MEM_READ_ONLY,
+        y.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                      y.num_values * sizeof( T ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer y.values" );
 
@@ -146,12 +146,12 @@ public:
         clsparseInitScalar( &a );
         a.value = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                      1 * sizeof( T ), NULL, &status );
-        CLSPARSE_V( status, "::clCreateBuffer x.values" );
+        CLSPARSE_V( status, "::clCreateBuffer a.value" );
 
         clsparseInitScalar( &b );
         b.value = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                      1 * sizeof( T ), NULL, &status );
-        CLSPARSE_V( status, "::clCreateBuffer y.values" );
+        CLSPARSE_V( status, "::clCreateBuffer b.value" );
     }
 
     void initialize_cpu_buffer( )
