@@ -19,6 +19,8 @@
 #include "functions/clfunc_xBiCGStab.hpp"
 #include "functions/clfunc_xCoo2Csr.hpp"
 #include "functions/clfunc_xDense2Csr.hpp"
+#include "functions/clfunc_xCsr2Dense.hpp"
+#include "functions/clfunc_xCsr2Coo.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -111,7 +113,7 @@ int main( int argc, char *argv[ ] )
         ( "beta", po::value<cl_double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
         ( "rows", po::value<size_t>( &rows )->default_value( 16 ), "specifies the number of rows for matrix data" )
         ( "columns", po::value<size_t>( &columns )->default_value( 16 ), "specifies the number of columns for matrix data" )
-        ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, CG, BiCGStab" )
+		("function,f", po::value<std::string>(&function)->default_value("SpMdV"), "Sparse functions to test. Options: SpMdV, SpMdM, CG, BiCGStab, Csr2Dense, Csr2Coo, Coo2Csr, Dense2Csr")
         ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
         ( "profile,p", po::value<size_t>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
         ;
@@ -201,6 +203,20 @@ int main( int argc, char *argv[ ] )
         else
             my_function = std::unique_ptr< clsparseFunc >( new xDense2Csr< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
     }
+	else if (boost::iequals(function, "Csr2Dense"))
+	{
+		if (precision == "s")
+			my_function = std::unique_ptr< clsparseFunc >(new xCsr2Dense< cl_float >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
+		else
+			my_function = std::unique_ptr< clsparseFunc >(new xCsr2Dense< cl_double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
+	}
+	else if (boost::iequals(function, "Csr2Coo"))
+	{
+		if (precision == "s")
+			my_function = std::unique_ptr< clsparseFunc >(new xCsr2Coo< cl_float >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
+		else
+			my_function = std::unique_ptr< clsparseFunc >(new xCsr2Coo< cl_double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
+	}
     else
     {
         std::cerr << "Benchmarking unknown function" << std::endl;
