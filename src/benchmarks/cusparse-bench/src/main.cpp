@@ -18,7 +18,7 @@
 // This project files
 #include "include/statisticalTimer.h"
 #include "functions/cufunc_xSpMdV.hpp"
-#include "functions/cufunc_xCsr2Dense.hpp"
+#include "functions/cufunc_xCsr2dense.hpp"
 #include "functions/cufunc_xCsr2Coo.hpp"
 
 namespace po = boost::program_options;
