@@ -71,17 +71,22 @@ public:
 
 	double bandwidth()
 	{
+#if 0
 		//Check VK
 		//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
 		//GPU to Host: Coo - > row_indices + Col_indices + Values- > [sizeof(T) * num_nonzero] + sizeof(int) 
 		size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) +
 			sizeof(T) * (cooMtx.num_nonzeros) + sizeof(cl_int) * (cooMtx.num_nonzeros * 2);
 		return (sparseBytes / time_in_ns());
+#endif
+		// Number of Elements converted in unit time
+		return (csrMtx.num_nonzeros / time_in_ns());
 	}// end
 
 	std::string bandwidth_formula()
 	{
-		return "GiB/s";
+		//return "GiB/s";
+		return "GiElements/s";
 	}// end
 
 	void setup_buffer(double pAlpha, double pBeta, const std::string& path)
@@ -185,6 +190,7 @@ public:
 		if (gpuTimer && cpuTimer)
 		{
 			std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
+#if 0
 			// Need to verify this calculation VK
 			//size_t sparseBytes = sizeof(cl_int) * (csrMtx.nnz + csrMtx.m) + sizeof(T) * (csrMtx.nnz + csrMtx.n + csrMtx.m);
 			//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
@@ -197,6 +203,16 @@ public:
 
 			gpuTimer->pruneOutliers(3.0);
 			gpuTimer->Print(sparseBytes, "GiB/s");
+			gpuTimer->Reset();
+#endif
+			// Calculate Number of Elements transformed per unit time
+			size_t sparseElements = csrMtx.num_nonzeros;
+			cpuTimer->pruneOutliers(3.0);
+			cpuTimer->Print(sparseElements, "GiElements/s");
+			cpuTimer->Reset();
+
+			gpuTimer->pruneOutliers(3.0);
+			gpuTimer->Print(sparseElements, "GiElements/s");
 			gpuTimer->Reset();
 		}
 
