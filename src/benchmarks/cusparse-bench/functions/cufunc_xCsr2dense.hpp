@@ -52,6 +52,7 @@ public:
 
     double bandwidth( )
     {
+#if 0
         //  Assuming that accesses to the vector always hit in the cache after the first access
         //  There are NNZ integers in the cols[ ] array
         //  You access each integer value in row_delimiters[ ] once.
@@ -59,11 +60,15 @@ public:
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
         return ( sizeof( int )*( n_vals + n_rows ) + sizeof( T ) * ( n_vals + n_cols + n_rows ) ) / time_in_ns( );
+#endif
+		// Number of Elements converted in unit time
+		return (n_vals / time_in_ns());
     }
 
     std::string bandwidth_formula( )
     {
-        return "GiB/s";
+        //return "GiB/s";
+		return "GiElements/s";
     }
 
     void setup_buffer( double alpha, double beta, const std::string& path )
