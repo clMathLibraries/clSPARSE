@@ -100,7 +100,17 @@ public:
 
             ASSERT_EQ(clsparseSuccess, status);
 
-            hY = uBLAS::blas_2::gmv(hY, hBeta, hAlpha, CSRE::ublasSCsr, hX);
+            float* vals = (float*)&CSRE::ublasSCsr.value_data()[0];
+            int* rows = &CSRE::ublasSCsr.index1_data()[0];
+            int* cols = &CSRE::ublasSCsr.index2_data()[0];
+            for (int row = 0; row < CSRE::n_rows; row++)
+            {
+                hY[row] *= hBeta;
+                int row_end = rows[row+1];
+                for (int i = rows[row]; i < rows[row+1]; i++)
+                    hY[row] += hAlpha * vals[i] * hX[cols[i]];
+            }
+
 
             T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
                                                        CL_TRUE, CL_MAP_READ,
@@ -109,7 +119,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < hY.size(); i++)
-                ASSERT_NEAR(hY[i], host_result[i], 1e-5);
+                ASSERT_NEAR(hY[i], host_result[i], fabs(hY[i]*1e-3));
 
             cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
                                                   host_result, 0, nullptr, nullptr);
@@ -123,7 +133,16 @@ public:
 
             ASSERT_EQ(clsparseSuccess, status);
 
-            hY = uBLAS::blas_2::gmv(hY, hBeta, hAlpha, CSRE::ublasDCsr, hX);
+            double* vals = (double*)&CSRE::ublasDCsr.value_data()[0];
+            int* rows = &CSRE::ublasDCsr.index1_data()[0];
+            int* cols = &CSRE::ublasDCsr.index2_data()[0];
+            for (int row = 0; row < CSRE::n_rows; row++)
+            {
+                hY[row] *= hBeta;
+                int row_end = rows[row+1];
+                for (int i = rows[row]; i < rows[row+1]; i++)
+                    hY[row] += hAlpha * vals[i] * hX[cols[i]];
+            }
 
             T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
                                                        CL_TRUE, CL_MAP_READ,
@@ -132,7 +151,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < hY.size(); i++)
-                ASSERT_NEAR(hY[i], host_result[i], 1e-12);
+                ASSERT_NEAR(hY[i], host_result[i], fabs(hY[i]*1e-10));
 
             cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
                                                   host_result, 0, nullptr, nullptr);
