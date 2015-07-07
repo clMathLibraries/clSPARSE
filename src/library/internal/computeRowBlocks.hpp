@@ -35,9 +35,9 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
     rowBlockType i, last_i = 0;
 
     // Check to ensure nRows can fit in 32 bits
-    if( (rowBlockType)nRows > (rowBlockType)pow( 2, ( 64 - ROW_BITS ) ) )
+    if( (rowBlockType)nRows > (rowBlockType)pow( 2, ROW_BITS ) )
     {
-        printf( "Number of Rows in the Sparse Matrix is greater than what is supported at present ((64-ROW_BITS) bits) !" );
+        printf( "Number of Rows in the Sparse Matrix is greater than what is supported at present (%d bits) !", ROW_BITS );
         return;
     }
 
@@ -49,7 +49,7 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
         // This is csr-stream case; bottom WG_BITS == 0
         if( ( i - last_i > 1 ) && sum > blkSize )
         {
-            *rowBlocks = ( (i - 1) << ROW_BITS );
+            *rowBlocks = ( (i - 1) << (64 - ROW_BITS) );
             rowBlocks++;
             i--;
             last_i = i;
@@ -68,12 +68,12 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
 
             for( int w = 1; w < numWGReq; w++ )
             {
-                *rowBlocks = ( (i - 1) << ROW_BITS );
+                *rowBlocks = ( (i - 1) << (64 - ROW_BITS) );
                 *rowBlocks |= static_cast< rowBlockType >( w );
                 rowBlocks++;
             }
 
-            *rowBlocks = ( i << ROW_BITS );
+            *rowBlocks = ( i << (64 -ROW_BITS) );
             rowBlocks++;
 
             last_i = i;
@@ -83,7 +83,7 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
         // This is csr-stream case; bottom WG_BITS == 0
         else if( sum == blkSize )
         {
-            *rowBlocks = ( i << ROW_BITS );
+            *rowBlocks = ( i << (64 - ROW_BITS) );
             rowBlocks++;
             last_i = i;
             sum = 0;
@@ -91,7 +91,7 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
 
     }
 
-    *rowBlocks = ( static_cast< rowBlockType >( nRows ) << ROW_BITS );
+    *rowBlocks = ( static_cast< rowBlockType >( nRows ) << (64 - ROW_BITS) );
     rowBlocks++;
 
     size_t dist = std::distance( rowBlocksBase, rowBlocks );

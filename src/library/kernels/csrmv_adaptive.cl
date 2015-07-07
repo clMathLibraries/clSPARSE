@@ -122,8 +122,8 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
    // know when the first workgroup for that row has finished initializing the output
    // value. While this bit is the same as the first workgroup's flag bit, this
    // workgroup will spin-loop.
-   unsigned int row = ((rowBlocks[gid] >> ROWBITS) & ((1UL << ROWBITS) - 1UL));
-   unsigned int stop_row = ((rowBlocks[gid + 1] >> ROWBITS) & ((1UL << ROWBITS) - 1UL));
+   unsigned int row = ((rowBlocks[gid] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
+   unsigned int stop_row = ((rowBlocks[gid + 1] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
 
    // If the next row block starts more than 2 rows away, then we choose CSR-Stream.
    // If this is zero (long rows) or one (final workgroup in a long row, or a single
