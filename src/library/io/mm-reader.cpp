@@ -584,10 +584,13 @@ clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
         iCsrColIndices[ i ] = coords[ i ].y;
         fCsrValues[ i ] = coords[ i ].val;
 
-        if( coords[ i ].x >= current_row )
+        while( coords[ i ].x >= current_row )
             iCsrRowOffsets[ current_row++ ] = i;
     }
     iCsrRowOffsets[ current_row ] = pCsrMatx->num_nonzeros;
+    while( current_row <= pCsrMatx->num_rows )
+        iCsrRowOffsets[ current_row++ ] = pCsrMatx->num_nonzeros;
+
 
     // Compute the csr matrix meta data and fill in buffers
     if( pCsrMatx->rowBlockSize )
@@ -652,10 +655,12 @@ clsparseDCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
         iCsrColIndices[ i ] = coords[ i ].y;
         fCsrValues[ i ] = coords[ i ].val;
 
-        if( coords[ i ].x >= current_row )
+        while( coords[ i ].x >= current_row )
             iCsrRowOffsets[ current_row++ ] = i;
     }
     iCsrRowOffsets[ current_row ] = pCsrMatx->num_nonzeros;
+    while( current_row <= pCsrMatx->num_rows )
+        iCsrRowOffsets[ current_row++ ] = pCsrMatx->num_nonzeros;
 
     // Compute the csr matrix meta data and fill in buffers
     if( pCsrMatx->rowBlockSize )
