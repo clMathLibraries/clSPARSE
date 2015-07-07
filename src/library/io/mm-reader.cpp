@@ -262,9 +262,9 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile )
         if( mm_is_real( Typecode ) )
         {
             if( typeid( FloatType ) == typeid( float ) )
-                fscanf( infile, "%d %d %f\n", &ir, &ic, &val );
+                fscanf( infile, "%d %d %f\n", &ir, &ic, (float*)&val );
             else if( typeid( FloatType ) == typeid( double ) )
-                fscanf( infile, "%d %d %lf\n", &ir, &ic, &val );
+                fscanf( infile, "%d %d %lf\n", &ir, &ic, (double*)&val );
 
             if( exp_zeroes == 0 && val == 0 )
                 continue;
@@ -274,9 +274,9 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile )
         else if( mm_is_integer( Typecode ) )
         {
             if(typeid(FloatType) == typeid(float))
-                fscanf(infile, "%d %d %f\n", &ir, &ic, &val);
+                fscanf(infile, "%d %d %f\n", &ir, &ic, (float*)&val);
             else if(typeid(FloatType) == typeid(double))
-                fscanf(infile, "%d %d %lf\n", &ir, &ic, &val);
+                fscanf(infile, "%d %d %lf\n", &ir, &ic, (double*)&val);
 
             if( exp_zeroes == 0 && val == 0 )
                 continue;
