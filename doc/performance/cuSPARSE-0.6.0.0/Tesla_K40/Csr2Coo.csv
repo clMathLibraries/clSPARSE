@@ -1,0 +1,19 @@
+Csr2Coo,Bell-Garland matrices,,
+,,,
+,,,
+,,,GiElements/s
+cant,,,12.5817
+consph,,,13.2232
+cop20k_A,,,6.12102
+mac_econ_fwd500,,,1.8865
+mc2depi,,,1.25825
+pdb1HYS,,,16.5828
+pwtk,,,12.4101
+rail4284,,,14.6147
+rma10,,,10.8501
+scircuit,,,1.71464
+shipsec1,,,13.0017
+webbase_1M,,,0.989057
+,,,
+,,,
+Nvidia System:,openSUSE 13.2,,(Durres.amd.com)
