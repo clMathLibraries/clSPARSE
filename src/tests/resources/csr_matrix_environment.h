@@ -80,23 +80,23 @@ public:
         cl_int copy_status;
 
         copy_status = clEnqueueReadBuffer( queue, csrSMatrix.values, CL_TRUE, 0,
-                                           ublasSCsr.value_data().size( ) * sizeof( cl_float ),
+                                           csrSMatrix.num_nonzeros * sizeof( cl_float ),
                                            ublasSCsr.value_data().begin( ),
                                            0, NULL, NULL );
 
         copy_status = clEnqueueReadBuffer( queue, csrSMatrix.rowOffsets, CL_TRUE, 0,
-                                            ublasSCsr.index1_data().size( ) * sizeof( cl_int ),
+                                            ( csrSMatrix.num_rows + 1 ) * sizeof( cl_int ),
                                             ublasSCsr.index1_data().begin(),
                                             0, NULL, NULL );
 
         copy_status = clEnqueueReadBuffer( queue, csrSMatrix.colIndices, CL_TRUE, 0,
-                                            ublasSCsr.index2_data().size( ) * sizeof( cl_int ),
+                                            csrSMatrix.num_nonzeros * sizeof( cl_int ),
                                             ublasSCsr.index2_data().begin(),
                                             0, NULL, NULL );
 
         // Create matrix in double precision on host;
-        // Ha! another trap, if you dont give nnz parameter ublas will create larger matrix!
-        ublasDCsr = dMatrixType(ublasSCsr, n_vals);
+        ublasDCsr = dMatrixType(n_rows, n_cols, n_vals);
+        ublasDCsr.complete_index1_data();
 
         // Create matrix in double precision on device;
         // Init double precision matrix;
@@ -120,9 +120,17 @@ public:
         csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrDMatrix.num_nonzeros * sizeof( cl_double ), NULL, &status );
 
+        // copy the single-precision values over into the double-precision array.
+        for ( int i = 0; i < ublasSCsr.value_data().size(); i++)
+            ublasDCsr.value_data()[i] = static_cast<double>(ublasSCsr.value_data()[i]);
+        for ( int i = 0; i < ublasSCsr.index1_data().size(); i++)
+            ublasDCsr.index1_data()[i] = static_cast<int>(ublasSCsr.index1_data()[i]);
+        for ( int i = 0; i < ublasSCsr.index2_data().size(); i++)
+            ublasDCsr.index2_data()[i] = static_cast<int>(ublasSCsr.index2_data()[i]);
+
         // copy the values in double precision to double precision matrix container
         copy_status = clEnqueueWriteBuffer( queue, csrDMatrix.values, CL_TRUE, 0,
-                                            ublasDCsr.value_data().size( ) * sizeof( cl_double ),
+                                            csrDMatrix.num_nonzeros * sizeof( cl_double ),
                                             ublasDCsr.value_data().begin( ),
                                             0, NULL, NULL);
 

@@ -61,7 +61,7 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control )
 
     // This allocates up front the maximum size of rowBlocks at start; likely not all the memory is used but
     // this is the fastest
-    pCsrMatx->rowBlockSize = 3 * ( pCsrMatx->num_nonzeros / BLKSIZE ) + 1;
+    pCsrMatx->rowBlockSize = 3 * ( pCsrMatx->num_nonzeros / BLKSIZE ) + 2;
 
     return clsparseSuccess;
 }
