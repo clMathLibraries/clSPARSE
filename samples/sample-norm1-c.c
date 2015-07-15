@@ -84,14 +84,14 @@ int main( int argc, char* argv[ ] )
     /** Allocate GPU buffers **/
 
     int N = 1024;
-    clsparseVector x;
+    cldenseVector x;
     clsparseInitVector(&x);
     clsparseScalar norm_x;
     clsparseInitScalar(&norm_x);
 
     x.values = clCreateBuffer(context, CL_MEM_READ_WRITE, N * sizeof (float),
                               NULL, &cl_status);
-    x.n = N;
+    x.num_values = N;
 
     // Fill x buffer with ones;
     float one = 1.0f;

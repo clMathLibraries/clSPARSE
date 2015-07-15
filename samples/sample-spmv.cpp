@@ -142,10 +142,10 @@ int main (int argc, char* argv[])
                                 nullptr, &cl_status);
 
 
-    clsparseVector x;
+    cldenseVector x;
     clsparseInitVector(&x);
 
-    clsparseVector y;
+    cldenseVector y;
     clsparseInitVector(&y);
 
     clsparseCsrMatrix A;
@@ -183,9 +183,9 @@ int main (int argc, char* argv[])
         return -5;
     }
 
-    A.nnz = nnz;
-    A.m = row;
-    A.n = col;
+    A.num_nonzeros = nnz;
+    A.num_rows = row;
+    A.num_cols = col;
 
     // This function allocates memory for rowBlocks structure. If not called
     // the structure will not be calculated and clSPARSE will run the vectorized
@@ -194,13 +194,13 @@ int main (int argc, char* argv[])
 
     // Allocate memory for CSR matrix
     A.values = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
-                                 A.nnz * sizeof( float ), NULL, &cl_status );
+                                 A.num_nonzeros * sizeof( float ), NULL, &cl_status );
 
     A.colIndices = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
-                                     A.nnz * sizeof( cl_int ), NULL, &cl_status );
+                                     A.num_nonzeros * sizeof( cl_int ), NULL, &cl_status );
 
     A.rowOffsets = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
-                                     ( A.m + 1 ) * sizeof( cl_int ), NULL, &cl_status );
+                                     ( A.num_rows + 1 ) * sizeof( cl_int ), NULL, &cl_status );
 
     A.rowBlocks = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                     A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );
@@ -236,19 +236,19 @@ int main (int argc, char* argv[])
                                         0, nullptr, nullptr);
 
 
-    x.n = A.n;
-    x.values = clCreateBuffer(context(), CL_MEM_READ_ONLY, x.n * sizeof(float),
+    x.num_values = A.num_cols;
+    x.values = clCreateBuffer(context(), CL_MEM_READ_ONLY, x.num_values * sizeof(float),
                               NULL, &cl_status);
 
     cl_status = clEnqueueFillBuffer(queue(), x.values, &one, sizeof(float),
-                                    0, x.n * sizeof(float), 0, nullptr, nullptr);
+                                    0, x.num_values * sizeof(float), 0, nullptr, nullptr);
 
-    y.n = A.m;
-    y.values = clCreateBuffer(context(), CL_MEM_READ_WRITE, y.n * sizeof(float),
+    y.num_values = A.num_rows;
+    y.values = clCreateBuffer(context(), CL_MEM_READ_WRITE, y.num_values * sizeof(float),
                               NULL, &cl_status);
 
     cl_status = clEnqueueFillBuffer(queue(), y.values, &zero, sizeof(float),
-                                    0, y.n * sizeof(float), 0, nullptr, nullptr);
+                                    0, y.num_values * sizeof(float), 0, nullptr, nullptr);
 
 
 
