@@ -98,10 +98,12 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
     }
 
     size_t dist = std::distance( rowBlocksBase, rowBlocks );
-    assert( dist <= rowBlockSize );
+    assert( (2 * dist) <= rowBlockSize );
 
     //   Update the size of rowBlocks to reflect the actual amount of memory used
-    rowBlockSize = dist;
+    // We're multiplying the size by two because the extended precision form of
+    // CSR-Adaptive requires more space for the final global reduction.
+    rowBlockSize = 2 * dist;
 }
 
 #endif
