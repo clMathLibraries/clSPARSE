@@ -182,13 +182,7 @@ TYPED_TEST_CASE(Blas2, TYPES);
 
 TYPED_TEST(Blas2, csrmv_adaptive)
 {
-    if ( typeid(TypeParam) == typeid(cl_float) )
-        this->test_csrmv();
-    else
-    {
-//        std::cerr << "Adaptive version of csrmv might crash!" << std::endl;
-        this->test_csrmv();
-    }
+    this->test_csrmv();
 }
 
 TYPED_TEST(Blas2, csrmv_vector)
@@ -221,7 +215,7 @@ TYPED_TEST(Blas2, csrmv_vector)
     ASSERT_EQ(clsparseSuccess, status);
 
     CSRE::csrSMatrix.rowBlocks =
-            ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+            ::clCreateBuffer( CLSE::context, CL_MEM_READ_WRITE,
                               CSRE::csrSMatrix.rowBlockSize * sizeof( cl_ulong ),
                               NULL, &cl_status );
 

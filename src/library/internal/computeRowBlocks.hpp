@@ -91,8 +91,11 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
 
     }
 
-    *rowBlocks = ( static_cast< rowBlockType >( nRows ) << (64 - ROW_BITS) );
-    rowBlocks++;
+    if ((*(rowBlocks-1) >> (64 - ROW_BITS)) != static_cast< rowBlockType>( nRows))
+    {
+        *rowBlocks = ( static_cast< rowBlockType >( nRows ) << (64 - ROW_BITS) );
+        rowBlocks++;
+    }
 
     size_t dist = std::distance( rowBlocksBase, rowBlocks );
     assert( dist <= rowBlockSize );
