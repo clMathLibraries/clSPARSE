@@ -1,21 +1,21 @@
 R"(
 
-/***************************************************************************                                                                                     
-*   © 2012,2014 Advanced Micro Devices, Inc. All rights reserved.                                     
-*                                                                                    
-*   Licensed under the Apache License, Version 2.0 (the "License");   
-*   you may not use this file except in compliance with the License.                 
-*   You may obtain a copy of the License at                                          
-*                                                                                    
-*       http://www.apache.org/licenses/LICENSE-2.0                      
-*                                                                                    
-*   Unless required by applicable law or agreed to in writing, software              
-*   distributed under the License is distributed on an "AS IS" BASIS,              
-*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.         
-*   See the License for the specific language governing permissions and              
-*   limitations under the License.                                                   
-***************************************************************************/          
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable 
+/***************************************************************************
+*   © 2012,2014-2015 Advanced Micro Devices, Inc. All rights reserved.                                     
+*
+*   Licensed under the Apache License, Version 2.0 (the "License");
+*   you may not use this file except in compliance with the License.
+*   You may obtain a copy of the License at
+*
+*       http://www.apache.org/licenses/LICENSE-2.0
+*
+*   Unless required by applicable law or agreed to in writing, software
+*   distributed under the License is distributed on an "AS IS" BASIS,
+*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*   See the License for the specific language governing permissions and
+*   limitations under the License.
+***************************************************************************/
+#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
 #pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
 #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
 #define WG_SIZE                 256
@@ -56,17 +56,17 @@ uint scanLocalMemAndTotal(uint val, __local uint* lmem, uint *totalSum, int excl
     int l_id = get_local_id(0);
     int l_size = get_local_size(0);
     lmem[l_id] = 0;
-    
+
     l_id += l_size;
     lmem[l_id] = val;
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+
     uint t;
     for (int i = 1; i < l_size; i *= 2)
     {
-        t = lmem[l_id -  i]; 
+        t = lmem[l_id -  i];
         barrier(CLK_LOCAL_MEM_FENCE);
-        lmem[l_id] += t;     
+        lmem[l_id] += t;
         barrier(CLK_LOCAL_MEM_FENCE);
     }
     *totalSum = lmem[l_size*2 - 1];
@@ -121,7 +121,7 @@ void sort4BitsKeyValueAscending(u32 sortData[4],  int sortVal[4],  VALUE_TYPE so
 #endif
 
             GROUP_LDS_BARRIER;
-        
+
             ldsSortData[dstAddr.x] = sortData[0];
             ldsSortData[dstAddr.y] = sortData[1];
             ldsSortData[dstAddr.z] = sortData[2];
@@ -160,15 +160,15 @@ void sort4BitsKeyValueAscending(u32 sortData[4],  int sortVal[4],  VALUE_TYPE so
 }
 
 __kernel
-void permuteByKeyAscTemplate( __global const u32* restrict gKeys, 
+void permuteByKeyAscTemplate( __global const u32* restrict gKeys,
                               __global const int* restrict gValues,
-                              __global const  VALUE_TYPE * restrict gValues2, 
-                              __global const u32* rHistogram, 
-                              __global u32* restrict gDstKeys, 
-                              __global int* restrict gDstValues, 
+                              __global const  VALUE_TYPE * restrict gValues2,
+                              __global const u32* rHistogram,
+                              __global u32* restrict gDstKeys,
+                              __global int* restrict gDstValues,
                               __global VALUE_TYPE * restrict gDstValues2,
                                        int m_n,
-	                               int m_nWGs, 
+	                               int m_nWGs,
 	                               int m_startBit,
 	                               int m_nBlocksPerWG)
 {
@@ -195,14 +195,14 @@ void permuteByKeyAscTemplate( __global const u32* restrict gKeys,
     if( lIdx < (NUM_BUCKET) )
     {
 #if defined(DESCENDING)
-        localHistogramToCarry[lIdx] = rHistogram[(NUM_BUCKET - lIdx -1)*nWGs + wgIdx]; 
+        localHistogramToCarry[lIdx] = rHistogram[(NUM_BUCKET - lIdx -1)*nWGs + wgIdx];
 #else
         localHistogramToCarry[lIdx] = rHistogram[lIdx*nWGs + wgIdx];
 #endif
     }
 
     GROUP_LDS_BARRIER;
-    
+
 
     const int blockSize = ELEMENTS_PER_WORK_ITEM*WG_SIZE;
 
@@ -248,7 +248,7 @@ void permuteByKeyAscTemplate( __global const u32* restrict gKeys,
         for(int i=0; i<ELEMENTS_PER_WORK_ITEM; i++)
             keys[i] = (sortData[i]>>startBit) & 0xf;
 
-        {	
+        {
             u32 setIdx = lIdx/16;
             if( lIdx < NUM_BUCKET )
             {
@@ -271,9 +271,9 @@ void permuteByKeyAscTemplate( __global const u32* restrict gKeys,
                 AtomInc( SET_HISTOGRAM( setIdx, keys[i] ) );
 #endif
 #endif
-            
+
             GROUP_LDS_BARRIER;
-            
+
             uint hIdx = NUM_BUCKET+lIdx;
             if( lIdx < NUM_BUCKET )
             {
@@ -345,7 +345,7 @@ void permuteByKeyAscTemplate( __global const u32* restrict gKeys,
                         gDstKeys[ groupOffset + myIdx ] = sortData[ie];
                         gDstValues[ groupOffset + myIdx ] = sortVal[ie];
                         gDstValues2[ groupOffset + myIdx ] = sortVal2[ie];
-                        
+
                     }
                 }
             }
@@ -392,7 +392,7 @@ void sort4BitsKeyValueDescending(u32 sortData[4],  int sortVal[4], const int sta
 #endif
 
             GROUP_LDS_BARRIER;
-        
+
             ldsSortData[dstAddr.x] = sortData[0];
             ldsSortData[dstAddr.y] = sortData[1];
             ldsSortData[dstAddr.z] = sortData[2];
@@ -421,11 +421,11 @@ void sort4BitsKeyValueDescending(u32 sortData[4],  int sortVal[4], const int sta
 }
 //do we need descending
 __kernel
-void permuteByKeyDescTemplate( __global const u32* restrict gKeys, 
-                               __global const int* restrict gValues, 
-                               __global const u32* rHistogram, 
-                               __global u32* restrict gDstKeys, 
-                               __global int* restrict gDstValues, 
+void permuteByKeyDescTemplate( __global const u32* restrict gKeys,
+                               __global const int* restrict gValues,
+                               __global const u32* rHistogram,
+                               __global u32* restrict gDstKeys,
+                               __global int* restrict gDstValues,
                                         int4 cb)
 {
     __local u32 ldsSortData[WG_SIZE*ELEMENTS_PER_WORK_ITEM+16];
@@ -450,14 +450,14 @@ void permuteByKeyDescTemplate( __global const u32* restrict gKeys,
     if( lIdx < (NUM_BUCKET) )
     {
 #if defined(DESCENDING)
-        localHistogramToCarry[lIdx] = rHistogram[(NUM_BUCKET - lIdx -1)*nWGs + wgIdx]; 
+        localHistogramToCarry[lIdx] = rHistogram[(NUM_BUCKET - lIdx -1)*nWGs + wgIdx];
 #else
         localHistogramToCarry[lIdx] = rHistogram[lIdx*nWGs + wgIdx];
 #endif
     }
 
     GROUP_LDS_BARRIER;
-    
+
 
     const int blockSize = ELEMENTS_PER_WORK_ITEM*WG_SIZE;
 
@@ -499,7 +499,7 @@ void permuteByKeyDescTemplate( __global const u32* restrict gKeys,
         for(int i=0; i<ELEMENTS_PER_WORK_ITEM; i++)
             keys[i] = (sortData[i]>>startBit) & 0xf;
 
-        {	
+        {
             u32 setIdx = lIdx/16;
             if( lIdx < NUM_BUCKET )
             {
@@ -522,9 +522,9 @@ void permuteByKeyDescTemplate( __global const u32* restrict gKeys,
                 AtomInc( SET_HISTOGRAM( setIdx, keys[i] ) );
 #endif
 #endif
-            
+
             GROUP_LDS_BARRIER;
-            
+
             uint hIdx = NUM_BUCKET+lIdx;
             if( lIdx < NUM_BUCKET )
             {
@@ -595,7 +595,7 @@ void permuteByKeyDescTemplate( __global const u32* restrict gKeys,
                     {
                         gDstKeys[ groupOffset + myIdx ] = sortData[ie];
                         gDstValues[ groupOffset + myIdx ] = sortVal[ie];
-                        
+
                     }
                 }
             }
@@ -615,4 +615,3 @@ void permuteByKeyDescTemplate( __global const u32* restrict gKeys,
     }
 }
 )"
-
