@@ -1,0 +1,17 @@
+csr2coo,,
+,,
+OpenCL runtime:,1573.4 (VM),
+OpenCL Device:,w9100,
+,,Gi-Elements/s
+cant,,5.34
+consph,,5.80
+cop20k_A,,4.58
+mac_econ_fwd500,,3.37
+mc2depi,,4.22
+pdb1HYS,,5.67
+pwtk,,6.80
+rail4284,,6.15
+rma10,,4.32
+scircuit,,2.47
+shipsec1,,5.03
+webbase_1M,,3.63

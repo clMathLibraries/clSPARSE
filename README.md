@@ -1,30 +1,12 @@
-## Project badges
-**coming soon**
-
-Pre-built binaries **not yet** available on our releases page **coming soon**
+Pre-built binaries are available on our [releases page](releases)
 
 # clSPARSE
-an OpenCL&copy; library implementing Sparse linear algebra.  This project started
+an OpenCL&copy; library implementing sparse linear algebra.  This project started
 as a collaboration between [AMD Inc.](http://www.amd.com/) and
-[Vratis Ltd.](http://www.vratis.com/).  In opening the source to the public, we
-invite all interested parties to [contribute](CONTRIBUTING.md) to the source.
+[Vratis Ltd.](http://www.vratis.com/).
 
 ## Introduction to clSPARSE
-The library source compiles cross-platform on the back of an advanced cmake build
-system allowing users to build the library, benchmarks, tests and takes care of
-dependencies for them.  True in spirit with
-the other clMath libraries, clSPARSE exports a “C” interface to allow
-projects to build wrappers around clSPARSE in any language they need.   With
-respect to the API, a great deal of thought and effort went into designing the
-API’s to make them less ‘cluttered’ compared to the older clMath libraries.  
-OpenCL state is not explicitly passed through the API, which enables the library
-to be forward compatible when users are ready to switch from OpenCL 1.2 to OpenCL
-2.0.  Lastly, the API’s are designed such that users are in control of where
-input and output buffers live, and they maintain absolute control of when data
-transfers to/from device memory need to happen, so that there are no performance
-surprises.
-
-At release, clSPARSE provides these fundamental sparse operations for OpenCL:
+At this time, clSPARSE provides these fundamental sparse operations for OpenCL:
 -  Sparse Matrix - dense Vector multiply (SpM-dV)
 -  Sparse Matrix - dense Matrix multiply (SpM-dM)
 -  Iterative conjugate gradient solver (CG)
@@ -33,11 +15,16 @@ At release, clSPARSE provides these fundamental sparse operations for OpenCL:
 -  COO to CSR conversions (& converse)
 -  Functions to read matrix market files in COO or CSR format
 
-### clSPARSE build information
-A [Build primer](https://github.com/kknox/clSPARSE/wiki/Build) is available
+True in spirit with the other clMath libraries, clSPARSE exports a “C” interface to allow
+projects to build wrappers around clSPARSE in any language they need.  A great deal
+of thought and effort went into designing the API’s to make them less ‘cluttered’
+compared to the older clMath libraries.  OpenCL state is not explicitly passed
+through the API, which enables the library to be forward compatible when users are
+ready to switch from OpenCL 1.2 to OpenCL 2.0 _(OpenCL 2.0 support not completely finished)_
 
-### clSPARSE library user documentation
-**API documentation** not yet available
+The API’s are designed such that users are in control of where input and output
+buffers live, and they maintain control of when data transfers to/from device
+memory happen, so that there are no performance surprises.
 
 ### Google Groups
 Two mailing lists have been created for the clMath projects:
@@ -48,12 +35,15 @@ Two mailing lists have been created for the clMath projects:
 -   clmath-developers@googlegroups.com - group whose focus is for
     developers interested in contributing to the library code itself
 
-### Contributing code
-Please refer to and read the [Contributing](CONTRIBUTING.md) document for guidelines on
-how to contribute code to this open source project. Code in the
-/master branch is considered to be stable and new library releases are made
-when commits are merged into /master.  Active development and pull-requests should
-be made to the /develop branch.
+### API semantic versioning
+Good software is typically the result of the loop of feedback and iteration;
+software interfaces no less so.  clSPARSE follows the
+[semantic versioning](http://semver.org/) guidelines, and while the major version
+number remains '0', the public API should not be considered stable.  We release
+clSPARSE as beta software (0.y.z) early to the community to elicit feedback and
+comment.  This comes with the expectation that with feedback, we may incorporate
+breaking changes to the API that might require early users to recompile, or rewrite
+portions of their code as we iterate on the design.
 
 ## Samples
 clSPARSE contains a directory of simple [OpenCL samples](./samples) that demonstrate the use
@@ -61,9 +51,25 @@ of the API in both C and C++.  The [superbuild](http://www.kitware.com/media/htm
 script for clSPARSE also builds the samples as an external project, to demonstrate
 how an application would find and link to clSPARSE with cmake.
 
-## Build dependencies
+### clSPARSE library documentation
+**API documentation** is not yet available, but the samples above give an excellent
+starting point to basic library operations.
+
+### Contributing code
+Please refer to and read the [Contributing](CONTRIBUTING.md) document for guidelines on
+how to contribute code to this open source project. Code in the
+/master branch is considered to be stable and new library releases are made
+when commits are merged into /master.  Active development and pull-requests should
+be made to the **/develop** branch.
+
+## Build
 clSPARSE is primarily written with C++ using C++11 core features.  It does export
 a 'C' interface for compatibility with other languages.
+
+### How to build clSPARSE for your platform
+A [Build primer](https://github.com/kknox/clSPARSE/wiki/Build) is available on
+the wiki, which describes how to use cmake to generate platforms specific build
+files
 
 ### Compiling for Windows
 -  Windows&reg; 7/8
@@ -71,7 +77,7 @@ a 'C' interface for compatibility with other languages.
 -  CMake 2.8.12 (download from [Kitware](http://www.cmake.org/download/))
   -  Solution (.sln) or
   -  Nmake makefiles
--   An OpenCL SDK, such as [APP SDK 3.0](http://developer.amd.com/tools-and-sdks/opencl-zone/amd-accelerated-parallel-processing-app-sdk/)
+-  An OpenCL SDK, such as [APP SDK 3.0](http://developer.amd.com/tools-and-sdks/opencl-zone/amd-accelerated-parallel-processing-app-sdk/)
 
 ### Compiling for Linux
 -  GCC 4.8 and above
@@ -79,7 +85,7 @@ a 'C' interface for compatibility with other languages.
    -  Unix makefiles or
    -  KDevelop or
    -  QT Creator
-   -  An OpenCL SDK, such as [APP SDK 3.0](http://developer.amd.com/tools-and-sdks/opencl-zone/amd-accelerated-parallel-processing-app-sdk/)
+-  An OpenCL SDK, such as [APP SDK 3.0](http://developer.amd.com/tools-and-sdks/opencl-zone/amd-accelerated-parallel-processing-app-sdk/)
 
 ### Compiling for Mac OSX
 -   CMake 2.8.12 (install via [brew](http://brew.sh/))
@@ -87,12 +93,6 @@ a 'C' interface for compatibility with other languages.
    -  XCode
 - An OpenCL SDK (installed via `xcode-select --install`)
 
-### Test infrastructure dependencies
+### Bench & Test infrastructure dependencies
 -   Googletest v1.7
 -   Boost v1.58
-
-### Benchmark infrastructure dependencies
--   Boost v1.58
-
-  [API documentation]: http://clmathlibraries.github.io/clSPARSE/
-  [binary_release]: https://github.com/clMathLibraries/clSPARSE/releases
