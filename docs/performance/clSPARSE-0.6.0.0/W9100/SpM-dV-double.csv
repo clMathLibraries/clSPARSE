@@ -1,0 +1,17 @@
+SpM-dV,double precision,
+,,
+OpenCL runtime:,1573.4 (VM),
+OpenCL Device:,w9100,
+,,Gi-Bytes/s
+cant,,111.504
+consph,,127.599
+cop20k_A,,93.7173
+mac_econ_fwd500,,69.5985
+mc2depi,,103.566
+pdb1HYS,,143.124
+pwtk,,182.321
+rail4284,,56.5044
+rma10,,109.111
+scircuit,,52.9827
+shipsec1,,120.78
+webbase_1M,,22.4584
