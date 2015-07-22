@@ -100,10 +100,10 @@ int main(int argc, char* argv[])
     clsparseScalar gpuAlpha;
     clsparseInitScalar(&gpuAlpha);
 
-    clsparseVector gpuY;
+    cldenseVector gpuY;
     clsparseInitVector(&gpuY);
 
-    clsparseVector gpuX;
+    cldenseVector gpuX;
     clsparseInitVector(&gpuX);
 
 
@@ -119,8 +119,8 @@ int main(int argc, char* argv[])
     gpuY.values = ::clCreateBuffer (context(), CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
                                 N * sizeof(float), y.data(), &cl_status);
 
-    // set the size of clsparseVector;
-    gpuY.n = N;
+    // set the size of cldenseVector;
+    gpuY.num_values = N;
 
     if (cl_status != CL_SUCCESS )
     {
@@ -129,8 +129,8 @@ int main(int argc, char* argv[])
 
    gpuX.values = ::clCreateBuffer (context(), CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
                                 N * sizeof(float), x.data(), &cl_status);
-   // set the size of clsparseVector;
-   gpuX.n = N;
+   // set the size of cldenseVector;
+   gpuX.num_values = N;
 
     if (cl_status != CL_SUCCESS )
     {
@@ -188,9 +188,9 @@ int main(int argc, char* argv[])
 
     ::clReleaseMemObject(gpuAlpha.value);
     ::clReleaseMemObject(gpuY.values);
-    gpuY.n = 0;
+    gpuY.num_values = 0;
     ::clReleaseMemObject(gpuX.values);
-    gpuX.n = 0;
+    gpuX.num_values = 0;
 
     //OpenCL Wrapper automatically release allocated resources
 

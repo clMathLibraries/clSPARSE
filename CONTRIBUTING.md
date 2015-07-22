@@ -13,10 +13,8 @@ Firstly, in order to contribute code to this project, a contributor must have a 
 At this point, the repository maintainers will be notified by GitHub that a 'pull request' exists pending against their repository.  A code review should be completed within a few days, depending on the scope of submitted code, and the code will either be accepted, rejected or commented on for feedback.
 
 ## Code submission guidelines
-We want to ensure that the project code base maintains a level of quality over time, such that future contributors find it as easy to jump into the code as hopefully it is today.  As such, pull requests should
-* follow the [code style guidelines]( ) of the project as posted to the project wiki.  Unfortunately, there was no unifying code guidelines defined between the BLAS & FFT projects, but code submissions should not mix styles within an individual file.  We have since defined and posted a code style guideline for the projects and we expect the code to slowly transition to the new
-guidelines over time
-    *  separate check-ins that modify a files style from the ones that add/change/delete code.
+Points to remember when generating pull-requests against clSPARSE
+* clSPARSE is a project licensed under the [Apache License, Version 2.0]( http://www.apache.org/licenses/LICENSE-2.0 ).  If you are not already familiar, please review the license before issuing a pull request.  We intend this project to be open to external contributors, and encourage developers to contribute code back that they believe will provide value to the overall community.  We interpret an explicit 'pull request' to this repository as an implicit acknowledgement from the contributor that they wish to share code under the terms of the Apache license v2.0.
 * target the **develop** branch
 * ensure that the [code properly builds]( https://github.com/kknox/clSPARSE/wiki/Build )
   * Proper cloud based build services should verify the code builds in a PR
