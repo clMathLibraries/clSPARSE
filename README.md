@@ -1,8 +1,8 @@
 Pre-built binaries are available on our [releases page](releases)
 
 # clSPARSE
-an OpenCL&copy; library implementing sparse linear algebra.  This project started
-as a collaboration between [AMD Inc.](http://www.amd.com/) and
+an OpenCL&copy; library implementing Sparse linear algebra.  This project is a result of
+a collaboration between [AMD Inc.](http://www.amd.com/) and
 [Vratis Ltd.](http://www.vratis.com/).
 
 ## Introduction to clSPARSE
