@@ -4,18 +4,14 @@
 
 #include <vector>
 
-int
+int sparseHeaderfromFile( int* nnz, int* rows, int* cols, const char* filePath );
+
+template< class T > int
 cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indices,
-std::vector< float >& values, const char* filePath );
+std::vector< T >& values, const char* filePath );
 
-int
+template< class T > int
 csrMatrixfromFile( std::vector< int >& row_offsets, std::vector< int >& col_indices,
-std::vector< float >& values, const char* filePath );
-
-int
-csrMatrixfromFile(std::vector< int >& row_offsets, std::vector< int >& col_indices,
-std::vector< double >& values, const char* filePath);
-
-int sparseHeaderfromFile(int* nnz, int* rows, int* cols, const char* filePath);
+std::vector< T >& values, const char* filePath );
 
 #endif

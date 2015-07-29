@@ -21,6 +21,7 @@
 #include "functions/cufunc_xCsr2dense.hpp"
 #include "functions/cufunc_xCsr2Coo.hpp"
 #include "functions/cufunc_xDense2Csr.hpp"
+#include "functions/cufunc_xCoo2Csr.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
     ( "alpha", po::value<double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
     ( "beta", po::value<double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
     //( "transposeA", po::value<int>( &transA_option )->default_value( 0 ), "0 = no transpose, 1 = transpose, 2 = conjugate transpose" )
-    ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, Csr2Dense, Csr2Coo, Dense2Csr" )
+    ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
     ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
     ( "profile,p", po::value<int>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
     ;
@@ -199,6 +200,17 @@ int main(int argc, char *argv[])
       {
           std::cerr << "Unknown xDense2Csr precision " << std::endl;
           return -1;
+      }
+  }
+  else if( boost::iequals( function, "Coo2Csr" ) )
+  {
+      if( precision == "s" )
+      {
+          my_function = std::unique_ptr< cusparseFunc >( new xCoo2Csr< float >( timer ) );
+      }
+      else
+      {
+          my_function = std::unique_ptr< cusparseFunc >( new xCoo2Csr< double >( timer ) );
       }
   }
   else
