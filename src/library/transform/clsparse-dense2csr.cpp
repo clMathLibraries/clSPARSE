@@ -142,7 +142,7 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
                                      NULL);
 
 
-    printf("nnz = %d\n", nnz);
+    //printf("nnz = %d\n", nnz);
 
     status = scan(
                   0,

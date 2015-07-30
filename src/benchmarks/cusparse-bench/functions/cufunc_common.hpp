@@ -250,8 +250,8 @@ public:
     virtual void initialize_cpu_buffer() = 0;
     virtual void initialize_gpu_buffer() = 0;
     virtual void reset_gpu_write_buffer() = 0;
-	virtual void read_gpu_buffer() = 0;
-	virtual void releaseGPUBuffer_deleteCPUBuffer()=0;
+    virtual void read_gpu_buffer() = 0;
+    virtual void releaseGPUBuffer_deleteCPUBuffer()=0;
 
     StatisticalTimer& timer;
     StatisticalTimer::sTimerID timer_id;
