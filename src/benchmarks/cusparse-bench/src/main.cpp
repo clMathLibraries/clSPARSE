@@ -20,6 +20,7 @@
 #include "functions/cufunc_xSpMdV.hpp"
 #include "functions/cufunc_xCsr2dense.hpp"
 #include "functions/cufunc_xCsr2Coo.hpp"
+#include "functions/cufunc_xDense2Csr.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -110,7 +111,7 @@ int main(int argc, char *argv[])
     ( "alpha", po::value<double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
     ( "beta", po::value<double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
     //( "transposeA", po::value<int>( &transA_option )->default_value( 0 ), "0 = no transpose, 1 = transpose, 2 = conjugate transpose" )
-    ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, Csr2Dense, Csr2Coo" )
+    ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, Csr2Dense, Csr2Coo, Dense2Csr" )
     ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
     ( "profile,p", po::value<int>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
     ;
@@ -173,9 +174,30 @@ int main(int argc, char *argv[])
       {
           my_function = std::unique_ptr< cusparseFunc >(new xCsr2Coo< float >(timer));
       }
-      else
+      else if (precision == "d")
       {
           my_function = std::unique_ptr< cusparseFunc >(new xCsr2Coo< double >(timer));
+      }
+      else
+      {
+          std::cerr << "Unknown xCsr2Coo precision" << std::endl;
+          return -1;
+      }
+  }
+  else if (boost::iequals(function, "Dense2Csr"))
+  {
+      if (precision == "s")
+      {
+          my_function = std::unique_ptr< cusparseFunc >(new xDense2Csr< float >(timer));
+      }
+      else if (precision == "d")
+      {
+          my_function = std::unique_ptr< cusparseFunc >(new xDense2Csr< double >(timer));
+      }
+      else
+      {
+          std::cerr << "Unknown xDenseCsr precision " << std::endl;
+          return -1;
       }
   }
   else

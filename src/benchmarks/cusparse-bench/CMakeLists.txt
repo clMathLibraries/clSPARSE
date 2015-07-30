@@ -17,6 +17,8 @@ set( CLIENT_HEADER
   functions/cufunc_common.hpp
   functions/cufunc_xSpMdV.hpp
   functions/cufunc_xCsr2dense.hpp
+  functions/cufunc_xCsr2Coo.hpp
+  functions/cufunc_xDense2Csr.hpp
 )
 
 include_directories(
