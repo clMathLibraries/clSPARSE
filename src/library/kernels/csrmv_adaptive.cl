@@ -115,11 +115,12 @@ FPTYPE atomic_two_sum_float( global FPTYPE *x_ptr,
                             FPTYPE *sumk_err )
 {
     // Have to wait until the return from the atomic op to know what X was.
-    FPTYPE sumk_s;
+    FPTYPE sumk_s = 0.;
 #ifdef EXTENDED_PRECISION
     FPTYPE x, swap;
     sumk_s = atomic_add_float_extended(x_ptr, y, &x);
-    if (fabs(x) < fabs(y)) {
+    if (fabs(x) < fabs(y))
+    {
         swap = x;
         x = y;
         y = swap;
@@ -223,13 +224,22 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
    // workgroup will spin-loop.
    unsigned int row = ((rowBlocks[gid] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
    unsigned int stop_row = ((rowBlocks[gid + 1] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
+   unsigned int num_rows = stop_row - row;
+
+   // Get the "workgroup within this long row" ID out of the bottom bits of the row block.
+   unsigned int wg = rowBlocks[gid] & ((1 << WGBITS) - 1);
+
+   // Any workgroup only calculates, at most, BLOCK_MULTIPLIER*BLOCKSIZE items in a row.
+   // If there are more items in this row, we assign more workgroups.
+   unsigned int vecStart = rowPtrs[row] + (wg * BLOCK_MULTIPLIER*BLOCKSIZE);
+   unsigned int vecEnd = (rowPtrs[row + 1] > vecStart + BLOCK_MULTIPLIER*BLOCKSIZE) ? vecStart + BLOCK_MULTIPLIER*BLOCKSIZE : rowPtrs[row + 1];
 
    // If the next row block starts more than 2 rows away, then we choose CSR-Stream.
    // If this is zero (long rows) or one (final workgroup in a long row, or a single
-   // row in a row block), we want to use the CSR-Vector algorithm.
+   // row in a row block), we want to use the CSR-Vector algorithm(s).
    // We have found, through experimentation, that CSR-Vector is generally faster
    // when working on 2 rows, due to its simplicity and better reduction method.
-   if (stop_row - row > 2)
+   if (stop_row - row > ROWS_FOR_VECTOR)
    {
        // CSR-Stream case. See Sections III.A and III.B in the SC'14 paper:
        // "Efficient Sparse Matrix-Vector Multiplication on GPUs using the CSR Storage Format"
@@ -260,7 +270,7 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
       int col = rowPtrs[row] + lid;
       if (gid != (get_num_groups(0) - 1))
       {
-          for(int i = 0; i < BLOCKSIZE; i += 256)
+          for(int i = 0; i < BLOCKSIZE; i += WGSIZE)
               partialSums[lid + i] = alpha * vals[col + i] * vec[cols[col + i]];
       }
       else
@@ -273,7 +283,7 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
           // This causes a minor performance loss because this is the last workgroup
           // to be launched, and this loop can't be unrolled.
           int max_to_load = rowPtrs[stop_row] - rowPtrs[row];
-          for(int i = 0; i < max_to_load; i += 256)
+          for(int i = 0; i < max_to_load; i += WGSIZE)
               partialSums[lid + i] = alpha * vals[col + i] * vec[cols[col + i]];
       }
       barrier(CLK_LOCAL_MEM_FENCE);
@@ -357,28 +367,84 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
           // However, this reduction is also much faster than CSR-Scalar, because local memory
           // is designed for scatter-gather operations.
           // We need a while loop because there may be more rows than threads in the WG.
-         while(local_row < stop_row)
-         {
-            int local_first_val = (rowPtrs[local_row] - rowPtrs[row]);
-            int local_last_val = rowPtrs[local_row + 1] - rowPtrs[row];
-            FPTYPE temp = 0.;
-            FPTYPE sumk_e = 0.;
-            for (int local_cur_val = local_first_val; local_cur_val < local_last_val; local_cur_val++)
-                temp = two_sum(temp, partialSums[local_cur_val], &sumk_e);
+          while(local_row < stop_row)
+          {
+              int local_first_val = (rowPtrs[local_row] - rowPtrs[row]);
+              int local_last_val = rowPtrs[local_row + 1] - rowPtrs[row];
+              FPTYPE temp = 0.;
+              FPTYPE sumk_e = 0.;
+              for (int local_cur_val = local_first_val; local_cur_val < local_last_val; local_cur_val++)
+                  temp = two_sum(temp, partialSums[local_cur_val], &sumk_e);
 
-            // After you've done the reduction into the temp register,
-            // put that into the output for each row.
-            if (beta != 0.)
-                temp = two_sum(beta * out[local_row], temp, &sumk_e);
-            out[local_row] = temp + sumk_e;
-            local_row += get_local_size(0);
-         }
+              // After you've done the reduction into the temp register,
+              // put that into the output for each row.
+              if (beta != 0.)
+                  temp = two_sum(beta * out[local_row], temp, &sumk_e);
+              out[local_row] = temp + sumk_e;
+              local_row += WGSIZE;
+          }
       }
+   }
+   else if (num_rows >= 1 && !wg) // CSR-Vector case.
+   {
+       // ^^ The above check says that if this workgroup is supposed to work on <= ROWS_VECTOR
+       // number of rows then we should do the CSR-Vector algorithm. If we want this row to be
+       // done with CSR-LongRows, then all of its workgroups (except the last one) will have the
+       // same stop_row and row. The final workgroup in a LongRow will have stop_row and row
+       // different, but the internal "wg" number will be non-zero.
+       unsigned int myRow = row; // Adding another variable for row as it is getting updated below
+
+       // CSR-Vector will always do at least one iteration.
+       // If this workgroup is operating on multiple rows (because CSR-Stream is poor for small
+       // numberss of rows), then it needs to iterate until it reaches the stop_row.
+       // We don't check <= stop_row because of the potential for unsigned overflow.
+       while (myRow < stop_row)
+       {
+           // Any workgroup only calculates, at most, BLOCKSIZE items in this row.
+           // If there are more items in this row, we use CSR-LongRows.
+           vecStart = rowPtrs[myRow];
+           vecEnd = rowPtrs[myRow+1];
+
+           // Load in a bunch of partial results into your register space, rather than LDS (no contention)
+           // Then dump the partially reduced answers into the LDS for inter-work-item reduction.
+           // Using a long induction variable to make sure unsigned int overflow doesn't break things.
+           FPTYPE mySum = 0.;
+           FPTYPE sumk_e = 0.;
+           for (long j = vecStart + lid; j < vecEnd; j+=WGSIZE)
+           {
+               unsigned int col = cols[(unsigned int)j];
+               mySum = two_sum(mySum, alpha * vals[(unsigned int)j] * vec[col], &sumk_e);
+           }
+
+           FPTYPE new_error = 0.;
+           mySum = two_sum(mySum, sumk_e, &new_error);
+           partialSums[lid] = mySum;
+           barrier(CLK_LOCAL_MEM_FENCE);
+
+           // Reduce partial sums
+           // These numbers need to change if the # of work-items/WG changes.
+           mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 64, 128, 192, 256);
+           barrier(CLK_LOCAL_MEM_FENCE);
+           mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 16, 32, 48, 64);
+           barrier(CLK_LOCAL_MEM_FENCE);
+           mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 4, 8, 12, 16);
+           barrier(CLK_LOCAL_MEM_FENCE);
+           mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 1, 2, 3, 4);
+           barrier(CLK_LOCAL_MEM_FENCE);
+
+           if (lid == 0UL)
+           {
+               if (beta != 0.)
+                   mySum = two_sum(beta * out[myRow], mySum, &new_error);
+               out[myRow] = mySum + new_error;
+           }
+           // CSR-VECTOR on workgroups for two rows which are inefficient for CSR-Stream
+           myRow++;
+       }
    }
    else
    {
-       // In CSR-Vector, we may have more than one workgroup calculating this row
-	   // or one workgroup calculating two rows.
+       // In CSR-LongRows, we have more than one workgroup calculating this row.
        // The output values for those types of rows are stored using atomic_add, because
        // more than one parallel workgroup's value makes up the final answer.
        // Unfortunately, this makes it difficult to do y=Ax, rather than y=Ax+y, because
@@ -391,138 +457,106 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
        // First, figure out which workgroup you are in the row. Bottom 24 bits.
        // You can use that to find the global ID for the first workgroup calculating
        // this long row.
-	   size_t first_wg_in_row = gid - (rowBlocks[gid] & ((1UL << WGBITS) - 1UL));
+       size_t first_wg_in_row = gid - (rowBlocks[gid] & ((1UL << WGBITS) - 1UL));
        unsigned int compare_value = rowBlocks[gid] & (1UL << WGBITS);
 
        // Bit 24 in the first workgroup is the flag that everyone waits on.
-	   if(gid == first_wg_in_row && lid == 0UL)
-	   {
-            // The first workgroup handles the output initialization.
-            if (beta != 0.)
-                out[row] *= beta;
-            else
-                out[row] = 0.;
-            // We currently have, at most, two rows in a CSR-Vector calculation.
-            // If we have two, we need to initialize the second output as well.
-            if(stop_row - row == 2)
-            {
-                if (beta != 0.)
-                    out[row+1] *= beta;
-                else
-                    out[row+1] = 0.;
-            }
+       if(gid == first_wg_in_row && lid == 0UL)
+       {
+           // The first workgroup handles the output initialization.
+           if (beta != 0.)
+               out[row] *= beta;
+           else
+               out[row] = 0.;
 #ifdef EXTENDED_PRECISION
-            rowBlocks[get_num_groups(0) + gid + 1] = 0UL;
+           rowBlocks[get_num_groups(0) + gid + 1] = 0UL;
 #endif
-            atom_xor(&rowBlocks[first_wg_in_row], (1UL << WGBITS)); // Release other workgroups.
+           atom_xor(&rowBlocks[first_wg_in_row], (1UL << WGBITS)); // Release other workgroups.
        }
        // For every other workgroup, bit 24 holds the value they wait on.
        // If your bit 24 == first_wg's bit 24, you spin loop.
        // The first workgroup will eventually flip this bit, and you can move forward.
        barrier(CLK_GLOBAL_MEM_FENCE);
-	   while(gid != first_wg_in_row &&
-             lid==0 &&
-             ((atom_max(&rowBlocks[first_wg_in_row], 0UL) & (1UL << WGBITS)) == compare_value));
+       while(gid != first_wg_in_row &&
+               lid == 0 &&
+               ((atom_max(&rowBlocks[first_wg_in_row], 0UL) & (1UL << WGBITS)) == compare_value));
        barrier(CLK_GLOBAL_MEM_FENCE);
 
        // After you've passed the barrier, update your local flag to make sure that
        // the next time through, you know what to wait on.
-       if (gid != first_wg_in_row && lid == 0)
+       if (gid != first_wg_in_row && lid == 0UL)
            rowBlocks[gid] ^= (1UL << WGBITS);
 
-       unsigned int myRow = row; // Adding another variable for row as it is getting updated below
-       char iteration = 0;
-
-       // CSR-Vector will always do at least one iteration.
        // All but the final workgroup in a long-row collaboration have the same start_row
        // and stop_row. They only run for one iteration.
-       // If this workgroup is operating on multiple rows (because CSR-Stream is poor for small
-       // #s of rows), then it is (currently) not part of a collaboration on a long
-       // row. As such, it needs to iterate until it reaches the stop_row.
-       // We don't check <= stop_row because of the potential for unsigned overflow.
-		while (iteration == 0 || myRow < stop_row)
-		{
-            // Get the "workgroup within this long row" ID out of the bottom bits of the row block.
-            // If this is the only workgroup working on this row, this will be zero, so still correct.
-			unsigned int wg = rowBlocks[gid] & ((1 << WGBITS) - 1);
+       // Load in a bunch of partial results into your register space, rather than LDS (no contention)
+       // Then dump the partially reduced answers into the LDS for inter-work-item reduction.
+       // Using a long induction variable to make sure unsigned int overflow doesn't break things.
+       FPTYPE mySum = 0.;
+       FPTYPE sumk_e = 0.;
 
-            // Any workgroup only calculates, at most, BLOCKSIZE items in this row.
-            // If there are more items in this row, we assign more workgroups.
-            unsigned int vecStart = rowPtrs[myRow] + (wg * BLOCKSIZE);
-			unsigned int vecEnd = (rowPtrs[myRow + 1] > vecStart + BLOCKSIZE) ? vecStart + BLOCKSIZE : rowPtrs[myRow+1];
+       int col = vecStart + lid;
+       for(int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
+           mySum = two_sum(mySum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
 
-            // Load in a bunch of partial results into your register space, rather than LDS (no contention)
-            // Then dump the partially reduced answers into the LDS for inter-work-item reduction.
-            // Using a long induction variable to make sure unsigned int overflow doesn't break things.
-			FPTYPE mySum = 0.;
-            FPTYPE sumk_e = 0.;
-            for (long j = vecStart + lid; j < vecEnd; j+=WGSIZE)
-            {
-                unsigned int col = cols[(unsigned int)j];
-                mySum = two_sum(mySum, alpha * vals[(unsigned int)j] * vec[col], &sumk_e);
-            }
+       FPTYPE new_error = 0.;
+       mySum = two_sum(mySum, sumk_e, &new_error);
+       partialSums[lid] = mySum;
+       barrier(CLK_LOCAL_MEM_FENCE);
 
-            FPTYPE new_error = 0.;
-            mySum = two_sum(mySum, sumk_e, &new_error);
-            partialSums[lid] = mySum;
-            barrier(CLK_LOCAL_MEM_FENCE);
+       // Reduce partial sums
+       // Needs to be modified if there is a change in the # of work-items per workgroup.
+       mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 64, 128, 192, 256);
+       barrier(CLK_LOCAL_MEM_FENCE);
+       mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 16, 32, 48, 64);
+       barrier(CLK_LOCAL_MEM_FENCE);
+       mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 4, 8, 12, 16);
+       barrier(CLK_LOCAL_MEM_FENCE);
+       mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 1, 2, 3, 4);
+       barrier(CLK_LOCAL_MEM_FENCE);
 
-            // Reduce partial sums
-            // These numbers need to change if the # of work-items/WG changes.
-            mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 64, 128, 192, 256);
-            barrier(CLK_LOCAL_MEM_FENCE);
-            mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 16, 32, 48, 64);
-            barrier(CLK_LOCAL_MEM_FENCE);
-            mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 4, 8, 12, 16);
-            barrier(CLK_LOCAL_MEM_FENCE);
-            mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 1, 2, 3, 4);
-            barrier(CLK_LOCAL_MEM_FENCE);
-
-            if (lid == 0)
-            {
-                atomic_two_sum_float(&out[myRow], mySum, &new_error);
+       if (lid == 0)
+       {
+           atomic_two_sum_float(&out[row], mySum, &new_error);
 
 #ifdef EXTENDED_PRECISION
-                // The end of the rowBlocks buffer is used to hold errors.
-                atomic_add_float(&(rowBlocks[get_num_groups(0)+first_wg_in_row+1]), new_error);
-                // Coordinate across all of the workgroups in this coop in order to have
-                // the last workgroup fix up the error values.
-                // If this workgroup's row is different than the next workgroup's row
-                // then this is the last workgroup -- it's this workgroup's job to add
-                // the error values into the final sum.
-                if (row != stop_row)
-                {
-                    // Go forward once your ID is the same as the low order bits of the
-                    // coop's first workgroup. That value will be used to store the number
-                    // of threads that have completed so far. Once all the previous threads
-                    // are done, it's time to send out the errors!
-                    while((atom_max(&rowBlocks[first_wg_in_row], 0UL) & ((1 << WGBITS) - 1)) != wg);
+           // The last half of the rowBlocks buffer is used to hold errors.
+           atomic_add_float(&(rowBlocks[get_num_groups(0)+first_wg_in_row+1]), new_error);
+           // Coordinate across all of the workgroups in this coop in order to have
+           // the last workgroup fix up the error values.
+           // If this workgroup's row is different than the next workgroup's row
+           // then this is the last workgroup -- it's this workgroup's job to add
+           // the error values into the final sum.
+           if (row != stop_row)
+           {
+               // Go forward once your ID is the same as the low order bits of the
+               // coop's first workgroup. That value will be used to store the number
+               // of threads that have completed so far. Once all the previous threads
+               // are done, it's time to send out the errors!
+               while((atom_max(&rowBlocks[first_wg_in_row], 0UL) & ((1UL << WGBITS) - 1)) != wg);
 
 #ifdef DOUBLE
-                    new_error = as_double(rowBlocks[get_num_groups(0)+first_wg_in_row+1]);
+               new_error = as_double(rowBlocks[get_num_groups(0)+first_wg_in_row+1]);
 #else
-                    new_error = as_float((int)rowBlocks[get_num_groups(0)+first_wg_in_row+1]);
+               new_error = as_float((int)rowBlocks[get_num_groups(0)+first_wg_in_row+1]);
 #endif
-                    atomic_add_float(&out[myRow], new_error);
-                    rowBlocks[get_num_groups(0)+first_wg_in_row+1] = 0UL;
+               // Don't need to work atomically here, because this is the only workgroup
+               // left working on this row.
+               out[row] += new_error;
+               rowBlocks[get_num_groups(0)+first_wg_in_row+1] = 0UL;
 
-                    // Reset the rowBlocks low order bits for next time.
-                    rowBlocks[first_wg_in_row] = rowBlocks[gid] - wg; // No need for atomics here
-                }
-                else
-                {
-                    // Otherwise, increment the low order bits of the first thread in this
-                    // coop. We're using this to tell how many workgroups in a coop are done.
-                    // Do this with an atomic, since other threads may be doing this too.
-                    unsigned long blah = atom_inc(&rowBlocks[first_wg_in_row]);
-                }
+               // Reset the rowBlocks low order bits for next time.
+               rowBlocks[first_wg_in_row] = rowBlocks[gid] - wg;
+           }
+           else
+           {
+               // Otherwise, increment the low order bits of the first thread in this
+               // coop. We're using this to tell how many workgroups in a coop are done.
+               // Do this with an atomic, since other threads may be doing this too.
+               unsigned long no_warn = atom_inc(&rowBlocks[first_wg_in_row]);
+           }
 #endif
-            }
-
-            // CSR-VECTOR on workgroups for two rows which are inefficient for CSR-Stream
-            myRow++;
-            iteration++;
-        }
+       }
    }
 }
 )"
