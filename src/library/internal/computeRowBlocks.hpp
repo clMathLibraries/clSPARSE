@@ -25,7 +25,7 @@
 
 //  rowBlockType is currently instantiated as ulong
 template< typename rowBlockType >
-void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters, int nRows, int blkSize )
+void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters, int nRows, int blkSize, int blkMultiplier )
 {
     rowBlockType* rowBlocksBase = rowBlocks;
 
@@ -60,7 +60,7 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
         // This is csr-vector case; bottom WG_BITS == workgroup ID
         else if( ( i - last_i == 1 ) && sum > blkSize )
         {
-            int numWGReq = static_cast< int >( ceil( (double)sum / blkSize ) );
+            int numWGReq = static_cast< int >( ceil( (double)sum / (blkMultiplier*blkSize) ) );
 
             // Check to ensure #workgroups can fit in WG_BITS bits, if not
             // then the last workgroup will do all the remaining work

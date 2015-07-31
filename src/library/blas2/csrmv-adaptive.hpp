@@ -26,6 +26,8 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
     + " -DWGBITS=" + std::to_string( WG_BITS )
     + " -DWGSIZE=" + std::to_string( group_size )
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
+    + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
+    + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR )
     + " -DEXTENDED_PRECISION";
 
     if(typeid(T) == typeid(cl_double))
@@ -91,6 +93,8 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
     + " -DWGBITS=" + std::to_string( WG_BITS )
     + " -DWGSIZE=" + std::to_string( group_size )
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
+    + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
+    + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR )
     + " -DEXTENDED_PRECISION";
 
     if(typeid(T) == typeid(cl_double))
