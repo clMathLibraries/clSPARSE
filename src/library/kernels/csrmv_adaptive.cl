@@ -189,6 +189,58 @@ FPTYPE sum2_reduce( FPTYPE cur_sum,
     return cur_sum;
 }
 
+// A simpler reduction than the one above, also built to use EXTENDED_PRECISION
+// Rather than working on large widths, this simply loads a single value from
+// an upper entry of the LDS and drops it into the local region.
+// It is meant to be called in parallel on an LDS buffer, over enough iterations,
+// reduce multiple rows into a small series of output rows.
+// A version of this method is also used in csrmv_general.
+// Inputs:  cur_sum: the input from which our sum starts
+//          err: the current running cascade error for this final summation
+//          partial: the local memory which holds the values to sum
+//                  (we eventually use it to pass down temp. err vals as well)
+//          lid: local ID of the work item calling this function.
+//          thread_lane: The lane within this thread's row.
+//          max_size: This parallel summation method operates in multiple rounds
+//                  to do a parallel reduction. This is the length of each row.
+//          round: As you reduce data down, this tells you how many output values
+//                 you won't during each round.
+FPTYPE simple_sum2_reduce( FPTYPE cur_sum,
+        FPTYPE *err,
+        volatile __local FPTYPE *partial,
+        size_t lid,
+        int thread_lane,
+        int max_size,
+        int reduc_size )
+{
+    if ( max_size > reduc_size )
+    {
+#ifdef EXTENDED_PRECISION
+        if (thread_lane < reduc_size)
+            cur_sum  = two_sum(cur_sum, partial[lid + reduc_size], err);
+
+        // We reuse the LDS entries to move the error values down into lower
+        // threads. This saves LDS space, allowing higher occupancy, but requires
+        // more barriers, which can reduce performance.
+        barrier(CLK_LOCAL_MEM_FENCE);
+        // Have all of those upper threads pass their temporary errors
+        // into a location that the lower threads can read.
+        if (thread_lane >= reduc_size)
+            partial[lid] = *err;
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (thread_lane < reduc_size) // Add those errors in.
+        {
+            *err += partial[lid + reduc_size];
+            partial[lid] = cur_sum;
+        }
+#else
+        cur_sum += partial[lid + reduc_size];
+        partial[lid] = cur_sum;
+#endif
+    }
+    return cur_sum;
+}
+
 __kernel void
 csrmv_adaptive(__global const FPTYPE * restrict vals,
                        __global const int * restrict cols,
@@ -196,8 +248,8 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
                        __global const FPTYPE * restrict vec,
                        __global FPTYPE * restrict out,
                        __global unsigned long * restrict rowBlocks,
-                       __global FPTYPE * pAlpha,
-                       __global FPTYPE * pBeta)
+                       __global FPTYPE * restrict pAlpha,
+                       __global FPTYPE * restrict pBeta)
 {
    __local FPTYPE partialSums[BLOCKSIZE];
    size_t gid = get_group_id(0);
@@ -239,7 +291,7 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
    // row in a row block), we want to use the CSR-Vector algorithm(s).
    // We have found, through experimentation, that CSR-Vector is generally faster
    // when working on 2 rows, due to its simplicity and better reduction method.
-   if (stop_row - row > ROWS_FOR_VECTOR)
+   if (num_rows > ROWS_FOR_VECTOR)
    {
        // CSR-Stream case. See Sections III.A and III.B in the SC'14 paper:
        // "Efficient Sparse Matrix-Vector Multiplication on GPUs using the CSR Storage Format"
@@ -293,72 +345,72 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
           // In this case, we want to have the workgroup perform a tree-style reduction
           // of each row. {numThreadsForRed} adjacent threads team up to linearly reduce
           // a row into {numThreadsForRed} locations in local memory.
-          // After that, a single thread from each of those teams linearly walks through
-          // the local memory values for that row and reduces to the final output value.
-         FPTYPE temp = 0.;
-         FPTYPE sumk_e = 0.;
+          // After that, the entire workgroup does a parallel reduction, and each
+          // row ends up with an individual answer.
+          FPTYPE temp = 0.;
+          FPTYPE sumk_e = 0.;
 
-         // {numThreadsForRed} adjacent threads all work on the same row, so their
-         // start and end values are the same.
-         size_t st = lid/numThreadsForRed;
-         int local_first_val = (rowPtrs[row + st] - rowPtrs[row]);
-         int local_last_val = rowPtrs[row + st + 1] - rowPtrs[row];
-         int workForEachThread = (local_last_val - local_first_val)/numThreadsForRed;
-         size_t threadInBlock = lid & (numThreadsForRed - 1);
+          // {numThreadsForRed} adjacent threads all work on the same row, so their
+          // start and end values are the same.
+          // numThreadsForRed guaranteed to be a power of two, so the clz code below
+          // avoids an integer divide. ~2% perf gain in EXTRA_PRECISION.
+          //size_t st = lid/numThreadsForRed;
+          size_t st = lid >> (31 - clz(numThreadsForRed));
+          int local_first_val = (rowPtrs[row + st] - rowPtrs[row]);
+          int local_last_val = rowPtrs[row + st + 1] - rowPtrs[row];
+          int workForEachThread = (local_last_val - local_first_val) >> (31 - clz(numThreadsForRed));
+          size_t threadInBlock = lid & (numThreadsForRed - 1);
 
-         // Not all row blocks are full -- they may have an odd number of rows. As such,
-         // we need to ensure that adjacent-groups only work on real data for this rowBlock.
-         if(st < (stop_row - row))
-         {
-            // only works when numThreadsForRed is a power of 2
-            for(int i = 0; i < workForEachThread; i++)
-               temp = two_sum(temp, partialSums[local_first_val + i*numThreadsForRed + threadInBlock], &sumk_e);
+          // Not all row blocks are full -- they may have an odd number of rows. As such,
+          // we need to ensure that adjacent-groups only work on real data for this rowBlock.
+          if(st < num_rows)
+          {
+              // only works when numThreadsForRed is a power of 2
+              for(int i = 0; i < workForEachThread; i++)
+                  temp = two_sum(temp, partialSums[local_first_val + i*numThreadsForRed + threadInBlock], &sumk_e);
 
-            // The last few values (the remainder of this row) also need to be aded in.
-            int local_cur_val = local_first_val + numThreadsForRed*workForEachThread;
-            if(threadInBlock < local_last_val - local_cur_val)
-               temp = two_sum(temp, partialSums[local_cur_val + threadInBlock], &sumk_e);
-         }
-         barrier(CLK_LOCAL_MEM_FENCE);
+              // The last few values (the remainder of this row) also need to be aded in.
+              int local_cur_val = local_first_val + numThreadsForRed*workForEachThread;
+              if(threadInBlock < local_last_val - local_cur_val)
+                  temp = two_sum(temp, partialSums[local_cur_val + threadInBlock], &sumk_e);
+          }
+          barrier(CLK_LOCAL_MEM_FENCE);
 
-         FPTYPE new_error = 0.;
-         temp = two_sum(temp, sumk_e, &new_error);
-         partialSums[lid] = temp;
+          FPTYPE new_error = 0.;
+          temp = two_sum(temp, sumk_e, &new_error);
+          partialSums[lid] = temp;
 
-         // Step one of this two-stage reduction is done. Now each row has {numThreadsForRed}
-         // values sitting in the local memory. This next step takes the first thread from
-         // each of the adjacent-groups and uses it to walk through those values and reduce
-         // them into a final output value for the row.
-         temp = 0.;
-         sumk_e = 0.;
-         barrier(CLK_LOCAL_MEM_FENCE);
-         if(lid < (stop_row - row))
-         {
-#pragma unroll 4
-             for(int i = 0; i < numThreadsForRed; i++)
-                 temp = two_sum(temp, partialSums[lid*numThreadsForRed + i], &sumk_e);
-         }
-#ifdef EXTENDED_PRECISION
-         // Values in partialSums[] are finished, now let's add in all of the local error values.
-         barrier(CLK_LOCAL_MEM_FENCE);
-         partialSums[lid] = new_error;
-         barrier(CLK_LOCAL_MEM_FENCE);
-#endif
-         if(lid < (stop_row - row))
-         {
-#ifdef EXTENDED_PRECISION
-             // Sum up the local error values which are now in partialSums[]
-             for(int i = 0; i < numThreadsForRed; i++)
-                 temp = two_sum(temp, partialSums[lid*numThreadsForRed + i], &sumk_e);
-#endif
+          // Step one of this two-stage reduction is done. Now each row has {numThreadsForRed}
+          // values sitting in the local memory. This means that, roughly, the beginning of
+          // LDS is full up to {workgroup size} entries.
+          // Now we perform a parallel reduction that sums together the answers for each
+          // row in parallel, leaving us an answer in 'temp' for each row.
+          barrier(CLK_LOCAL_MEM_FENCE);
+          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 128);
+          barrier( CLK_LOCAL_MEM_FENCE );
+          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 64);
+          barrier( CLK_LOCAL_MEM_FENCE );
+          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 32);
+          barrier( CLK_LOCAL_MEM_FENCE );
+          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 16);
+          barrier( CLK_LOCAL_MEM_FENCE );
+          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 8);
+          barrier( CLK_LOCAL_MEM_FENCE );
+          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 4);
+          barrier( CLK_LOCAL_MEM_FENCE );
+          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 2);
+          barrier( CLK_LOCAL_MEM_FENCE );
+          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 1);
 
-             // All of our write-outs check to see if the output vector should first be zeroed.
-             // If so, just do a write rather than a read-write. Measured to be a slight (~5%)
-             // performance improvement.
-             if (beta != 0.)
-                 temp = two_sum(beta * out[local_row], temp, &sumk_e);
-             out[local_row] = temp + sumk_e;
-         }
+          if (threadInBlock == 0 && st < num_rows)
+          {
+              // All of our write-outs check to see if the output vector should first be zeroed.
+              // If so, just do a write rather than a read-write. Measured to be a slight (~5%)
+              // performance improvement.
+              if (beta != 0.)
+                  temp = two_sum(beta * out[row+st], temp, &new_error);
+              out[row+st] = temp + new_error;
+          }
       }
       else
       {
