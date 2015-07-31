@@ -148,8 +148,9 @@ int main(int argc, char *argv[])
   {
     if( precision == "s" )
         my_function = std::unique_ptr< cusparseFunc >( new xSpMdV< float >( timer ) );
-    //else if( precision == "d" )
+    else if( precision == "d" )
     //    my_function = std::make_unique< xSpMdV< double > >( timer );
+      my_function = std::unique_ptr< cusparseFunc >( new xSpMdV< double >( timer ) );
     else
     {
       std::cerr << "Unknown spmdv precision" << std::endl;
@@ -196,7 +197,7 @@ int main(int argc, char *argv[])
       }
       else
       {
-          std::cerr << "Unknown xDenseCsr precision " << std::endl;
+          std::cerr << "Unknown xDense2Csr precision " << std::endl;
           return -1;
       }
   }

@@ -198,26 +198,26 @@ xSpMdV_Function( bool flush )
     cudaDeviceSynchronize( );
 }
 
-//template<>
-//void 
-//xSpMdV<double>::
-//xSpMdV_Function( bool flush )
-//{
-//    cuSparseStatus = cusparseDcsrmv( handle,
-//                                transA,
-//                                n_rows,
-//                                n_cols,
-//                                n_vals,
-//                                &alpha,
-//                                descrA,
-//                                device_values,
-//                                device_row_offsets,
-//                                device_col_indices,
-//                                device_x,
-//                                &beta,
-//                                device_y );
-//
-//    cudaDeviceSynchronize( );
-//}
+template<>
+void 
+xSpMdV<double>::
+xSpMdV_Function( bool flush )
+{
+    cuSparseStatus = cusparseDcsrmv( handle,
+                                transA,
+                                n_rows,
+                                n_cols,
+                                n_vals,
+                                &alpha,
+                                descrA,
+                                device_values,
+                                device_row_offsets,
+                                device_col_indices,
+                                device_x,
+                                &beta,
+                                device_y );
+
+    cudaDeviceSynchronize( );
+}
 
 #endif // ifndef CUBLAS_BENCHMARK_xSpMdV_HXX__

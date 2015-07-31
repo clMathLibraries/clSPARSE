@@ -1,0 +1,15 @@
+dense2csr,,
+,,
+OpenCL runtime:,1573.4 (VM),
+OpenCL Device:,w9100,
+,,Gi-Elements/s
+Dubcova1,,4.84223
+hydr1c_A_11,,1.54485
+hydr1c_A_72,,1.57691
+hydr1c_A_76,,1.68587
+Maragal_6,,4.54581
+Na5,,1.64793
+psse1,,2.40437
+Reuters911,,2.44034
+Si10H16,,6.62203
+tomography,,0.0448532
