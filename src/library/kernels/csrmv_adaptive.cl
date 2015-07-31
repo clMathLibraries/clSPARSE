@@ -1,6 +1,4 @@
 R"(
-#define WGSIZE 256
-
 #ifdef DOUBLE
   #define FPTYPE double
 
@@ -17,8 +15,6 @@ R"(
 
 #pragma OPENCL EXTENSION cl_khr_int64_base_atomics: enable
 #pragma OPENCL EXTENSION cl_khr_int64_extended_atomics: enable
-
-#define EXTENDED_PRECISION
 
 int lowerPowerOf2(int num)
 {
@@ -37,7 +33,7 @@ int lowerPowerOf2(int num)
         return num;
 }
 
-FPTYPE atomic_add_float_extended (global FPTYPE *ptr, FPTYPE temp, FPTYPE *old_sum)
+FPTYPE atomic_add_float_extended( global FPTYPE *ptr, FPTYPE temp, FPTYPE *old_sum )
 {
 #ifdef DOUBLE
 	unsigned long newVal;
@@ -64,11 +60,10 @@ FPTYPE atomic_add_float_extended (global FPTYPE *ptr, FPTYPE temp, FPTYPE *old_s
 #endif
 }
 
-void atomic_add_float (global void *ptr, FPTYPE temp)
+void atomic_add_float( global void *ptr, FPTYPE temp )
 {
     atomic_add_float_extended(ptr, temp, 0);
 }
-
 
 // Knuth's Two-Sum algorithm, which allows us to add together two floating
 // point numbers and exactly tranform the answer into a sum and a
@@ -79,32 +74,30 @@ void atomic_add_float (global void *ptr, FPTYPE temp)
 // Returns: The non-corrected sum of inputs x and y.
 FPTYPE two_sum( FPTYPE x,
                 FPTYPE y,
-                FPTYPE *sumk_err)
+                FPTYPE *sumk_err )
 {
     FPTYPE sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
-    /* We use this 2Sum algorithm to perform a compensated summation,
-       which can reduce the cummulative rounding errors in our SpMV summation.
-       Our compensated sumation is based on the SumK algorithm (with K==2) from
-       Ogita, Rump, and Oishi, "Accurate Sum and Dot Product" in
-       SIAM J. on Scientific Computing 26(6) pp 1955-1988, Jun. 2005.
+    // We use this 2Sum algorithm to perform a compensated summation,
+    // which can reduce the cummulative rounding errors in our SpMV summation.
+    // Our compensated sumation is based on the SumK algorithm (with K==2) from
+    // Ogita, Rump, and Oishi, "Accurate Sum and Dot Product" in
+    // SIAM J. on Scientific Computing 26(6) pp 1955-1988, Jun. 2005.
 
-       2Sum can be done in 6 FLOPs without a branch. However, calculating
-       double precision is slower than single precision on every existing GPU.
-       As such, replacing 2Sum with Fast2Sum when using DPFP results in better
-       performance (~5% higher total). This is true even though we must ensure
-       that |a| > |b|. Branch divergence is better than the DPFP slowdown.
-       Thus, for DPFP, our compensated summation algorithm is actually described
-       by both Pichat and Neumaier in "Correction d'une somme en arithmetique
-       a virgule flottante" (J. Numerische Mathematik 19(5) pp. 400-406, 1972)
-       and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
-       Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
-       1974), respectively.
-
-       Single precision is the same performance using either algorithm, so we
-       use only Fast2Sum */
+    // 2Sum can be done in 6 FLOPs without a branch. However, calculating
+    // double precision is slower than single precision on every existing GPU.
+    // As such, replacing 2Sum with Fast2Sum when using DPFP results in better
+    // performance (~5% higher total). This is true even though we must ensure
+    // that |a| > |b|. Branch divergence is better than the DPFP slowdown.
+    // Thus, for DPFP, our compensated summation algorithm is actually described
+    // by both Pichat and Neumaier in "Correction d'une somme en arithmetique
+    // a virgule flottante" (J. Numerische Mathematik 19(5) pp. 400-406, 1972)
+    // and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
+    // Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
+    // 1974), respectively.
     FPTYPE swap;
-    if (fabs(x) < fabs(y)) {
+    if (fabs(x) < fabs(y))
+    {
         swap = x;
         x = y;
         y = swap;
@@ -117,9 +110,9 @@ FPTYPE two_sum( FPTYPE x,
     return sumk_s;
 }
 
-FPTYPE atomic_two_sum_float(global FPTYPE *x_ptr,
+FPTYPE atomic_two_sum_float( global FPTYPE *x_ptr,
                             FPTYPE y,
-                            FPTYPE *sumk_err)
+                            FPTYPE *sumk_err )
 {
     // Have to wait until the return from the atomic op to know what X was.
     FPTYPE sumk_s;
@@ -145,7 +138,7 @@ FPTYPE atomic_two_sum_float(global FPTYPE *x_ptr,
 // GPUs because the reduction order is different than what would be used on a
 // CPU. It is based on the PSumK algorithm (with K==2) from Yamanaka, Ogita,
 // Rump, and Oishi, "A Parallel Algorithm of Accurate Dot Product," in
-// J. Parallel Computing, 34(6-8), pp. 392-410, Jul. 2008. */
+// J. Parallel Computing, 34(6-8), pp. 392-410, Jul. 2008.
 // Inputs:  cur_sum: the input from which our sum starts
 //          err: the current running cascade error for this final summation
 //          partial: the local memory which holds the values to sum
@@ -153,6 +146,7 @@ FPTYPE atomic_two_sum_float(global FPTYPE *x_ptr,
 //          lid: local ID of the work item calling this function.
 //          integers: This parallel summation method is meant to take values
 //                  from four different points. See the blow comment for usage.
+// Don't inline this function. It reduces performance.
 FPTYPE sum2_reduce( FPTYPE cur_sum,
         FPTYPE *err,
         __local FPTYPE *partial,
@@ -160,7 +154,7 @@ FPTYPE sum2_reduce( FPTYPE cur_sum,
         int first,
         int second,
         int third,
-        int last)
+        int last )
 {
     // A subset of the threads in this workgroup add three sets
     // of values together using the 2Sum method.
@@ -401,7 +395,7 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
        unsigned int compare_value = rowBlocks[gid] & (1UL << WGBITS);
 
        // Bit 24 in the first workgroup is the flag that everyone waits on.
-	   if(gid == first_wg_in_row && lid == 0)
+	   if(gid == first_wg_in_row && lid == 0UL)
 	   {
             // The first workgroup handles the output initialization.
             if (beta != 0.)
