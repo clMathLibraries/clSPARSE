@@ -262,7 +262,8 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
    //
    // |6666 5555 5555 5544 4444 4444 3333 3333|3322 2222|2222 1111 1111 1100 0000 0000|
    // |3210 9876 5432 1098 7654 3210 9876 5432|1098 7654|3210 9876 5432 1098 7654 3210|
-   // |------------Row Information------------|----flag^|---WG ID within a long row---|
+   // |------------Row Information------------|--------^|---WG ID within a long row---|
+   // |                                       |    flag/|or # reduce threads for short|
    //
    // The upper 32 bits of each rowBlock entry tell the workgroup the ID of the first
    // row it will be working on. When one workgroup calculates multiple rows, this
@@ -270,6 +271,9 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
    // The lower 24 bits are used whenever multiple workgroups calculate a single long
    // row. This tells each workgroup its ID within that row, so it knows which
    // part of the row to operate on.
+   // Alternately, on "short" row blocks, the lower bits are used to communicate
+   // the number of threads that should be used for the reduction. Pre-calculating
+   // this on the CPU-side results in a noticable performance uplift on many matrices.
    // Bit 24 is a flag bit used so that the multiple WGs calculating a long row can
    // know when the first workgroup for that row has finished initializing the output
    // value. While this bit is the same as the first workgroup's flag bit, this
@@ -308,14 +312,16 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
        // long) rows, it's actually better to perform a tree-style reduction where
        // multiple threads team up to reduce the same row.
 
-       // The calculations below tell you how many threads this workgroup can allocate
+       // The calculation below tell you how many threads this workgroup can allocate
        // to each row, assuming that every row gets the same number of threads.
        // We want the closest lower-power-of-2 to this number -- that is how many
        // threads can work in each row's reduction using our algorithm.
-      int possibleThreadsRed = get_local_size(0)/(stop_row - row);
-      int numThreadsForRed = lowerPowerOf2(possibleThreadsRed);
-
-      unsigned int local_row = row + lid;
+       // We want the closest lower (or equal) power-of-2 to this number --
+       // that is how many threads can work in each row's reduction using our algorithm.
+       // For instance, with workgroup size 256, 2 rows = 128 threads, 3 rows = 64
+       // threads, 4 rows = 64 threads, 5 rows = 32 threads, etc.
+       //int numThreadsForRed = get_local_size(0) >> ((CHAR_BIT*sizeof(unsigned int))-clz(num_rows-1));
+       int numThreadsForRed = wg; // Same calculation as above, done on host.
 
        // Stream all of this row block's matrix values into local memory.
        // Perform the matvec in parallel with this work.
@@ -419,6 +425,7 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
           // However, this reduction is also much faster than CSR-Scalar, because local memory
           // is designed for scatter-gather operations.
           // We need a while loop because there may be more rows than threads in the WG.
+          unsigned int local_row = row + lid;
           while(local_row < stop_row)
           {
               int local_first_val = (rowPtrs[local_row] - rowPtrs[row]);
