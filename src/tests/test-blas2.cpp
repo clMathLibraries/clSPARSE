@@ -153,15 +153,15 @@ public:
             uint64_t total_ulps = 0;
             for (int i = 0; i < hY.size(); i++)
             {
-                int intDiff = (int)boost::math::float_distance(hY[i], host_result[i]);
-                intDiff = abs(intDiff);
+                long long int intDiff = (long long int)boost::math::float_distance(hY[i], host_result[i]);
+                intDiff = llabs(intDiff);
                 total_ulps += intDiff;
                 if (max_ulps < intDiff)
                     max_ulps = intDiff;
                 if (min_ulps > intDiff)
                     min_ulps = intDiff;
                 // Debug printouts.
-                //printf("Row %d Float Ulps: %d\n", i, intDiff);
+                //printf("Row %d Float Ulps: %lld\n", i, intDiff);
                 //printf("\tFloat hY[%d] = %.*e (0x%08" PRIx32 "), ", i, 9, hY[i], *(uint32_t *)&hY[i]);
                 //printf("host_result[%d] = %.*e (0x%08" PRIx32 ")\n", i, 9, host_result[i], *(uint32_t *)&host_result[i]);
             }
@@ -224,8 +224,8 @@ public:
             uint64_t total_ulps = 0;
             for (int i = 0; i < hY.size(); i++)
             {
-                long long int intDiff = (int)boost::math::float_distance(hY[i], host_result[i]);
-               intDiff = abs(intDiff);
+                long long int intDiff = (long long int)boost::math::float_distance(hY[i], host_result[i]);
+                intDiff = llabs(intDiff);
                 total_ulps += intDiff;
                 if (max_ulps < intDiff)
                     max_ulps = intDiff;
