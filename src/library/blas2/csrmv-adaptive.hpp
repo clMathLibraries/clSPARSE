@@ -24,10 +24,9 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
     std::string params = std::string( )
     + " -DROWBITS=" + std::to_string( ROW_BITS )
     + " -DWGBITS=" + std::to_string( WG_BITS )
-    + " -DBLOCKSIZE=" + std::to_string( BLKSIZE );
-#ifdef DOUBLE
-    buildFlags += " -DDOUBLE";
-#endif
+    + " -DWGSIZE=" + std::to_string( group_size )
+    + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
+    + " -DEXTENDED_PRECISION";
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -90,7 +89,9 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
     std::string params = std::string( )
     + " -DROWBITS=" + std::to_string( ROW_BITS )
     + " -DWGBITS=" + std::to_string( WG_BITS )
-    + " -DBLOCKSIZE=" + std::to_string( BLKSIZE );
+    + " -DWGSIZE=" + std::to_string( group_size )
+    + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
+    + " -DEXTENDED_PRECISION";
 
     if(typeid(T) == typeid(cl_double))
     {

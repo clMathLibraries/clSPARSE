@@ -50,34 +50,32 @@ VALUE_TYPE two_sum( VALUE_TYPE x,
 {
     VALUE_TYPE sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
-    /* We use this 2Sum algorithm to perform a compensated summation,
-       which can reduce the cummulative rounding errors in our SpMV summation.
-       Our compensated sumation is based on the SumK algorithm (with K==2) from
-       Ogita, Rump, and Oishi, "Accurate Sum and Dot Product" in
-       SIAM J. on Scientific Computing 26(6) pp 1955-1988, Jun. 2005.
+    // We use this 2Sum algorithm to perform a compensated summation,
+    // which can reduce the cummulative rounding errors in our SpMV summation.
+    // Our compensated sumation is based on the SumK algorithm (with K==2) from
+    // Ogita, Rump, and Oishi, "Accurate Sum and Dot Product" in
+    // SIAM J. on Scientific Computing 26(6) pp 1955-1988, Jun. 2005.
 
-       2Sum can be done in 6 FLOPs without a branch. However, calculating
-       double precision is slower than single precision on every existing GPU.
-       As such, replacing 2Sum with Fast2Sum when using DPFP results in slightly
-       better performance. This is especially true on non-workstation GPUs with
-       low DPFP rates. Fast2Sum is faster even though we must ensure that
-       |a| > |b|. Branch divergence is better than the DPFP slowdown.
-       Thus, for DPFP, our compensated summation algorithm is actually described
-       by both Pichat and Neumaier in "Correction d'une somme en arithmetique
-       a virgule flottante" (J. Numerische Mathematik 19(5) pp. 400-406, 1972)
-       and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
-       Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
-       1974), respectively. */
-    VALUE_TYPE ap, bp;
-    if (fabs(x) > fabs(y)) {
-        ap = x;
-        bp = y;
+    // 2Sum can be done in 6 FLOPs without a branch. However, calculating
+    // double precision is slower than single precision on every existing GPU.
+    // As such, replacing 2Sum with Fast2Sum when using DPFP results in slightly
+    // better performance. This is especially true on non-workstation GPUs with
+    // low DPFP rates. Fast2Sum is faster even though we must ensure that
+    // |a| > |b|. Branch divergence is better than the DPFP slowdown.
+    // Thus, for DPFP, our compensated summation algorithm is actually described
+    // by both Pichat and Neumaier in "Correction d'une somme en arithmetique
+    // a virgule flottante" (J. Numerische Mathematik 19(5) pp. 400-406, 1972)
+    // and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
+    // Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
+    // 1974), respectively.
+    VALUE_TYPE swap;
+    if (fabs(x) < fabs(y))
+    {
+        swap = x;
+        x = y;
+        y = swap;
     }
-    else {
-        ap = y;
-        bp = x;
-    }
-    (*sumk_err) += (bp - (sumk_s - ap));
+    (*sumk_err) += (y - (sumk_s - x));
     // Original 6 FLOP 2Sum algorithm.
     //VALUE_TYPE bp = sumk_s - x;
     //(*sumk_err) += ((x - (sumk_s - bp)) + (y - bp));
