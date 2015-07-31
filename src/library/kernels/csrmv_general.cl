@@ -35,6 +35,107 @@ R"(
 # error SUBWAVE_SIZE is not  a power of two!
 #endif
 
+#define EXTENDED_PRECISION
+
+// Knuth's Two-Sum algorithm, which allows us to add together two floating
+// point numbers and exactly tranform the answer into a sum and a
+// rounding error.
+// Inputs: x and y, the two inputs to be aded together.
+// In/Out: *sumk_err, which is incremented (by reference) -- holds the
+//         error value as a result of the 2sum calculation.
+// Returns: The non-corrected sum of inputs x and y.
+VALUE_TYPE two_sum( VALUE_TYPE x,
+        VALUE_TYPE y,
+        VALUE_TYPE *sumk_err)
+{
+    VALUE_TYPE sumk_s = x + y;
+#ifdef EXTENDED_PRECISION
+    /* We use this 2Sum algorithm to perform a compensated summation,
+       which can reduce the cummulative rounding errors in our SpMV summation.
+       Our compensated sumation is based on the SumK algorithm (with K==2) from
+       Ogita, Rump, and Oishi, "Accurate Sum and Dot Product" in
+       SIAM J. on Scientific Computing 26(6) pp 1955-1988, Jun. 2005.
+
+       2Sum can be done in 6 FLOPs without a branch. However, calculating
+       double precision is slower than single precision on every existing GPU.
+       As such, replacing 2Sum with Fast2Sum when using DPFP results in slightly
+       better performance. This is especially true on non-workstation GPUs with
+       low DPFP rates. Fast2Sum is faster even though we must ensure that
+       |a| > |b|. Branch divergence is better than the DPFP slowdown.
+       Thus, for DPFP, our compensated summation algorithm is actually described
+       by both Pichat and Neumaier in "Correction d'une somme en arithmetique
+       a virgule flottante" (J. Numerische Mathematik 19(5) pp. 400-406, 1972)
+       and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
+       Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
+       1974), respectively. */
+    VALUE_TYPE ap, bp;
+    if (fabs(x) > fabs(y)) {
+        ap = x;
+        bp = y;
+    }
+    else {
+        ap = y;
+        bp = x;
+    }
+    (*sumk_err) += (bp - (sumk_s - ap));
+    // Original 6 FLOP 2Sum algorithm.
+    //VALUE_TYPE bp = sumk_s - x;
+    //(*sumk_err) += ((x - (sumk_s - bp)) + (y - bp));
+#endif
+    return sumk_s;
+}
+
+// A method of doing the final reduction without having to copy and paste
+// it a bunch of times.
+// The EXTENDED_PRECISION section is done as part of the PSum2 addition,
+// where we take temporary sums and errors for multiple threads and combine
+// them together using the same 2Sum method.
+// Inputs:  cur_sum: the input from which our sum starts
+//          err: the current running cascade error for this final summation
+//          partial: the local memory which holds the values to sum
+//                  (we eventually use it to pass down temp. err vals as well)
+//          lid: local ID of the work item calling this function.
+//          thread_lane: The lane within this SUBWAVE for reduction.
+//          round: This parallel summation method operates in multiple rounds
+//                  to do a parallel reduction. See the blow comment for usage.
+VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
+        VALUE_TYPE *err,
+        volatile __local VALUE_TYPE *partial,
+        size_t lid,
+        int thread_lane,
+        int round)
+{
+    if (SUBWAVE_SIZE > round)
+    {
+#ifdef EXTENDED_PRECISION
+        if (thread_lane < round)
+            cur_sum  = two_sum(cur_sum, partial[lid + round], err);
+
+        // We reuse the LDS entries to move the error values down into lower
+        // threads. This saves LDS space, allowing higher occupancy, but requires
+        // more barriers, which can reduce performance.
+        barrier(CLK_LOCAL_MEM_FENCE);
+        // Have all of those upper threads pass their temporary errors
+        // into a location that the lower threads can read.
+        if (thread_lane >= round)
+            partial[lid] = *err;
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (thread_lane < round) { // Add those errors in.
+            *err += partial[lid + round];
+            partial[lid] = cur_sum;
+        }
+#else
+        // This is the more traditional reduction algorithm. It is up to
+        // 25% faster (about 10% on average -- potentially worse on devices
+        // with low double-precision calculation rates), but can result in
+        // numerical inaccuracies, especially in single precision.
+        cur_sum += partial[lid + round];
+        partial[lid] = cur_sum;
+#endif
+    }
+    return cur_sum;
+}
+
 // Uses macro constants:
 // WAVE_SIZE  - "warp size", typically 64 (AMD) or 32 (NV)
 // WG_SIZE    - workgroup ("block") size, 1D representation assumed
@@ -75,39 +176,47 @@ void csrmv_general (     const INDEX_TYPE num_rows,
         const int row_end   = row_offset[row+1];
         VALUE_TYPE sum = (VALUE_TYPE) 0;
 
+        VALUE_TYPE sumk_e = 0.;
+        // It is about 5% faster to always multiply by alpha, rather than to
+        // check whether alpha is 0, 1, or other and do different code paths.
         for(int j = row_start + thread_lane; j < row_end; j += SUBWAVE_SIZE)
-        {
-            if (_alpha == 1)
-                sum = fma(val[j], x[off_x + col[j]], sum);
-            else if (_alpha == 0)
-                sum = 0;
-            else
-                sum = fma(_alpha * val[j], x[off_x + col[j]], sum);//sum += val[j] * x[col[j]];
-        }
+            sum = two_sum(sum, (_alpha * val[j] * x[off_x + col[j]]), &sumk_e);
+        VALUE_TYPE new_error = 0.;
+        sum = two_sum(sum, sumk_e, &new_error);
 
-        //parllel reduction in shared memory
+        // Parallel reduction in shared memory.
         sdata[local_id] = sum;
         barrier( CLK_LOCAL_MEM_FENCE );
-        if (SUBWAVE_SIZE > 32) sdata[local_id] = sum += sdata[local_id + 32];
+
+        // This compensated summation reduces cummulative rounding errors,
+        // which can become a problem on GPUs because our reduction order is
+        // different than what would be used on a CPU.
+        // It is based on the PSumK algorithm (with K==2) from
+        // Yamanaka, Ogita, Rump, and Oishi, "A Parallel Algorithm of
+        // Accurate Dot Product," in the Journal of Parallel Computing,
+        // 34(6-8), pp. 392-410, Jul. 2008.
+        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 32);
         barrier( CLK_LOCAL_MEM_FENCE );
-        if (SUBWAVE_SIZE > 16) sdata[local_id] = sum += sdata[local_id + 16];
+        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 16);
         barrier( CLK_LOCAL_MEM_FENCE );
-        if (SUBWAVE_SIZE > 8)  sdata[local_id] = sum += sdata[local_id + 8];
+        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 8);
         barrier( CLK_LOCAL_MEM_FENCE );
-        if (SUBWAVE_SIZE > 4)  sdata[local_id] = sum += sdata[local_id + 4];
+        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 4);
         barrier( CLK_LOCAL_MEM_FENCE );
-        if (SUBWAVE_SIZE > 2)  sdata[local_id] = sum += sdata[local_id + 2];
+        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 2);
         barrier( CLK_LOCAL_MEM_FENCE );
-        if (SUBWAVE_SIZE > 1)                    sum += sdata[local_id + 1];
+        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 1);
+        barrier( CLK_LOCAL_MEM_FENCE );
 
         if (thread_lane == 0)
         {
-            if (_beta == 1)
-                y[off_y + row] = sum + y[off_y + row];
-            else if (_beta == 0)
-                y[off_y + row] = sum;
+            if (_beta == 0)
+                y[off_y + row] = sum + new_error;
             else
-                y[off_y + row] = sum + _beta * y[off_y + row];
+            {
+                sum = two_sum(sum, _beta * y[off_y + row], &new_error);
+                y[off_y + row] = sum + new_error;
+            }
         }
     }
 }
