@@ -536,8 +536,26 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
        FPTYPE sumk_e = 0.;
 
        int col = vecStart + lid;
-       for(int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
-           mySum = two_sum(mySum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+       if (row == stop_row) // inner thread, we can hardcode/unroll this loop
+       {
+           // Don't put BLOCK_MULTIPLIER*BLOCKSIZE as the stop point, because
+           // some GPU compilers will *aggressively* unroll this loop.
+           // That increases register pressure and reduces occupancy.
+           for (int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
+           {
+               mySum = two_sum(mySum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+#if 2*WGSIZE <= BLOCK_MULTIPLIER*BLOCKSIZE
+               // If you can, unroll this loop once. It somewhat helps performance.
+               j += WGSIZE;
+               mySum = two_sum(mySum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+#endif
+           }
+       }
+       else
+       {
+           for(int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
+               mySum = two_sum(mySum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+       }
 
        FPTYPE new_error = 0.;
        mySum = two_sum(mySum, sumk_e, &new_error);
