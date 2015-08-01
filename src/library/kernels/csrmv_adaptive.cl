@@ -295,10 +295,8 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
        // long) rows, it's actually better to perform a tree-style reduction where
        // multiple threads team up to reduce the same row.
 
-       // The calculation below tell you how many threads this workgroup can allocate
+       // The calculation below tells you how many threads this workgroup can allocate
        // to each row, assuming that every row gets the same number of threads.
-       // We want the closest lower-power-of-2 to this number -- that is how many
-       // threads can work in each row's reduction using our algorithm.
        // We want the closest lower (or equal) power-of-2 to this number --
        // that is how many threads can work in each row's reduction using our algorithm.
        // For instance, with workgroup size 256, 2 rows = 128 threads, 3 rows = 64
@@ -520,7 +518,7 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
        // The first workgroup will eventually flip this bit, and you can move forward.
        barrier(CLK_GLOBAL_MEM_FENCE);
        while(gid != first_wg_in_row &&
-               lid == 0 &&
+               lid == 0UL &&
                ((atom_max(&rowBlocks[first_wg_in_row], 0UL) & (1UL << WGBITS)) == compare_value));
        barrier(CLK_GLOBAL_MEM_FENCE);
 
@@ -557,7 +555,7 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
        mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 1, 2, 3, 4);
        barrier(CLK_LOCAL_MEM_FENCE);
 
-       if (lid == 0)
+       if (lid == 0UL)
        {
            atomic_two_sum_float(&out[row], mySum, &new_error);
 
