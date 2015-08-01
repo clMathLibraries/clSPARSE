@@ -72,13 +72,17 @@ static inline rowBlockType numThreadsForReduction(rowBlockType num_rows)
 
 //  rowBlockType is currently instantiated as ulong
 template< typename rowBlockType >
-void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters, int nRows, int blkSize, int blkMultiplier )
+void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters, int nRows, int blkSize, int blkMultiplier, int rows_for_vector, bool allocate_row_blocks = true )
 {
     rowBlockType* rowBlocksBase;
+    int total_row_blocks = 1; // Start at one because of rowBlock[0]
 
-    rowBlocksBase = rowBlocks;
-    *rowBlocks = 0;
-    rowBlocks++;
+    if (allocate_row_blocks)
+    {
+        rowBlocksBase = rowBlocks;
+        *rowBlocks = 0;
+        rowBlocks++;
+    }
     rowBlockType sum = 0;
     rowBlockType i, last_i = 0;
 
@@ -89,77 +93,151 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
         return;
     }
 
+    int consecutive_long_rows = 0;
     for( i = 1; i <= nRows; i++ )
     {
         int row_length = ( rowDelimiters[ i ] - rowDelimiters[ i - 1 ] );
         sum += row_length;
 
+        // The following section of code calculates whether you're moving between
+        // a series of "short" rows and a series of "long" rows.
+        // This is because the reduction in CSR-Adaptive likes things to be
+        // roughly the same length. Long rows can be reduced horizontally.
+        // Short rows can be reduced one-thread-per-row. Try not to mix them.
+        if ( row_length > 128 )
+            consecutive_long_rows++;
+        else if ( consecutive_long_rows > 0 )
+        {
+            // If it turns out we WERE in a long-row region, cut if off now.
+            if (row_length < 32) // Now we're in a short-row region
+                consecutive_long_rows = -1;
+            else
+                consecutive_long_rows++;
+        }
+
+        // If you just entered into a "long" row from a series of short rows,
+        // then we need to make sure we cut off those short rows. Put them in
+        // their own workgroup.
+        if ( consecutive_long_rows == 1 )
+        {
+            // Assuming there *was* a previous workgroup. If not, nothing to do here.
+            if( i - last_i > 1 )
+            {
+                if (allocate_row_blocks)
+                {
+                    *rowBlocks = ( (i - 1) << (64 - ROW_BITS) );
+                    // If this row fits into CSR-Stream, calculate how many rows
+                    // can be used to do a parallel reduction.
+                    // Fill in the low-order bits with the numThreadsForRed
+                    if (((i-1) - last_i) > rows_for_vector)
+                        *(rowBlocks-1) |= numThreadsForReduction((i - 1) - last_i);
+                    rowBlocks++;
+                }
+                total_row_blocks++;
+                last_i = i-1;
+                sum = row_length;
+            }
+        }
+        else if (consecutive_long_rows == -1)
+        {
+            // We see the first short row after some long ones that
+            // didn't previously fill up a row block.
+            if (allocate_row_blocks)
+            {
+                *rowBlocks = ( (i - 1) << (64 - ROW_BITS) );
+                if (((i-1) - last_i) > rows_for_vector)
+                    *(rowBlocks-1) |= numThreadsForReduction((i - 1) - last_i);
+                rowBlocks++;
+            }
+            total_row_blocks++;
+            last_i = i-1;
+            sum = row_length;
+            consecutive_long_rows = 0;
+         }
+
+        // Now, what's up with this row? What did it do?
+
         // exactly one row results in non-zero elements to be greater than blockSize
         // This is csr-vector case; bottom WG_BITS == workgroup ID
         if( ( i - last_i == 1 ) && sum > blkSize )
         {
-            int numWGReq = static_cast< int >( ceil( (double)sum / (blkMultiplier*blkSize) ) );
+            int numWGReq = static_cast< int >( ceil( (double)row_length / (blkMultiplier*blkSize) ) );
 
             // Check to ensure #workgroups can fit in WG_BITS bits, if not
             // then the last workgroup will do all the remaining work
             numWGReq = ( numWGReq < (int)pow( 2, WG_BITS ) ) ? numWGReq : (int)pow( 2, WG_BITS );
 
-            for( int w = 1; w < numWGReq; w++ )
+            if (allocate_row_blocks)
             {
-                *rowBlocks = ( (i - 1) << (64 - ROW_BITS) );
-                *rowBlocks |= static_cast< rowBlockType >( w );
+                for( int w = 1; w < numWGReq; w++ )
+                {
+                    *rowBlocks = ( (i - 1) << (64 - ROW_BITS) );
+                    *rowBlocks |= static_cast< rowBlockType >( w );
+                    rowBlocks++;
+                }
+                *rowBlocks = ( i << (64 - ROW_BITS) );
                 rowBlocks++;
             }
-
-            *rowBlocks = ( i << (64 -ROW_BITS) );
-            rowBlocks++;
-
+            total_row_blocks += numWGReq;
             last_i = i;
             sum = 0;
+            consecutive_long_rows = 0;
         }
         // more than one row results in non-zero elements to be greater than blockSize
         // This is csr-stream case; bottom WG_BITS = number of parallel reduction threads
         else if( ( i - last_i > 1 ) && sum > blkSize )
         {
             i--; // This row won't fit, so back off one.
-            *rowBlocks = ( i << (64 - ROW_BITS) );
-            // Fill in the low-order bits with the numThreadsForRed
-            if ((i - last_i) > 2)
-                *(rowBlocks-1) |= numThreadsForReduction(i - last_i);
-            rowBlocks++;
+            if (allocate_row_blocks)
+            {
+                *rowBlocks = ( i << (64 - ROW_BITS) );
+                if ((i - last_i) > rows_for_vector)
+                    *(rowBlocks-1) |= numThreadsForReduction(i - last_i);
+                rowBlocks++;
+            }
+            total_row_blocks++;
             last_i = i;
             sum = 0;
+            consecutive_long_rows = 0;
         }
         // This is csr-stream case; bottom WG_BITS = number of parallel reduction threads
         else if( sum == blkSize )
         {
-            *rowBlocks = ( i << (64 - ROW_BITS) );
-            // Fill in the low-order bits with the numThreadsForRed
-            if ((i - last_i) > 2)
-                *(rowBlocks-1) |= numThreadsForReduction(i - last_i);
-            rowBlocks++;
+            if (allocate_row_blocks)
+            {
+                *rowBlocks = ( i << (64 - ROW_BITS) );
+                if ((i - last_i) > rows_for_vector)
+                    *(rowBlocks-1) |= numThreadsForReduction(i - last_i);
+                rowBlocks++;
+            }
+            total_row_blocks++;
             last_i = i;
             sum = 0;
+            consecutive_long_rows = 0;
         }
-
     }
 
     // If we didn't fill a row block with the last row, make sure we don't lose it.
-    if ( (*(rowBlocks-1) >> (64 - ROW_BITS)) != static_cast< rowBlockType>(nRows) )
+    if ( allocate_row_blocks && (*(rowBlocks-1) >> (64 - ROW_BITS)) != static_cast< rowBlockType>(nRows) )
     {
         *rowBlocks = ( static_cast< rowBlockType >( nRows ) << (64 - ROW_BITS) );
-        // Fill in the low-order bits with the numThreadsForRed
-        if ((nRows - last_i) > 2)
+        if ((nRows - last_i) > rows_for_vector)
             *(rowBlocks-1) |= numThreadsForReduction(i - last_i);
         rowBlocks++;
     }
+    total_row_blocks++;
 
-    size_t dist = std::distance( rowBlocksBase, rowBlocks );
-    assert( (2 * dist) <= rowBlockSize );
-    // Update the size of rowBlocks to reflect the actual amount of memory used
-    // We're multiplying the size by two because the extended precision form of
-    // CSR-Adaptive requires more space for the final global reduction.
-    rowBlockSize = 2 * dist;
+    if (allocate_row_blocks)
+    {
+        size_t dist = std::distance( rowBlocksBase, rowBlocks );
+        assert( (2 * dist) <= rowBlockSize );
+        // Update the size of rowBlocks to reflect the actual amount of memory used
+        // We're multiplying the size by two because the extended precision form of
+        // CSR-Adaptive requires more space for the final global reduction.
+        rowBlockSize = 2 * dist;
+    }
+    else
+        rowBlockSize = 2 * total_row_blocks;
 }
 
 #endif
