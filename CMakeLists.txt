@@ -11,7 +11,7 @@ cmake_minimum_required( VERSION 2.8.10 )
 if( POLICY CMP0048 )
   cmake_policy( SET CMP0048 NEW )
 
-  project( SuperBuild.clSPARSE VERSION 0.6.0.0 )
+  project( SuperBuild.clSPARSE VERSION 0.7.0.0 )
 else( )
   project( SuperBuild.clSPARSE )
 
@@ -21,7 +21,7 @@ else( )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_MINOR )
-    set( SuperBuild.clSPARSE_VERSION_MINOR 6 )
+    set( SuperBuild.clSPARSE_VERSION_MINOR 7 )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_PATCH )
