@@ -172,7 +172,7 @@ void csrmv_general (     const INDEX_TYPE num_rows,
     {
         const int row_start = row_offset[row];
         const int row_end   = row_offset[row+1];
-        VALUE_TYPE sum = (VALUE_TYPE) 0;
+        VALUE_TYPE sum = 0.;
 
         VALUE_TYPE sumk_e = 0.;
         // It is about 5% faster to always multiply by alpha, rather than to
@@ -184,7 +184,6 @@ void csrmv_general (     const INDEX_TYPE num_rows,
 
         // Parallel reduction in shared memory.
         sdata[local_id] = sum;
-        barrier( CLK_LOCAL_MEM_FENCE );
 
         // This compensated summation reduces cummulative rounding errors,
         // which can become a problem on GPUs because our reduction order is
@@ -193,18 +192,11 @@ void csrmv_general (     const INDEX_TYPE num_rows,
         // Yamanaka, Ogita, Rump, and Oishi, "A Parallel Algorithm of
         // Accurate Dot Product," in the Journal of Parallel Computing,
         // 34(6-8), pp. 392-410, Jul. 2008.
-        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 32);
-        barrier( CLK_LOCAL_MEM_FENCE );
-        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 16);
-        barrier( CLK_LOCAL_MEM_FENCE );
-        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 8);
-        barrier( CLK_LOCAL_MEM_FENCE );
-        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 4);
-        barrier( CLK_LOCAL_MEM_FENCE );
-        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 2);
-        barrier( CLK_LOCAL_MEM_FENCE );
-        sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, 1);
-        barrier( CLK_LOCAL_MEM_FENCE );
+        for (int i = (WG_SIZE >> 1); i > 0; i >>= 1)
+        {
+            barrier( CLK_LOCAL_MEM_FENCE );
+            sum = sum2_reduce(sum, &new_error, sdata, local_id, thread_lane, i);
+        }
 
         if (thread_lane == 0)
         {
