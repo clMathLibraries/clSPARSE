@@ -1,4 +1,4 @@
-Pre-built binaries are available on our [releases page](releases)
+Pre-built binaries are available on our [releases page](https://github.com/clMathLibraries/clSPARSE/releases)
 
 # clSPARSE
 an OpenCL&copy; library implementing Sparse linear algebra.  This project is a result of
