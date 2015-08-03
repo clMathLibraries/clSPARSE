@@ -16,7 +16,9 @@ R"(
 #pragma OPENCL EXTENSION cl_khr_int64_base_atomics: enable
 #pragma OPENCL EXTENSION cl_khr_int64_extended_atomics: enable
 
-FPTYPE atomic_add_float_extended( global FPTYPE *ptr, FPTYPE temp, FPTYPE *old_sum )
+FPTYPE atomic_add_float_extended( global FPTYPE * restrict const ptr,
+                                  const FPTYPE temp,
+                                  FPTYPE * restrict const old_sum )
 {
 #ifdef DOUBLE
 	unsigned long newVal;
@@ -43,7 +45,7 @@ FPTYPE atomic_add_float_extended( global FPTYPE *ptr, FPTYPE temp, FPTYPE *old_s
 #endif
 }
 
-void atomic_add_float( global void *ptr, FPTYPE temp )
+void atomic_add_float( global void * const ptr, const FPTYPE temp )
 {
     atomic_add_float_extended(ptr, temp, 0);
 }
@@ -57,7 +59,7 @@ void atomic_add_float( global void *ptr, FPTYPE temp )
 // Returns: The non-corrected sum of inputs x and y.
 FPTYPE two_sum( FPTYPE x,
                 FPTYPE y,
-                FPTYPE *sumk_err )
+                FPTYPE * restrict const sumk_err )
 {
     FPTYPE sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
@@ -93,9 +95,9 @@ FPTYPE two_sum( FPTYPE x,
     return sumk_s;
 }
 
-FPTYPE atomic_two_sum_float( global FPTYPE *x_ptr,
+FPTYPE atomic_two_sum_float( global FPTYPE * restrict const x_ptr,
                             FPTYPE y,
-                            FPTYPE *sumk_err )
+                            FPTYPE * restrict const sumk_err )
 {
     // Have to wait until the return from the atomic op to know what X was.
     FPTYPE sumk_s = 0.;
@@ -123,60 +125,6 @@ FPTYPE atomic_two_sum_float( global FPTYPE *x_ptr,
 // CPU. It is based on the PSumK algorithm (with K==2) from Yamanaka, Ogita,
 // Rump, and Oishi, "A Parallel Algorithm of Accurate Dot Product," in
 // J. Parallel Computing, 34(6-8), pp. 392-410, Jul. 2008.
-// Inputs:  cur_sum: the input from which our sum starts
-//          err: the current running cascade error for this final summation
-//          partial: the local memory which holds the values to sum
-//                  (we eventually use it to pass down temp. err vals as well)
-//          lid: local ID of the work item calling this function.
-//          integers: This parallel summation method is meant to take values
-//                  from four different points. See the blow comment for usage.
-// Don't inline this function. It reduces performance.
-FPTYPE sum2_reduce( FPTYPE cur_sum,
-        FPTYPE *err,
-        __local FPTYPE *partial,
-        size_t lid,
-        int first,
-        int second,
-        int third,
-        int last )
-{
-    // A subset of the threads in this workgroup add three sets
-    // of values together using the 2Sum method.
-    // For instance, threads 0-63 would each load four values
-    // from the upper 192 locations.
-    // Example: Thread 0 loads 0, 64, 128, and 192.
-    if (lid < first)
-    {
-        cur_sum = two_sum(cur_sum, partial[lid + first], err);
-        cur_sum = two_sum(cur_sum, partial[lid + second], err);
-        cur_sum = two_sum(cur_sum, partial[lid + third], err);
-    }
-#ifdef EXTENDED_PRECISION
-    // We reuse the LDS entries to move the error values down into lower
-    // threads. This saves LDS space, allowing higher occupancy, but requires
-    // more barriers, which can reduce performance.
-    barrier(CLK_LOCAL_MEM_FENCE);
-    // Have all of those upper threads pass their temporary errors
-    // into a location that the lower threads can read.
-    if (lid >= first && lid < last)
-        partial[lid] = *err;
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if (lid < first) // Add those errors in.
-    {
-        cur_sum = two_sum(cur_sum, partial[lid + first], err);
-        cur_sum = two_sum(cur_sum, partial[lid + second], err);
-        cur_sum = two_sum(cur_sum, partial[lid + third], err);
-        partial[lid] = cur_sum;
-    }
-#endif
-    return cur_sum;
-}
-
-// A simpler reduction than the one above, also built to use EXTENDED_PRECISION
-// Rather than working on large widths, this simply loads a single value from
-// an upper entry of the LDS and drops it into the local region.
-// It is meant to be called in parallel on an LDS buffer, over enough iterations,
-// reduce multiple rows into a small series of output rows.
 // A version of this method is also used in csrmv_general.
 // Inputs:  cur_sum: the input from which our sum starts
 //          err: the current running cascade error for this final summation
@@ -186,15 +134,15 @@ FPTYPE sum2_reduce( FPTYPE cur_sum,
 //          thread_lane: The lane within this thread's row.
 //          max_size: This parallel summation method operates in multiple rounds
 //                  to do a parallel reduction. This is the length of each row.
-//          round: As you reduce data down, this tells you how many output values
-//                 you won't during each round.
-FPTYPE simple_sum2_reduce( FPTYPE cur_sum,
-        FPTYPE *err,
-        volatile __local FPTYPE *partial,
-        size_t lid,
-        int thread_lane,
-        int max_size,
-        int reduc_size )
+//          reduc_size: As you reduce data down, this tells you how far away
+//                 you will grab a value and add to your own local sum value.
+FPTYPE sum2_reduce( FPTYPE cur_sum,
+        FPTYPE * restrict const err,
+        volatile __local FPTYPE * restrict const partial,
+        const size_t lid,
+        const int thread_lane,
+        const int max_size,
+        const int reduc_size )
 {
     if ( max_size > reduc_size )
     {
@@ -225,18 +173,18 @@ FPTYPE simple_sum2_reduce( FPTYPE cur_sum,
 }
 
 __kernel void
-csrmv_adaptive(__global const FPTYPE * restrict vals,
-                       __global const int * restrict cols,
-                       __global const int * restrict rowPtrs,
-                       __global const FPTYPE * restrict vec,
-                       __global FPTYPE * restrict out,
-                       __global unsigned long * restrict rowBlocks,
-                       __global FPTYPE * restrict pAlpha,
-                       __global FPTYPE * restrict pBeta)
+csrmv_adaptive(__global const FPTYPE * restrict const vals,
+                       __global const int * restrict const cols,
+                       __global const int * restrict const rowPtrs,
+                       __global const FPTYPE * restrict const vec,
+                       __global FPTYPE * restrict const out,
+                       __global unsigned long * restrict const rowBlocks,
+                       __global const FPTYPE * restrict const pAlpha,
+                       __global const FPTYPE * restrict const pBeta)
 {
    __local FPTYPE partialSums[BLOCKSIZE];
-   size_t gid = get_group_id(0);
-   size_t lid = get_local_id(0);
+   const size_t gid = get_group_id(0);
+   const size_t lid = get_local_id(0);
    const FPTYPE alpha = *pAlpha;
    const FPTYPE beta = *pBeta;
 
@@ -272,6 +220,10 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
    // If there are more items in this row, we assign more workgroups.
    unsigned int vecStart = rowPtrs[row] + (wg * BLOCK_MULTIPLIER*BLOCKSIZE);
    unsigned int vecEnd = (rowPtrs[row + 1] > vecStart + BLOCK_MULTIPLIER*BLOCKSIZE) ? vecStart + BLOCK_MULTIPLIER*BLOCKSIZE : rowPtrs[row + 1];
+
+   FPTYPE temp_sum = 0.;
+   FPTYPE sumk_e = 0.;
+   FPTYPE new_error = 0.;
 
    // If the next row block starts more than 2 rows away, then we choose CSR-Stream.
    // If this is zero (long rows) or one (final workgroup in a long row, or a single
@@ -334,8 +286,6 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
           // a row into {numThreadsForRed} locations in local memory.
           // After that, the entire workgroup does a parallel reduction, and each
           // row ends up with an individual answer.
-          FPTYPE temp = 0.;
-          FPTYPE sumk_e = 0.;
 
           // {numThreadsForRed} adjacent threads all work on the same row, so their
           // start and end values are the same.
@@ -354,40 +304,28 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
           {
               // only works when numThreadsForRed is a power of 2
               for(int i = 0; i < workForEachThread; i++)
-                  temp = two_sum(temp, partialSums[local_first_val + i*numThreadsForRed + threadInBlock], &sumk_e);
+                  temp_sum = two_sum(temp_sum, partialSums[local_first_val + i*numThreadsForRed + threadInBlock], &sumk_e);
 
               // The last few values (the remainder of this row) also need to be aded in.
               int local_cur_val = local_first_val + numThreadsForRed*workForEachThread;
               if(threadInBlock < local_last_val - local_cur_val)
-                  temp = two_sum(temp, partialSums[local_cur_val + threadInBlock], &sumk_e);
+                  temp_sum = two_sum(temp_sum, partialSums[local_cur_val + threadInBlock], &sumk_e);
           }
           barrier(CLK_LOCAL_MEM_FENCE);
 
-          FPTYPE new_error = 0.;
-          temp = two_sum(temp, sumk_e, &new_error);
-          partialSums[lid] = temp;
+          temp_sum = two_sum(temp_sum, sumk_e, &new_error);
+          partialSums[lid] = temp_sum;
 
           // Step one of this two-stage reduction is done. Now each row has {numThreadsForRed}
           // values sitting in the local memory. This means that, roughly, the beginning of
           // LDS is full up to {workgroup size} entries.
           // Now we perform a parallel reduction that sums together the answers for each
-          // row in parallel, leaving us an answer in 'temp' for each row.
-          barrier(CLK_LOCAL_MEM_FENCE);
-          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 128);
-          barrier( CLK_LOCAL_MEM_FENCE );
-          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 64);
-          barrier( CLK_LOCAL_MEM_FENCE );
-          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 32);
-          barrier( CLK_LOCAL_MEM_FENCE );
-          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 16);
-          barrier( CLK_LOCAL_MEM_FENCE );
-          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 8);
-          barrier( CLK_LOCAL_MEM_FENCE );
-          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 4);
-          barrier( CLK_LOCAL_MEM_FENCE );
-          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 2);
-          barrier( CLK_LOCAL_MEM_FENCE );
-          temp = simple_sum2_reduce(temp, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, 1);
+          // row in parallel, leaving us an answer in 'temp_sum' for each row.
+          for (int i = (WGSIZE >> 1); i > 0; i >>= 1)
+          {
+              barrier( CLK_LOCAL_MEM_FENCE);
+              temp_sum = sum2_reduce(temp_sum, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, i);
+          }
 
           if (threadInBlock == 0 && st < num_rows)
           {
@@ -395,8 +333,8 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
               // If so, just do a write rather than a read-write. Measured to be a slight (~5%)
               // performance improvement.
               if (beta != 0.)
-                  temp = two_sum(beta * out[row+st], temp, &new_error);
-              out[row+st] = temp + new_error;
+                  temp_sum = two_sum(beta * out[row+st], temp_sum, &new_error);
+              out[row+st] = temp_sum + new_error;
           }
       }
       else
@@ -411,16 +349,16 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
           {
               int local_first_val = (rowPtrs[local_row] - rowPtrs[row]);
               int local_last_val = rowPtrs[local_row + 1] - rowPtrs[row];
-              FPTYPE temp = 0.;
-              FPTYPE sumk_e = 0.;
+              temp_sum = 0.;
+              sumk_e = 0.;
               for (int local_cur_val = local_first_val; local_cur_val < local_last_val; local_cur_val++)
-                  temp = two_sum(temp, partialSums[local_cur_val], &sumk_e);
+                  temp_sum = two_sum(temp_sum, partialSums[local_cur_val], &sumk_e);
 
-              // After you've done the reduction into the temp register,
+              // After you've done the reduction into the temp_sum register,
               // put that into the output for each row.
               if (beta != 0.)
-                  temp = two_sum(beta * out[local_row], temp, &sumk_e);
-              out[local_row] = temp + sumk_e;
+                  temp_sum = two_sum(beta * out[local_row], temp_sum, &sumk_e);
+              out[local_row] = temp_sum + sumk_e;
               local_row += WGSIZE;
           }
       }
@@ -442,43 +380,38 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
        {
            // Any workgroup only calculates, at most, BLOCKSIZE items in this row.
            // If there are more items in this row, we use CSR-LongRows.
+           temp_sum = 0.;
+           sumk_e = 0.;
+           new_error = 0.;
            vecStart = rowPtrs[myRow];
            vecEnd = rowPtrs[myRow+1];
 
            // Load in a bunch of partial results into your register space, rather than LDS (no contention)
            // Then dump the partially reduced answers into the LDS for inter-work-item reduction.
            // Using a long induction variable to make sure unsigned int overflow doesn't break things.
-           FPTYPE mySum = 0.;
-           FPTYPE sumk_e = 0.;
            for (long j = vecStart + lid; j < vecEnd; j+=WGSIZE)
            {
                unsigned int col = cols[(unsigned int)j];
-               mySum = two_sum(mySum, alpha * vals[(unsigned int)j] * vec[col], &sumk_e);
+               temp_sum = two_sum(temp_sum, alpha * vals[(unsigned int)j] * vec[col], &sumk_e);
            }
 
-           FPTYPE new_error = 0.;
-           mySum = two_sum(mySum, sumk_e, &new_error);
-           partialSums[lid] = mySum;
-           barrier(CLK_LOCAL_MEM_FENCE);
+           temp_sum = two_sum(temp_sum, sumk_e, &new_error);
+           partialSums[lid] = temp_sum;
 
            // Reduce partial sums
-           // These numbers need to change if the # of work-items/WG changes.
-           mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 64, 128, 192, 256);
-           barrier(CLK_LOCAL_MEM_FENCE);
-           mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 16, 32, 48, 64);
-           barrier(CLK_LOCAL_MEM_FENCE);
-           mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 4, 8, 12, 16);
-           barrier(CLK_LOCAL_MEM_FENCE);
-           mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 1, 2, 3, 4);
-           barrier(CLK_LOCAL_MEM_FENCE);
+           for (int i = (WGSIZE >> 1); i > 0; i >>= 1)
+           {
+               barrier( CLK_LOCAL_MEM_FENCE);
+               temp_sum = sum2_reduce(temp_sum, &new_error, partialSums, lid, lid, WGSIZE, i);
+           }
 
            if (lid == 0UL)
            {
                if (beta != 0.)
-                   mySum = two_sum(beta * out[myRow], mySum, &new_error);
-               out[myRow] = mySum + new_error;
+                   temp_sum = two_sum(beta * out[myRow], temp_sum, &new_error);
+               out[myRow] = temp_sum + new_error;
            }
-           // CSR-VECTOR on workgroups for two rows which are inefficient for CSR-Stream
+           // CSR-Vector can possibly work on multiple rows one after the other.
            myRow++;
        }
    }
@@ -531,10 +464,6 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
        // and stop_row. They only run for one iteration.
        // Load in a bunch of partial results into your register space, rather than LDS (no contention)
        // Then dump the partially reduced answers into the LDS for inter-work-item reduction.
-       // Using a long induction variable to make sure unsigned int overflow doesn't break things.
-       FPTYPE mySum = 0.;
-       FPTYPE sumk_e = 0.;
-
        int col = vecStart + lid;
        if (row == stop_row) // inner thread, we can hardcode/unroll this loop
        {
@@ -543,39 +472,33 @@ csrmv_adaptive(__global const FPTYPE * restrict vals,
            // That increases register pressure and reduces occupancy.
            for (int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
            {
-               mySum = two_sum(mySum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+               temp_sum = two_sum(temp_sum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
 #if 2*WGSIZE <= BLOCK_MULTIPLIER*BLOCKSIZE
                // If you can, unroll this loop once. It somewhat helps performance.
                j += WGSIZE;
-               mySum = two_sum(mySum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+               temp_sum = two_sum(temp_sum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
 #endif
            }
        }
        else
        {
            for(int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
-               mySum = two_sum(mySum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+               temp_sum = two_sum(temp_sum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
        }
 
-       FPTYPE new_error = 0.;
-       mySum = two_sum(mySum, sumk_e, &new_error);
-       partialSums[lid] = mySum;
-       barrier(CLK_LOCAL_MEM_FENCE);
+       temp_sum = two_sum(temp_sum, sumk_e, &new_error);
+       partialSums[lid] = temp_sum;
 
        // Reduce partial sums
-       // Needs to be modified if there is a change in the # of work-items per workgroup.
-       mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 64, 128, 192, 256);
-       barrier(CLK_LOCAL_MEM_FENCE);
-       mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 16, 32, 48, 64);
-       barrier(CLK_LOCAL_MEM_FENCE);
-       mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 4, 8, 12, 16);
-       barrier(CLK_LOCAL_MEM_FENCE);
-       mySum = sum2_reduce(mySum, &new_error, partialSums, lid, 1, 2, 3, 4);
-       barrier(CLK_LOCAL_MEM_FENCE);
+       for (int i = (WGSIZE >> 1); i > 0; i >>= 1)
+       {
+           barrier( CLK_LOCAL_MEM_FENCE);
+           temp_sum = sum2_reduce(temp_sum, &new_error, partialSums, lid, lid, WGSIZE, i);
+       }
 
        if (lid == 0UL)
        {
-           atomic_two_sum_float(&out[row], mySum, &new_error);
+           atomic_two_sum_float(&out[row], temp_sum, &new_error);
 
 #ifdef EXTENDED_PRECISION
            // The last half of the rowBlocks buffer is used to hold errors.
