@@ -394,11 +394,20 @@ int MatrixMarketReader<FloatType>::MMReadMtxCrdSize( FILE *infile )
     return 0;
 }
 
+template<typename FloatType>
+bool CoordinateCompare( const Coordinate<FloatType> &c1, const Coordinate<FloatType> &c2 )
+{
+    if( c1.x != c2.x )
+        return ( c1.x < c2.x );
+    else
+        return ( c1.y < c2.y );
+}
+
 // This function reads the file at the given filepath, and returns the sparse
 // matrix in the COO struct.
-int
+template< typename T > int
 cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indices,
-    std::vector< float >& values, const char* filePath )
+    std::vector< T >& values, const char* filePath )
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
@@ -413,7 +422,7 @@ cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indi
     else
         return 1;
 
-    MatrixMarketReader< float > mm_reader;
+    MatrixMarketReader< T > mm_reader;
     if( mm_reader.MMReadFormat( filePath ) )
         return 2;
 
@@ -428,7 +437,7 @@ cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indi
     col_indices.reserve( n );
     values.reserve( nnz );
 
-    Coordinate< float >* coords = mm_reader.GetUnsymCoordinates( );
+    Coordinate< T >* coords = mm_reader.GetUnsymCoordinates( );
     for( int c = 0; c < nnz; ++c )
     {
         row_indices.push_back( coords[ c ].x );
@@ -439,20 +448,17 @@ cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indi
     return 0;
 }
 
-template<typename FloatType>
-bool CoordinateCompare( const Coordinate<FloatType> &c1, const Coordinate<FloatType> &c2 )
-{
-    if( c1.x != c2.x )
-        return ( c1.x < c2.x );
-    else
-        return ( c1.y < c2.y );
-}
+// Explicit template instantiations for float, double
+template int cooMatrixfromFile<>( std::vector< int >& row_indices, std::vector< int >& col_indices,
+                                  std::vector< float >& values, const char* filePath );
+template int cooMatrixfromFile<>( std::vector< int >& row_indices, std::vector< int >& col_indices,
+                                  std::vector< double >& values, const char* filePath );
 
 // This function reads the file at the given filepath, and returns the sparse
-// matrix in the COO struct.
-int
+// matrix in the CSR struct.
+template< typename T > int
 csrMatrixfromFile( std::vector< int >& row_offsets, std::vector< int >& col_indices,
-std::vector< float >& values, const char* filePath )
+std::vector< T >& values, const char* filePath )
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
@@ -467,7 +473,7 @@ std::vector< float >& values, const char* filePath )
     else
         return 1;
 
-    MatrixMarketReader< float > mm_reader;
+    MatrixMarketReader< T > mm_reader;
     if( mm_reader.MMReadFormat( filePath ) )
         return 2;
 
@@ -482,9 +488,9 @@ std::vector< float >& values, const char* filePath )
     col_indices.reserve( n );
     values.reserve( nnz );
 
-    Coordinate< float >* coords = mm_reader.GetUnsymCoordinates( );
+    Coordinate< T >* coords = mm_reader.GetUnsymCoordinates( );
 
-    std::sort( coords, coords + nnz, CoordinateCompare< float > );
+    std::sort( coords, coords + nnz, CoordinateCompare< T > );
 
     int current_row = 1;
     row_offsets.push_back( 0 );
@@ -504,65 +510,11 @@ std::vector< float >& values, const char* filePath )
     return 0;
 }// end
 
-
-// This function reads the file at the given filepath, and returns the sparse
-// matrix in the COO struct.
-int
-csrMatrixfromFile(std::vector< int >& row_offsets, std::vector< int >& col_indices,
-std::vector< double >& values, const char* filePath)
-{
-    // Check that the file format is matrix market; the only format we can read right now
-    // This is not a complete solution, and fails for directories with file names etc...
-    // TODO: Should we use boost filesystem?
-    std::string strPath(filePath);
-    if (strPath.find_last_of('.') != std::string::npos)
-    {
-        std::string ext = strPath.substr(strPath.find_last_of('.') + 1);
-        if (ext != "mtx")
-            return 1;
-    }
-    else
-        return 1;
-
-    MatrixMarketReader< double > mm_reader;
-    if (mm_reader.MMReadFormat(filePath))
-        return 2;
-
-    int m = mm_reader.GetNumRows();
-    int n = mm_reader.GetNumCols();
-    int nnz = mm_reader.GetNumNonZeroes();
-
-    row_offsets.clear();
-    col_indices.clear();
-    values.clear();
-    row_offsets.reserve(m);
-    col_indices.reserve(n);
-    values.reserve(nnz);
-
-    Coordinate< double >* coords = mm_reader.GetUnsymCoordinates();
-
-    std::sort(coords, coords + nnz, CoordinateCompare< double >);
-
-    int current_row = 1;
-    row_offsets.push_back(0);
-    for (int i = 0; i < nnz; i++)
-    {
-        col_indices.push_back(coords[i].y);
-        values.push_back(coords[i].val);
-
-        if (coords[i].x >= current_row)
-        {
-            row_offsets.push_back(i);
-            ++current_row;
-        }
-    }
-    row_offsets.push_back(nnz);
-
-    return 0;
-}// end
-
-
-
+// Explicit template instantiations for float, double
+template int csrMatrixfromFile<>( std::vector< int >& row_offsets, std::vector< int >& col_indices,
+                                  std::vector< float >& values, const char* filePath );
+template int csrMatrixfromFile<>( std::vector< int >& row_offsets, std::vector< int >& col_indices,
+                                  std::vector< double >& values, const char* filePath );
 
 // This function reads the file header at the given filepath, and gets the 
 // matrix dimensions

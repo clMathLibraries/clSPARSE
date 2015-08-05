@@ -67,18 +67,13 @@ public:
 
     double bandwidth( )
     {
-        //  Assuming that accesses to the vector always hit in the cache after the first access
-        //  There are NNZ integers in the cols[ ] array
-        //  You access each integer value in row_delimiters[ ] once.
-        //  There are NNZ float_types in the vals[ ] array
-        //  You read num_cols floats from the vector, afterwards they cache perfectly.
-        //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows ) ) / time_in_ns( );
+        // Number of Elements converted in unit time
+        return ( n_vals / time_in_ns( ) );
     }
 
     std::string bandwidth_formula( )
     {
-        return "GiB/s";
+        return "Gi-Elements/s";
     }
 
 
@@ -88,15 +83,14 @@ public:
 
         cl_int status;
 
-        int nnz1, row1, col1;
-        clsparseStatus fileError = clsparseHeaderfromFile( &nnz1, &row1, &col1, path.c_str( ) );
+        clsparseStatus fileError = clsparseHeaderfromFile( &n_vals, &n_rows, &n_cols, path.c_str( ) );
         if( fileError != clsparseSuccess )
            throw std::runtime_error( "Could not read matrix market header from disk" );
 
         clsparseInitCooMatrix( &cooMatx );
-        cooMatx.num_nonzeros = nnz1;
-        cooMatx.num_rows = row1;
-        cooMatx.num_cols = col1;
+        cooMatx.num_nonzeros = n_vals;
+        cooMatx.num_rows = n_rows;
+        cooMatx.num_cols = n_cols;
          
         cooMatx.values     = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                                cooMatx.num_nonzeros * sizeof(T), NULL, &status );
@@ -105,8 +99,6 @@ public:
         cooMatx.rowIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                                cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
 
-        //JPA: Bug fix: That will not work for double precision
-        //clsparseCooMatrixfromFile( &cooMatx, path.c_str( ), control );
         if (typeid(T) == typeid(float))
             clsparseSCooMatrixfromFile(&cooMatx, path.c_str(), control);
         if (typeid(T) == typeid(double))
@@ -116,12 +108,12 @@ public:
         clsparseInitCsrMatrix( &csrMtx );
  
         //JPA:: Shouldn't be CL_MEM_WRITE_ONLY since coo ---> csr???
-        csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                            cooMatx.num_nonzeros * sizeof( T ), NULL, &status );
 
-        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                                cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
-        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                               ( cooMatx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
 
     }
@@ -157,13 +149,13 @@ public:
         if( gpuTimer && cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-          size_t sparseBytes = 0;
+          size_t sparseElements = n_vals;
           cpuTimer->pruneOutliers( 3.0 );
-          cpuTimer->Print( sparseBytes, "GiB/s" );
+          cpuTimer->Print( sparseElements, "GiElements/s" );
           cpuTimer->Reset( );
 
           gpuTimer->pruneOutliers( 3.0 );
-          gpuTimer->Print( sparseBytes, "GiB/s" );
+          gpuTimer->Print( sparseElements, "GiElements/s" );
           gpuTimer->Reset( );
         }
 
@@ -193,9 +185,9 @@ private:
     clsparseCooMatrix cooMatx;
 
     //matrix dimension
-    int m;
-    int n;
-    int nnz;
+    int n_rows;
+    int n_cols;
+    int n_vals;
 	
     //  OpenCL state
     cl_command_queue_properties cqProp;

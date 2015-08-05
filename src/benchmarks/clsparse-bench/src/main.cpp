@@ -17,10 +17,10 @@
 #include "functions/clfunc-xSpMdM.hpp"
 #include "functions/clfunc_xCG.hpp"
 #include "functions/clfunc_xBiCGStab.hpp"
-#include "functions/clfunc_xCoo2Csr.hpp"
 #include "functions/clfunc_xDense2Csr.hpp"
 #include "functions/clfunc_xCsr2Dense.hpp"
 #include "functions/clfunc_xCsr2Coo.hpp"
+#include "functions/clfunc_xCoo2Csr.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -30,10 +30,10 @@ struct recursive_directory_range
 {
     typedef fs::recursive_directory_iterator dir_iterator;
 
-    recursive_directory_range(fs::path p) : p_(p) {}
+    recursive_directory_range( fs::path p ): p_( p ) {}
 
-    dir_iterator begin() { return fs::recursive_directory_iterator(p_); }
-    dir_iterator end() { return fs::recursive_directory_iterator(); }
+    dir_iterator begin( ) { return fs::recursive_directory_iterator( p_ ); }
+    dir_iterator end( ) { return fs::recursive_directory_iterator( ); }
 
     fs::path p_;
 };
@@ -46,43 +46,43 @@ struct recursive_directory_range
 * @return true if any files were found
 */
 bool findMatrices( const std::string& root,
-    const std::string& extension,
-    std::vector<fs::path>& matrix_files )
+                   const std::string& extension,
+                   std::vector<fs::path>& matrix_files )
 {
     fs::path dir( root );
 
-        recursive_directory_range recursive_directory_it(dir);
+    recursive_directory_range recursive_directory_it( dir );
 
-        const boost::regex filter( ".*\\.\\" + extension );
-        bool found = false;
+    const boost::regex filter( ".*\\.\\" + extension );
+    bool found = false;
 
-        if( fs::exists( dir ) && fs::is_directory( dir ) )
+    if( fs::exists( dir ) && fs::is_directory( dir ) )
+    {
+        for( auto it : recursive_directory_range( dir ) )
         {
-            for (auto it : recursive_directory_range(dir))
+            //std::cout << "Checking:" << it << std::endl;
+            if( fs::is_regular_file( it.status( ) ) )
             {
-                //std::cout << "Checking:" << it << std::endl;
-                if( fs::is_regular_file( it.status( ) ) )
+                std::string fname = it.path( ).filename( ).string( );
+
+                std::string fname_suffix = fname.substr( fname.size( ) - 6 );
+
+                if( boost::regex_match( fname, filter ) )
                 {
-                    std::string fname = it.path( ).filename( ).string( );
-
-                    std::string fname_suffix = fname.substr(fname.size() - 6);
-
-                    if( boost::regex_match( fname, filter ) )
-                    {
-                        std::cout << "\tAdding:" << it.path( ) << std::endl;
-                        matrix_files.push_back( it.path( ) );
-                        found = true;
-                    }
+                    std::cout << "\tAdding:" << it.path( ) << std::endl;
+                    matrix_files.push_back( it.path( ) );
+                    found = true;
                 }
             }
         }
-        else
-        {
-            std::cerr << dir << " does not name a directory or directory does not exists!" << std::endl;
-            return false;
-        }
+    }
+    else
+    {
+        std::cerr << dir << " does not name a directory or directory does not exists!" << std::endl;
+        return false;
+    }
 
-        return found;
+    return found;
 }
 
 std::vector< fs::path > enumMatrices( const std::string& root_dir )
@@ -113,7 +113,8 @@ int main( int argc, char *argv[ ] )
         ( "beta", po::value<cl_double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
         ( "rows", po::value<size_t>( &rows )->default_value( 16 ), "specifies the number of rows for matrix data" )
         ( "columns", po::value<size_t>( &columns )->default_value( 16 ), "specifies the number of columns for matrix data" )
-		("function,f", po::value<std::string>(&function)->default_value("SpMdV"), "Sparse functions to test. Options: SpMdV, SpMdM, CG, BiCGStab, Csr2Dense, Csr2Coo, Coo2Csr, Dense2Csr")
+        ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: "
+                    "SpMdV, SpMdM, CG, BiCGStab, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
         ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
         ( "profile,p", po::value<size_t>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
         ;
@@ -167,21 +168,21 @@ int main( int argc, char *argv[ ] )
             return -1;
         }
     }
-    else if (boost::iequals(function, "CG" ))
+    else if( boost::iequals( function, "CG" ) )
     {
-        if (precision == "s")
-            my_function = std::unique_ptr< clsparseFunc > ( new xCG< float >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+        if( precision == "s" )
+            my_function = std::unique_ptr< clsparseFunc >( new xCG< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
         else
-            my_function = std::unique_ptr< clsparseFunc > ( new xCG< double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xCG< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
     }
 
-    else if (boost::iequals(function, "BiCGStab" ))
-        {
-        if (precision == "s")
-            my_function = std::unique_ptr< clsparseFunc > ( new xBiCGStab< float >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+    else if( boost::iequals( function, "BiCGStab" ) )
+    {
+        if( precision == "s" )
+            my_function = std::unique_ptr< clsparseFunc >( new xBiCGStab< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
         else
-            my_function = std::unique_ptr< clsparseFunc > ( new xBiCGStab< double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
-        }
+            my_function = std::unique_ptr< clsparseFunc >( new xBiCGStab< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+    }
     else if( boost::iequals( function, "SpMdM" ) )
     {
         if( precision == "s" )
@@ -203,20 +204,20 @@ int main( int argc, char *argv[ ] )
         else
             my_function = std::unique_ptr< clsparseFunc >( new xDense2Csr< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
     }
-	else if (boost::iequals(function, "Csr2Dense"))
-	{
-		if (precision == "s")
-			my_function = std::unique_ptr< clsparseFunc >(new xCsr2Dense< cl_float >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
-		else
-			my_function = std::unique_ptr< clsparseFunc >(new xCsr2Dense< cl_double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
-	}
-	else if (boost::iequals(function, "Csr2Coo"))
-	{
-		if (precision == "s")
-			my_function = std::unique_ptr< clsparseFunc >(new xCsr2Coo< cl_float >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
-		else
-			my_function = std::unique_ptr< clsparseFunc >(new xCsr2Coo< cl_double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
-	}
+    else if( boost::iequals( function, "Csr2Dense" ) )
+    {
+        if( precision == "s" )
+            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Dense< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+        else
+            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Dense< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+    }
+    else if( boost::iequals( function, "Csr2Coo" ) )
+    {
+        if( precision == "s" )
+            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Coo< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+        else
+            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Coo< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+    }
     else
     {
         std::cerr << "Benchmarking unknown function" << std::endl;
@@ -236,9 +237,9 @@ int main( int argc, char *argv[ ] )
             // I expect to catch trow from clsparseHeaderfromFile
             // If io_exception then we don't need to cleanup.
             // If runtime_exception is catched we are doomed!
-            catch (clsparse::io_exception& io_exc)
+            catch( clsparse::io_exception& io_exc )
             {
-                std::cout << io_exc.what() << std::endl;
+                std::cout << io_exc.what( ) << std::endl;
                 continue;
             }
             my_function->initialize_cpu_buffer( );
