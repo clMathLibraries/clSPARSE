@@ -1,0 +1,17 @@
+Coo2Csr,,
+,,
+CUDA driver:,346.47,
+OpenCL Device:,k40c,
+,,Gi-Elements/s
+cant,,0.312
+consph,,0.032
+cop20k_A,,0.001
+mac_econ_fwd500,,0.152
+mc2depi,,0.233
+pdb1HYS,,0.062
+pwtk,,0.016
+rail4284,,0.071
+rma10,,0.020
+scircuit,,0.002
+shipsec1,,0.052
+webbase_1M,,0.001

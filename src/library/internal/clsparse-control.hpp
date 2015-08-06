@@ -1,3 +1,20 @@
+/* ************************************************************************
+ * Copyright 2015 Advanced Micro Devices, Inc.
+ * Copyright 2015 Vratis, Ltd.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #ifndef _CLSPARSE_CONTROL_H_
 #define _CLSPARSE_CONTROL_H_
 
@@ -17,7 +34,7 @@ struct _clsparseControl
     { }
 
     _clsparseControl( const cl_command_queue& pQueue )
-        : queue( pQueue ), event_wait_list( 0 ), pDeviceTimer( nullptr ), wavefront_size( 0 ), 
+        : queue( pQueue ), event_wait_list( 0 ), pDeviceTimer( nullptr ), wavefront_size( 0 ),
         max_wg_size( 0 ), max_compute_units( 0 ), async( CL_FALSE )
     {
         // Initializing a cl::CommandQueue from a cl_command_queue does not appear to bump the refcount

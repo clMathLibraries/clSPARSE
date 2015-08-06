@@ -1,4 +1,20 @@
 R"(
+/* ************************************************************************
+ * Copyright 2015 Advanced Micro Devices, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #define WG_SIZE                 256
 #define ELEMENTS_PER_WORK_ITEM  4
 #define RADICES                 16
@@ -17,37 +33,37 @@ uint scanlMemPrivData(uint val, __local uint* lmem, int exclusive)
     int lIdx = get_local_id(0);
     int wgSize = get_local_size(0);
     lmem[lIdx] = 0;
-    
+
     lIdx += wgSize;
     lmem[lIdx] = val;
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+
     // Now, perform Kogge-Stone scan
     uint t;
     for (int i = 1; i < wgSize; i *= 2)
     {
-        t = lmem[lIdx -  i]; 
+        t = lmem[lIdx -  i];
         barrier(CLK_LOCAL_MEM_FENCE);
-        lmem[lIdx] += t;     
+        lmem[lIdx] += t;
         barrier(CLK_LOCAL_MEM_FENCE);
     }
     return lmem[lIdx-exclusive];
 }
 
-__kernel 
+__kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 void
-scanInstantiated(__global uint * isums, 
+scanInstantiated(__global uint * isums,
          const int n)
         // __local uint * lmem)
 {
     __local int s_seed;
-    __local uint lmem[512];	
+    __local uint lmem[512];
     s_seed = 0; barrier(CLK_LOCAL_MEM_FENCE);
-    
+
     int last_thread = (get_local_id(0) < n &&
                       (get_local_id(0)+1) == n) ? 1 : 0;
-    
+
     for (int d = 0; d < 16; d++)
     {
         uint val = 0;
@@ -63,8 +79,8 @@ scanInstantiated(__global uint * isums,
         {
             isums[(n * d) + get_local_id(0)] = res + s_seed;
         }
-        
-        if (last_thread) 
+
+        if (last_thread)
         {
             s_seed += res + val;
         }
@@ -73,15 +89,15 @@ scanInstantiated(__global uint * isums,
 }
 
 
-__kernel 
+__kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 void
-histogramAscInstantiated(__global const uint * in, 
-                         __global uint * isums, 
+histogramAscInstantiated(__global const uint * in,
+                         __global uint * isums,
                                   int m_n,
-	                          int m_nWGs, 
+	                          int m_nWGs,
 	                          int m_startBit,
-	                          int m_nBlocksPerWG) 
+	                          int m_nBlocksPerWG)
 {
 
     __local uint lmem[WG_SIZE*RADICES];
@@ -119,7 +135,7 @@ histogramAscInstantiated(__global const uint * in,
             {
                 uint local_key = (in[addr] >> shift) & 0xFU;
 #if defined(DESCENDING)
-                lmem[(RADICES - local_key -1)*get_local_size(0)+ lIdx]++;   
+                lmem[(RADICES - local_key -1)*get_local_size(0)+ lIdx]++;
 #else
                 lmem[local_key*get_local_size(0)+ lIdx]++;
 #endif
@@ -139,16 +155,16 @@ histogramAscInstantiated(__global const uint * in,
     }
 }
 
-__kernel 
+__kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 void
-histogramSignedAscInstantiated(__global const uint * in, 
-                               __global uint * isums, 
+histogramSignedAscInstantiated(__global const uint * in,
+                               __global uint * isums,
                                          int m_n,
                                          int m_nWGs,
                                          int m_startBit,
                                          int m_nBlocksPerWG)
- 
+
 {
 
     __local uint lmem[WG_SIZE*RADICES];
@@ -193,7 +209,7 @@ histogramSignedAscInstantiated(__global const uint * in,
 #endif
 
 #if defined(DESCENDING)
-                lmem[(RADICES - local_key -1)*get_local_size(0)+ lIdx]++;  
+                lmem[(RADICES - local_key -1)*get_local_size(0)+ lIdx]++;
 #else
                 lmem[local_key*get_local_size(0)+ lIdx]++;
 #endif
@@ -216,12 +232,12 @@ histogramSignedAscInstantiated(__global const uint * in,
 
 
 #define DESCENDING
-__kernel 
+__kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 void
-histogramDescInstantiated(__global const uint * in, 
-       __global uint * isums, 
-       int4  cb) 
+histogramDescInstantiated(__global const uint * in,
+       __global uint * isums,
+       int4  cb)
 {
 
     __local uint lmem[WG_SIZE*RADICES];
@@ -259,7 +275,7 @@ histogramDescInstantiated(__global const uint * in,
             {
                 uint local_key = (in[addr] >> shift) & 0xFU;
 #if defined(DESCENDING)
-                lmem[(RADICES - local_key -1)*get_local_size(0)+ lIdx]++;   
+                lmem[(RADICES - local_key -1)*get_local_size(0)+ lIdx]++;
 #else
                 lmem[local_key*get_local_size(0)+ lIdx]++;
 #endif
@@ -279,12 +295,12 @@ histogramDescInstantiated(__global const uint * in,
     }
 }
 
-__kernel 
+__kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
 void
-histogramSignedDescInstantiated(__global const uint * in, 
-       __global uint * isums, 
-       int4  cb) 
+histogramSignedDescInstantiated(__global const uint * in,
+       __global uint * isums,
+       int4  cb)
 {
 
     __local uint lmem[WG_SIZE*RADICES];
@@ -329,7 +345,7 @@ histogramSignedDescInstantiated(__global const uint * in,
 #endif
 
 #if defined(DESCENDING)
-                lmem[(RADICES - local_key -1)*get_local_size(0)+ lIdx]++;   
+                lmem[(RADICES - local_key -1)*get_local_size(0)+ lIdx]++;
 #else
                 lmem[local_key*get_local_size(0)+ lIdx]++;
 #endif
