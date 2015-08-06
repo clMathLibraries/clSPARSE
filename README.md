@@ -67,7 +67,7 @@ clSPARSE is primarily written with C++ using C++11 core features.  It does expor
 a 'C' interface for compatibility with other languages.
 
 ### How to build clSPARSE for your platform
-A [Build primer](https://github.com/kknox/clSPARSE/wiki/Build) is available on
+A [Build primer](https://github.com/clMathLibraries/clSPARSE/wiki/Build) is available on
 the wiki, which describes how to use cmake to generate platforms specific build
 files
 
