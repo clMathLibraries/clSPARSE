@@ -1,6 +1,19 @@
 /* ************************************************************************
  * Copyright 2015 Advanced Micro Devices, Inc.
- * ************************************************************************/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #pragma once
 #ifndef CLSPARSE_BENCHMARK_COO2CSR_HXX__
 #define CLSPARSE_BENCHMARK_COO2CSR_HXX__
@@ -91,7 +104,7 @@ public:
         cooMatx.num_nonzeros = n_vals;
         cooMatx.num_rows = n_rows;
         cooMatx.num_cols = n_cols;
-         
+
         cooMatx.values     = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                                cooMatx.num_nonzeros * sizeof(T), NULL, &status );
         cooMatx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
@@ -103,10 +116,10 @@ public:
             clsparseSCooMatrixfromFile(&cooMatx, path.c_str(), control);
         if (typeid(T) == typeid(double))
             clsparseDCooMatrixfromFile(&cooMatx, path.c_str(), control);
-        
+
         //clsparseCsrMatrix csrMatx;
         clsparseInitCsrMatrix( &csrMtx );
- 
+
         //JPA:: Shouldn't be CL_MEM_WRITE_ONLY since coo ---> csr???
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                            cooMatx.num_nonzeros * sizeof( T ), NULL, &status );
@@ -124,16 +137,16 @@ public:
 
     void initialize_gpu_buffer( )
     {
-		
+
     }
 
     void reset_gpu_write_buffer( )
     {
-		
+
 		int scalar_i = 0;
 		T scalar_f = 0;
 		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.rowOffsets, &scalar_i, sizeof( int ), 0,
-                              sizeof( int ) * (csrMtx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" ); 
+                              sizeof( int ) * (csrMtx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" );
 		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.colIndices, &scalar_i, sizeof( int ), 0,
                               sizeof( int ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
 		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.values, &scalar_f, sizeof( T ), 0,
@@ -145,7 +158,7 @@ public:
     }
 
     void cleanup( )
-    {	
+    {
         if( gpuTimer && cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
@@ -188,7 +201,7 @@ private:
     int n_rows;
     int n_cols;
     int n_vals;
-	
+
     //  OpenCL state
     cl_command_queue_properties cqProp;
 
@@ -197,7 +210,7 @@ private:
 template<> void
 xCoo2Csr<float>::xCoo2Csr_Function( bool flush )
 {
-    clsparseStatus status = clsparseScoo2csr(&cooMatx, &csrMtx, control);	
+    clsparseStatus status = clsparseScoo2csr(&cooMatx, &csrMtx, control);
     if( flush )
         clFinish( queue );
 }
@@ -205,7 +218,7 @@ xCoo2Csr<float>::xCoo2Csr_Function( bool flush )
 template<> void
 xCoo2Csr<double>::xCoo2Csr_Function( bool flush )
 {
-    clsparseStatus status = clsparseDcoo2csr(&cooMatx, &csrMtx, control);	
+    clsparseStatus status = clsparseDcoo2csr(&cooMatx, &csrMtx, control);
 
     if( flush )
         clFinish( queue );

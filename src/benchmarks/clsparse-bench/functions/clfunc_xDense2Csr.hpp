@@ -1,6 +1,19 @@
 /* ************************************************************************
  * Copyright 2015 Advanced Micro Devices, Inc.
- * ************************************************************************/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #pragma once
 #ifndef CLSPARSE_BENCHMARK_DENSE2CSR_HXX__
 #define CLSPARSE_BENCHMARK_DENSE2CSR_HXX__
@@ -105,7 +118,7 @@ public:
         csrMtx.num_nonzeros = nnz;
         csrMtx.num_rows     = row;
         csrMtx.num_cols     = col;
-		
+
 		//clsparseCsrMetaSize( &csrMtx, control );
 
         cl_int status;
@@ -140,7 +153,7 @@ public:
 		A.values = clCreateBuffer(ctx, CL_MEM_READ_WRITE,
 			                      row * col * sizeof(T), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer A.values");
-		      
+
         if(typeid(T) == typeid(float))
 		{
 			clsparseScsr2dense(&csrMtx, &A, control);
@@ -148,7 +161,7 @@ public:
 		else if (typeid(T) == typeid(double))
 		{
 			clsparseDcsr2dense(&csrMtx, &A, control);
-		}          
+		}
 		// Check whether we need any barrier here: clFinish(queue)
 
 		// Output CSR Matrix
@@ -167,7 +180,7 @@ public:
 
         csrMatx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,
                                            (csrMtx.num_rows + 1) * sizeof( cl_int ), NULL, &status );
-		CLSPARSE_V(status, "::clCreateBuffer csrMatx.rowOffsets");                       
+		CLSPARSE_V(status, "::clCreateBuffer csrMatx.rowOffsets");
     }// End of function
 
     void initialize_cpu_buffer( )
@@ -232,8 +245,8 @@ public:
         CLSPARSE_V( ::clReleaseMemObject( csrMatx.values ), "clReleaseMemObject csrMatx.values" );
         CLSPARSE_V( ::clReleaseMemObject( csrMatx.colIndices ), "clReleaseMemObject csrMatx.colIndices" );
         CLSPARSE_V( ::clReleaseMemObject( csrMatx.rowOffsets ), "clReleaseMemObject csrMatx.rowOffsets" );
-		
-		CLSPARSE_V( ::clReleaseMemObject( A.values ), "clReleaseMemObject A.values" );		
+
+		CLSPARSE_V( ::clReleaseMemObject( A.values ), "clReleaseMemObject A.values" );
     }// End of function
 
 private:
@@ -261,7 +274,7 @@ xDense2Csr<float>::xDense2Csr_Function( bool flush )
 {
       //call dense2csr
     clsparseSdense2csr(&csrMatx, &A, control);
-   
+
 	if( flush )
         clFinish( queue );
 }// end
@@ -277,4 +290,3 @@ xDense2Csr<double>::xDense2Csr_Function( bool flush )
 }// end
 
 #endif // ifndef CLSPARSE_BENCHMARK_DENSE2CSR_HXX__
-

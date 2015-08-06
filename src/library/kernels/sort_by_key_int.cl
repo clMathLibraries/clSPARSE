@@ -1,7 +1,20 @@
 R"(
-/***************************************************************************                                                                                     
-*   © 2012,2014 Advanced Micro Devices, Inc. All rights reserved.                                     
-***************************************************************************/          
+/* ************************************************************************
+ * Copyright 2012, 2014-2015 Advanced Micro Devices, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
 #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
 #define WG_SIZE                 256
@@ -41,17 +54,17 @@ uint scanLocalMemAndTotal(uint val, __local uint* lmem, uint *totalSum, int excl
     int l_id = get_local_id(0);
     int l_size = get_local_size(0);
     lmem[l_id] = 0;
-    
+
     l_id += l_size;
     lmem[l_id] = val;
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+
     uint t;
     for (int i = 1; i < l_size; i *= 2)
     {
-        t = lmem[l_id -  i]; 
+        t = lmem[l_id -  i];
         barrier(CLK_LOCAL_MEM_FENCE);
-        lmem[l_id] += t;     
+        lmem[l_id] += t;
         barrier(CLK_LOCAL_MEM_FENCE);
     }
     *totalSum = lmem[l_size*2 - 1];
@@ -86,7 +99,7 @@ uint4 localPrefixSum256V( uint4 pData, uint lIdx, uint* totalSum, __local u32* s
 
 R"(
 void sort4BitsSignedKeyValueAscending(u32 sortData[4], int sortVal[4], VALUE_TYPE sortVal2[4], const int startBit, int lIdx, __local u32* ldsSortData, __local int *ldsSortVal,  __local  VALUE_TYPE *ldsSortVal2 )
-{   
+{
   u32 signedints[4];
 
   signedints[0] = ( ( ( (sortData[0] >> startBit) & 0x7 ) ^ 0x7 ) & 0x7 ) | ((sortData[0] >> startBit) & (1<<3));
@@ -99,7 +112,7 @@ void sort4BitsSignedKeyValueAscending(u32 sortData[4], int sortVal[4], VALUE_TYP
    u32 mask = (1<<bitIdx);
    uint4 cmpResult = make_uint4( (signedints[0]) & mask, (signedints[1]) & mask, (signedints[2]) & mask, (signedints[3]) & mask );
 
-#if defined(DESCENDING) 
+#if defined(DESCENDING)
         uint4 prefixSum = SELECT_UINT4( make_uint4(1,1,1,1), make_uint4(0,0,0,0), cmpResult != make_uint4(0,0,0,0) );
 #else
         uint4 prefixSum = SELECT_UINT4( make_uint4(1,1,1,1), make_uint4(0,0,0,0), cmpResult != make_uint4(mask,mask,mask,mask) );
@@ -110,7 +123,7 @@ void sort4BitsSignedKeyValueAscending(u32 sortData[4], int sortVal[4], VALUE_TYP
   {
     uint4 localAddr = make_uint4(lIdx*4+0,lIdx*4+1,lIdx*4+2,lIdx*4+3);
     uint4 dstAddr = localAddr - prefixSum + make_uint4( total, total, total, total );
-#if defined(DESCENDING) 
+#if defined(DESCENDING)
     dstAddr = SELECT_UINT4( prefixSum, dstAddr, cmpResult != make_uint4(0,0,0,0) );
 #else
     dstAddr = SELECT_UINT4( prefixSum, dstAddr, cmpResult != make_uint4(mask,mask,mask,mask) );
@@ -130,7 +143,7 @@ void sort4BitsSignedKeyValueAscending(u32 sortData[4], int sortVal[4], VALUE_TYP
     ldsSortVal2[dstAddr.z] = sortVal2[2];
     ldsSortVal2[dstAddr.w] = sortVal2[3];
 
-   
+
     GROUP_LDS_BARRIER;
     sortData[0] = ldsSortData[localAddr.x];
     sortData[1] = ldsSortData[localAddr.y];
@@ -164,15 +177,15 @@ void sort4BitsSignedKeyValueAscending(u32 sortData[4], int sortVal[4], VALUE_TYP
 }
 
 __kernel
-void permuteByKeySignedAscTemplate( __global const u32* restrict gKeys, 
+void permuteByKeySignedAscTemplate( __global const u32* restrict gKeys,
           __global const int* restrict gValues,
-          __global const  VALUE_TYPE * restrict gValues2,   
-          __global const u32* rHistogram, 
+          __global const  VALUE_TYPE * restrict gValues2,
+          __global const u32* rHistogram,
           __global u32* restrict gDstKeys,
           __global int* restrict gDstValues,
-          __global  VALUE_TYPE * restrict gDstValues2, 
+          __global  VALUE_TYPE * restrict gDstValues2,
           int m_n,
-	  int m_nWGs, 
+	  int m_nWGs,
 	  int m_startBit,
 	  int m_nBlocksPerWG)
 {
@@ -197,7 +210,7 @@ void permuteByKeySignedAscTemplate( __global const u32* restrict gKeys,
     if( lIdx < (NUM_BUCKET) )
     {
 #if defined(DESCENDING)
-        localHistogramToCarry[lIdx] = rHistogram[lIdx*nWGs + wgIdx]; 
+        localHistogramToCarry[lIdx] = rHistogram[lIdx*nWGs + wgIdx];
 #else
         localHistogramToCarry[lIdx] = rHistogram[lIdx*nWGs + wgIdx];
 #endif
@@ -242,7 +255,7 @@ void permuteByKeySignedAscTemplate( __global const u32* restrict gKeys,
             keys[i] = 0xF - (( ( ( (sortData[i] >> startBit) & 0x7 ) ^ 0x7 ) & 0x7 ) | ((sortData[i] >> startBit) & (1<<3)) );
         }
 
-        {	
+        {
             u32 setIdx = lIdx/16;
             if( lIdx < NUM_BUCKET )
             {
@@ -314,7 +327,7 @@ void permuteByKeySignedAscTemplate( __global const u32* restrict gKeys,
 #if defined(CHECK_BOUNDARY)
                 if( addr+ie < n )
 #endif
-                {   
+                {
                     if ((groupOffset + myIdx)<n)
                     {
                         gDstKeys[ groupOffset + myIdx ]   = sortData[ie];
@@ -339,7 +352,7 @@ R"(
 #define DESCENDING
 
 void sort4BitsSignedKeyValueDescending(u32 sortData[4], int sortVal[4], const int startBit, int lIdx, __local u32* ldsSortData, __local int *ldsSortVal)
-{   
+{
   u32 signedints[4];
 
   signedints[0] = ( ( ( (sortData[0] >> startBit) & 0x7 ) ^ 0x7 ) & 0x7 ) | ((sortData[0] >> startBit) & (1<<3));
@@ -352,7 +365,7 @@ void sort4BitsSignedKeyValueDescending(u32 sortData[4], int sortVal[4], const in
    u32 mask = (1<<bitIdx);
    uint4 cmpResult = make_uint4( (signedints[0]) & mask, (signedints[1]) & mask, (signedints[2]) & mask, (signedints[3]) & mask );
 
-#if defined(DESCENDING) 
+#if defined(DESCENDING)
         uint4 prefixSum = SELECT_UINT4( make_uint4(1,1,1,1), make_uint4(0,0,0,0), cmpResult != make_uint4(0,0,0,0) );
 #else
         uint4 prefixSum = SELECT_UINT4( make_uint4(1,1,1,1), make_uint4(0,0,0,0), cmpResult != make_uint4(mask,mask,mask,mask) );
@@ -363,7 +376,7 @@ void sort4BitsSignedKeyValueDescending(u32 sortData[4], int sortVal[4], const in
   {
     uint4 localAddr = make_uint4(lIdx*4+0,lIdx*4+1,lIdx*4+2,lIdx*4+3);
     uint4 dstAddr = localAddr - prefixSum + make_uint4( total, total, total, total );
-#if defined(DESCENDING) 
+#if defined(DESCENDING)
     dstAddr = SELECT_UINT4( prefixSum, dstAddr, cmpResult != make_uint4(0,0,0,0) );
 #else
     dstAddr = SELECT_UINT4( prefixSum, dstAddr, cmpResult != make_uint4(mask,mask,mask,mask) );
@@ -402,11 +415,11 @@ void sort4BitsSignedKeyValueDescending(u32 sortData[4], int sortVal[4], const in
 }
 //do we need descending
 __kernel
-void permuteByKeySignedDescTemplate(__global const u32* restrict gKeys, 
-                                    __global const int* restrict gValues, 
-                                    __global const u32* rHistogram, 
-                                    __global u32* restrict gDstKeys, 
-                                    __global int* restrict gDstValues, 
+void permuteByKeySignedDescTemplate(__global const u32* restrict gKeys,
+                                    __global const int* restrict gValues,
+                                    __global const u32* rHistogram,
+                                    __global u32* restrict gDstKeys,
+                                    __global int* restrict gDstValues,
                                     int4 cb)
 {
     __local u32 ldsSortData[WG_SIZE*ELEMENTS_PER_WORK_ITEM+WG_SIZE];
@@ -429,7 +442,7 @@ void permuteByKeySignedDescTemplate(__global const u32* restrict gKeys,
     if( lIdx < (NUM_BUCKET) )
     {
 #if defined(DESCENDING)
-        localHistogramToCarry[lIdx] = rHistogram[lIdx*nWGs + wgIdx]; 
+        localHistogramToCarry[lIdx] = rHistogram[lIdx*nWGs + wgIdx];
 #else
         localHistogramToCarry[lIdx] = rHistogram[lIdx*nWGs + wgIdx];
 #endif
@@ -469,7 +482,7 @@ void permuteByKeySignedDescTemplate(__global const u32* restrict gKeys,
             keys[i] = 0xF - (( ( ( (sortData[i] >> startBit) & 0x7 ) ^ 0x7 ) & 0x7 ) | ((sortData[i] >> startBit) & (1<<3)) );
         }
 
-        {	
+        {
             u32 setIdx = lIdx/16;
             if( lIdx < NUM_BUCKET )
             {
@@ -541,7 +554,7 @@ void permuteByKeySignedDescTemplate(__global const u32* restrict gKeys,
 #if defined(CHECK_BOUNDARY)
                 if( addr+ie < n )
 #endif
-                {   
+                {
                     if ((groupOffset + myIdx)<n)
                     {
                         gDstKeys[ groupOffset + myIdx ]   = sortData[ie];

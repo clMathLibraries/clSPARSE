@@ -1,6 +1,18 @@
 /* ************************************************************************
-* Copyright 2015 Advanced Micro Devices, Inc.
-* ************************************************************************/
+ * Copyright 2015 Advanced Micro Devices, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
 
 #ifndef CUBLAS_BENCHMARK_xCsr2Coo_HXX__
 #define CUBLAS_BENCHMARK_xCsr2Coo_HXX__
@@ -21,7 +33,7 @@ public:
 
     ~xCsr2Coo()
     {
-      
+
     }// end
 
     void call_func()
@@ -127,13 +139,13 @@ public:
 protected:
     void initialize_scalars(double pAlpha, double pBeta)
     {
-    }//end 
+    }//end
 
 private:
     void xCsr2Coo_Function(bool flush);
 
   //  std::string sparseFile;
-    
+
     //host matrix definition corresponding to CSR Format
     std::vector< int > row_offsets;
     std::vector< int > col_indices;
@@ -143,14 +155,14 @@ private:
     int  n_cols; // number of cols
     int  n_vals; // number of Non-Zero Values (nnz)
     int* colIndices;
-    
+
     // device CUDA pointers
     int* deviceCSRRowOffsets; // Input: CSR Row Offsets
-    int* deviceCooRowInd; // Output: Coordinate format row indices    
+    int* deviceCooRowInd; // Output: Coordinate format row indices
 }; // class xCsr2Coo
 
 template<>
-void 
+void
 xCsr2Coo<float>::
 xCsr2Coo_Function(bool flush)
 {
