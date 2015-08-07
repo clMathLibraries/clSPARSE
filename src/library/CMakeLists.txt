@@ -299,7 +299,7 @@ include( CMakePackageConfigHelpers )
 
 set( LIB_INSTALL_DIR lib${SUFFIX_LIB} )
 set( INCLUDE_INSTALL_DIR include )
-set( ConfigPackageLocation ${LIB_INSTALL_DIR}/clSPARSE/cmake )
+set( ConfigPackageLocation ${LIB_INSTALL_DIR}/cmake/clSPARSE )
 
 configure_package_config_file(
   clSPARSEConfig.cmake.in
