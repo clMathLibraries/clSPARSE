@@ -1,0 +1,68 @@
+# Ubuntu name decoder ring; https://en.wikipedia.org/wiki/List_of_Ubuntu_releases
+# Ubuntu 12.04 LTS (Precise Pangolin) <== Travis CI VM image
+# Ubuntu 12.10 (Quantal Quetzal)
+# Ubuntu 13.04 (Raring Ringtail)
+# Ubuntu 13.10 (Saucy Salamander)
+# Ubuntu 14.04 LTS (Trusty Tahr)
+# Ubuntu 14.10 (Utopic Unicorn)
+# Ubuntu 15.04 (Vivid Vervet)
+# Ubuntu 15.10 (Wily Werewolf)
+# Ubuntu 16.04 LTS (Xenial Xantus)
+
+# language: instructs travis what compilers && environment to set up in build matrix
+language: cpp
+
+# sudo: false instructs travis to build our project in a docker VM (faster)
+sudo: false
+
+# os: expands the build matrix to include multiple os's
+os:
+  - linux
+  - osx
+
+# compiler: expands the build matrix to include multiple compilers (per os)
+compiler:
+  - gcc
+#  - clang
+
+# apt: needed by docker framework to install project dependencies without
+# the sudo.  Apt uses published Ubunto PPA's from https://launchpad.net/
+# https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+addons:
+  apt:
+    sources:
+      # ubuntu-toolchain-r-test contains newer versions of gcc to install
+      - ubuntu-toolchain-r-test
+      # kubuntu-backports contains newer versions of cmake to install
+      - kubuntu-backports
+    packages:
+      - g++-4.8
+      - cmake
+      - opencl-headers
+#     - fglrx=2:8.960-0ubuntu1
+#     - fglrx=2:13.350.1-0ubuntu0.0.1
+
+# env: specifies additional global variables to define per row in build matrix
+# env:
+#   global:
+#     - CXX=g++-4.8
+#     - CC=gcc-4.8
+
+before_install:
+  - if [ ${TRAVIS_OS_NAME} == "osx" ]; then brew update && echo MacOSX detected && clang --version; fi
+  - if [ ${CXX} = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+
+install:
+  - cmake --version;
+  - ${CC} --version;
+  - ${CXX} --version;
+
+before_script:
+  - mkdir -p bin/make/release
+  - cd bin/make/release
+  - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_Boost=ON -DBUILD_gMock=ON -DBUILD_clSPARSE=ON -DBUILD_SAMPLES=ON ../../..
+
+script:
+  - make
+  - cd clSPARSE-samples-build
+  - export LD_LIBRARY_PATH=${TRAVIS_BUILD_DIR}/bin/make/release/clSPARSE-build/package/lib64:${LD_LIBRARY_PATH}
