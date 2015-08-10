@@ -13,56 +13,113 @@
 language: cpp
 
 # sudo: false instructs travis to build our project in a docker VM (faster)
-sudo: false
+# Can not yet install fglrx packages with 'false'
+sudo: required # false
 
 # os: expands the build matrix to include multiple os's
 os:
   - linux
-  - osx
+#  - osx
 
 # compiler: expands the build matrix to include multiple compilers (per os)
 compiler:
   - gcc
-#  - clang
+  - clang
 
-# apt: needed by docker framework to install project dependencies without
-# the sudo.  Apt uses published Ubunto PPA's from https://launchpad.net/
-# https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
 addons:
+  # apt: is disabled on osx builds
+  # apt: needed by docker framework to install project dependencies without
+  # sudo.  Apt uses published Ubunto PPA's from https://launchpad.net/
+  # https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
   apt:
     sources:
       # ubuntu-toolchain-r-test contains newer versions of gcc to install
       - ubuntu-toolchain-r-test
+      # llvm-toolchain-precise-3.6 contains newer versions of clang to install
+      - llvm-toolchain-precise-3.6
       # kubuntu-backports contains newer versions of cmake to install
       - kubuntu-backports
+      # boost-latest contains boost v 1.55
+      # - boost-latest
     packages:
-      - g++-4.8
+      # g++-4.8 is minimum version considered to be the first good c++11 gnu compiler
+      - g++-4.9
+      - clang-3.6
+      # We require v2.8.12 minimum
       - cmake
-      - opencl-headers
-#     - fglrx=2:8.960-0ubuntu1
-#     - fglrx=2:13.350.1-0ubuntu0.0.1
+      # I'm finding problems using pre-compiled versions of boost, with our use of ublas & gtest
+      # - libboost-program-options1.55-dev
+      # - libboost-serialization1.55-dev
+      # - libboost-filesystem1.55-dev
+      # - libboost-system1.55-dev
+      # - libboost-regex1.55-dev
+      # The package opencl-headers on 'precise' only installs v1.1 cl headers; uncomment for 'trusty' or greater
+#      - opencl-headers
+      # Uncomment one of the following when fglrx modules are added to the apt whitelist
+#      - fglrx
+#      - fglrx=2:8.960-0ubuntu1
+#      - fglrx=2:13.350.1-0ubuntu0.0.1
 
 # env: specifies additional global variables to define per row in build matrix
-# env:
-#   global:
-#     - CXX=g++-4.8
-#     - CC=gcc-4.8
+env:
+  global:
+    - CLSPARSE_ROOT=${TRAVIS_BUILD_DIR}/bin/make/release
+
+# The following filters our build matrix; we are interested in linux-gcc & osx-clang
+matrix:
+  exclude:
+#    - os: linux
+#      compiler: gcc # clang
+    - os: osx
+      compiler: gcc
 
 before_install:
-  - if [ ${TRAVIS_OS_NAME} == "osx" ]; then brew update && echo MacOSX detected && clang --version; fi
-  - if [ ${CXX} = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
-
-install:
+  # Remove the following linux clause when fglrx can be installed with sudo: false
+  - if [ ${TRAVIS_OS_NAME} == "linux" ]; then
+      sudo apt-get update -qq &&
+      sudo apt-get install -qq fglrx=2:13.350.1-0ubuntu0.0.1;
+    fi
+  - if [ ${TRAVIS_OS_NAME} == "linux" ]; then
+      export OPENCL_ROOT="${TRAVIS_BUILD_DIR}/opencl-headers";
+      export BUILD_BOOST="ON";
+    fi
+  - if [ ${TRAVIS_OS_NAME} == "osx" ]; then
+      brew update;
+      brew outdated boost || brew upgrade boost;
+      brew outdated cmake || brew upgrade cmake;
+      export BUILD_BOOST="OFF";
+    fi
+  - if [ ${CXX} = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
   - cmake --version;
   - ${CC} --version;
   - ${CXX} --version;
 
-before_script:
-  - mkdir -p bin/make/release
-  - cd bin/make/release
-  - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_Boost=ON -DBUILD_gMock=ON -DBUILD_clSPARSE=ON -DBUILD_SAMPLES=ON ../../..
+install:
+  # 'Precise' only distributes v1.1 opencl headers; download 1.2 headers from khronos website
+  # Remove when the travis VM upgrades to 'trusty' or beyond
+  - if [ ${TRAVIS_OS_NAME} == "linux" ]; then
+      mkdir -p ${OPENCL_ROOT}/include/CL;
+      pushd ${OPENCL_ROOT}/include/CL;
+      wget -w 1 -r -np -nd -nv -A h,hpp https://www.khronos.org/registry/cl/api/1.2/;
+      popd;
+    fi
+  # osx image does not contain cl.hpp file; download from Khronos
+  - if [ ${TRAVIS_OS_NAME} == "osx" ]; then
+      pushd /System/Library/Frameworks/OpenCL.framework/Versions/A/Headers/;
+      sudo wget -w 1 -np -nd -nv -A h,hpp https://www.khronos.org/registry/cl/api/1.2/cl.hpp;
+      popd;
+    fi
 
+# Use before_script: to run configure steps
+before_script:
+  - mkdir -p ${CLSPARSE_ROOT}
+  - pushd ${CLSPARSE_ROOT}
+  # Our configure step can download and install the latest boost, but it adds significant compile time and creates
+  # extremely long travis log files.  We use pre-compiled boost packages to save VM time and space.
+  - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_Boost=${BUILD_BOOST} -DBUILD_gMock=ON -DBUILD_clSPARSE=ON -DBUILD_SAMPLES=ON ${TRAVIS_BUILD_DIR}
+
+# use script: to execute build steps
 script:
   - make
-  - cd clSPARSE-samples-build
-  - export LD_LIBRARY_PATH=${TRAVIS_BUILD_DIR}/bin/make/release/clSPARSE-build/package/lib64:${LD_LIBRARY_PATH}
+  # - cd clSPARSE-samples-build
+  # - export LD_LIBRARY_PATH=${TRAVIS_BUILD_DIR}/bin/make/release/clSPARSE-build/package/lib64:${LD_LIBRARY_PATH}

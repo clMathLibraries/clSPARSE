@@ -31,7 +31,7 @@ endif( )
 # clSPARSE becomes the name of the project with a particular version
 if( POLICY CMP0048 )
 	cmake_policy( SET CMP0048 NEW )
-	project( clSPARSE VERSION 0.7.0.0 LANGUAGES C CXX )
+	project( clSPARSE VERSION 0.7.1.0 LANGUAGES C CXX )
 else( )
 	project( clSPARSE C CXX )
 	# Define a version for the code
@@ -44,7 +44,7 @@ else( )
 	endif( )
 
 	if( NOT DEFINED clSPARSE_VERSION_PATCH )
-		set( clSPARSE_VERSION_PATCH 0 )
+		set( clSPARSE_VERSION_PATCH 1 )
 	endif( )
 
 	if( NOT DEFINED clSPARSE_VERSION_TWEAK )

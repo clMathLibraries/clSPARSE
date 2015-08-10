@@ -1,6 +1,6 @@
 # ########################################################################
 # Copyright 2015 Advanced Micro Devices, Inc.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -48,10 +48,15 @@
 include( CheckSymbolExists )
 include( CMakePushCheckState )
 
+if( DEFINED OPENCL_ROOT )
+  message( STATUS "OPENCL_ROOT: ${OPENCL_ROOT}" )
+endif( )
+
 find_path(OPENCL_INCLUDE_DIRS
   NAMES OpenCL/cl.h CL/cl.h
   HINTS
     ${OPENCL_ROOT}/include
+    $ENV{OPENCL_ROOT}/include
     $ENV{AMDAPPSDKROOT}/include
     $ENV{CUDA_PATH}/include
   PATHS
@@ -105,7 +110,8 @@ if( LIB64 )
   find_library( OPENCL_LIBRARIES
     NAMES OpenCL
     HINTS
-      ${OPENCL_ROOT}/lib
+      ${OPENCL_ROOT}/include
+      $ENV{OPENCL_ROOT}/include
       $ENV{AMDAPPSDKROOT}/lib
       $ENV{CUDA_PATH}/lib
     DOC "OpenCL dynamic library path"
@@ -117,7 +123,8 @@ else( )
   find_library( OPENCL_LIBRARIES
     NAMES OpenCL
     HINTS
-      ${OPENCL_ROOT}/lib
+      ${OPENCL_ROOT}/include
+      $ENV{OPENCL_ROOT}/include
       $ENV{AMDAPPSDKROOT}/lib
       $ENV{CUDA_PATH}/lib
     DOC "OpenCL dynamic library path"

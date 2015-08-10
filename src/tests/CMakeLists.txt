@@ -1,7 +1,7 @@
 # ########################################################################
 # Copyright 2015 Advanced Micro Devices, Inc.
 # Copyright 2015 Vratis, Ltd.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -15,17 +15,28 @@
 # limitations under the License.
 # ########################################################################
 
+message( STATUS "Configuring tests subdir" )
 
 find_package( GTest REQUIRED )
 
+# If user provides a specific boost path through command line, make sure to
+# use that
+if( DEFINED BOOST_ROOT OR DEFINED ENV{BOOST_ROOT} )
+  set( Boost_NO_SYSTEM_PATHS ON )
+  set( Boost_NO_BOOST_CMAKE ON )
+endif( )
+
+# Setting Boost_USE_STATIC_LIBS should only be required if the user has both
+# flavors available to choose from.  Ideally, user picks which one by setting
+# -DBoost_USE_STATIC_LIBS on cmake configure line
+# set( Boost_USE_STATIC_LIBS   ON )
 set( Boost_USE_MULTITHREADED ON )
-set( Boost_USE_STATIC_LIBS   ON )
 set( Boost_DETAILED_FAILURE_MSG   ON )
-set( Boost_NO_SYSTEM_PATHS ON )
-set( Boost_ADDITIONAL_VERSIONS 1.57.0 1.57 )
+set( Boost_ADDITIONAL_VERSIONS 1.58.0 1.58 1.57.0 1.57 )
 # set( Boost_DEBUG ON )
 
 find_package( Boost COMPONENTS program_options serialization )
+
 # Unit tests requires OpenCL
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
 find_package( OpenCL REQUIRED )

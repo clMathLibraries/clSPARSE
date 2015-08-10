@@ -1,12 +1,12 @@
 # ########################################################################
 # Copyright 2015 Advanced Micro Devices, Inc.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 # http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,8 +44,8 @@ endif( )
 set( Boost.Command ./b2 --prefix=<INSTALL_DIR>/package )
 
 if( CMAKE_COMPILER_IS_GNUCXX )
-  list( APPEND Boost.Command cxxflags=-fPIC  )
-elseif( XCODE_VERSION )
+  list( APPEND Boost.Command cxxflags=-fPIC -std=c++11 )
+elseif( XCODE_VERSION OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang") )
   list( APPEND Boost.Command cxxflags=-std=c++11 -stdlib=libc++ linkflags=-stdlib=libc++ )
 endif( )
 
@@ -77,6 +77,12 @@ elseif( MSVC14 )
   list( APPEND Boost.Command toolset=msvc-14.0 )
 elseif( XCODE_VERSION )
   list( APPEND Boost.Command toolset=clang )
+elseif( DEFINED ENV{CC} )
+  # CMake apprarently puts the full path of the compiler into CC
+  # The user might specify a non-default gcc compiler through ENV
+  message( STATUS "ENV{CC}=$ENV{CC}" )
+  get_filename_component( gccToolset $ENV{CC} NAME )
+  list( APPEND Boost.Command toolset=${gccToolset} )
 endif( )
 
 if( WIN32 )
@@ -148,9 +154,11 @@ ExternalProject_Add(
   URL ${ext.Boost_URL}
   URL_MD5 ${ext.MD5_HASH}
   UPDATE_COMMAND ${Boost.Bootstrap}
+  LOG_UPDATE 1
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ${Boost.Command}
   BUILD_IN_SOURCE 1
+  LOG_BUILD 1
   INSTALL_COMMAND ""
 )
 
