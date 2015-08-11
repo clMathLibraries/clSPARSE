@@ -146,21 +146,20 @@ FPTYPE sum2_reduce( FPTYPE cur_sum,
     if ( max_size > reduc_size )
     {
 #ifdef EXTENDED_PRECISION
+        const unsigned int partial_dest = lid + reduc_size;
         if (thread_lane < reduc_size)
-            cur_sum  = two_sum(cur_sum, partial[lid + reduc_size], err);
-
+            cur_sum  = two_sum(cur_sum, partial[partial_dest], err);
         // We reuse the LDS entries to move the error values down into lower
         // threads. This saves LDS space, allowing higher occupancy, but requires
         // more barriers, which can reduce performance.
         barrier(CLK_LOCAL_MEM_FENCE);
         // Have all of those upper threads pass their temporary errors
         // into a location that the lower threads can read.
-        if (thread_lane >= reduc_size)
-            partial[lid] = *err;
+        partial[lid] = (thread_lane >= reduc_size) ? *err : partial[lid];
         barrier(CLK_LOCAL_MEM_FENCE);
         if (thread_lane < reduc_size) // Add those errors in.
         {
-            *err += partial[lid + reduc_size];
+            *err += partial[partial_dest];
             partial[lid] = cur_sum;
         }
 #else
@@ -496,8 +495,9 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
            atomic_two_sum_float(&out[row], temp_sum, &new_error);
 
 #ifdef EXTENDED_PRECISION
+           unsigned int error_loc = get_num_groups(0) + first_wg_in_row + 1;
            // The last half of the rowBlocks buffer is used to hold errors.
-           atomic_add_float(&(rowBlocks[get_num_groups(0)+first_wg_in_row+1]), new_error);
+           atomic_add_float(&(rowBlocks[error_loc]), new_error);
            // Coordinate across all of the workgroups in this coop in order to have
            // the last workgroup fix up the error values.
            // If this workgroup's row is different than the next workgroup's row
@@ -512,14 +512,14 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
                while((atom_max(&rowBlocks[first_wg_in_row], 0UL) & ((1UL << WGBITS) - 1)) != wg);
 
 #ifdef DOUBLE
-               new_error = as_double(rowBlocks[get_num_groups(0)+first_wg_in_row+1]);
+               new_error = as_double(rowBlocks[error_loc]);
 #else
-               new_error = as_float((int)rowBlocks[get_num_groups(0)+first_wg_in_row+1]);
+               new_error = as_float((int)rowBlocks[error_loc]);
 #endif
                // Don't need to work atomically here, because this is the only workgroup
                // left working on this row.
                out[row] += new_error;
-               rowBlocks[get_num_groups(0)+first_wg_in_row+1] = 0UL;
+               rowBlocks[error_loc] = 0UL;
 
                // Reset the rowBlocks low order bits for next time.
                rowBlocks[first_wg_in_row] = rowBlocks[gid] - wg;
