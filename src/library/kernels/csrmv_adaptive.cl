@@ -245,7 +245,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
 
    // Any workgroup only calculates, at most, BLOCK_MULTIPLIER*BLOCKSIZE items in a row.
    // If there are more items in this row, we assign more workgroups.
-   unsigned int vecStart = rowPtrs[row] + (wg * BLOCK_MULTIPLIER*BLOCKSIZE);
+   unsigned int vecStart = mad24(wg, (unsigned int)(BLOCK_MULTIPLIER*BLOCKSIZE), rowPtrs[row]);
    unsigned int vecEnd = (rowPtrs[row + 1] > vecStart + BLOCK_MULTIPLIER*BLOCKSIZE) ? vecStart + BLOCK_MULTIPLIER*BLOCKSIZE : rowPtrs[row + 1];
 
    FPTYPE temp_sum = 0.;
@@ -328,14 +328,13 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
           // we need to ensure that adjacent-groups only work on real data for this rowBlock.
           if(local_row < stop_row)
           {
-              // only works when numThreadsForRed is a power of 2
-              for(int i = 0; i < workForEachThread; i++)
-                  temp_sum = two_sum(temp_sum, partialSums[local_first_val + i*numThreadsForRed + threadInBlock], &sumk_e);
-
-              // The last few values (the remainder of this row) also need to be aded in.
-              int local_cur_val = local_first_val + numThreadsForRed*workForEachThread;
-              if(threadInBlock < local_last_val - local_cur_val)
-                  temp_sum = two_sum(temp_sum, partialSums[local_cur_val + threadInBlock], &sumk_e);
+              // This is dangerous -- will infinite loop if your last value is within
+              // numThreadsForRed of MAX_UINT. Noticable performance gain to avoid a
+              // long induction variable here, though.
+              for(unsigned int local_cur_val = local_first_val + threadInBlock;
+                      local_cur_val < local_last_val;
+                      local_cur_val += numThreadsForRed)
+                  temp_sum = two_sum(partialSums[local_cur_val], temp_sum, &sumk_e);
           }
           barrier(CLK_LOCAL_MEM_FENCE);
 
