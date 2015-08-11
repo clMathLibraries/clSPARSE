@@ -61,7 +61,7 @@ FPTYPE two_sum( FPTYPE x,
                 FPTYPE y,
                 FPTYPE * restrict const sumk_err )
 {
-    FPTYPE sumk_s = x + y;
+    const FPTYPE sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
     // We use this 2Sum algorithm to perform a compensated summation,
     // which can reduce the cummulative rounding errors in our SpMV summation.
@@ -80,16 +80,15 @@ FPTYPE two_sum( FPTYPE x,
     // and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
     // Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
     // 1974), respectively.
-    FPTYPE swap;
     if (fabs(x) < fabs(y))
     {
-        swap = x;
+        const FPTYPE swap = x;
         x = y;
         y = swap;
     }
     (*sumk_err) += (y - (sumk_s - x));
     // Original 6 FLOP 2Sum algorithm.
-    //FPTYPE bp = sumk_s - x;
+    //const FPTYPE bp = sumk_s - x;
     //(*sumk_err) += ((x - (sumk_s - bp)) + (y - bp));
 #endif
     return sumk_s;
@@ -102,11 +101,11 @@ FPTYPE atomic_two_sum_float( global FPTYPE * restrict const x_ptr,
     // Have to wait until the return from the atomic op to know what X was.
     FPTYPE sumk_s = 0.;
 #ifdef EXTENDED_PRECISION
-    FPTYPE x, swap;
+    FPTYPE x;
     sumk_s = atomic_add_float_extended(x_ptr, y, &x);
     if (fabs(x) < fabs(y))
     {
-        swap = x;
+        const FPTYPE swap = x;
         x = y;
         y = swap;
     }
@@ -138,11 +137,11 @@ FPTYPE atomic_two_sum_float( global FPTYPE * restrict const x_ptr,
 //                 you will grab a value and add to your own local sum value.
 FPTYPE sum2_reduce( FPTYPE cur_sum,
         FPTYPE * restrict const err,
-        volatile __local FPTYPE * restrict const partial,
-        const size_t lid,
-        const int thread_lane,
-        const int max_size,
-        const int reduc_size )
+        __local FPTYPE * restrict const partial,
+        const unsigned int lid,
+        const unsigned int thread_lane,
+        const unsigned int max_size,
+        const unsigned int reduc_size )
 {
     if ( max_size > reduc_size )
     {
@@ -174,8 +173,8 @@ FPTYPE sum2_reduce( FPTYPE cur_sum,
 
 __kernel void
 csrmv_adaptive(__global const FPTYPE * restrict const vals,
-                       __global const int * restrict const cols,
-                       __global const int * restrict const rowPtrs,
+                       __global const unsigned int * restrict const cols,
+                       __global const unsigned int * restrict const rowPtrs,
                        __global const FPTYPE * restrict const vec,
                        __global FPTYPE * restrict const out,
                        __global unsigned long * restrict const rowBlocks,
@@ -183,8 +182,8 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
                        __global const FPTYPE * restrict const pBeta)
 {
    __local FPTYPE partialSums[BLOCKSIZE];
-   const size_t gid = get_group_id(0);
-   const size_t lid = get_local_id(0);
+   const unsigned int gid = get_group_id(0);
+   const unsigned int lid = get_local_id(0);
    const FPTYPE alpha = *pAlpha;
    const FPTYPE beta = *pBeta;
 
@@ -210,11 +209,11 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
    // value. While this bit is the same as the first workgroup's flag bit, this
    // workgroup will spin-loop.
    unsigned int row = ((rowBlocks[gid] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
-   unsigned int stop_row = ((rowBlocks[gid + 1] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
-   unsigned int num_rows = stop_row - row;
+   const unsigned int stop_row = ((rowBlocks[gid + 1] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
+   const unsigned int num_rows = stop_row - row;
 
    // Get the "workgroup within this long row" ID out of the bottom bits of the row block.
-   unsigned int wg = rowBlocks[gid] & ((1 << WGBITS) - 1);
+   const unsigned int wg = rowBlocks[gid] & ((1 << WGBITS) - 1);
 
    // Any workgroup only calculates, at most, BLOCK_MULTIPLIER*BLOCKSIZE items in a row.
    // If there are more items in this row, we assign more workgroups.
@@ -254,11 +253,11 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
        // For instance, with workgroup size 256, 2 rows = 128 threads, 3 rows = 64
        // threads, 4 rows = 64 threads, 5 rows = 32 threads, etc.
        //int numThreadsForRed = get_local_size(0) >> ((CHAR_BIT*sizeof(unsigned int))-clz(num_rows-1));
-       int numThreadsForRed = wg; // Same calculation as above, done on host.
+       const unsigned int numThreadsForRed = wg; // Same calculation as above, done on host.
 
        // Stream all of this row block's matrix values into local memory.
        // Perform the matvec in parallel with this work.
-      int col = rowPtrs[row] + lid;
+       const unsigned int col = rowPtrs[row] + lid;
       if (gid != (get_num_groups(0) - 1))
       {
           for(int i = 0; i < BLOCKSIZE; i += WGSIZE)
@@ -273,7 +272,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
           // However, this may change in the future (e.g. with shared virtual memory.)
           // This causes a minor performance loss because this is the last workgroup
           // to be launched, and this loop can't be unrolled.
-          int max_to_load = rowPtrs[stop_row] - rowPtrs[row];
+          const unsigned int max_to_load = rowPtrs[stop_row] - rowPtrs[row];
           for(int i = 0; i < max_to_load; i += WGSIZE)
               partialSums[lid + i] = alpha * vals[col + i] * vec[cols[col + i]];
       }
@@ -292,15 +291,14 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
           // numThreadsForRed guaranteed to be a power of two, so the clz code below
           // avoids an integer divide. ~2% perf gain in EXTRA_PRECISION.
           //size_t st = lid/numThreadsForRed;
-          size_t st = lid >> (31 - clz(numThreadsForRed));
-          int local_first_val = (rowPtrs[row + st] - rowPtrs[row]);
-          int local_last_val = rowPtrs[row + st + 1] - rowPtrs[row];
-          int workForEachThread = (local_last_val - local_first_val) >> (31 - clz(numThreadsForRed));
-          size_t threadInBlock = lid & (numThreadsForRed - 1);
+          const unsigned int local_row = row + (lid >> (31 - clz(numThreadsForRed)));
+          const unsigned int local_first_val = rowPtrs[local_row] - rowPtrs[row];
+          const unsigned int local_last_val = rowPtrs[local_row + 1] - rowPtrs[row];
+          const unsigned int threadInBlock = lid & (numThreadsForRed - 1);
 
           // Not all row blocks are full -- they may have an odd number of rows. As such,
           // we need to ensure that adjacent-groups only work on real data for this rowBlock.
-          if(st < num_rows)
+          if(local_row < stop_row)
           {
               // only works when numThreadsForRed is a power of 2
               for(int i = 0; i < workForEachThread; i++)
@@ -323,18 +321,18 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
           // row in parallel, leaving us an answer in 'temp_sum' for each row.
           for (int i = (WGSIZE >> 1); i > 0; i >>= 1)
           {
-              barrier( CLK_LOCAL_MEM_FENCE);
+              barrier( CLK_LOCAL_MEM_FENCE );
               temp_sum = sum2_reduce(temp_sum, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, i);
           }
 
-          if (threadInBlock == 0 && st < num_rows)
+          if (threadInBlock == 0 && local_row < stop_row)
           {
               // All of our write-outs check to see if the output vector should first be zeroed.
               // If so, just do a write rather than a read-write. Measured to be a slight (~5%)
               // performance improvement.
               if (beta != 0.)
-                  temp_sum = two_sum(beta * out[row+st], temp_sum, &new_error);
-              out[row+st] = temp_sum + new_error;
+                  temp_sum = two_sum(beta * out[local_row], temp_sum, &new_error);
+              out[local_row] = temp_sum + new_error;
           }
       }
       else
@@ -370,28 +368,26 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
        // done with CSR-LongRows, then all of its workgroups (except the last one) will have the
        // same stop_row and row. The final workgroup in a LongRow will have stop_row and row
        // different, but the internal "wg" number will be non-zero.
-       unsigned int myRow = row; // Adding another variable for row as it is getting updated below
 
-       // CSR-Vector will always do at least one iteration.
        // If this workgroup is operating on multiple rows (because CSR-Stream is poor for small
-       // numberss of rows), then it needs to iterate until it reaches the stop_row.
+       // numbers of rows), then it needs to iterate until it reaches the stop_row.
        // We don't check <= stop_row because of the potential for unsigned overflow.
-       while (myRow < stop_row)
+       while (row < stop_row)
        {
            // Any workgroup only calculates, at most, BLOCKSIZE items in this row.
            // If there are more items in this row, we use CSR-LongRows.
            temp_sum = 0.;
            sumk_e = 0.;
            new_error = 0.;
-           vecStart = rowPtrs[myRow];
-           vecEnd = rowPtrs[myRow+1];
+           vecStart = rowPtrs[row];
+           vecEnd = rowPtrs[row+1];
 
            // Load in a bunch of partial results into your register space, rather than LDS (no contention)
            // Then dump the partially reduced answers into the LDS for inter-work-item reduction.
            // Using a long induction variable to make sure unsigned int overflow doesn't break things.
            for (long j = vecStart + lid; j < vecEnd; j+=WGSIZE)
            {
-               unsigned int col = cols[(unsigned int)j];
+               const unsigned int col = cols[(unsigned int)j];
                temp_sum = two_sum(temp_sum, alpha * vals[(unsigned int)j] * vec[col], &sumk_e);
            }
 
@@ -408,11 +404,10 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
            if (lid == 0UL)
            {
                if (beta != 0.)
-                   temp_sum = two_sum(beta * out[myRow], temp_sum, &new_error);
-               out[myRow] = temp_sum + new_error;
+                   temp_sum = two_sum(beta * out[row], temp_sum, &new_error);
+               out[row] = temp_sum + new_error;
            }
-           // CSR-Vector can possibly work on multiple rows one after the other.
-           myRow++;
+           row++;
        }
    }
    else
@@ -430,8 +425,8 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
        // First, figure out which workgroup you are in the row. Bottom 24 bits.
        // You can use that to find the global ID for the first workgroup calculating
        // this long row.
-       size_t first_wg_in_row = gid - (rowBlocks[gid] & ((1UL << WGBITS) - 1UL));
-       unsigned int compare_value = rowBlocks[gid] & (1UL << WGBITS);
+       const unsigned int first_wg_in_row = gid - (rowBlocks[gid] & ((1UL << WGBITS) - 1UL));
+       const unsigned int compare_value = rowBlocks[gid] & (1UL << WGBITS);
 
        // Bit 24 in the first workgroup is the flag that everyone waits on.
        if(gid == first_wg_in_row && lid == 0UL)
@@ -464,7 +459,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
        // and stop_row. They only run for one iteration.
        // Load in a bunch of partial results into your register space, rather than LDS (no contention)
        // Then dump the partially reduced answers into the LDS for inter-work-item reduction.
-       int col = vecStart + lid;
+       const unsigned int col = vecStart + lid;
        if (row == stop_row) // inner thread, we can hardcode/unroll this loop
        {
            // Don't put BLOCK_MULTIPLIER*BLOCKSIZE as the stop point, because
@@ -534,7 +529,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
                // Otherwise, increment the low order bits of the first thread in this
                // coop. We're using this to tell how many workgroups in a coop are done.
                // Do this with an atomic, since other threads may be doing this too.
-               unsigned long no_warn = atom_inc(&rowBlocks[first_wg_in_row]);
+               const unsigned long no_warn = atom_inc(&rowBlocks[first_wg_in_row]);
            }
 #endif
        }
