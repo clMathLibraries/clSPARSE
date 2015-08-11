@@ -1,28 +1,79 @@
 R"(
-#ifdef DOUBLE
-  #define FPTYPE double
-
-  #ifdef cl_khr_fp64
-      #pragma OPENCL EXTENSION cl_khr_fp64 : enable
-  #elif defined(cl_amd_fp64)
-      #pragma OPENCL EXTENSION cl_amd_fp64 : enable
-  #else
-      #error "Double precision floating point not supported by OpenCL implementation."
-  #endif
-#else
-  #define FPTYPE float
+#ifndef VALUE_TYPE
+#error VALUE_TYPE undefined!
 #endif
 
-#pragma OPENCL EXTENSION cl_khr_int64_base_atomics: enable
-#pragma OPENCL EXTENSION cl_khr_int64_extended_atomics: enable
+// No reason to include these beyond version 1.2, where double is not an extension.
+#if defined(DOUBLE) && __OPENCL_VERSION__ < CL_VERSION_1_2
+  #ifdef cl_khr_fp64
+    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+  #elif defined(cl_amd_fp64)
+    #pragma OPENCL EXTENSION cl_amd_fp64 : enable
+  #else
+    #error "Double precision floating point not supported by OpenCL implementation."
+  #endif
+#endif
 
-FPTYPE atomic_add_float_extended( global FPTYPE * restrict const ptr,
-                                  const FPTYPE temp,
-                                  FPTYPE * restrict const old_sum )
+#if defined(cl_khr_int64_base_atomics) && defined(cl_khr_int64_extended_atomics)
+  #pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
+  #pragma OPENCL EXTENSION cl_khr_int64_extended_atomics : enable
+  #define ATOM64
+#endif
+
+#if __OPENCL_VERSION__ > CL_VERSION_1_0
+  #define ATOM32
+#elif defined(cl_khr_global_int32_base_atomics) && defined(cl_khr_global_int32_extended_atomics)
+  #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : require
+  #pragma OPENCL_EXTENSION cl_khr_global_int32_extended_atomics : require
+  #define ATOM32
+#else
+  #error "Required integer atomics not supported by this OpenCL implemenation."
+#endif
+
+#if (defined(DOUBLE) || defined(LONG)) && !defined(ATOM64)
+#error "Requesting 64-bit type but this OpenCL implementation does not support 64-bit atomics."
+#endif
+
+#ifndef INDEX_TYPE
+#error "INDEX_TYPE undefined!"
+#endif
+
+#ifndef VALUE_TYPE
+#error "VALUE_TYPE undefined!"
+#endif
+
+#ifndef ROWBITS
+#error "ROWBITS undefined!"
+#endif
+
+#ifndef WGBITS
+#error "WGBITS undefined!"
+#endif
+
+#ifndef WG_SIZE
+#error "WG_SIZE undefined!"
+#endif
+
+#ifndef BLOCKSIZE
+#error "BLOCKSIZE undefined!"
+#endif
+
+#ifndef BLOCK_MULTIPLIER
+#error "BLOCK_MULTIPLIER undefined!"
+#endif
+
+#ifndef ROWS_FOR_VECTOR
+#error "ROWS_FOR_VECTOR undefined!"
+#endif
+
+VALUE_TYPE atomic_add_float_extended( global VALUE_TYPE * restrict const ptr,
+                                  const VALUE_TYPE temp,
+                                  VALUE_TYPE * restrict const old_sum )
 {
 #ifdef DOUBLE
 	unsigned long newVal;
 	unsigned long prevVal;
+  #ifdef ATOM64
 	do
 	{
 		prevVal = as_ulong(*ptr);
@@ -30,10 +81,14 @@ FPTYPE atomic_add_float_extended( global FPTYPE * restrict const ptr,
 	} while (atom_cmpxchg((global unsigned long *)ptr, prevVal, newVal) != prevVal);
     if (old_sum != 0)
         *old_sum = as_double(prevVal);
+  #else
+    newVal = 0;
+  #endif
     return as_double(newVal);
 #else
 	unsigned int newVal;
 	unsigned int prevVal;
+  #ifdef ATOM32
 	do
 	{
 		prevVal = as_uint(*ptr);
@@ -41,11 +96,14 @@ FPTYPE atomic_add_float_extended( global FPTYPE * restrict const ptr,
 	} while (atomic_cmpxchg((global unsigned int *)ptr, prevVal, newVal) != prevVal);
     if (old_sum != 0)
         *old_sum = as_float(prevVal);
+  #else
+    newVal = 0;
+  #endif
     return as_float(newVal);
 #endif
 }
 
-void atomic_add_float( global void * const ptr, const FPTYPE temp )
+void atomic_add_float( global void * const ptr, const VALUE_TYPE temp )
 {
     atomic_add_float_extended(ptr, temp, 0);
 }
@@ -57,11 +115,11 @@ void atomic_add_float( global void * const ptr, const FPTYPE temp )
 // In/Out: *sumk_err, which is incremented (by reference) -- holds the
 //         error value as a result of the 2sum calculation.
 // Returns: The non-corrected sum of inputs x and y.
-FPTYPE two_sum( FPTYPE x,
-                FPTYPE y,
-                FPTYPE * restrict const sumk_err )
+VALUE_TYPE two_sum( VALUE_TYPE x,
+                VALUE_TYPE y,
+                VALUE_TYPE * restrict const sumk_err )
 {
-    const FPTYPE sumk_s = x + y;
+    const VALUE_TYPE sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
     // We use this 2Sum algorithm to perform a compensated summation,
     // which can reduce the cummulative rounding errors in our SpMV summation.
@@ -82,13 +140,13 @@ FPTYPE two_sum( FPTYPE x,
     // 1974), respectively.
     if (fabs(x) < fabs(y))
     {
-        const FPTYPE swap = x;
+        const VALUE_TYPE swap = x;
         x = y;
         y = swap;
     }
     (*sumk_err) += (y - (sumk_s - x));
     // Original 6 FLOP 2Sum algorithm.
-    //const FPTYPE bp = sumk_s - x;
+    //const VALUE_TYPE bp = sumk_s - x;
     //(*sumk_err) += ((x - (sumk_s - bp)) + (y - bp));
 #endif
     return sumk_s;
@@ -99,23 +157,23 @@ FPTYPE two_sum( FPTYPE x,
 // appropriate error. However, the EFT of an FMA is very expensive. As such,
 // if we are in EXTENDED_PRECISION mode, this function devolves into two_sum
 // with x_vals and x_vec inputs multiplied separately from the compensated add.
-FPTYPE two_fma( const FPTYPE x_vals,
-        const FPTYPE x_vec,
-        FPTYPE y,
-        FPTYPE * restrict const sumk_err )
+VALUE_TYPE two_fma( const VALUE_TYPE x_vals,
+        const VALUE_TYPE x_vec,
+        VALUE_TYPE y,
+        VALUE_TYPE * restrict const sumk_err )
 {
 #ifdef EXTENDED_PRECISION
-    FPTYPE x = x_vals * x_vec;
-    const FPTYPE sumk_s = x + y;
+    VALUE_TYPE x = x_vals * x_vec;
+    const VALUE_TYPE sumk_s = x + y;
     if (fabs(x) < fabs(y))
     {
-        const FPTYPE swap = x;
+        const VALUE_TYPE swap = x;
         x = y;
         y = swap;
     }
     (*sumk_err) += (y - (sumk_s - x));
     // 2Sum in the FMA case. Poor performance on low-DPFP GPUs.
-    //const FPTYPE bp = fma(-x_vals, x_vec, sumk_s);
+    //const VALUE_TYPE bp = fma(-x_vals, x_vec, sumk_s);
     //(*sumk_err) += (fma(x_vals, x_vec, -(sumk_s - bp)) + (y - bp));
     return sumk_s;
 #else
@@ -123,18 +181,18 @@ FPTYPE two_fma( const FPTYPE x_vals,
 #endif
 }
 
-FPTYPE atomic_two_sum_float( global FPTYPE * restrict const x_ptr,
-                            FPTYPE y,
-                            FPTYPE * restrict const sumk_err )
+VALUE_TYPE atomic_two_sum_float( global VALUE_TYPE * restrict const x_ptr,
+                            VALUE_TYPE y,
+                            VALUE_TYPE * restrict const sumk_err )
 {
     // Have to wait until the return from the atomic op to know what X was.
-    FPTYPE sumk_s = 0.;
+    VALUE_TYPE sumk_s = 0.;
 #ifdef EXTENDED_PRECISION
-    FPTYPE x;
+    VALUE_TYPE x;
     sumk_s = atomic_add_float_extended(x_ptr, y, &x);
     if (fabs(x) < fabs(y))
     {
-        const FPTYPE swap = x;
+        const VALUE_TYPE swap = x;
         x = y;
         y = swap;
     }
@@ -164,9 +222,9 @@ FPTYPE atomic_two_sum_float( global FPTYPE * restrict const x_ptr,
 //                  to do a parallel reduction. This is the length of each row.
 //          reduc_size: As you reduce data down, this tells you how far away
 //                 you will grab a value and add to your own local sum value.
-FPTYPE sum2_reduce( FPTYPE cur_sum,
-        FPTYPE * restrict const err,
-        __local FPTYPE * restrict const partial,
+VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
+        VALUE_TYPE * restrict const err,
+        __local VALUE_TYPE * restrict const partial,
         const unsigned int lid,
         const unsigned int thread_lane,
         const unsigned int max_size,
@@ -200,20 +258,20 @@ FPTYPE sum2_reduce( FPTYPE cur_sum,
 }
 
 __kernel void
-csrmv_adaptive(__global const FPTYPE * restrict const vals,
+csrmv_adaptive(__global const VALUE_TYPE * restrict const vals,
                        __global const unsigned int * restrict const cols,
                        __global const unsigned int * restrict const rowPtrs,
-                       __global const FPTYPE * restrict const vec,
-                       __global FPTYPE * restrict const out,
+                       __global const VALUE_TYPE * restrict const vec,
+                       __global VALUE_TYPE * restrict const out,
                        __global unsigned long * restrict const rowBlocks,
-                       __global const FPTYPE * restrict const pAlpha,
-                       __global const FPTYPE * restrict const pBeta)
+                       __global const VALUE_TYPE * restrict const pAlpha,
+                       __global const VALUE_TYPE * restrict const pBeta)
 {
-   __local FPTYPE partialSums[BLOCKSIZE];
+   __local VALUE_TYPE partialSums[BLOCKSIZE];
    const unsigned int gid = get_group_id(0);
    const unsigned int lid = get_local_id(0);
-   const FPTYPE alpha = *pAlpha;
-   const FPTYPE beta = *pBeta;
+   const VALUE_TYPE alpha = *pAlpha;
+   const VALUE_TYPE beta = *pBeta;
 
    // The row blocks buffer holds a packed set of information used to inform each
    // workgroup about how to do its work:
@@ -248,9 +306,9 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
    unsigned int vecStart = mad24(wg, (unsigned int)(BLOCK_MULTIPLIER*BLOCKSIZE), rowPtrs[row]);
    unsigned int vecEnd = (rowPtrs[row + 1] > vecStart + BLOCK_MULTIPLIER*BLOCKSIZE) ? vecStart + BLOCK_MULTIPLIER*BLOCKSIZE : rowPtrs[row + 1];
 
-   FPTYPE temp_sum = 0.;
-   FPTYPE sumk_e = 0.;
-   FPTYPE new_error = 0.;
+   VALUE_TYPE temp_sum = 0.;
+   VALUE_TYPE sumk_e = 0.;
+   VALUE_TYPE new_error = 0.;
 
    // If the next row block starts more than 2 rows away, then we choose CSR-Stream.
    // If this is zero (long rows) or one (final workgroup in a long row, or a single
@@ -288,7 +346,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
        const unsigned int col = rowPtrs[row] + lid;
       if (gid != (get_num_groups(0) - 1))
       {
-          for(int i = 0; i < BLOCKSIZE; i += WGSIZE)
+          for(int i = 0; i < BLOCKSIZE; i += WG_SIZE)
               partialSums[lid + i] = alpha * vals[col + i] * vec[cols[col + i]];
       }
       else
@@ -301,7 +359,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
           // This causes a minor performance loss because this is the last workgroup
           // to be launched, and this loop can't be unrolled.
           const unsigned int max_to_load = rowPtrs[stop_row] - rowPtrs[row];
-          for(int i = 0; i < max_to_load; i += WGSIZE)
+          for(int i = 0; i < max_to_load; i += WG_SIZE)
               partialSums[lid + i] = alpha * vals[col + i] * vec[cols[col + i]];
       }
       barrier(CLK_LOCAL_MEM_FENCE);
@@ -346,7 +404,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
           // LDS is full up to {workgroup size} entries.
           // Now we perform a parallel reduction that sums together the answers for each
           // row in parallel, leaving us an answer in 'temp_sum' for each row.
-          for (int i = (WGSIZE >> 1); i > 0; i >>= 1)
+          for (int i = (WG_SIZE >> 1); i > 0; i >>= 1)
           {
               barrier( CLK_LOCAL_MEM_FENCE );
               temp_sum = sum2_reduce(temp_sum, &new_error, partialSums, lid, threadInBlock, numThreadsForRed, i);
@@ -384,7 +442,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
               if (beta != 0.)
                   temp_sum = two_fma(beta, out[local_row], temp_sum, &sumk_e);
               out[local_row] = temp_sum + sumk_e;
-              local_row += WGSIZE;
+              local_row += WG_SIZE;
           }
       }
    }
@@ -412,7 +470,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
            // Load in a bunch of partial results into your register space, rather than LDS (no contention)
            // Then dump the partially reduced answers into the LDS for inter-work-item reduction.
            // Using a long induction variable to make sure unsigned int overflow doesn't break things.
-           for (long j = vecStart + lid; j < vecEnd; j+=WGSIZE)
+           for (long j = vecStart + lid; j < vecEnd; j+=WG_SIZE)
            {
                const unsigned int col = cols[(unsigned int)j];
                temp_sum = two_fma(alpha*vals[(unsigned int)j], vec[col], temp_sum, &sumk_e);
@@ -422,10 +480,10 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
            partialSums[lid] = temp_sum;
 
            // Reduce partial sums
-           for (int i = (WGSIZE >> 1); i > 0; i >>= 1)
+           for (int i = (WG_SIZE >> 1); i > 0; i >>= 1)
            {
                barrier( CLK_LOCAL_MEM_FENCE);
-               temp_sum = sum2_reduce(temp_sum, &new_error, partialSums, lid, lid, WGSIZE, i);
+               temp_sum = sum2_reduce(temp_sum, &new_error, partialSums, lid, lid, WG_SIZE, i);
            }
 
            if (lid == 0UL)
@@ -454,6 +512,9 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
        // this long row.
        const unsigned int first_wg_in_row = gid - (rowBlocks[gid] & ((1UL << WGBITS) - 1UL));
        const unsigned int compare_value = rowBlocks[gid] & (1UL << WGBITS);
+#ifdef ATOM32
+       __global unsigned long * const temp_ptr = &rowBlocks[first_wg_in_row];
+#endif
 
        // Bit 24 in the first workgroup is the flag that everyone waits on.
        if(gid == first_wg_in_row && lid == 0UL)
@@ -466,15 +527,25 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
 #ifdef EXTENDED_PRECISION
            rowBlocks[get_num_groups(0) + gid + 1] = 0UL;
 #endif
+#ifdef ATOM64
            atom_xor(&rowBlocks[first_wg_in_row], (1UL << WGBITS)); // Release other workgroups.
+#elif ATOM32
+           atomic_xor((__global unsigned int *)temp_ptr, (1UL << WGBITS)); // Release other workgroups.
+#endif
        }
        // For every other workgroup, bit 24 holds the value they wait on.
        // If your bit 24 == first_wg's bit 24, you spin loop.
        // The first workgroup will eventually flip this bit, and you can move forward.
        barrier(CLK_GLOBAL_MEM_FENCE);
+#ifdef ATOM64
        while(gid != first_wg_in_row &&
-               lid == 0UL &&
+               lid == 0U &&
                ((atom_max(&rowBlocks[first_wg_in_row], 0UL) & (1UL << WGBITS)) == compare_value));
+#elif ATOM32
+       while(gid != first_wg_in_row &&
+               lid == 0U &&
+               ((atomic_max((_global unsigned int *)temp_ptr, 0UL) & (1UL << WGBITS)) == compare_value));
+#endif
        barrier(CLK_GLOBAL_MEM_FENCE);
 
        // After you've passed the barrier, update your local flag to make sure that
@@ -492,19 +563,19 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
            // Don't put BLOCK_MULTIPLIER*BLOCKSIZE as the stop point, because
            // some GPU compilers will *aggressively* unroll this loop.
            // That increases register pressure and reduces occupancy.
-           for (int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
+           for (int j = 0; j < (int)(vecEnd - col); j += WG_SIZE)
            {
                temp_sum = two_fma(alpha*vals[col + j], vec[cols[col + j]], temp_sum, &sumk_e);
-#if 2*WGSIZE <= BLOCK_MULTIPLIER*BLOCKSIZE
+#if 2*WG_SIZE <= BLOCK_MULTIPLIER*BLOCKSIZE
                // If you can, unroll this loop once. It somewhat helps performance.
-               j += WGSIZE;
+               j += WG_SIZE;
                temp_sum = two_fma(alpha*vals[col + j], vec[cols[col + j]], temp_sum, &sumk_e);
 #endif
            }
        }
        else
        {
-           for(int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
+           for(int j = 0; j < (int)(vecEnd - col); j += WG_SIZE)
                temp_sum = two_fma(alpha*vals[col + j], vec[cols[col + j]], temp_sum, &sumk_e);
        }
 
@@ -512,10 +583,10 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
        partialSums[lid] = temp_sum;
 
        // Reduce partial sums
-       for (int i = (WGSIZE >> 1); i > 0; i >>= 1)
+       for (int i = (WG_SIZE >> 1); i > 0; i >>= 1)
        {
            barrier( CLK_LOCAL_MEM_FENCE);
-           temp_sum = sum2_reduce(temp_sum, &new_error, partialSums, lid, lid, WGSIZE, i);
+           temp_sum = sum2_reduce(temp_sum, &new_error, partialSums, lid, lid, WG_SIZE, i);
        }
 
        if (lid == 0UL)
@@ -537,7 +608,11 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
                // coop's first workgroup. That value will be used to store the number
                // of threads that have completed so far. Once all the previous threads
                // are done, it's time to send out the errors!
+#ifdef ATOM64
                while((atom_max(&rowBlocks[first_wg_in_row], 0UL) & ((1UL << WGBITS) - 1)) != wg);
+#elif ATOM32
+               while((atomic_max((_global unsigned int *)temp_ptr, 0UL) & ((1UL << WGBITS) - 1)) != wg);
+#endif
 
 #ifdef DOUBLE
                new_error = as_double(rowBlocks[error_loc]);
@@ -557,7 +632,11 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
                // Otherwise, increment the low order bits of the first thread in this
                // coop. We're using this to tell how many workgroups in a coop are done.
                // Do this with an atomic, since other threads may be doing this too.
+#ifdef ATOM64
                const unsigned long no_warn = atom_inc(&rowBlocks[first_wg_in_row]);
+#elif
+               const unsigned int no_warn = atomic_inc((_global unsigned int *)temp_ptr);
+#endif
            }
 #endif
        }

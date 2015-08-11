@@ -22,20 +22,31 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
     const cl_uint group_size = 256;
 
     std::string params = std::string( )
+    + " -DINDEX_TYPE=uint"
     + " -DROWBITS=" + std::to_string( ROW_BITS )
     + " -DWGBITS=" + std::to_string( WG_BITS )
-    + " -DWGSIZE=" + std::to_string( group_size )
+    + " -DWG_SIZE=" + std::to_string( group_size )
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
     + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
     + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR )
     + " -DEXTENDED_PRECISION";
 
+    std::string options;
     if(typeid(T) == typeid(cl_double))
-    {
-            std::string options = std::string() + " -DDOUBLE";
-            params.append(options);
-    }
-
+        options = std::string() + " -DVALUE_TYPE=double -DDOUBLE";
+    else if(typeid(T) == typeid(cl_float))
+        options = std::string() + " -DVALUE_TYPE=float";
+    else if(typeid(T) == typeid(cl_uint))
+        options = std::string() + " -DVALUE_TYPE=uint";
+    else if(typeid(T) == typeid(cl_int))
+        options = std::string() + " -DVALUE_TYPE=int";
+    else if(typeid(T) == typeid(cl_ulong))
+        options = std::string() + " -DVALUE_TYPE=ulong -DLONG";
+    else if(typeid(T) == typeid(cl_long))
+        options = std::string() + " -DVALUE_TYPE=long -DLONG";
+    else
+        return clsparseInvalidKernelArgs;
+    params.append(options);
 
     cl::Kernel kernel = KernelCache::get( control->queue,
                                           "csrmv_adaptive",
@@ -89,19 +100,31 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
     const cl_uint group_size = 256;
 
     std::string params = std::string( )
+    + " -DINDEX_TYPE=uint"
     + " -DROWBITS=" + std::to_string( ROW_BITS )
     + " -DWGBITS=" + std::to_string( WG_BITS )
-    + " -DWGSIZE=" + std::to_string( group_size )
+    + " -DWG_SIZE=" + std::to_string( group_size )
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
     + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
     + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR )
     + " -DEXTENDED_PRECISION";
 
+    std::string options;
     if(typeid(T) == typeid(cl_double))
-    {
-        std::string options = std::string() + " -DDOUBLE";
-        params.append(options);
-    }
+        options = std::string() + " -DVALUE_TYPE=double -DDOUBLE";
+    else if(typeid(T) == typeid(cl_float))
+        options = std::string() + " -DVALUE_TYPE=float";
+    else if(typeid(T) == typeid(cl_uint))
+        options = std::string() + " -DVALUE_TYPE=uint";
+    else if(typeid(T) == typeid(cl_int))
+        options = std::string() + " -DVALUE_TYPE=int";
+    else if(typeid(T) == typeid(cl_ulong))
+        options = std::string() + " -DVALUE_TYPE=ulong -DLONG";
+    else if(typeid(T) == typeid(cl_long))
+        options = std::string() + " -DVALUE_TYPE=long -DLONG";
+    else
+        return clsparseInvalidKernelArgs;
+    params.append(options);
 
     cl::Kernel kernel = KernelCache::get( control->queue,
                                           "csrmv_adaptive",
