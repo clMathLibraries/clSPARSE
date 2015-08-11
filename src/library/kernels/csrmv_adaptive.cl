@@ -94,6 +94,35 @@ FPTYPE two_sum( FPTYPE x,
     return sumk_s;
 }
 
+// Performs (x_vals * x_vec) + y using an FMA.
+// Ideally, we would perform an error-free transformation here and return the
+// appropriate error. However, the EFT of an FMA is very expensive. As such,
+// if we are in EXTENDED_PRECISION mode, this function devolves into two_sum
+// with x_vals and x_vec inputs multiplied separately from the compensated add.
+FPTYPE two_fma( const FPTYPE x_vals,
+        const FPTYPE x_vec,
+        FPTYPE y,
+        FPTYPE * restrict const sumk_err )
+{
+#ifdef EXTENDED_PRECISION
+    FPTYPE x = x_vals * x_vec;
+    const FPTYPE sumk_s = x + y;
+    if (fabs(x) < fabs(y))
+    {
+        const FPTYPE swap = x;
+        x = y;
+        y = swap;
+    }
+    (*sumk_err) += (y - (sumk_s - x));
+    // 2Sum in the FMA case. Poor performance on low-DPFP GPUs.
+    //const FPTYPE bp = fma(-x_vals, x_vec, sumk_s);
+    //(*sumk_err) += (fma(x_vals, x_vec, -(sumk_s - bp)) + (y - bp));
+    return sumk_s;
+#else
+    return fma(x_vals, x_vec, y);
+#endif
+}
+
 FPTYPE atomic_two_sum_float( global FPTYPE * restrict const x_ptr,
                             FPTYPE y,
                             FPTYPE * restrict const sumk_err )
@@ -330,7 +359,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
               // If so, just do a write rather than a read-write. Measured to be a slight (~5%)
               // performance improvement.
               if (beta != 0.)
-                  temp_sum = two_sum(beta * out[local_row], temp_sum, &new_error);
+                  temp_sum = two_fma(beta, out[local_row], temp_sum, &new_error);
               out[local_row] = temp_sum + new_error;
           }
       }
@@ -349,12 +378,12 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
               temp_sum = 0.;
               sumk_e = 0.;
               for (int local_cur_val = local_first_val; local_cur_val < local_last_val; local_cur_val++)
-                  temp_sum = two_sum(temp_sum, partialSums[local_cur_val], &sumk_e);
+                  temp_sum = two_sum(partialSums[local_cur_val], temp_sum, &sumk_e);
 
               // After you've done the reduction into the temp_sum register,
               // put that into the output for each row.
               if (beta != 0.)
-                  temp_sum = two_sum(beta * out[local_row], temp_sum, &sumk_e);
+                  temp_sum = two_fma(beta, out[local_row], temp_sum, &sumk_e);
               out[local_row] = temp_sum + sumk_e;
               local_row += WGSIZE;
           }
@@ -387,7 +416,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
            for (long j = vecStart + lid; j < vecEnd; j+=WGSIZE)
            {
                const unsigned int col = cols[(unsigned int)j];
-               temp_sum = two_sum(temp_sum, alpha * vals[(unsigned int)j] * vec[col], &sumk_e);
+               temp_sum = two_fma(alpha*vals[(unsigned int)j], vec[col], temp_sum, &sumk_e);
            }
 
            temp_sum = two_sum(temp_sum, sumk_e, &new_error);
@@ -403,7 +432,7 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
            if (lid == 0UL)
            {
                if (beta != 0.)
-                   temp_sum = two_sum(beta * out[row], temp_sum, &new_error);
+                   temp_sum = two_fma(beta, out[row], temp_sum, &new_error);
                out[row] = temp_sum + new_error;
            }
            row++;
@@ -466,18 +495,18 @@ csrmv_adaptive(__global const FPTYPE * restrict const vals,
            // That increases register pressure and reduces occupancy.
            for (int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
            {
-               temp_sum = two_sum(temp_sum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+               temp_sum = two_fma(alpha*vals[col + j], vec[cols[col + j]], temp_sum, &sumk_e);
 #if 2*WGSIZE <= BLOCK_MULTIPLIER*BLOCKSIZE
                // If you can, unroll this loop once. It somewhat helps performance.
                j += WGSIZE;
-               temp_sum = two_sum(temp_sum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+               temp_sum = two_fma(alpha*vals[col + j], vec[cols[col + j]], temp_sum, &sumk_e);
 #endif
            }
        }
        else
        {
            for(int j = 0; j < (int)(vecEnd - col); j += WGSIZE)
-               temp_sum = two_sum(temp_sum, alpha * vals[col + j] * vec[cols[col + j]], &sumk_e);
+               temp_sum = two_fma(alpha*vals[col + j], vec[cols[col + j]], temp_sum, &sumk_e);
        }
 
        temp_sum = two_sum(temp_sum, sumk_e, &new_error);
