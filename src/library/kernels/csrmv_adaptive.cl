@@ -30,10 +30,6 @@ R"(
   #error "Required integer atomics not supported by this OpenCL implemenation."
 #endif
 
-#if (defined(DOUBLE) || defined(LONG)) && !defined(ATOM64)
-#error "Requesting 64-bit type but this OpenCL implementation does not support 64-bit atomics."
-#endif
-
 #ifndef INDEX_TYPE
 #error "INDEX_TYPE undefined!"
 #endif
@@ -66,6 +62,55 @@ R"(
 #error "ROWS_FOR_VECTOR undefined!"
 #endif
 
+// Internal functions to wrap atomics, depending on if we support 64-bit
+// atomics or not. Helps keep the code clean in the other parts of the code.
+// All of the 32-bit atomics are built assuming we're on a little endian architecture.
+inline unsigned long clsparse_atomic_xor(__global unsigned long * restrict const ptr,
+                                    const unsigned long xor_val)
+{
+#ifdef ATOM64
+    return atom_xor(ptr, xor_val);
+#else
+    return atomic_max((__global unsigned int*)ptr, (unsigned int)xor_val);
+#endif
+}
+
+inline unsigned long clsparse_atomic_max(__global unsigned long * restrict const ptr,
+                                    const unsigned long compare)
+{
+#ifdef ATOM64
+    return atom_max(ptr, compare);
+#else
+    return atomic_max((__global unsigned int*)ptr, (unsigned int)compare);
+#endif
+}
+
+inline unsigned long clsparse_atomic_inc(__global unsigned long * restrict const inc_this)
+{
+#ifdef ATOM64
+    return atom_inc(inc_this);
+#else
+    return atomic_inc((__global unsigned int *)inc_this);
+#endif
+}
+
+inline unsigned long clsparse_atomic_cmpxchg(__global unsigned long * restrict const ptr,
+                                    const unsigned long compare,
+                                    const unsigned long val)
+{
+#ifdef DOUBLE
+  #ifdef ATOM64
+    return atom_cmpxchg(ptr, compare, val);
+  #else
+    // Should never run this. Don't use a path that requires cmpxchg for doubles
+    // if you don't support 64-bit atomics.
+    return compare;
+  #endif
+#else
+    return atomic_cmpxchg((__global unsigned int*)ptr, compare, val);
+#endif
+}
+
 VALUE_TYPE atomic_add_float_extended( global VALUE_TYPE * restrict const ptr,
                                   const VALUE_TYPE temp,
                                   VALUE_TYPE * restrict const old_sum )
@@ -73,32 +118,24 @@ VALUE_TYPE atomic_add_float_extended( global VALUE_TYPE * restrict const ptr,
 #ifdef DOUBLE
 	unsigned long newVal;
 	unsigned long prevVal;
-  #ifdef ATOM64
 	do
 	{
 		prevVal = as_ulong(*ptr);
 		newVal = as_ulong(temp + *ptr);
-	} while (atom_cmpxchg((global unsigned long *)ptr, prevVal, newVal) != prevVal);
+	} while (clsparse_atomic_cmpxchg((__global unsigned long *)ptr, prevVal, newVal) != prevVal);
     if (old_sum != 0)
         *old_sum = as_double(prevVal);
-  #else
-    newVal = 0;
-  #endif
     return as_double(newVal);
 #else
 	unsigned int newVal;
 	unsigned int prevVal;
-  #ifdef ATOM32
 	do
 	{
 		prevVal = as_uint(*ptr);
 		newVal = as_uint(temp + *ptr);
-	} while (atomic_cmpxchg((global unsigned int *)ptr, prevVal, newVal) != prevVal);
+	} while (clsparse_atomic_cmpxchg((__global unsigned long *)ptr, prevVal, newVal) != prevVal);
     if (old_sum != 0)
         *old_sum = as_float(prevVal);
-  #else
-    newVal = 0;
-  #endif
     return as_float(newVal);
 #endif
 }
@@ -295,16 +332,28 @@ csrmv_adaptive(__global const VALUE_TYPE * restrict const vals,
    // value. While this bit is the same as the first workgroup's flag bit, this
    // workgroup will spin-loop.
    unsigned int row = ((rowBlocks[gid] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
-   const unsigned int stop_row = ((rowBlocks[gid + 1] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
-   const unsigned int num_rows = stop_row - row;
+   unsigned int stop_row = ((rowBlocks[gid + 1] >> (64-ROWBITS)) & ((1UL << ROWBITS) - 1UL));
+   unsigned int num_rows = stop_row - row;
 
    // Get the "workgroup within this long row" ID out of the bottom bits of the row block.
-   const unsigned int wg = rowBlocks[gid] & ((1 << WGBITS) - 1);
+   unsigned int wg = rowBlocks[gid] & ((1 << WGBITS) - 1);
 
    // Any workgroup only calculates, at most, BLOCK_MULTIPLIER*BLOCKSIZE items in a row.
    // If there are more items in this row, we assign more workgroups.
    unsigned int vecStart = mad24(wg, (unsigned int)(BLOCK_MULTIPLIER*BLOCKSIZE), rowPtrs[row]);
    unsigned int vecEnd = (rowPtrs[row + 1] > vecStart + BLOCK_MULTIPLIER*BLOCKSIZE) ? vecStart + BLOCK_MULTIPLIER*BLOCKSIZE : rowPtrs[row + 1];
+
+#if (defined(DOUBLE) || defined(LONG)) && !defined(ATOM64)
+   // In here because we don't support 64-bit atomics while working on 64-bit data.
+   // As such, we can't use CSR-LongRows. Time to do a fixup -- first WG does the
+   // entire row with CSR-Vector. Other rows immediately exit.
+   if (num_rows == 0 || (num_rows == 1 && wg)) // CSR-LongRows case
+   {
+       num_rows = ROWS_FOR_VECTOR;
+       stop_row = wg ? row : (row + 1);
+       wg = 0;
+   }
+#endif
 
    VALUE_TYPE temp_sum = 0.;
    VALUE_TYPE sumk_e = 0.;
@@ -512,40 +561,25 @@ csrmv_adaptive(__global const VALUE_TYPE * restrict const vals,
        // this long row.
        const unsigned int first_wg_in_row = gid - (rowBlocks[gid] & ((1UL << WGBITS) - 1UL));
        const unsigned int compare_value = rowBlocks[gid] & (1UL << WGBITS);
-#ifdef ATOM32
-       __global unsigned long * const temp_ptr = &rowBlocks[first_wg_in_row];
-#endif
 
        // Bit 24 in the first workgroup is the flag that everyone waits on.
        if(gid == first_wg_in_row && lid == 0UL)
        {
            // The first workgroup handles the output initialization.
-           if (beta != 0.)
-               out[row] *= beta;
-           else
-               out[row] = 0.;
+           volatile VALUE_TYPE out_val = out[row];
+           temp_sum = (beta - 1.) * out_val;
 #ifdef EXTENDED_PRECISION
            rowBlocks[get_num_groups(0) + gid + 1] = 0UL;
 #endif
-#ifdef ATOM64
-           atom_xor(&rowBlocks[first_wg_in_row], (1UL << WGBITS)); // Release other workgroups.
-#elif ATOM32
-           atomic_xor((__global unsigned int *)temp_ptr, (1UL << WGBITS)); // Release other workgroups.
-#endif
+           clsparse_atomic_xor(&rowBlocks[first_wg_in_row], (1UL << WGBITS)); // Release other workgroups.
        }
        // For every other workgroup, bit 24 holds the value they wait on.
        // If your bit 24 == first_wg's bit 24, you spin loop.
        // The first workgroup will eventually flip this bit, and you can move forward.
        barrier(CLK_GLOBAL_MEM_FENCE);
-#ifdef ATOM64
        while(gid != first_wg_in_row &&
                lid == 0U &&
-               ((atom_max(&rowBlocks[first_wg_in_row], 0UL) & (1UL << WGBITS)) == compare_value));
-#elif ATOM32
-       while(gid != first_wg_in_row &&
-               lid == 0U &&
-               ((atomic_max((_global unsigned int *)temp_ptr, 0UL) & (1UL << WGBITS)) == compare_value));
-#endif
+               ((clsparse_atomic_max(&rowBlocks[first_wg_in_row], 0UL) & (1UL << WGBITS)) == compare_value));
        barrier(CLK_GLOBAL_MEM_FENCE);
 
        // After you've passed the barrier, update your local flag to make sure that
@@ -608,11 +642,7 @@ csrmv_adaptive(__global const VALUE_TYPE * restrict const vals,
                // coop's first workgroup. That value will be used to store the number
                // of threads that have completed so far. Once all the previous threads
                // are done, it's time to send out the errors!
-#ifdef ATOM64
-               while((atom_max(&rowBlocks[first_wg_in_row], 0UL) & ((1UL << WGBITS) - 1)) != wg);
-#elif ATOM32
-               while((atomic_max((_global unsigned int *)temp_ptr, 0UL) & ((1UL << WGBITS) - 1)) != wg);
-#endif
+               while((clsparse_atomic_max(&rowBlocks[first_wg_in_row], 0UL) & ((1UL << WGBITS) - 1)) != wg);
 
 #ifdef DOUBLE
                new_error = as_double(rowBlocks[error_loc]);
@@ -632,11 +662,7 @@ csrmv_adaptive(__global const VALUE_TYPE * restrict const vals,
                // Otherwise, increment the low order bits of the first thread in this
                // coop. We're using this to tell how many workgroups in a coop are done.
                // Do this with an atomic, since other threads may be doing this too.
-#ifdef ATOM64
-               const unsigned long no_warn = atom_inc(&rowBlocks[first_wg_in_row]);
-#elif
-               const unsigned int no_warn = atomic_inc((_global unsigned int *)temp_ptr);
-#endif
+               const unsigned long no_warn = clsparse_atomic_inc(&rowBlocks[first_wg_in_row]);
            }
 #endif
        }
