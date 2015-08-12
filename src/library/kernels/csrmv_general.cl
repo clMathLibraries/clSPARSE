@@ -46,9 +46,9 @@ R"(
 // Returns: The non-corrected sum of inputs x and y.
 VALUE_TYPE two_sum( VALUE_TYPE x,
         VALUE_TYPE y,
-        VALUE_TYPE *sumk_err)
+        VALUE_TYPE * restrict const sumk_err)
 {
-    VALUE_TYPE sumk_s = x + y;
+    const VALUE_TYPE sumk_s = x + y;
 #ifdef EXTENDED_PRECISION
     // We use this 2Sum algorithm to perform a compensated summation,
     // which can reduce the cummulative rounding errors in our SpMV summation.
@@ -68,10 +68,9 @@ VALUE_TYPE two_sum( VALUE_TYPE x,
     // and "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher
     // Summen (ZAMM Z. Angewandte Mathematik und Mechanik 54(1) pp. 39-51,
     // 1974), respectively.
-    VALUE_TYPE swap;
     if (fabs(x) < fabs(y))
     {
-        swap = x;
+        const VALUE_TYPE swap = x;
         x = y;
         y = swap;
     }
@@ -81,6 +80,35 @@ VALUE_TYPE two_sum( VALUE_TYPE x,
     //(*sumk_err) += ((x - (sumk_s - bp)) + (y - bp));
 #endif
     return sumk_s;
+}
+
+// Performs (x_vals * x_vec) + y using an FMA.
+// Ideally, we would perform an error-free transformation here and return the
+// appropriate error. However, the EFT of an FMA is very expensive. As such,
+// if we are in EXTENDED_PRECISION mode, this function devolves into two_sum
+// with x_vals and x_vec inputs multiplied separately from the compensated add.
+VALUE_TYPE two_fma( const VALUE_TYPE x_vals,
+        const VALUE_TYPE x_vec,
+        VALUE_TYPE y,
+        VALUE_TYPE * restrict const sumk_err )
+{
+#ifdef EXTENDED_PRECISION
+    VALUE_TYPE x = x_vals * x_vec;
+    const VALUE_TYPE sumk_s = x + y;
+    if (fabs(x) < fabs(y))
+    {
+        const VALUE_TYPE swap = x;
+        x = y;
+        y = swap;
+    }
+    (*sumk_err) += (y - (sumk_s - x));
+    // 2Sum in the FMA case. Poor performance on low-DPFP GPUs.
+    //const VALUE_TYPE bp = fma(-x_vals, x_vec, sumk_s);
+    //(*sumk_err) += (fma(x_vals, x_vec, -(sumk_s - bp)) + (y - bp));
+    return sumk_s;
+#else
+    return fma(x_vals, x_vec, y);
+#endif
 }
 
 // A method of doing the final reduction without having to copy and paste
@@ -97,29 +125,28 @@ VALUE_TYPE two_sum( VALUE_TYPE x,
 //          round: This parallel summation method operates in multiple rounds
 //                  to do a parallel reduction. See the blow comment for usage.
 VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
-        VALUE_TYPE *err,
-        volatile __local VALUE_TYPE *partial,
-        size_t lid,
-        int thread_lane,
-        int round)
+        VALUE_TYPE * restrict const err,
+        volatile __local VALUE_TYPE * restrict const partial,
+        const INDEX_TYPE lid,
+        const INDEX_TYPE thread_lane,
+        const INDEX_TYPE round)
 {
     if (SUBWAVE_SIZE > round)
     {
 #ifdef EXTENDED_PRECISION
+        const unsigned int partial_dest = lid + round;
         if (thread_lane < round)
-            cur_sum  = two_sum(cur_sum, partial[lid + round], err);
-
+            cur_sum  = two_sum(cur_sum, partial[partial_dest], err);
         // We reuse the LDS entries to move the error values down into lower
         // threads. This saves LDS space, allowing higher occupancy, but requires
         // more barriers, which can reduce performance.
         barrier(CLK_LOCAL_MEM_FENCE);
         // Have all of those upper threads pass their temporary errors
         // into a location that the lower threads can read.
-        if (thread_lane >= round)
-            partial[lid] = *err;
+        partial[lid] = (thread_lane >= round) ? *err : partial[lid];
         barrier(CLK_LOCAL_MEM_FENCE);
         if (thread_lane < round) { // Add those errors in.
-            *err += partial[lid + round];
+            *err += partial[partial_dest];
             partial[lid] = cur_sum;
         }
 #else
@@ -158,27 +185,27 @@ void csrmv_general (     const INDEX_TYPE num_rows,
     local volatile VALUE_TYPE sdata [WG_SIZE + SUBWAVE_SIZE / 2];
 
     //const int vectors_per_block = WG_SIZE/SUBWAVE_SIZE;
-    const int global_id   = get_global_id(0);         // global workitem id
-    const int local_id    = get_local_id(0);          // local workitem id
-    const int thread_lane = local_id & (SUBWAVE_SIZE - 1);
-    const int vector_id   = global_id / SUBWAVE_SIZE; // global vector id
+    const INDEX_TYPE global_id   = get_global_id(0);         // global workitem id
+    const INDEX_TYPE local_id    = get_local_id(0);          // local workitem id
+    const INDEX_TYPE thread_lane = local_id & (SUBWAVE_SIZE - 1);
+    const INDEX_TYPE vector_id   = global_id / SUBWAVE_SIZE; // global vector id
     //const int vector_lane = local_id / SUBWAVE_SIZE;  // vector id within the workgroup
-    const int num_vectors = get_global_size(0) / SUBWAVE_SIZE;
+    const INDEX_TYPE num_vectors = get_global_size(0) / SUBWAVE_SIZE;
 
     const VALUE_TYPE _alpha = alpha[off_alpha];
     const VALUE_TYPE _beta = beta[off_beta];
 
     for(INDEX_TYPE row = vector_id; row < num_rows; row += num_vectors)
     {
-        const int row_start = row_offset[row];
-        const int row_end   = row_offset[row+1];
+        const INDEX_TYPE row_start = row_offset[row];
+        const INDEX_TYPE row_end   = row_offset[row+1];
         VALUE_TYPE sum = 0.;
 
         VALUE_TYPE sumk_e = 0.;
         // It is about 5% faster to always multiply by alpha, rather than to
         // check whether alpha is 0, 1, or other and do different code paths.
-        for(int j = row_start + thread_lane; j < row_end; j += SUBWAVE_SIZE)
-            sum = two_sum(sum, (_alpha * val[j] * x[off_x + col[j]]), &sumk_e);
+        for(INDEX_TYPE j = row_start + thread_lane; j < row_end; j += SUBWAVE_SIZE)
+            sum = two_fma(_alpha * val[j], x[off_x + col[j]], sum, &sumk_e);
         VALUE_TYPE new_error = 0.;
         sum = two_sum(sum, sumk_e, &new_error);
 
@@ -204,7 +231,7 @@ void csrmv_general (     const INDEX_TYPE num_rows,
                 y[off_y + row] = sum + new_error;
             else
             {
-                sum = two_sum(sum, _beta * y[off_y + row], &new_error);
+                sum = two_fma(_beta, y[off_y + row], sum, &new_error);
                 y[off_y + row] = sum + new_error;
             }
         }
