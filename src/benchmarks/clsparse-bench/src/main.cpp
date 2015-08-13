@@ -120,14 +120,15 @@ int main( int argc, char *argv[ ] )
     desc.add_options( )
         ( "help,h", "produces this help message" )
         ( "dirpath,d", po::value( &root_dir ), "Matrix directory" )
-        ( "alpha", po::value<cl_double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
-        ( "beta", po::value<cl_double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
+        ( "alpha,a", po::value<cl_double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
+        ( "beta,b", po::value<cl_double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
         ( "rows", po::value<size_t>( &rows )->default_value( 16 ), "specifies the number of rows for matrix data" )
         ( "columns", po::value<size_t>( &columns )->default_value( 16 ), "specifies the number of columns for matrix data" )
         ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: "
                     "SpMdV, SpMdM, CG, BiCGStab, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
         ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
-        ( "profile,p", po::value<size_t>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
+        ( "profile,p", po::value<size_t>( &profileCount )->default_value( 20 ), "Number of times to run the desired test function" )
+        ( "extended,e", po::bool_switch()->default_value(false), "Use compensated summation to improve accuracy by emulating extended precision" )
         ;
 
     po::variables_map vm;
@@ -160,6 +161,9 @@ int main( int argc, char *argv[ ] )
         std::cerr << "Could not find the external timing library; timings disabled" << std::endl;
     }
 
+    cl_bool extended_precision = false;
+    if (vm["extended"].as<bool>())
+                extended_precision = true;
 
     //	Timer module discovered and loaded successfully
     //	Initialize function pointers to call into the shared module
@@ -170,9 +174,9 @@ int main( int argc, char *argv[ ] )
     if( boost::iequals( function, "SpMdV" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< float >( sparseGetTimer, profileCount, extended_precision, CL_DEVICE_TYPE_GPU ) );
         else if( precision == "d" )
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< double >( sparseGetTimer, profileCount, extended_precision, CL_DEVICE_TYPE_GPU ) );
         else
         {
             std::cerr << "Unknown spmdv precision" << std::endl;
