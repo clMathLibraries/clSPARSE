@@ -184,14 +184,29 @@ public:
                 //printf("\tFloat hY[%d] = %.*e (0x%08" PRIx32 "), ", i, 9, hY[i], *(uint32_t *)&hY[i]);
                 //printf("host_result[%d] = %.*e (0x%08" PRIx32 ")\n", i, 9, host_result[i], *(uint32_t *)&host_result[i]);
             }
-            printf("Float Min ulps: %" PRIu64 "\n", min_ulps);
-            printf("Float Max ulps: %" PRIu64 "\n", max_ulps);
-            printf("Float Total ulps: %" PRIu64 "\n", total_ulps);
-            printf("Float Average ulps: %f (Size: %lu)\n", (double)total_ulps/(double)hY.size(), hY.size());
+            if (extended_precision)
+            {
+                printf("Float Min ulps: %" PRIu64 "\n", min_ulps);
+                printf("Float Max ulps: %" PRIu64 "\n", max_ulps);
+                printf("Float Total ulps: %" PRIu64 "\n", total_ulps);
+                printf("Float Average ulps: %f (Size: %lu)\n", (double)total_ulps/(double)hY.size(), hY.size());
+            }
 
             for (int i = 0; i < hY.size(); i++)
             {
-                double compare_val = fabs(hY[i]*1e-5);
+                double compare_val = 0.;
+                if (extended_precision)
+                {
+                    // The limit here is somewhat weak because some GPUs don't
+                    // support correctly rounded denorms in SPFP mode.
+                    if (boost::math::isnormal(hY[i]))
+                        compare_val = fabs(hY[i]*1e-3);
+                }
+                else
+                {
+                    if (boost::math::isnormal(hY[i]))
+                        compare_val = fabs(hY[i]*0.1);
+                }
                 if (compare_val < 10*FLT_EPSILON)
                     compare_val = 10*FLT_EPSILON;
                 ASSERT_NEAR(hY[i], host_result[i], compare_val);
@@ -255,17 +270,32 @@ public:
                 //printf("\tDouble hY[%d] = %.*e (0x%016" PRIx64 "), ", i, 17, hY[i], *(uint64_t *)&hY[i]);
                 //printf("host_result[%d] = %.*e (0x%016" PRIx64 ")\n", i, 17, host_result[i], *(uint64_t *)&host_result[i]);
             }
-            printf("Double Min ulps: %" PRIu64 "\n", min_ulps);
-            printf("Double Max ulps: %" PRIu64 "\n", max_ulps);
-            printf("Double Total ulps: %" PRIu64 "\n", total_ulps);
-            printf("Double Average ulps: %f (Size: %lu)\n", (double)total_ulps/(double)hY.size(), hY.size());
-
-            for (int i = 0; i < hY.size(); i++)
+            if (extended_precision)
             {
-                double compare_val = fabs(hY[i]*1e-14);
-                if (compare_val < 10*DBL_EPSILON)
-                    compare_val = 10*DBL_EPSILON;
-                ASSERT_NEAR(hY[i], host_result[i], compare_val);
+                printf("Double Min ulps: %" PRIu64 "\n", min_ulps);
+                printf("Double Max ulps: %" PRIu64 "\n", max_ulps);
+                printf("Double Total ulps: %" PRIu64 "\n", total_ulps);
+                printf("Double Average ulps: %f (Size: %lu)\n", (double)total_ulps/(double)hY.size(), hY.size());
+
+                for (int i = 0; i < hY.size(); i++)
+                {
+                    double compare_val = fabs(hY[i]*1e-14);
+                    if (compare_val < 10*DBL_EPSILON)
+                        compare_val = 10*DBL_EPSILON;
+                    ASSERT_NEAR(hY[i], host_result[i], compare_val);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < hY.size(); i++)
+                {
+                    double compare_val = 0.;
+                    if (boost::math::isnormal(hY[i]))
+                        compare_val = fabs(hY[i]*0.1);
+                    if (compare_val < 10*DBL_EPSILON)
+                        compare_val = 10*DBL_EPSILON;
+                    ASSERT_NEAR(hY[i], host_result[i], compare_val);
+                }
             }
 
             cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
