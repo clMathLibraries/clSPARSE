@@ -90,6 +90,9 @@ extern "C" {
     CLSPARSE_EXPORT clsparseStatus
         clsparseEnableAsync( clsparseControl control, cl_bool async );
 
+    //enable/disable the use of compensated summation
+    CLSPARSE_EXPORT clsparseStatus
+        clsparseEnableExtendedPrecision( clsparseControl control, cl_bool async );
 
     //setup events to sync
     //TODO:: NOT WORKING! NDRange throws Failure

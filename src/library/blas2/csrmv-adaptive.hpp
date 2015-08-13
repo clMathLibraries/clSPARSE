@@ -45,8 +45,7 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
     + " -DWG_SIZE=" + std::to_string( group_size )
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
     + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
-    + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR )
-    + " -DEXTENDED_PRECISION";
+    + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR );
 
     std::string options;
     if(typeid(T) == typeid(cl_double))
@@ -63,6 +62,9 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
         options = std::string() + " -DVALUE_TYPE=long -DLONG";
     else
         return clsparseInvalidKernelArgs;
+
+    if(control->extended_precision)
+        options += " -DEXTENDED_PRECISION";
     params.append(options);
 
     cl::Kernel kernel = KernelCache::get( control->queue,
@@ -123,8 +125,7 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
     + " -DWG_SIZE=" + std::to_string( group_size )
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
     + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
-    + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR )
-    + " -DEXTENDED_PRECISION";
+    + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR );
 
     std::string options;
     if(typeid(T) == typeid(cl_double))
@@ -141,6 +142,9 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
         options = std::string() + " -DVALUE_TYPE=long -DLONG";
     else
         return clsparseInvalidKernelArgs;
+
+    if(control->extended_precision)
+        options += " -DEXTENDED_PRECISION";
     params.append(options);
 
     cl::Kernel kernel = KernelCache::get( control->queue,
