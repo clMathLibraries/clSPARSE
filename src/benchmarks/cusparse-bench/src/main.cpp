@@ -1,6 +1,18 @@
 /* ************************************************************************
  * Copyright 2015 Advanced Micro Devices, Inc.
- * ************************************************************************/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
 
 
 // Standard system include files
@@ -21,6 +33,7 @@
 #include "functions/cufunc_xCsr2dense.hpp"
 #include "functions/cufunc_xCsr2Coo.hpp"
 #include "functions/cufunc_xDense2Csr.hpp"
+#include "functions/cufunc_xCoo2Csr.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -111,7 +124,7 @@ int main(int argc, char *argv[])
     ( "alpha", po::value<double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
     ( "beta", po::value<double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
     //( "transposeA", po::value<int>( &transA_option )->default_value( 0 ), "0 = no transpose, 1 = transpose, 2 = conjugate transpose" )
-    ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, Csr2Dense, Csr2Coo, Dense2Csr" )
+    ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
     ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
     ( "profile,p", po::value<int>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
     ;
@@ -131,7 +144,7 @@ int main(int argc, char *argv[])
     std::cerr << "Invalid value for --precision" << std::endl;
     return -1;
   }
-  
+
   if( vm.count( "dirpath" ) == 0 )
   {
       std::cerr << "The [" << "root" << "] parameter is missing!" << std::endl;
@@ -201,6 +214,17 @@ int main(int argc, char *argv[])
           return -1;
       }
   }
+  else if( boost::iequals( function, "Coo2Csr" ) )
+  {
+      if( precision == "s" )
+      {
+          my_function = std::unique_ptr< cusparseFunc >( new xCoo2Csr< float >( timer ) );
+      }
+      else
+      {
+          my_function = std::unique_ptr< cusparseFunc >( new xCoo2Csr< double >( timer ) );
+      }
+  }
   else
   {
     std::cerr << "Benchmarking unknown function" << std::endl;
@@ -253,4 +277,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-

@@ -1,6 +1,21 @@
 R"(
-#pragma OPENCL EXTENSION cl_amd_printf : enable
+/* ************************************************************************
+ * Copyright 2015 Advanced Micro Devices, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
 
+#pragma OPENCL EXTENSION cl_amd_printf : enable
 
 /******************************************************************************
  *  Kernel 0
@@ -17,7 +32,7 @@ __kernel void OffsetCalculation(
     size_t wgSize = get_local_size( 0 );
 
     //if (gloId >= vecSize) return;
-    if (gloId < vecSize){ 
+    if (gloId < vecSize){
        int key, prev_key;
 
        if(gloId > 0){
@@ -113,7 +128,7 @@ __kernel void intraBlockInclusiveScanByKey(
 
     __local int ldsKeys[256];
     __local int ldsVals[256];
-	
+
     // do offset of zero manually
     uint offset;
     int key;
@@ -227,7 +242,7 @@ __kernel void keyValueMapping(
 
     __local int ldsKeys[256];
     __local int ldsVals[256];
-	
+
     // if exclusive, load gloId=0 w/ init, and all others shifted-1
     int key;
     int  val;
@@ -275,7 +290,7 @@ __kernel void keyValueMapping(
 
     }
 
-    unsigned int count_number_of_sections = 0;		
+    unsigned int count_number_of_sections = 0;
     count_number_of_sections = newkeys[vecSize-1] + 1;
     if(gloId < (vecSize-1) && newkeys[ gloId ] != newkeys[ gloId +1])
     {
