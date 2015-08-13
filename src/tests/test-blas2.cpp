@@ -380,7 +380,7 @@ int main (int argc, char* argv[])
              "Alpha parameter for eq: \n\ty = alpha * M * x + beta * y")
             ("beta,b", po::value(&beta)->default_value(1.0),
              "Beta parameter for eq: \n\ty = alpha * M * x + beta * y")
-            ("precision,e", po::bool_switch()->default_value(false), "Use compensated summation to improve accuracy.");
+            ("extended,e", po::bool_switch()->default_value(false), "Use compensated summation to improve accuracy by emulating extended precision.");
 
     po::variables_map vm;
     po::parsed_options parsed =
@@ -424,7 +424,7 @@ int main (int argc, char* argv[])
 
     }
 
-    if (vm["precision"].as<bool>())
+    if (vm["extended"].as<bool>())
         extended_precision = true;
 
     ::testing::InitGoogleTest(&argc, argv);
