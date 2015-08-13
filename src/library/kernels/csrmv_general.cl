@@ -51,8 +51,6 @@ R"(
 # error SUBWAVE_SIZE is not  a power of two!
 #endif
 
-#define EXTENDED_PRECISION
-
 // Knuth's Two-Sum algorithm, which allows us to add together two floating
 // point numbers and exactly tranform the answer into a sum and a
 // rounding error.

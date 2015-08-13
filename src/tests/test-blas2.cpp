@@ -33,7 +33,7 @@ clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 //cl_uint ClSparseEnvironment::N = 1024;
-
+static cl_bool extended_precision = false;
 
 namespace po = boost::program_options;
 namespace uBLAS = boost::numeric::ublas;
@@ -131,6 +131,9 @@ public:
     {
         clsparseStatus status;
         cl_int cl_status;
+
+        if (extended_precision)
+            clsparseEnableExtendedPrecision(CLSE::control, true);
 
         if (typeid(T) == typeid(cl_float) )
         {
@@ -376,8 +379,8 @@ int main (int argc, char* argv[])
             ("alpha,a", po::value(&alpha)->default_value(1.0),
              "Alpha parameter for eq: \n\ty = alpha * M * x + beta * y")
             ("beta,b", po::value(&beta)->default_value(1.0),
-             "Beta parameter for eq: \n\ty = alpha * M * x + beta * y");
-
+             "Beta parameter for eq: \n\ty = alpha * M * x + beta * y")
+            ("precision,e", po::bool_switch()->default_value(false), "Use compensated summation to improve accuracy.");
 
     po::variables_map vm;
     po::parsed_options parsed =
@@ -420,6 +423,9 @@ int main (int argc, char* argv[])
         }
 
     }
+
+    if (vm["precision"].as<bool>())
+        extended_precision = true;
 
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
