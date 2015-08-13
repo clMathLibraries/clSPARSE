@@ -36,18 +36,19 @@ addons:
       # ubuntu-toolchain-r-test contains newer versions of gcc to install
       - ubuntu-toolchain-r-test
       # llvm-toolchain-precise-3.6 contains newer versions of clang to install
-      - llvm-toolchain-precise-3.6
+      # - llvm-toolchain-precise-3.6
       # kubuntu-backports contains newer versions of cmake to install
       - kubuntu-backports
-      # boost-latest contains boost v 1.55
+      # boost-latest contains boost v1.55
       # - boost-latest
     packages:
       # g++-4.8 is minimum version considered to be the first good c++11 gnu compiler
-      - g++-4.9
-      - clang-3.6
+      - g++-4.8
+      # - clang-3.6
       # We require v2.8.12 minimum
       - cmake
-      # I'm finding problems using pre-compiled versions of boost, with our use of ublas & gtest
+      # I'm finding problems between pre-compiled versions of boost ublas, with gtest
+      # stl_algobase.h: error: no matching function for call to swap()
       # - libboost-program-options1.55-dev
       # - libboost-serialization1.55-dev
       # - libboost-filesystem1.55-dev
@@ -89,7 +90,7 @@ before_install:
       brew outdated cmake || brew upgrade cmake;
       export BUILD_BOOST="OFF";
     fi
-  - if [ ${CXX} = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - if [ ${CXX} = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - cmake --version;
   - ${CC} --version;
   - ${CXX} --version;

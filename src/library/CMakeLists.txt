@@ -251,7 +251,7 @@ add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   )
 
 # PRIVATE linking prevents transitive library linking of the clBLAS libraries
-target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ) #${clBLAS_LIBRARIES} )
+target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${CMAKE_DL_LIBS} ) #${clBLAS_LIBRARIES} )
 
 # Package that helps me set visibility for function names exported from shared library
 GENERATE_EXPORT_HEADER( clSPARSE )

@@ -48,8 +48,8 @@
 include( CheckSymbolExists )
 include( CMakePushCheckState )
 
-if( DEFINED OPENCL_ROOT )
-  message( STATUS "OPENCL_ROOT: ${OPENCL_ROOT}" )
+if( DEFINED OPENCL_ROOT OR DEFINED ENV{OPENCL_ROOT})
+  message( STATUS "Defined OPENCL_ROOT: ${OPENCL_ROOT}, ENV{OPENCL_ROOT}: $ENV{OPENCL_ROOT}" )
 endif( )
 
 find_path(OPENCL_INCLUDE_DIRS
@@ -110,8 +110,8 @@ if( LIB64 )
   find_library( OPENCL_LIBRARIES
     NAMES OpenCL
     HINTS
-      ${OPENCL_ROOT}/include
-      $ENV{OPENCL_ROOT}/include
+      ${OPENCL_ROOT}/lib
+      $ENV{OPENCL_ROOT}/lib
       $ENV{AMDAPPSDKROOT}/lib
       $ENV{CUDA_PATH}/lib
     DOC "OpenCL dynamic library path"
@@ -123,8 +123,8 @@ else( )
   find_library( OPENCL_LIBRARIES
     NAMES OpenCL
     HINTS
-      ${OPENCL_ROOT}/include
-      $ENV{OPENCL_ROOT}/include
+      ${OPENCL_ROOT}/lib
+      $ENV{OPENCL_ROOT}/lib
       $ENV{AMDAPPSDKROOT}/lib
       $ENV{CUDA_PATH}/lib
     DOC "OpenCL dynamic library path"

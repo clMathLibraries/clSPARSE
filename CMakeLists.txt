@@ -91,6 +91,7 @@ set_property( CACHE BUILD_CLVERSION PROPERTY STRINGS 2.0 1.2 1.1 )
 # Comment this out because this does not work yet
 set( clSPARSE.Dependencies )
 set( clSPARSE.Cmake.Args )
+set( clSPARSE.Samples.Cmake.Args )
 
 # If the user selects, download, uncompress, and setup Boost
 if( BUILD_Boost )
@@ -131,6 +132,7 @@ endif( )
 # Pass OPENCL_ROOT along to subproject if users provides path
 if( DEFINED OPENCL_ROOT )
   list( APPEND clSPARSE.Cmake.Args -DOPENCL_ROOT=${OPENCL_ROOT} )
+  list( APPEND clSPARSE.Samples.Cmake.Args -DOPENCL_ROOT=${OPENCL_ROOT} )
 endif( )
 
 # If the user selects, download, uncompress, and setup clBLAS
@@ -202,7 +204,7 @@ if( BUILD_clSPARSE OR BUILD_SAMPLES )
       DEPENDS clSPARSE
       SOURCE_DIR ${PROJECT_SOURCE_DIR}/samples
       BINARY_DIR clSPARSE-samples-build
-      CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION} -DBUILD64=${BUILD64} -DCMAKE_PREFIX_PATH=${install_dir}
+      CMAKE_ARGS ${clSPARSE.Samples.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION} -DBUILD64=${BUILD64} -DCMAKE_PREFIX_PATH=${install_dir}
       EXCLUDE_FROM_ALL 1
       INSTALL_COMMAND ""
     )
