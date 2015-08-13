@@ -170,6 +170,7 @@ VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
         // with low double-precision calculation rates), but can result in
         // numerical inaccuracies, especially in single precision.
         cur_sum += partial[lid + round];
+        barrier( CLK_LOCAL_MEM_FENCE );
         partial[lid] = cur_sum;
 #endif
     }

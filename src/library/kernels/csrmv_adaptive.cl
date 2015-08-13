@@ -300,6 +300,7 @@ VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
         }
 #else
         cur_sum += partial[lid + reduc_size];
+        barrier( CLK_LOCAL_MEM_FENCE );
         partial[lid] = cur_sum;
 #endif
     }
