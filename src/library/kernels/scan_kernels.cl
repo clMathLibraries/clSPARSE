@@ -1,20 +1,36 @@
 R"(
+/* ************************************************************************
+ * Copyright 2015 Advanced Micro Devices, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #define NUM_ITER 16
 #define MIN(X,Y) X<Y?X:Y;
 #define MAX(X,Y) X>Y?X:Y;
 /******************************************************************************
  *  Kernel 2
  *****************************************************************************/
-__kernel void perBlockAddition( 
+__kernel void perBlockAddition(
 				__global int *output_ptr,
 				__global int *input_ptr,
 				__global int *preSumArray,
 				  const uint vecSize,
 				  const uint load_per_wg,
-				         int identity 
+				         int identity
 )
 {
-	
+
 	// 1 thread per element
 	size_t gloId = get_global_id( 0 );
 	size_t groId = get_group_id( 0 );
@@ -49,7 +65,7 @@ __kernel void perBlockAddition(
 			 scanResult = scanResult + temp;
 		   }
 		}
-#else	
+#else
 	   if((input_offset + i) < vecSize)
 	   {
 		  scanResult = input_ptr[input_offset + i];
@@ -69,7 +85,7 @@ __kernel void perBlockAddition(
 	   lds[locId] = scanResult;
 	   sum = lds[locId];
 	   for( size_t offset = 1; offset < (wgSize); offset *= 2 )
-	   { 
+	   {
 			barrier( CLK_LOCAL_MEM_FENCE );
 			if (locId >= offset)
 			{
@@ -92,7 +108,7 @@ __kernel void perBlockAddition(
  *  Kernel 1
  *****************************************************************************/
 __kernel void intraBlockInclusiveScan(
-				__global int* preSumArray, 
+				__global int* preSumArray,
 				         int  identity,
 				const   uint vecSize,
 				const   uint workPerThread
@@ -142,7 +158,7 @@ __kernel void intraBlockInclusiveScan(
 			}
 		}
 		barrier( CLK_LOCAL_MEM_FENCE );
-		lds[ locId ] = scanSum;  
+		lds[ locId ] = scanSum;
 
 	} // for offset
 	barrier( CLK_LOCAL_MEM_FENCE );
@@ -178,7 +194,7 @@ __kernel void intraBlockInclusiveScan(
 		   workSum = preSumArray[ mapId + offset ];
 		}
 
-	} // for 
+	} // for
 
 
 } // end kernel
@@ -192,7 +208,7 @@ __kernel void perBlockInclusiveScan(
 				         int  identity,
 				const    uint vecSize,
 				__global int* preSumArray,
-				const    uint load_per_wg) 
+				const    uint load_per_wg)
 {
 	// 2 thread per element
 	size_t gloId = get_global_id( 0 );

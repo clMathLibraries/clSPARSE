@@ -1,6 +1,18 @@
 /* ************************************************************************
-* Copyright 2015 Advanced Micro Devices, Inc.
-* ************************************************************************/
+ * Copyright 2015 Advanced Micro Devices, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
 
 #pragma once
 
@@ -17,7 +29,7 @@ public:
 	xCsr2Coo(PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type dev_type) : clsparseFunc(dev_type, CL_QUEUE_PROFILING_ENABLE)
 	{
 		gpuTimer = nullptr;
-		cpuTimer = nullptr;		
+		cpuTimer = nullptr;
 
 		// Create and initialize timer class, if the external timer shared library loaded
 		if (sparseGetTimer)
@@ -74,7 +86,7 @@ public:
 #if 0
 		//Check VK
 		//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
-		//GPU to Host: Coo - > row_indices + Col_indices + Values- > [sizeof(T) * num_nonzero] + sizeof(int) 
+		//GPU to Host: Coo - > row_indices + Col_indices + Values- > [sizeof(T) * num_nonzero] + sizeof(int)
 		size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) +
 			sizeof(T) * (cooMtx.num_nonzeros) + sizeof(cl_int) * (cooMtx.num_nonzeros * 2);
 		return (sparseBytes / time_in_ns());
@@ -137,7 +149,7 @@ public:
 		cooMtx.num_rows     = csrMtx.num_rows;
 		cooMtx.num_cols     = csrMtx.num_cols;
 		cooMtx.num_nonzeros = csrMtx.num_nonzeros;
-		
+
 		cooMtx.values = ::clCreateBuffer(ctx, CL_MEM_WRITE_ONLY,  //CL_MEM_READ_ONLY
 			cooMtx.num_nonzeros * sizeof(T), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer cooMtx.values");
@@ -166,7 +178,7 @@ public:
 		CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.rowIndices, &scalarIntZero, sizeof(cl_int), 0,
 			cooMtx.num_nonzeros * sizeof(cl_int), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.rowIndices");
 
-		
+
 		CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.colIndices, &scalarIntZero, sizeof(cl_int), 0,
 			cooMtx.num_nonzeros * sizeof(cl_int), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.colIndices");
 
@@ -200,8 +212,8 @@ public:
 			// Need to verify this calculation VK
 			//size_t sparseBytes = sizeof(cl_int) * (csrMtx.nnz + csrMtx.m) + sizeof(T) * (csrMtx.nnz + csrMtx.n + csrMtx.m);
 			//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
-			//GPU to Host: Coo - > row_indices + Col_indices + Values- > [sizeof(T) * num_nonzero] + sizeof(int) 
-			size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) + 
+			//GPU to Host: Coo - > row_indices + Col_indices + Values- > [sizeof(T) * num_nonzero] + sizeof(int)
+			size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) +
 				          sizeof(T) * (cooMtx.num_nonzeros) + sizeof(cl_int) * (cooMtx.num_nonzeros * 2);
 			cpuTimer->pruneOutliers(3.0);
 			cpuTimer->Print(sparseBytes, "GiB/s");
@@ -237,7 +249,7 @@ public:
 private:
 	void xCsr2Coo_Function(bool flush);
 
-	// Timers 
+	// Timers
 	clsparseTimer* gpuTimer;
 	clsparseTimer* cpuTimer;
 	size_t gpuTimerID;
@@ -249,7 +261,7 @@ private:
 	clsparseCsrMatrix csrMtx;
 	clsparseCooMatrix cooMtx;
 
-	
+
 	//OpenCL state
 	cl_command_queue_properties cqProp;
 
