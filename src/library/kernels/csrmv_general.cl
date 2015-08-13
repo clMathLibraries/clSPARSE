@@ -143,7 +143,8 @@ VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
         barrier(CLK_LOCAL_MEM_FENCE);
         // Have all of those upper threads pass their temporary errors
         // into a location that the lower threads can read.
-        partial[lid] = (thread_lane >= round) ? *err : partial[lid];
+        if (thread_lane >= round)
+            partial[lid] = *err;
         barrier(CLK_LOCAL_MEM_FENCE);
         if (thread_lane < round) { // Add those errors in.
             *err += partial[partial_dest];
@@ -219,6 +220,7 @@ void csrmv_general (     const INDEX_TYPE num_rows,
         // Yamanaka, Ogita, Rump, and Oishi, "A Parallel Algorithm of
         // Accurate Dot Product," in the Journal of Parallel Computing,
         // 34(6-8), pp. 392-410, Jul. 2008.
+        #pragma unroll
         for (int i = (WG_SIZE >> 1); i > 0; i >>= 1)
         {
             barrier( CLK_LOCAL_MEM_FENCE );
