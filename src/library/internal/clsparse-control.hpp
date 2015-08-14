@@ -54,6 +54,9 @@ struct _clsparseControl
     size_t wavefront_size;
     size_t max_wg_size;
 
+    // Should we attempt to perform compensated summation?
+    cl_bool extended_precision;
+
     // current device max compute units;
     cl_uint max_compute_units;
 

@@ -26,12 +26,14 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/blas.hpp>
 
+// ULP calculation
+#include <boost/math/special_functions/next.hpp>
 
 clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 //cl_uint ClSparseEnvironment::N = 1024;
-
+static cl_bool extended_precision = false;
 
 namespace po = boost::program_options;
 namespace uBLAS = boost::numeric::ublas;
@@ -104,10 +106,34 @@ public:
 
     }
 
+    // Knuth's Two-Sum algorithm, which allows us to add together two floating
+    // point numbers and exactly tranform the answer into a sum and a
+    // rounding error.
+    // Inputs: x and y, the two inputs to be aded together.
+    // In/Out: *sumk_err, which is incremented (by reference) -- holds the
+    //         error value as a result of the 2sum calculation.
+    // Returns: The non-corrected sum of inputs x and y.
+    T two_sum(T x, T y, T *sumk_err)
+    {
+        // We use this 2Sum algorithm to perform a compensated summation,
+        // which can reduce the cummulative rounding errors in our SpMV
+        // summation. Our compensated sumation is based on the SumK algorithm
+        // (with K==2) from Ogita, Rump, and Oishi, "Accurate Sum and Dot
+        // Product" in SIAM J. on Scientific Computing 26(6) pp 1955-1988,
+        // Jun. 2005.
+        T sumk_s = x + y;
+        T bp = sumk_s - x;
+        (*sumk_err) += ((x - (sumk_s - bp)) + (y - bp));
+        return sumk_s;
+    }
+
     void test_csrmv()
     {
         clsparseStatus status;
         cl_int cl_status;
+
+        if (extended_precision)
+            clsparseEnableExtendedPrecision(CLSE::control, true);
 
         if (typeid(T) == typeid(cl_float) )
         {
@@ -121,12 +147,19 @@ public:
             int* cols = &CSRE::ublasSCsr.index2_data()[0];
             for (int row = 0; row < CSRE::n_rows; row++)
             {
+                // Summation done at a higher precision to decrease
+                // summation errors from rounding.
                 hY[row] *= hBeta;
                 int row_end = rows[row+1];
+                double temp_sum;
+                temp_sum = hY[row];
                 for (int i = rows[row]; i < rows[row+1]; i++)
-                    hY[row] += hAlpha * vals[i] * hX[cols[i]];
+                {
+                    // Perform: hY[row] += hAlpha * vals[i] * hX[cols[i]];
+                    temp_sum += hAlpha * vals[i] * hX[cols[i]];
+                }
+                hY[row] = temp_sum;
             }
-
 
             T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
                                                        CL_TRUE, CL_MAP_READ,
@@ -134,8 +167,50 @@ public:
                                                        0, nullptr, nullptr, &cl_status);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
+            uint64_t max_ulps = 0;
+            uint64_t min_ulps = UINT64_MAX;
+            uint64_t total_ulps = 0;
             for (int i = 0; i < hY.size(); i++)
-                ASSERT_NEAR(hY[i], host_result[i], fabs(hY[i]*1e-3));
+            {
+                long long int intDiff = (long long int)boost::math::float_distance(hY[i], host_result[i]);
+                intDiff = llabs(intDiff);
+                total_ulps += intDiff;
+                if (max_ulps < intDiff)
+                    max_ulps = intDiff;
+                if (min_ulps > intDiff)
+                    min_ulps = intDiff;
+                // Debug printouts.
+                //printf("Row %d Float Ulps: %lld\n", i, intDiff);
+                //printf("\tFloat hY[%d] = %.*e (0x%08" PRIx32 "), ", i, 9, hY[i], *(uint32_t *)&hY[i]);
+                //printf("host_result[%d] = %.*e (0x%08" PRIx32 ")\n", i, 9, host_result[i], *(uint32_t *)&host_result[i]);
+            }
+            if (extended_precision)
+            {
+                printf("Float Min ulps: %" PRIu64 "\n", min_ulps);
+                printf("Float Max ulps: %" PRIu64 "\n", max_ulps);
+                printf("Float Total ulps: %" PRIu64 "\n", total_ulps);
+                printf("Float Average ulps: %f (Size: %lu)\n", (double)total_ulps/(double)hY.size(), hY.size());
+            }
+
+            for (int i = 0; i < hY.size(); i++)
+            {
+                double compare_val = 0.;
+                if (extended_precision)
+                {
+                    // The limit here is somewhat weak because some GPUs don't
+                    // support correctly rounded denorms in SPFP mode.
+                    if (boost::math::isnormal(hY[i]))
+                        compare_val = fabs(hY[i]*1e-3);
+                }
+                else
+                {
+                    if (boost::math::isnormal(hY[i]))
+                        compare_val = fabs(hY[i]*0.1);
+                }
+                if (compare_val < 10*FLT_EPSILON)
+                    compare_val = 10*FLT_EPSILON;
+                ASSERT_NEAR(hY[i], host_result[i], compare_val);
+            }
 
             cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
                                                   host_result, 0, nullptr, nullptr);
@@ -154,10 +229,22 @@ public:
             int* cols = &CSRE::ublasDCsr.index2_data()[0];
             for (int row = 0; row < CSRE::n_rows; row++)
             {
+                // Summation done using a compensated summation to decrease
+                // summation errors from rounding. This allows us to get
+                // smaller errors without requiring quad precision support.
+                // This method is like performing summation at quad precision and
+                // casting down to double in the end.
                 hY[row] *= hBeta;
                 int row_end = rows[row+1];
+                double temp_sum;
+                temp_sum = hY[row];
+                T sumk_err = 0.;
                 for (int i = rows[row]; i < rows[row+1]; i++)
-                    hY[row] += hAlpha * vals[i] * hX[cols[i]];
+                {
+                    // Perform: hY[row] += hAlpha * vals[i] * hX[cols[i]];
+                    temp_sum = two_sum(temp_sum, hAlpha*vals[i]*hX[cols[i]], &sumk_err);
+                }
+                hY[row] = temp_sum + sumk_err;
             }
 
             T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
@@ -166,14 +253,64 @@ public:
                                                        0, nullptr, nullptr, &cl_status);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
+            uint64_t max_ulps = 0;
+            uint64_t min_ulps = ULLONG_MAX;
+            uint64_t total_ulps = 0;
             for (int i = 0; i < hY.size(); i++)
-                ASSERT_NEAR(hY[i], host_result[i], fabs(hY[i]*1e-10));
+            {
+                long long int intDiff = (long long int)boost::math::float_distance(hY[i], host_result[i]);
+                intDiff = llabs(intDiff);
+                total_ulps += intDiff;
+                if (max_ulps < intDiff)
+                    max_ulps = intDiff;
+                if (min_ulps > intDiff)
+                    min_ulps = intDiff;
+                // Debug printouts.
+                //printf("Row %d Double Ulps: %lld\n", i, intDiff);
+                //printf("\tDouble hY[%d] = %.*e (0x%016" PRIx64 "), ", i, 17, hY[i], *(uint64_t *)&hY[i]);
+                //printf("host_result[%d] = %.*e (0x%016" PRIx64 ")\n", i, 17, host_result[i], *(uint64_t *)&host_result[i]);
+            }
+            if (extended_precision)
+            {
+                printf("Double Min ulps: %" PRIu64 "\n", min_ulps);
+                printf("Double Max ulps: %" PRIu64 "\n", max_ulps);
+                printf("Double Total ulps: %" PRIu64 "\n", total_ulps);
+                printf("Double Average ulps: %f (Size: %lu)\n", (double)total_ulps/(double)hY.size(), hY.size());
+
+                for (int i = 0; i < hY.size(); i++)
+                {
+                    double compare_val = fabs(hY[i]*1e-14);
+                    if (compare_val < 10*DBL_EPSILON)
+                        compare_val = 10*DBL_EPSILON;
+                    ASSERT_NEAR(hY[i], host_result[i], compare_val);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < hY.size(); i++)
+                {
+                    double compare_val = 0.;
+                    if (boost::math::isnormal(hY[i]))
+                        compare_val = fabs(hY[i]*0.1);
+                    if (compare_val < 10*DBL_EPSILON)
+                        compare_val = 10*DBL_EPSILON;
+                    ASSERT_NEAR(hY[i], host_result[i], compare_val);
+                }
+            }
 
             cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
                                                   host_result, 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
         }
-
+        // Reset output buffer for next test.
+        ::clReleaseMemObject(gY.values);
+        clsparseInitVector(&gY);
+        gY.values = clCreateBuffer(CLSE::context,
+                CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
+                hY.size() * sizeof(T), hY.data().begin(),
+                &cl_status);
+        gY.num_values = hY.size();
+        ASSERT_EQ(CL_SUCCESS, cl_status);
     }
 
     uBLAS::vector<T> hX;
@@ -198,13 +335,7 @@ TYPED_TEST_CASE(Blas2, TYPES);
 
 TYPED_TEST(Blas2, csrmv_adaptive)
 {
-    if ( typeid(TypeParam) == typeid(cl_float) )
-        this->test_csrmv();
-    else
-    {
-//        std::cerr << "Adaptive version of csrmv might crash!" << std::endl;
-        this->test_csrmv();
-    }
+    this->test_csrmv();
 }
 
 TYPED_TEST(Blas2, csrmv_vector)
@@ -237,7 +368,7 @@ TYPED_TEST(Blas2, csrmv_vector)
     ASSERT_EQ(clsparseSuccess, status);
 
     CSRE::csrSMatrix.rowBlocks =
-            ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+            ::clCreateBuffer( CLSE::context, CL_MEM_READ_WRITE,
                               CSRE::csrSMatrix.rowBlockSize * sizeof( cl_ulong ),
                               NULL, &cl_status );
 
@@ -278,8 +409,8 @@ int main (int argc, char* argv[])
             ("alpha,a", po::value(&alpha)->default_value(1.0),
              "Alpha parameter for eq: \n\ty = alpha * M * x + beta * y")
             ("beta,b", po::value(&beta)->default_value(1.0),
-             "Beta parameter for eq: \n\ty = alpha * M * x + beta * y");
-
+             "Beta parameter for eq: \n\ty = alpha * M * x + beta * y")
+            ("extended,e", po::bool_switch()->default_value(false), "Use compensated summation to improve accuracy by emulating extended precision.");
 
     po::variables_map vm;
     po::parsed_options parsed =
@@ -322,6 +453,9 @@ int main (int argc, char* argv[])
         }
 
     }
+
+    if (vm["extended"].as<bool>())
+        extended_precision = true;
 
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
