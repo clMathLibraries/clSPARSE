@@ -111,7 +111,7 @@ public:
             for(int i = 0; i < ublas_dense.data().size(); i++)
             {
                 // there should be exactly the same data
-                ASSERT_EQ(ublas_dense.data()[i], result[i]);
+                EXPECT_FLOAT_EQ(ublas_dense.data()[i], result[i]);
             }
 
         }
@@ -136,7 +136,7 @@ public:
             for(int i = 0; i < ublas_dense.data().size(); i++)
             {
                 // there should be exactly the same data
-                ASSERT_EQ(ublas_dense.data()[i], result[i]);
+                EXPECT_DOUBLE_EQ(ublas_dense.data()[i], result[i]);
             }
         }
     }
@@ -193,7 +193,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(CSRE::ublasSCsr.value_data()[i], values[i]);
+                EXPECT_FLOAT_EQ(CSRE::ublasSCsr.value_data()[i], values[i]);
 
 
             // Compare row_offsets
@@ -272,7 +272,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(CSRE::ublasDCsr.value_data()[i], values[i]);
+                EXPECT_DOUBLE_EQ(CSRE::ublasDCsr.value_data()[i], values[i]);
 
 
             // Compare row_offsets
@@ -369,7 +369,7 @@ public:
 
             // Compare values;
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(values[i], CSRE::ublasSCsr.value_data()[i]);
+                EXPECT_FLOAT_EQ(values[i], CSRE::ublasSCsr.value_data()[i]);
 
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.colIndices,
@@ -424,7 +424,7 @@ public:
 
             // Compare values;
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(values[i], CSRE::ublasDCsr.value_data()[i]);
+                EXPECT_DOUBLE_EQ(values[i], CSRE::ublasDCsr.value_data()[i]);
 
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrDMatrix.colIndices,
@@ -534,7 +534,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(ublas_coo.value_data()[i], values[i]);
+                EXPECT_FLOAT_EQ(ublas_coo.value_data()[i], values[i]);
 
         }
 
@@ -590,7 +590,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(ublas_coo.value_data()[i], values[i]);
+                EXPECT_DOUBLE_EQ(ublas_coo.value_data()[i], values[i]);
 
 
         }

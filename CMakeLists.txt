@@ -28,7 +28,7 @@ cmake_minimum_required( VERSION 2.8.10 )
 if( POLICY CMP0048 )
   cmake_policy( SET CMP0048 NEW )
 
-  project( SuperBuild.clSPARSE VERSION 0.7.0.0 )
+  project( SuperBuild.clSPARSE VERSION 0.7.1.0 )
 else( )
   project( SuperBuild.clSPARSE )
 
@@ -42,7 +42,7 @@ else( )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_PATCH )
-    set( SuperBuild.clSPARSE_VERSION_PATCH 0 )
+    set( SuperBuild.clSPARSE_VERSION_PATCH 1 )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_TWEAK )
@@ -91,6 +91,7 @@ set_property( CACHE BUILD_CLVERSION PROPERTY STRINGS 2.0 1.2 1.1 )
 # Comment this out because this does not work yet
 set( clSPARSE.Dependencies )
 set( clSPARSE.Cmake.Args )
+set( clSPARSE.Samples.Cmake.Args )
 
 # If the user selects, download, uncompress, and setup Boost
 if( BUILD_Boost )
@@ -100,13 +101,12 @@ if( BUILD_Boost )
   list( APPEND clSPARSE.Dependencies Boost )
   list( APPEND clSPARSE.Cmake.Args -DBOOST_ROOT=${BOOST_ROOT} )
 else( )
-  if( NOT DEFINED BOOST_ROOT AND NOT DEFINED ENV{BOOST_ROOT} )
-    message( SEND_ERROR "BOOST_ROOT must be provided if BUILD_Boost is disabled" )
+  if( WIN32 AND (NOT DEFINED BOOST_ROOT AND NOT DEFINED ENV{BOOST_ROOT}) )
+    message( WARNING "BOOST_ROOT should be provided if Boost is not in a default location" )
   else( )
-    if( NOT DEFINED BOOST_ROOT )
-      set( BOOST_ROOT "$ENV{BOOST_ROOT}" )
+    if( DEFINED BOOST_ROOT )
+      list( APPEND clSPARSE.Cmake.Args -DBOOST_ROOT=${BOOST_ROOT} )
     endif( )
-    list( APPEND clSPARSE.Cmake.Args -DBOOST_ROOT=${BOOST_ROOT} )
   endif( )
 endif( )
 
@@ -127,6 +127,12 @@ else( )
     endif( )
     list( APPEND clSPARSE.Cmake.Args -DGTEST_ROOT=${GMOCK_ROOT} )
   endif( )
+endif( )
+
+# Pass OPENCL_ROOT along to subproject if users provides path
+if( DEFINED OPENCL_ROOT )
+  list( APPEND clSPARSE.Cmake.Args -DOPENCL_ROOT=${OPENCL_ROOT} )
+  list( APPEND clSPARSE.Samples.Cmake.Args -DOPENCL_ROOT=${OPENCL_ROOT} )
 endif( )
 
 # If the user selects, download, uncompress, and setup clBLAS
@@ -198,7 +204,7 @@ if( BUILD_clSPARSE OR BUILD_SAMPLES )
       DEPENDS clSPARSE
       SOURCE_DIR ${PROJECT_SOURCE_DIR}/samples
       BINARY_DIR clSPARSE-samples-build
-      CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION} -DBUILD64=${BUILD64} -DCMAKE_PREFIX_PATH=${install_dir}
+      CMAKE_ARGS ${clSPARSE.Samples.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION} -DBUILD64=${BUILD64} -DCMAKE_PREFIX_PATH=${install_dir}
       EXCLUDE_FROM_ALL 1
       INSTALL_COMMAND ""
     )

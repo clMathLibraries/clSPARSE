@@ -1,4 +1,9 @@
+## Build Status
 Pre-built binaries are available on our [releases page](https://github.com/clMathLibraries/clSPARSE/releases)
+
+| Build branch | master | develop |
+|-----|-----|-----|
+| Linux/OSX x64 | [![Build Status](https://travis-ci.org/clMathLibraries/clSPARSE.svg?branch=master)](https://travis-ci.org/clMathLibraries/clSPARSE) |[![Build Status](https://travis-ci.org/clMathLibraries/clSPARSE.svg?branch=develop)](https://travis-ci.org/clMathLibraries/clSPARSE) |
 
 # clSPARSE
 an OpenCL&copy; library implementing Sparse linear algebra.  This project is a result of
