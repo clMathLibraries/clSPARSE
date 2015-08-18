@@ -1,7 +1,7 @@
 # ########################################################################
 # Copyright 2015 Advanced Micro Devices, Inc.
 # Copyright 2015 Vratis, Ltd.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -15,17 +15,41 @@
 # limitations under the License.
 # ########################################################################
 
+message( STATUS "Configuring tests subdir" )
 
 find_package( GTest REQUIRED )
 
+# If user provides a specific boost path through command line, make sure to
+# use that
+if( DEFINED BOOST_ROOT OR DEFINED ENV{BOOST_ROOT} )
+  set( Boost_NO_SYSTEM_PATHS ON )
+  set( Boost_NO_BOOST_CMAKE ON )
+
+  # Workaround for a somewhat limiting find_package( Boost ) on MSVC platforms.
+  # Boost uses the prefix 'lib' for static libraries on windows, but it will
+  # not search with that prefix unless Boost_USE_STATIC_LIBS is set.  However, other
+  # than a priori knowledge, a user does not know to set Boost_USE_STATIC_LIBS.
+  # Attempt to do a basic check on windows, which may/may not work in all cases
+  if( MSVC )
+    file( GLOB Boost.static.env.libs RELATIVE "$ENV{BOOST_ROOT}/lib" "$ENV{BOOST_ROOT}/lib/lib*.lib" )
+    file( GLOB Boost.static.define.libs RELATIVE "${BOOST_ROOT}/lib" "${BOOST_ROOT}/lib/lib*.lib" )
+    list( LENGTH Boost.static.env.libs num.static.env.libs )
+    list( LENGTH Boost.static.define.libs num.static.define.libs )
+    math( EXPR Boost.num.static.libs "${num.static.env.libs} + ${num.static.define.libs} " )
+    if( Boost.num.static.libs )
+      message( STATUS "Detected MSVC boost static libs" )
+      set( Boost_USE_STATIC_LIBS ON )
+    endif( )
+  endif( )
+endif( )
+
 set( Boost_USE_MULTITHREADED ON )
-set( Boost_USE_STATIC_LIBS   ON )
 set( Boost_DETAILED_FAILURE_MSG   ON )
-set( Boost_NO_SYSTEM_PATHS ON )
-set( Boost_ADDITIONAL_VERSIONS 1.57.0 1.57 )
+set( Boost_ADDITIONAL_VERSIONS 1.58.0 1.58 1.57.0 1.57 )
 # set( Boost_DEBUG ON )
 
 find_package( Boost COMPONENTS program_options serialization )
+
 # Unit tests requires OpenCL
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
 find_package( OpenCL REQUIRED )
@@ -35,6 +59,7 @@ find_package( OpenCL REQUIRED )
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_BINARY_DIR}/library
+  ${PROJECT_BINARY_DIR}/include
   resources
   #resources/uBLAS-linalg
   ${GTEST_INCLUDE_DIRS}

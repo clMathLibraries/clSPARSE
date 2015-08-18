@@ -1,6 +1,6 @@
 # ########################################################################
 # Copyright 2015 Vratis, Ltd.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -31,6 +31,11 @@ list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # Find clSPARSE library
 find_package( clSPARSE REQUIRED CONFIG )
 message( STATUS "clSPARSE INCLUDES = ${clSPARSE_INCLUDE_DIR}")
+
+# Query the user for which version of OpenCL they wish to build the library for
+set( BUILD_CLVERSION "1.2" CACHE STRING "The version of OpenCL we wish to compile the samples against" )
+set_property( CACHE BUILD_CLVERSION PROPERTY STRINGS 2.0 1.2 1.1 )
+message( STATUS "clSPARSE samples are building using CL interface ='${BUILD_CLVERSION}'" )
 
 # Find OpenCL
 find_package( OpenCL ${BUILD_CLVERSION} REQUIRED )

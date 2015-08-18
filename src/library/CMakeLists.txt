@@ -251,7 +251,7 @@ add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   )
 
 # PRIVATE linking prevents transitive library linking of the clBLAS libraries
-target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ) #${clBLAS_LIBRARIES} )
+target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${CMAKE_DL_LIBS} ) #${clBLAS_LIBRARIES} )
 
 # Package that helps me set visibility for function names exported from shared library
 GENERATE_EXPORT_HEADER( clSPARSE )
@@ -299,7 +299,7 @@ include( CMakePackageConfigHelpers )
 
 set( LIB_INSTALL_DIR lib${SUFFIX_LIB} )
 set( INCLUDE_INSTALL_DIR include )
-set( ConfigPackageLocation ${LIB_INSTALL_DIR}/clSPARSE/cmake )
+set( ConfigPackageLocation ${LIB_INSTALL_DIR}/cmake/clSPARSE )
 
 configure_package_config_file(
   clSPARSEConfig.cmake.in
