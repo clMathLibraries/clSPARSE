@@ -82,6 +82,12 @@ elseif( DEFINED ENV{CC} )
   # The user might specify a non-default gcc compiler through ENV
   message( STATUS "ENV{CC}=$ENV{CC}" )
   get_filename_component( gccToolset $ENV{CC} NAME )
+
+  # see: https://svn.boost.org/trac/boost/ticket/5917
+  string( TOLOWER ${gccToolset} gccToolset )
+  if( gccToolset STREQUAL "cc")
+    set( gccToolset "gcc" )
+  endif( )
   list( APPEND Boost.Command toolset=${gccToolset} )
 endif( )
 
