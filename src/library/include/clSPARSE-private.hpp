@@ -42,5 +42,7 @@
 const cl_uint WG_BITS = 24;
 const cl_uint ROW_BITS = 32;
 const cl_uint BLKSIZE = 1024;
+const cl_uint BLOCK_MULTIPLIER = 3;
+const cl_uint ROWS_FOR_VECTOR = 1;
 
 #endif

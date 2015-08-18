@@ -73,7 +73,7 @@ public:
         csrSMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                                   ( csrSMatrix.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
 
-        csrSMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+        csrSMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
                                                  csrSMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
 
         clsparseStatus fileError = clsparseSCsrMatrixfromFile( &csrSMatrix, file_name.c_str( ), CLSE::control );
