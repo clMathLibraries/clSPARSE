@@ -464,6 +464,15 @@ CLSPARSE_EXPORT clsparseStatus
 clsparseDdense2csr(const cldenseMatrix* A, clsparseCsrMatrix* csr,
                    const clsparseControl control);
 
+//SpM x SpM
+ CLSPARSE_EXPORT clsparseStatus
+        clsparseScsrSpGemm(
+        const clsparseCsrMatrix* sparseMatA,
+        const clsparseCsrMatrix* sparseMatB,
+              clsparseCsrMatrix* sparseMatC,
+        const clsparseControl control );
+
+
 #ifdef __cplusplus
 }      // extern C
 #endif

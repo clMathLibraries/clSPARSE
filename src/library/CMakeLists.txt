@@ -82,6 +82,12 @@ set( clSPARSE.source.cl
   kernels/scan.cl
   kernels/reduce_by_key.cl
   kernels/conversion_utils.cl
+  kernels/computeNnzCt_kernels.cl
+  kernels/ESC_0_1_kernels.cl
+  kernels/SpGEMM_ESC_2heap_kernels.cl
+  kernels/SpGEMM_ESC_bitonic_kernels.cl
+  kernels/SpGEMM_EM_kernels.cl
+  kernels/copyCt2C_kernels.cl
 )
 
 set( clSPARSE.source.cpp
@@ -125,6 +131,7 @@ set( clSPARSE.source.blas2
 
 set( clSPARSE.source.blas3
   blas3/clsparse-csrmm.cpp
+  blas3/clsparse-spm-spm.cpp
 )
 
 set( clSPARSE.source.solvers

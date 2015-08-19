@@ -32,6 +32,7 @@
 #include "functions/clfunc_xCsr2Dense.hpp"
 #include "functions/clfunc_xCsr2Coo.hpp"
 #include "functions/clfunc_xCoo2Csr.hpp"
+#include "functions/clfunc_xSpMSpM.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -125,7 +126,7 @@ int main( int argc, char *argv[ ] )
         ( "rows", po::value<size_t>( &rows )->default_value( 16 ), "specifies the number of rows for matrix data" )
         ( "columns", po::value<size_t>( &columns )->default_value( 16 ), "specifies the number of columns for matrix data" )
         ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: "
-                    "SpMdV, SpMdM, CG, BiCGStab, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
+                    "SpMdV, SpMdM, SpMSpM, CG, BiCGStab, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
         ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
         ( "profile,p", po::value<size_t>( &profileCount )->default_value( 20 ), "Number of times to run the desired test function" )
         ( "extended,e", po::bool_switch()->default_value(false), "Use compensated summation to improve accuracy by emulating extended precision" )
@@ -204,6 +205,13 @@ int main( int argc, char *argv[ ] )
             my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns ) );
         else
             my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns ) );
+    }
+    else if (boost::iequals(function, "SpMSpM"))
+    {
+        if (precision == "s")
+            my_function = std::unique_ptr< clsparseFunc>(new xSpMSpM< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
+        else
+            my_function = std::unique_ptr< clsparseFunc >(new xSpMSpM< cl_double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
     }
     else if( boost::iequals( function, "Coo2Csr" ) )
     {
