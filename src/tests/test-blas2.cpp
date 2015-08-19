@@ -18,6 +18,7 @@
 #include <vector>
 #include <string>
 #include <boost/program_options.hpp>
+#include <iomanip>
 
 #include "resources/clsparse_environment.h"
 #include "resources/csr_matrix_environment.h"
@@ -180,16 +181,17 @@ public:
                 if (min_ulps > intDiff)
                     min_ulps = intDiff;
                 // Debug printouts.
-                //printf("Row %d Float Ulps: %lld\n", i, intDiff);
-                //printf("\tFloat hY[%d] = %.*e (0x%08" PRIx32 "), ", i, 9, hY[i], *(uint32_t *)&hY[i]);
-                //printf("host_result[%d] = %.*e (0x%08" PRIx32 ")\n", i, 9, host_result[i], *(uint32_t *)&host_result[i]);
+                //std::cout << "Row " << i << " Float Ulps: " << intDiff << std::endl;
+                //std::cout.precision(9);
+                //std::cout << "\tFloat hY[" << i << "] = " << std::scientific << hY[i] << " (0x" << std::hex << *(uint32_t *)&hY[i] << "), " << std::dec;
+                //std::cout << "host_result[" << i << "] = " << std::scientific << host_result[i] << " (0x" << std::hex << *(uint32_t *)&host_result[i] << ")" << std::dec << std::endl;
             }
             if (extended_precision)
             {
-                printf("Float Min ulps: %" PRIu64 "\n", min_ulps);
-                printf("Float Max ulps: %" PRIu64 "\n", max_ulps);
-                printf("Float Total ulps: %" PRIu64 "\n", total_ulps);
-                printf("Float Average ulps: %f (Size: %lu)\n", (double)total_ulps/(double)hY.size(), hY.size());
+                std::cout << "Float Min ulps: " << min_ulps << std::endl;
+                std::cout << "Float Max ulps: " << max_ulps << std::endl;
+                std::cout << "Float Total ulps: " << total_ulps << std::endl;
+                std::cout << "Float Average ulps: " << (double)total_ulps/(double)hY.size() <<  " (Size: " << hY.size() << ")" << std::endl;
             }
 
             for (int i = 0; i < hY.size(); i++)
@@ -266,16 +268,17 @@ public:
                 if (min_ulps > intDiff)
                     min_ulps = intDiff;
                 // Debug printouts.
-                //printf("Row %d Double Ulps: %lld\n", i, intDiff);
-                //printf("\tDouble hY[%d] = %.*e (0x%016" PRIx64 "), ", i, 17, hY[i], *(uint64_t *)&hY[i]);
-                //printf("host_result[%d] = %.*e (0x%016" PRIx64 ")\n", i, 17, host_result[i], *(uint64_t *)&host_result[i]);
+                //std::cout << "Row " << i << " Double Ulps: " << intDiff << std::endl;
+                //std::cout.precision(17);
+                //std::cout << "\tDouble hY[" << i << "] = " << std::scientific << hY[i] << " (0x" << std::hex << *(uint64_t *)&hY[i] << "), " << std::dec;
+                //std::cout << "host_result[" << i << "] = " << std::scientific << host_result[i] << " (0x" << std::hex << *(uint64_t *)&host_result[i] << ")" << std::dec << std::endl;
             }
             if (extended_precision)
             {
-                printf("Double Min ulps: %" PRIu64 "\n", min_ulps);
-                printf("Double Max ulps: %" PRIu64 "\n", max_ulps);
-                printf("Double Total ulps: %" PRIu64 "\n", total_ulps);
-                printf("Double Average ulps: %f (Size: %lu)\n", (double)total_ulps/(double)hY.size(), hY.size());
+                std::cout << "Float Min ulps: " << min_ulps << std::endl;
+                std::cout << "Float Max ulps: " << max_ulps << std::endl;
+                std::cout << "Float Total ulps: " << total_ulps << std::endl;
+                std::cout << "Float Average ulps: " << (double)total_ulps/(double)hY.size() <<  " (Size: " << hY.size() << ")" << std::endl;
 
                 for (int i = 0; i < hY.size(); i++)
                 {
