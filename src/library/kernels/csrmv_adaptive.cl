@@ -306,7 +306,9 @@ VALUE_TYPE sum2_reduce( VALUE_TYPE cur_sum,
     }
     return cur_sum;
 }
+)"
 
+R"(
 __kernel void
 csrmv_adaptive(__global const VALUE_TYPE * restrict const vals,
                        __global const unsigned int * restrict const cols,
@@ -508,6 +510,9 @@ csrmv_adaptive(__global const VALUE_TYPE * restrict const vals,
           }
       }
    }
+)"
+
+R"(
    else if (num_rows >= 1 && !wg) // CSR-Vector case.
    {
        // ^^ The above check says that if this workgroup is supposed to work on <= ROWS_VECTOR
