@@ -77,7 +77,9 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control )
 
     // This allocates up front the maximum size of rowBlocks at start; likely not all the memory is used but
     // this is the fastest
-    pCsrMatx->rowBlockSize = 3 * ( pCsrMatx->num_nonzeros / BLKSIZE ) + 2;
+    // The formula is 3 * (NNZ / block size) + 2, but we double this because CSR-Adaptive uses the
+    // second half of the rowBlocks buffer for global reductions.
+    pCsrMatx->rowBlockSize = 6 * ( pCsrMatx->num_nonzeros / BLKSIZE ) + 4;
 
     return clsparseSuccess;
 }
@@ -100,7 +102,7 @@ clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control )
     clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
     cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize );
 
-    ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, rowDelimiters, pCsrMatx->num_rows, BLKSIZE );
+    ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
 
     return clsparseSuccess;
 }
