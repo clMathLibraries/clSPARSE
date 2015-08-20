@@ -1,6 +1,19 @@
 /* ************************************************************************
  * Copyright 2015 Advanced Micro Devices, Inc.
- * ************************************************************************/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #pragma once
 #ifndef CLSPARSE_BENCHMARK_SPMV_HXX__
 #define CLSPARSE_BENCHMARK_SPMV_HXX__
@@ -12,7 +25,7 @@ template <typename T>
 class xSpMdV: public clsparseFunc
 {
 public:
-    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool extended_precision, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -29,6 +42,7 @@ public:
             cpuTimerID = cpuTimer->getUniqueID( "CPU xSpMdV", 0 );
         }
 
+        clsparseEnableExtendedPrecision( control, extended_precision );
 
         clsparseEnableAsync( control, false );
     }
@@ -187,7 +201,7 @@ public:
     }
 
     void cleanup( )
-    {	
+    {
         if( gpuTimer && cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;

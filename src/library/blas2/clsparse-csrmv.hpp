@@ -1,3 +1,19 @@
+/* ************************************************************************
+ * Copyright 2015 Vratis, Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #pragma once
 #ifndef _CLSPARSE_CSRMV_HPP_
 #define _CLSPARSE_CSRMV_HPP_
@@ -29,15 +45,11 @@ csrmv (const clsparseScalarPrivate *pAlpha,
             return clsparseStructInvalid;
         }
 
-       //   We have problems with failing test cases with csrmv_adaptive on double precision
-       //   fall back to csrmv_vector
-       if( typeid( T ) == typeid( cl_double ) )
-       {
-           return csrmv_vector<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
-       }
+        // Use this for csrmv_general instead of adaptive.
+        //return csrmv_vector<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
 
-       // Call adaptive CSR kernels
-       return csrmv_adaptive<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
+        // Call adaptive CSR kernels
+        return csrmv_adaptive<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
 
     }
 }
@@ -67,12 +79,8 @@ csrmv (const clsparse::array_base<T>& pAlpha,
             return clsparseStructInvalid;
         }
 
-        //   We have problems with failing test cases with csrmv_adaptive on double precision
-        //   fall back to csrmv_vector
-        if( typeid( T ) == typeid( cl_double ) )
-        {
-            return csrmv_vector<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
-        }
+        // Use this for csrmv_general instead of adaptive.
+        //return csrmv_vector<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );
 
         // Call adaptive CSR kernels
         return csrmv_adaptive<T>( pAlpha, pCsrMatx, pX, pBeta, pY, control );

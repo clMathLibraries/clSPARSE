@@ -1,3 +1,19 @@
+# ########################################################################
+# Copyright 2015 Advanced Micro Devices, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ########################################################################
+
 # We require 2.8.12 for linking libraries we specify PRIVATE, INTERFACE and
 # PUBLIC keywords
 cmake_minimum_required( VERSION 2.8.12 )
@@ -15,7 +31,7 @@ endif( )
 # clSPARSE becomes the name of the project with a particular version
 if( POLICY CMP0048 )
 	cmake_policy( SET CMP0048 NEW )
-	project( clSPARSE VERSION 0.7.0.0 LANGUAGES C CXX )
+	project( clSPARSE VERSION 0.7.1.0 LANGUAGES C CXX )
 else( )
 	project( clSPARSE C CXX )
 	# Define a version for the code
@@ -28,7 +44,7 @@ else( )
 	endif( )
 
 	if( NOT DEFINED clSPARSE_VERSION_PATCH )
-		set( clSPARSE_VERSION_PATCH 0 )
+		set( clSPARSE_VERSION_PATCH 1 )
 	endif( )
 
 	if( NOT DEFINED clSPARSE_VERSION_TWEAK )

@@ -1,3 +1,19 @@
+/* ************************************************************************
+ * Copyright 2015 Vratis, Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #if defined ( _WIN32 )
 #define NOMINMAX
 #endif
@@ -95,7 +111,7 @@ public:
             for(int i = 0; i < ublas_dense.data().size(); i++)
             {
                 // there should be exactly the same data
-                ASSERT_EQ(ublas_dense.data()[i], result[i]);
+                EXPECT_FLOAT_EQ(ublas_dense.data()[i], result[i]);
             }
 
         }
@@ -120,7 +136,7 @@ public:
             for(int i = 0; i < ublas_dense.data().size(); i++)
             {
                 // there should be exactly the same data
-                ASSERT_EQ(ublas_dense.data()[i], result[i]);
+                EXPECT_DOUBLE_EQ(ublas_dense.data()[i], result[i]);
             }
         }
     }
@@ -177,7 +193,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(CSRE::ublasSCsr.value_data()[i], values[i]);
+                EXPECT_FLOAT_EQ(CSRE::ublasSCsr.value_data()[i], values[i]);
 
 
             // Compare row_offsets
@@ -256,7 +272,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(CSRE::ublasDCsr.value_data()[i], values[i]);
+                EXPECT_DOUBLE_EQ(CSRE::ublasDCsr.value_data()[i], values[i]);
 
 
             // Compare row_offsets
@@ -353,7 +369,7 @@ public:
 
             // Compare values;
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(values[i], CSRE::ublasSCsr.value_data()[i]);
+                EXPECT_FLOAT_EQ(values[i], CSRE::ublasSCsr.value_data()[i]);
 
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.colIndices,
@@ -408,7 +424,7 @@ public:
 
             // Compare values;
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(values[i], CSRE::ublasDCsr.value_data()[i]);
+                EXPECT_DOUBLE_EQ(values[i], CSRE::ublasDCsr.value_data()[i]);
 
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrDMatrix.colIndices,
@@ -518,7 +534,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(ublas_coo.value_data()[i], values[i]);
+                EXPECT_FLOAT_EQ(ublas_coo.value_data()[i], values[i]);
 
         }
 
@@ -574,7 +590,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                ASSERT_EQ(ublas_coo.value_data()[i], values[i]);
+                EXPECT_DOUBLE_EQ(ublas_coo.value_data()[i], values[i]);
 
 
         }

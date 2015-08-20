@@ -1,3 +1,19 @@
+/* ************************************************************************
+ * Copyright 2015 Vratis, Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ************************************************************************ */
+
 #pragma once
 #ifndef _CLSPARSE_CSRMV_VECTOR_HPP_
 #define _CLSPARSE_CSRMV_VECTOR_HPP_
@@ -32,7 +48,7 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
-    const std::string params = std::string() +
+    std::string params = std::string() +
             "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
@@ -40,6 +56,8 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
+    if(control->extended_precision)
+        params += " -DEXTENDED_PRECISION";
 
     cl::Kernel kernel = KernelCache::get(control->queue,
                                          "csrmv_general",
@@ -108,7 +126,7 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
     if (nnz_per_row < 8)  {  subwave_size = 4;  }
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
-    const std::string params = std::string() +
+    std::string params = std::string() +
             "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
@@ -116,6 +134,8 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
+    if(control->extended_precision)
+        params += " -DEXTENDED_PRECISION";
 
     cl::Kernel kernel = KernelCache::get(control->queue,
                                          "csrmv_general",

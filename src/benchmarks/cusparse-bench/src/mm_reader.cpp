@@ -516,7 +516,7 @@ template int csrMatrixfromFile<>( std::vector< int >& row_offsets, std::vector< 
 template int csrMatrixfromFile<>( std::vector< int >& row_offsets, std::vector< int >& col_indices,
                                   std::vector< double >& values, const char* filePath );
 
-// This function reads the file header at the given filepath, and gets the 
+// This function reads the file header at the given filepath, and gets the
 // matrix dimensions
 int sparseHeaderfromFile(int* nnz, int* rows, int* cols, const char* filePath)
 {
