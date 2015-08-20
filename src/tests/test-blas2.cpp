@@ -275,10 +275,10 @@ public:
             }
             if (extended_precision)
             {
-                std::cout << "Float Min ulps: " << min_ulps << std::endl;
-                std::cout << "Float Max ulps: " << max_ulps << std::endl;
-                std::cout << "Float Total ulps: " << total_ulps << std::endl;
-                std::cout << "Float Average ulps: " << (double)total_ulps/(double)hY.size() <<  " (Size: " << hY.size() << ")" << std::endl;
+                std::cout << "Double Min ulps: " << min_ulps << std::endl;
+                std::cout << "Double Max ulps: " << max_ulps << std::endl;
+                std::cout << "Double Total ulps: " << total_ulps << std::endl;
+                std::cout << "Double Average ulps: " << (double)total_ulps/(double)hY.size() <<  " (Size: " << hY.size() << ")" << std::endl;
 
                 for (int i = 0; i < hY.size(); i++)
                 {
