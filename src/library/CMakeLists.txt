@@ -120,6 +120,7 @@ set( clSPARSE.source.blas1
   blas1/reduce-operators.cpp
   blas1/cldense-nrm1.cpp
   blas1/cldense-nrm2.cpp
+  blas1/elementwise-transform.cpp
   blas1/elementwise-operators.cpp
 )
 
