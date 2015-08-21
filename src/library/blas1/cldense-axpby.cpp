@@ -18,10 +18,11 @@
 #include "cldense-axpby.hpp"
 
 clsparseStatus
-cldenseSaxpby(cldenseVector *y,
+cldenseSaxpby(cldenseVector *r,
                const clsparseScalar *alpha,
                const cldenseVector *x,
                const clsparseScalar *beta,
+               const cldenseVector* y,
                const clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -36,38 +37,25 @@ cldenseSaxpby(cldenseVector *y,
     }
 
 
-    cldenseVectorPrivate* pY = static_cast<cldenseVectorPrivate*> ( y );
-    const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
-    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
-    const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*> ( beta );
+    clsparse::vector<cl_float> pR (control, r->values, r->num_values);
+    clsparse::vector<cl_float> pAlpha(control, alpha->value, 1);
+    clsparse::vector<cl_float> pX (control, x->values, x->num_values);
+    clsparse::vector<cl_float> pBeta(control, beta->value, 1);
+    clsparse::vector<cl_float> pY (control, y->values, y->num_values);
 
-    //is it necessary? Maybe run the kernel nevertheless those values?
-//    clMemRAII<cl_float> rAlpha (control->queue(), pAlpha->value);
-//    cl_float* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
-
-//    clMemRAII<cl_float> rBeta (control->queue(), pBeta->value);
-//    cl_float* fBeta = rBeta.clMapMem( CL_TRUE, CL_MAP_READ, pBeta->offset(), 1);
-
-    //nothing to do
-    //if (*fAlpha == 0) return clsparseSuccess;
-
-    cl_ulong y_size = pY->num_values - pY->offset();
-    cl_ulong x_size = pX->num_values - pX->offset();
-
-    cl_ulong size = (x_size >= y_size) ? y_size : x_size;
+    cl_ulong size = pR.size();
 
     if(size == 0) return clsparseSuccess;
 
-
-
-    return axpby<cl_float>(size, pY, pAlpha, pX, pBeta, control);
+    return axpby<cl_float>(pR, pAlpha, pX, pBeta, pY, control);
 }
 
 clsparseStatus
-cldenseDaxpby(cldenseVector *y,
+cldenseDaxpby(cldenseVector *r,
                const clsparseScalar *alpha,
                const cldenseVector *x,
                const clsparseScalar *beta,
+               const cldenseVector* y,
                const clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -81,19 +69,51 @@ cldenseDaxpby(cldenseVector *y,
         return clsparseInvalidControlObject;
     }
 
-    cldenseVectorPrivate* pY = static_cast<cldenseVectorPrivate*> ( y );
-    const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
-    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
-    const clsparseScalarPrivate* pBeta = static_cast<const clsparseScalarPrivate*> ( beta );
+    clsparse::vector<cl_double> pR (control, r->values, r->num_values);
+    clsparse::vector<cl_double> pAlpha(control, alpha->value, 1);
+    clsparse::vector<cl_double> pX (control, x->values, x->num_values);
+    clsparse::vector<cl_double> pBeta(control, beta->value, 1);
+    clsparse::vector<cl_double> pY (control, y->values, y->num_values);
 
-
-    cl_ulong y_size = pY->num_values - pY->offset();
-    cl_ulong x_size = pX->num_values - pX->offset();
-
-    cl_ulong size = (x_size >= y_size) ? y_size : x_size;
+    cl_ulong size = pR.size();
 
     if(size == 0) return clsparseSuccess;
 
+    /*TODO: Is it worth to check alpha and beta to call
+     * axpy, scale or just copy? It might matter for very large vectors
+     *
+     * Example of how the code might look like
+     *
+     * cl_double _alpha = pAlpha[0];
+     * cl_double _beta =  pBeta[0];
+     *
+     * cl_double zero = 0.0;
+     *
+     * if (_alpha == 0.0)
+     * {
+     *      if (_beta == 0.0)
+     *      {
+     *          pR.fill(control, zero);
+     *          return clsparseSuccess;
+     *      }
+     *      else
+     *      {
+     *          return scale<cl_double>(pR, pBeta, pY);
+     *      }
+     * }
+     * else if ( _beta == 0.0 )
+     * {
+     *      if ( _alpha == 0.0 )
+     *      {
+     *          pR.fill(control, zero);
+     *          return clsparseSuccess;
+     *      }
+     *      else
+     *      {
+     *          return scale<cl_double>(pR, pAlpha, pX);
+     *      }
+     * }
+     */
 
-    return axpby<cl_double>(size, pY, pAlpha, pX, pBeta, control);
+    return axpby(pR, pAlpha, pX, pBeta, pY, control);
 }

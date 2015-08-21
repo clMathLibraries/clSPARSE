@@ -214,11 +214,11 @@ public:
         //  GPU result;
         if (typeid(T) == typeid(cl_float))
         {
-            status = cldenseSscale(&gX, &gAlpha, CLSE::control);
+            status = cldenseSscale(&gX, &gX, &gAlpha, CLSE::control);
         }
         else if ( typeid(T) == typeid(cl_double) )
         {
-            status = cldenseDscale(&gX, &gAlpha, CLSE::control);
+            status = cldenseDscale(&gX, &gX, &gAlpha, CLSE::control);
         }
 
         ASSERT_EQ (clsparseSuccess, status);
@@ -290,11 +290,11 @@ public:
         //  GPU result;
         if (typeid(T) == typeid(cl_float))
         {
-            status = cldenseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
+            status = cldenseSaxpy(&gY, &gAlpha, &gX, &gY, CLSE::control);
         }
         else if ( typeid(T) == typeid(cl_double) )
         {
-            status = cldenseDaxpy(&gY, &gAlpha, &gX, CLSE::control);
+            status = cldenseDaxpy(&gY, &gAlpha, &gX, &gY, CLSE::control);
         }
 
         ASSERT_EQ (clsparseSuccess, status);
@@ -331,11 +331,11 @@ public:
         //  GPU result;
         if (typeid(T) == typeid(cl_float))
         {
-            status = cldenseSaxpby(&gY, &gAlpha, &gX, &gBeta, CLSE::control);
+            status = cldenseSaxpby(&gY, &gAlpha, &gX, &gBeta, &gY, CLSE::control);
         }
         else if ( typeid(T) == typeid(cl_double) )
         {
-            status = cldenseDaxpby(&gY, &gAlpha, &gX, &gBeta, CLSE::control);
+            status = cldenseDaxpby(&gY, &gAlpha, &gX, &gBeta, &gY, CLSE::control);
         }
 
         ASSERT_EQ (clsparseSuccess, status);

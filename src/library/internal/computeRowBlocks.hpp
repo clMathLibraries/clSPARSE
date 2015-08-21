@@ -88,7 +88,8 @@ static inline rowBlockType numThreadsForReduction(rowBlockType num_rows)
 
 //  rowBlockType is currently instantiated as ulong
 template< typename rowBlockType >
-void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters, int nRows, int blkSize, int blkMultiplier, int rows_for_vector, bool allocate_row_blocks = true )
+void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters,
+                       int nRows, int blkSize, int blkMultiplier, int rows_for_vector, bool allocate_row_blocks = true )
 {
     rowBlockType* rowBlocksBase;
     int total_row_blocks = 1; // Start at one because of rowBlock[0]

@@ -213,40 +213,46 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
 
     /* BLAS 1 routines for dense vector*/
 
-    /* SCALE y = alpha * y */
+    /* SCALE r = alpha * y */
 
     CLSPARSE_EXPORT clsparseStatus
-        cldenseSscale( cldenseVector* y,
+        cldenseSscale( cldenseVector* r,
+        const cldenseVector* y,
         const clsparseScalar* alpha,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
-        cldenseDscale( cldenseVector* y,
+        cldenseDscale( cldenseVector* r,
+        const cldenseVector* y,
         const clsparseScalar* alpha,
         const clsparseControl control );
 
-    /* AXPY: y = alpha*x + y*/
+    /* AXPY: r = alpha*x + y */
     CLSPARSE_EXPORT clsparseStatus
-        cldenseSaxpy( cldenseVector* y,
+        cldenseSaxpy( cldenseVector* r,
         const clsparseScalar* alpha, const cldenseVector* x,
+        const cldenseVector* y,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
-        cldenseDaxpy( cldenseVector* y,
+        cldenseDaxpy( cldenseVector* r,
         const clsparseScalar* alpha, const cldenseVector* x,
+        const cldenseVector* y,
         const clsparseControl control );
 
-    /* AXPY: y = alpha*x + beta*y*/
+    /* AXPY: r = alpha*x + beta*y */
     CLSPARSE_EXPORT clsparseStatus
-        cldenseSaxpby( cldenseVector* y,
+        cldenseSaxpby( cldenseVector* r,
         const clsparseScalar* alpha, const cldenseVector* x,
         const clsparseScalar* beta,
+        const cldenseVector* y,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
-        cldenseDaxpby( cldenseVector* y,
+        cldenseDaxpby( cldenseVector* r,
         const clsparseScalar* alpha, const cldenseVector* x,
         const clsparseScalar* beta,
+        const cldenseVector* y,
         const clsparseControl control );
 
     /* Reduce (sum) */
