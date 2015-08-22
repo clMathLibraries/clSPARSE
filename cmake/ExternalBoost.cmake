@@ -51,14 +51,22 @@ endif( )
 
 include( ProcessorCount )
 ProcessorCount( Cores )
-message( STATUS "ExternalBoost detected ( " ${Cores} " ) cores to build Boost with" )
 if( NOT Cores EQUAL 0 )
+  # Travis can fail to build Boost sporadically; uses 32 cores, reduce stress on VM
+  if( DEFINED ENV{TRAVIS} )
+    if( Cores GREATER 8 )
+      set( Cores 8 )
+    endif( )
+  endif( )
+
   # Add build thread in addition to the number of cores that we have
   math( EXPR Cores "${Cores} + 1 " )
 else( )
   # If we could not detect # of cores, assume 1 core and add an additional build thread
   set( Cores "2" )
 endif( )
+
+message( STATUS "ExternalBoost using ( " ${Cores} " ) cores to build with" )
 list( APPEND Boost.Command -j ${Cores} --with-program_options --with-serialization --with-filesystem --with-system --with-regex )
 
 if( BUILD64 )
@@ -133,7 +141,7 @@ mark_as_advanced( ext.Boost_URL )
 set( Boost.Bootstrap "" )
 set( ext.MD5_HASH "" )
 if( WIN32 )
-  set( Boost.Bootstrap "./bootstrap.bat" )
+  set( Boost.Bootstrap ".\\bootstrap.bat" )
 
   if( CMAKE_VERSION VERSION_LESS "3.1.0" )
     # .zip file

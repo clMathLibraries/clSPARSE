@@ -19,7 +19,7 @@ sudo: required # false
 # os: expands the build matrix to include multiple os's
 # disable linux, as we get sporadic failures on building boost, needs investigation
 os:
-#  - linux
+  - linux
   - osx
 
 # compiler: expands the build matrix to include multiple compilers (per os)
@@ -116,7 +116,7 @@ install:
 before_script:
   - mkdir -p ${CLSPARSE_ROOT}
   - pushd ${CLSPARSE_ROOT}
-  - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_Boost=${BUILD_BOOST} -DBUILD_gMock=ON -DBUILD_clSPARSE=ON -DBUILD_SAMPLES=ON ${TRAVIS_BUILD_DIR}
+  - cmake -DCMAKE_BUILD_TYPE=Release -DclSPARSE_BUILD64=ON -DBUILD_Boost=${BUILD_BOOST} -DBUILD_gMock=ON -DBUILD_clSPARSE=ON -DBUILD_SAMPLES=ON ${TRAVIS_BUILD_DIR}
 
 # use script: to execute build steps
 script:

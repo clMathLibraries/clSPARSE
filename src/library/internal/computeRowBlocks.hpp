@@ -56,7 +56,7 @@ static inline rowBlockType numThreadsForReduction(rowBlockType num_rows)
       defined(__GNUG__) && ((__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) > 30202)
     return (256 >> (8*sizeof(int)-__builtin_clz(num_rows-1)));
 #elif defined(_MSC_VER) && (_MSC_VER >= 1400)
-    int bit_returned;
+    unsigned long bit_returned;
     _BitScanReverse(&bit_returned, (num_rows-1));
     return 256 >> (bit_returned+1);
 #else
