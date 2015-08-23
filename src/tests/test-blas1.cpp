@@ -365,6 +365,163 @@ public:
 
     }
 
+    void test_add()
+    {
+        clsparseStatus status;
+
+        if (typeid(T) == typeid(cl_float))
+        {
+            status = cldenseSadd(&gY, &gX, &gY, CLSE::control);
+        }
+        else if ( typeid(T) == typeid(cl_double) )
+        {
+            status = cldenseDadd(&gY, &gX, &gY, CLSE::control);
+        }
+
+        ASSERT_EQ(clsparseSuccess, status);
+
+        hY = hX + hY;
+
+        cl_int cl_status;
+        T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
+                                              CL_TRUE, CL_MAP_READ,
+                                              0, gY.num_values * sizeof(T),
+                                              0, nullptr, nullptr, &cl_status);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+        // change it to some compare template functions
+        if ( typeid(T) == typeid(cl_float) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-7);
+
+        if ( typeid(T) == typeid(cl_double) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-14);
+
+        cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
+                                              host_result, 0, nullptr, nullptr);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+    }
+
+    void test_sub()
+    {
+        clsparseStatus status;
+
+        if (typeid(T) == typeid(cl_float))
+        {
+            status = cldenseSsub(&gY, &gX, &gY, CLSE::control);
+        }
+        else if ( typeid(T) == typeid(cl_double) )
+        {
+            status = cldenseDsub(&gY, &gX, &gY, CLSE::control);
+        }
+
+        ASSERT_EQ(clsparseSuccess, status);
+
+        hY = hX - hY;
+
+        cl_int cl_status;
+        T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
+                                              CL_TRUE, CL_MAP_READ,
+                                              0, gY.num_values * sizeof(T),
+                                              0, nullptr, nullptr, &cl_status);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+        // change it to some compare template functions
+        if ( typeid(T) == typeid(cl_float) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-7);
+
+        if ( typeid(T) == typeid(cl_double) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-14);
+
+        cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
+                                              host_result, 0, nullptr, nullptr);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+
+
+    }
+
+    void test_mul()
+    {
+        clsparseStatus status;
+
+        if (typeid(T) == typeid(cl_float))
+        {
+            status = cldenseSmul(&gY, &gX, &gY, CLSE::control);
+        }
+        else if ( typeid(T) == typeid(cl_double) )
+        {
+            status = cldenseDmul(&gY, &gX, &gY, CLSE::control);
+        }
+
+        ASSERT_EQ(clsparseSuccess, status);
+
+        hY = uBLAS::element_prod(hX, hY);
+
+        cl_int cl_status;
+        T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
+                                              CL_TRUE, CL_MAP_READ,
+                                              0, gY.num_values * sizeof(T),
+                                              0, nullptr, nullptr, &cl_status);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+        // change it to some compare template functions
+        if ( typeid(T) == typeid(cl_float) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-7);
+
+        if ( typeid(T) == typeid(cl_double) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-14);
+
+        cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
+                                              host_result, 0, nullptr, nullptr);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+    }
+
+    void test_div()
+    {
+        clsparseStatus status;
+
+        if (typeid(T) == typeid(cl_float))
+        {
+            status = cldenseSdiv(&gY, &gX, &gY, CLSE::control);
+        }
+        else if ( typeid(T) == typeid(cl_double) )
+        {
+            status = cldenseDdiv(&gY, &gX, &gY, CLSE::control);
+        }
+
+        ASSERT_EQ(clsparseSuccess, status);
+
+        hY = uBLAS::element_div(hX, hY);
+
+        cl_int cl_status;
+        T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
+                                              CL_TRUE, CL_MAP_READ,
+                                              0, gY.num_values * sizeof(T),
+                                              0, nullptr, nullptr, &cl_status);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+        // change it to some compare template functions
+        if ( typeid(T) == typeid(cl_float) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-7);
+
+        if ( typeid(T) == typeid(cl_double) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-14);
+
+        cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
+                                              host_result, 0, nullptr, nullptr);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+    }
+
     boost::numeric::ublas::vector<T> hY;
     boost::numeric::ublas::vector<T> hX;
     T hAlpha = 2.0;
@@ -415,6 +572,26 @@ TYPED_TEST(Blas1, axpy)
 TYPED_TEST(Blas1, axpby)
 {
     this->test_axpby();
+}
+
+TYPED_TEST(Blas1, add)
+{
+    this->test_add();
+}
+
+TYPED_TEST(Blas1, sub)
+{
+    this->test_sub();
+}
+
+TYPED_TEST(Blas1, mul)
+{
+    this->test_mul();
+}
+
+TYPED_TEST(Blas1, div)
+{
+    this->test_div();
 }
 
 int main (int argc, char* argv[])

@@ -302,6 +302,59 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
         const cldenseVector* y,
         const clsparseControl control );
 
+    /* elementwise operations for dense vectors +, -, *, / */
+
+    // +
+    CLSPARSE_EXPORT clsparseStatus
+        cldenseSadd( cldenseVector* r,
+        const cldenseVector* x,
+        const cldenseVector* y,
+        const clsparseControl control );
+
+    CLSPARSE_EXPORT clsparseStatus
+        cldenseDadd( cldenseVector* r,
+        const cldenseVector* x,
+        const cldenseVector* y,
+        const clsparseControl control );
+    // -
+    CLSPARSE_EXPORT clsparseStatus
+        cldenseSsub( cldenseVector* r,
+        const cldenseVector* x,
+        const cldenseVector* y,
+        const clsparseControl control );
+
+    CLSPARSE_EXPORT clsparseStatus
+        cldenseDsub( cldenseVector* r,
+        const cldenseVector* x,
+        const cldenseVector* y,
+        const clsparseControl control );
+
+    // *
+    CLSPARSE_EXPORT clsparseStatus
+        cldenseSmul( cldenseVector* r,
+        const cldenseVector* x,
+        const cldenseVector* y,
+        const clsparseControl control );
+
+    CLSPARSE_EXPORT clsparseStatus
+        cldenseDmul( cldenseVector* r,
+        const cldenseVector* x,
+        const cldenseVector* y,
+        const clsparseControl control );
+    // /
+    CLSPARSE_EXPORT clsparseStatus
+        cldenseSdiv( cldenseVector* r,
+        const cldenseVector* x,
+        const cldenseVector* y,
+        const clsparseControl control );
+
+    CLSPARSE_EXPORT clsparseStatus
+        cldenseDdiv( cldenseVector* r,
+        const cldenseVector* x,
+        const cldenseVector* y,
+        const clsparseControl control );
+
+
     // BLAS 2 routines
     // SpM-dV
     // y = \alpha * A * x + \beta * y

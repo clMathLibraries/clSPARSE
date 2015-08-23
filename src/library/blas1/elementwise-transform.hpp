@@ -40,7 +40,7 @@ clsparseStatus
 elementwise_transform(cldenseVectorPrivate* r,
                       const cldenseVectorPrivate* x,
                       const cldenseVectorPrivate* y,
-                      clsparseControl control)
+                      const clsparseControl control)
 {
     if (!clsparseInitialized)
     {
@@ -54,7 +54,7 @@ elementwise_transform(cldenseVectorPrivate* r,
     }
 
     assert(x->num_values == y->num_values);
-    assert(x->num_values== r->num_values);
+    assert(x->num_values == r->num_values);
 
     cl_ulong size = x->num_values;
     cl_uint wg_size = 256;
@@ -95,7 +95,7 @@ clsparseStatus
 elementwise_transform(clsparse::array_base<T>& r,
                       const clsparse::array_base<T>& x,
                       const clsparse::array_base<T>& y,
-                      clsparseControl control)
+                      const clsparseControl control)
 {
     if (!clsparseInitialized)
     {
