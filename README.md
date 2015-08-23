@@ -3,7 +3,8 @@ Pre-built binaries are available on our [releases page](https://github.com/clMat
 
 | Build branch | master | develop |
 |-----|-----|-----|
-| Linux/OSX x64 | [![Build Status](https://travis-ci.org/clMathLibraries/clSPARSE.svg?branch=master)](https://travis-ci.org/clMathLibraries/clSPARSE) |[![Build Status](https://travis-ci.org/clMathLibraries/clSPARSE.svg?branch=develop)](https://travis-ci.org/clMathLibraries/clSPARSE) |
+| GCC/Clang x64 | [![Build Status](https://travis-ci.org/clMathLibraries/clSPARSE.svg?branch=master)](https://travis-ci.org/clMathLibraries/clSPARSE/branches) |[![Build Status](https://travis-ci.org/clMathLibraries/clSPARSE.svg?branch=develop)](https://travis-ci.org/clMathLibraries/clSPARSE/branches) |
+| Visual Studio x64 |  |[![Build status](https://ci.appveyor.com/api/projects/status/67s7wnqr26yvasgs/branch/develop?svg=true)](https://ci.appveyor.com/project/kknox/clsparse/branch/develop) |
 
 # clSPARSE
 an OpenCL&copy; library implementing Sparse linear algebra.  This project is a result of

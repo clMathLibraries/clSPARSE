@@ -1,12 +1,12 @@
 # ########################################################################
 # Copyright 2015 Advanced Micro Devices, Inc.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 # http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,8 +50,11 @@ if( CMAKE_COMPILER_IS_GNUCC )
   list( APPEND ext.gMock.cmake_args -DCMAKE_C_FLAGS=${EXTRA_FLAGS} -DCMAKE_CXX_FLAGS=${EXTRA_FLAGS} )
 endif( )
 
-if( MSVC_IDE OR XCODE_VERSION )
+if( MSVC )
   list( APPEND ext.gMock.cmake_args -Dgtest_force_shared_crt=ON )
+endif( )
+
+if( MSVC_IDE OR XCODE_VERSION )
   set( ext.gMock.Make
         COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
         COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Debug
@@ -60,17 +63,29 @@ else( )
   # Add build thread in addition to the number of cores that we have
   include( ProcessorCount )
   ProcessorCount( Cores )
-  message( STATUS "ExternalclBLAS detected ( " ${Cores} " ) cores to build clBLAS with" )
 
-  set( ext.gMock.Make "make" )
-  if( NOT Cores EQUAL 0 )
-    math( EXPR Cores "${Cores} + 1 " )
-    list( APPEND ext.gMock.Make -j ${Cores} )
+  # If we are not using an IDE, assume nmake with visual studio
+  if( MSVC )
+    set( ext.gMock.Make "nmake" )
   else( )
-    # If we could not detect # of cores, assume 1 core and add an additional build thread
-    list( APPEND ext.gMock.Make -j 2 )
+    set( ext.gMock.Make "make" )
+
+    # The -j paramter does not work with nmake
+    if( NOT Cores EQUAL 0 )
+      math( EXPR Cores "${Cores} + 1 " )
+      list( APPEND ext.gMock.Make -j ${Cores} )
+    else( )
+      # If we could not detect # of cores, assume 1 core and add an additional build thread
+      list( APPEND ext.gMock.Make -j 2 )
+    endif( )
   endif( )
+
+  list( APPEND ext.gMock.cmake_args -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+  message( STATUS "ExternalGmock using ( " ${Cores} " ) cores to build with" )
 endif( )
+
+# message( STATUS "ext.gMock.Make ( " ${ext.gMock.Make} " ) " )
+# message( STATUS "ext.gMock.cmake_args ( " ${ext.gMock.cmake_args} " ) " )
 
 # Add external project for googleMock
 ExternalProject_Add(
