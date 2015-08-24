@@ -93,12 +93,17 @@ public:
         ::clRetainCommandQueue( clQueue );
     }
 
-    pType* clMapMem( cl_bool clBlocking, const cl_map_flags clFlags, const size_t clOff, const size_t clSize )
+    pType* clMapMem( cl_bool clBlocking, const cl_map_flags clFlags, const size_t clOff, const size_t clSize, cl_int *clStatus = nullptr)
     {
         // Right now, we don't support returning an event to wait on
         clBlocking = CL_TRUE;
 
-        cl_int clStatus = ::clEnqueueSVMMap( clQueue, clBlocking, clFlags, clMem, clSize * sizeof( pType ), 0, NULL, NULL );
+        cl_int _clStatus = ::clEnqueueSVMMap( clQueue, clBlocking, clFlags,
+                                              clMem, clSize * sizeof( pType ), 0, NULL, NULL );
+        if (clStatus != nullptr)
+        {
+            *clStatus = _clStatus;
+        }
 
         return clMem;
     }

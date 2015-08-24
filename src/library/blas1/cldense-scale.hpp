@@ -15,59 +15,46 @@
  * ************************************************************************ */
 
 #pragma once
-#ifndef _CLSPARSE_AXPBY_HPP_
-#define _CLSPARSE_AXPBY_HPP_
+#ifndef _CLSPARSE_SCALE_HPP_
+#define _CLSPARSE_SCALE_HPP_
 
 #include "include/clSPARSE-private.hpp"
 #include "internal/kernel-cache.hpp"
 #include "internal/kernel-wrap.hpp"
 #include "internal/clsparse-internal.hpp"
 
-#include "blas1/elementwise-operators.hpp"
-
 #include "internal/data-types/clvector.hpp"
 
-// r = alpha * x + beta * y;
-// if r == y we have standard axpby;
-
-template<typename T, ElementWiseOperator OP = EW_PLUS>
+//TODO:: add offset to the scale kernel
+template <typename T>
 clsparseStatus
-axpby(clsparse::array_base<T>& pR,
-      const clsparse::array_base<T>& pAlpha,
-      const clsparse::array_base<T>& pX,
-      const clsparse::array_base<T>& pBeta,
-      const clsparse::array_base<T>& pY,
-      const clsparseControl control)
+scale( clsparse::array_base<T>& pResult,
+       const clsparse::array_base<T>& pAlpha,
+       const clsparse::array_base<T>& pVector,
+       clsparseControl control)
 {
-
-    const int group_size = 256; // this or higher? control->max_wg_size?
+    const int group_size = 256;
+    //const int group_size = control->max_wg_size;
 
     const std::string params = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
-            + " -DWG_SIZE=" + std::to_string( group_size )
-            + " -D" + ElementWiseOperatorTrait<OP>::operation;
+            + " -DVALUE_TYPE="+ OclTypeTraits<T>::type
+            + " -DWG_SIZE=" + std::to_string(group_size);
 
-    cl::Kernel kernel = KernelCache::get(control->queue, "blas1", "axpby",
+    cl::Kernel kernel = KernelCache::get(control->queue,
+                                         "blas1", "scale",
                                          params);
-
     KernelWrap kWrapper(kernel);
 
-    cl_ulong size = pR.size();
-
-    //clsparse do not support offset;
+    cl_ulong size = pResult.size();
     cl_ulong offset = 0;
 
     kWrapper << size
-             << pR.data()
+             << pResult.data()
+             << offset
+             << pVector.data()
              << offset
              << pAlpha.data()
-             << offset
-             << pX.data()
-             << offset
-             << pBeta.data()
-             << offset
-             << pY.data()
              << offset;
 
     int blocksNum = (size + group_size - 1) / group_size;
@@ -86,5 +73,4 @@ axpby(clsparse::array_base<T>& pR,
     return clsparseSuccess;
 }
 
-
-#endif //_CLSPARSE_AXPBY_HPP_
+#endif //_CLSPARSE_SCALE_HPP_

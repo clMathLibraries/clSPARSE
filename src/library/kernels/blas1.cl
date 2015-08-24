@@ -106,18 +106,20 @@ void axpby(const SIZE_TYPE size,
 R"(
 __kernel
 __attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))
-void scale (const SIZE_TYPE pYSize,
-            __global VALUE_TYPE* pY,
+void scale (const SIZE_TYPE pRSize,
+            __global VALUE_TYPE* pR,
+            const SIZE_TYPE pROffset,
+            __global const VALUE_TYPE* pY,
             const SIZE_TYPE pYOffset,
              __global const VALUE_TYPE* pAlpha,
             const SIZE_TYPE pAlphaOffset)
 {
     const int i = get_global_id(0);
 
-    if (i >= pYSize) return;
+    if (i >= pRSize) return;
 
     const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
 
-    pY[i + pYOffset] = pY[i + pYOffset]* alpha;
+    pR[i + pROffset] = pY[i + pYOffset]* alpha;
 }
 )"

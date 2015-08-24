@@ -158,6 +158,7 @@ set( clSPARSE.Headers.blas1
   blas1/reduce-operators.hpp
   blas1/commons.hpp
   blas1/cldense-dot.hpp
+  blas1/cldense-scale.hpp
   blas1/cldense-axpy.hpp
   blas1/cldense-axpby.hpp
   blas1/cldense-nrm1.hpp

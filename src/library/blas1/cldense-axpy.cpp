@@ -19,10 +19,11 @@
 
 
 clsparseStatus
-cldenseSaxpy(cldenseVector *y,
-              const clsparseScalar *alpha,
-              const cldenseVector *x,
-              const clsparseControl control)
+cldenseSaxpy(cldenseVector *r,
+             const clsparseScalar *alpha,
+             const cldenseVector *x,
+             const cldenseVector *y,
+             const clsparseControl control)
 {
     if (!clsparseInitialized)
     {
@@ -35,32 +36,40 @@ cldenseSaxpy(cldenseVector *y,
         return clsparseInvalidControlObject;
     }
 
+    clsparse::vector<cl_float> pR (control, r->values, r->num_values);
+    clsparse::vector<cl_float> pAlpha(control, alpha->value, 1);
+    clsparse::vector<cl_float> pX (control, x->values, x->num_values);
+    clsparse::vector<cl_float> pY (control, y->values, y->num_values);
 
-    cldenseVectorPrivate* pY = static_cast<cldenseVectorPrivate*> ( y );
-    const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
-    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
+    assert(pR.size() == pY.size());
+    assert(pR.size() == pX.size());
 
-     clMemRAII<cl_float> rAlpha (control->queue(), pAlpha->value);
-     cl_float* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
+    cl_ulong size = pR.size();
 
-     //nothing to do
-     if (*fAlpha == 0) return clsparseSuccess;
+    if(size == 0) return clsparseSuccess;
+    //nothing to do
+    if (pAlpha[0] == 0.0)
+    {
+        auto pRBuff = pR.data()();
+        auto pYBuff = pY.data()();
 
-     //leading dimmension is the shorter lenght
-     cl_ulong y_size = pY->num_values - pY->offset();
-     cl_ulong x_size = pX->num_values - pX->offset();
+        //if R is different pointer than Y than copy Y to R
+        if (pRBuff != pYBuff)
+        {
+            // deep copy;
+            pR = pY;
+        }
+        return clsparseSuccess;
+    }
 
-     cl_ulong size = (x_size >= y_size) ? y_size : x_size;
-
-     if(size == 0) return clsparseSuccess;
-
-    return axpy<cl_float>(size, pY, pAlpha, pX, control);
+    return axpy(pR, pAlpha, pX, pY, control);
 }
 
 clsparseStatus
-cldenseDaxpy(cldenseVector *y,
-              const clsparseScalar *alpha, const cldenseVector *x,
-              const clsparseControl control)
+cldenseDaxpy(cldenseVector *r,
+             const clsparseScalar *alpha, const cldenseVector *x,
+             const cldenseVector *y,
+             const clsparseControl control)
 {
     if (!clsparseInitialized)
     {
@@ -73,25 +82,32 @@ cldenseDaxpy(cldenseVector *y,
         return clsparseInvalidControlObject;
     }
 
-    cldenseVectorPrivate* pY = static_cast<cldenseVectorPrivate*> ( y );
-    const clsparseScalarPrivate* pAlpha = static_cast<const clsparseScalarPrivate*> ( alpha );
-    const cldenseVectorPrivate* pX = static_cast<const cldenseVectorPrivate*> ( x );
+    clsparse::vector<cl_double> pR (control, r->values, r->num_values);
+    clsparse::vector<cl_double> pAlpha(control, alpha->value, 1);
+    clsparse::vector<cl_double> pX (control, x->values, x->num_values);
+    clsparse::vector<cl_double> pY (control, y->values, y->num_values);
 
+    assert(pR.size() == pY.size());
+    assert(pR.size() == pX.size());
 
-     clMemRAII<cl_double> rAlpha (control->queue(), pAlpha->value);
-     cl_double* fAlpha = rAlpha.clMapMem( CL_TRUE, CL_MAP_READ, pAlpha->offset(), 1);
+    cl_ulong size = pR.size();
 
-     //nothing to do
-     if (*fAlpha == 0) return clsparseSuccess;
+    if(size == 0) return clsparseSuccess;
 
-     //leading dimmension is the shorter lenght
-     cl_ulong y_size = pY->num_values - pY->offset();
-     cl_ulong x_size = pX->num_values - pX->offset();
+    //nothing to do
+    if (pAlpha[0] == 0.0)
+    {
+        auto pRBuff = pR.data()();
+        auto pYBuff = pY.data()();
 
-     cl_ulong size = (x_size >= y_size) ? y_size : x_size;
+        //if R is different pointer than Y than copy Y to R
+        if (pRBuff != pYBuff)
+        {
+            // deep copy;
+            pR = pY;
+        }
+        return clsparseSuccess;
+    }
 
-     if(size == 0) return clsparseSuccess;
-
-
-    return axpy<cl_double>(size, pY, pAlpha, pX, control);
+    return axpy(pR, pAlpha, pX, pY, control);
 }

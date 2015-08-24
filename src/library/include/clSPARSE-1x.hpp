@@ -100,14 +100,19 @@ public:
          }
     }
 
-    pType* clMapMem( cl_bool clBlocking, const cl_map_flags clFlags, const size_t clOff, const size_t clSize )
+    pType* clMapMem( cl_bool clBlocking, const cl_map_flags clFlags, const size_t clOff, const size_t clSize, cl_int *clStatus = nullptr)
     {
         // Right now, we don't support returning an event to wait on
         clBlocking = CL_TRUE;
-        cl_int clStatus = 0;
+        cl_int _clStatus = 0;
 
         clMem = static_cast< pType* >( ::clEnqueueMapBuffer( clQueue, clBuff, clBlocking, clFlags, clOff,
-            clSize * sizeof( pType ), 0, NULL, NULL, &clStatus ) );
+            clSize * sizeof( pType ), 0, NULL, NULL, &_clStatus ) );
+
+        if (clStatus != nullptr)
+        {
+            *clStatus = _clStatus;
+        }
 
         return clMem;
     }

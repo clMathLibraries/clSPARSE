@@ -24,10 +24,15 @@
 #include <boost/numeric/ublas/blas.hpp>
 
 #include "resources/clsparse_environment.h"
+#include "resources/blas1_environment.h"
+
 
 clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
+
+double Blas1Environment::alpha = 0;
+double Blas1Environment::beta = 0;
 
 //cl_uint ClSparseEnvironment::N = 1024;
 static const cl_uint N = 1024;
@@ -41,6 +46,7 @@ class Blas1 : public ::testing::Test
 {
 
      using CLSE = ClSparseEnvironment;
+     using BLAS1E = Blas1Environment;
 
 
 public:
@@ -55,8 +61,8 @@ public:
 
         //hY.resize(CLSE::N, 2.0);
         //hX.resize(CLSE::N, 4.0);
-        hY = uBLAS::vector<T>(N, 2.0);
-        hX = uBLAS::vector<T>(N, 4.0);
+        hY = uBLAS::vector<T>(N, 2);
+        hX = uBLAS::vector<T>(N, 4);
 
 
         cl_int status;
@@ -78,12 +84,14 @@ public:
         gAlpha.value = clCreateBuffer(CLSE::context,
                                       CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                       sizeof(T), &hAlpha, &status);
+
         ASSERT_EQ(CL_SUCCESS, status);
 
 
         gBeta.value = clCreateBuffer(CLSE::context,
                                      CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                      sizeof(T), &hBeta, &status);
+
         ASSERT_EQ(CL_SUCCESS, status);
 
     }
@@ -97,6 +105,18 @@ public:
        clReleaseMemObject( gBeta.value );
     }
 
+    boost::numeric::ublas::vector<T> hY;
+    boost::numeric::ublas::vector<T> hX;
+    T hAlpha = BLAS1E::alpha;
+    T hBeta = BLAS1E::beta;
+
+    cldenseVector gX;
+    cldenseVector gY;
+    clsparseScalar gAlpha;
+    clsparseScalar gBeta;
+
+
+    /*  Test functions  */
 
     void test_reduce()
     {
@@ -214,11 +234,11 @@ public:
         //  GPU result;
         if (typeid(T) == typeid(cl_float))
         {
-            status = cldenseSscale(&gX, &gAlpha, CLSE::control);
+            status = cldenseSscale(&gX, &gAlpha, &gX, CLSE::control);
         }
         else if ( typeid(T) == typeid(cl_double) )
         {
-            status = cldenseDscale(&gX, &gAlpha, CLSE::control);
+            status = cldenseDscale(&gX, &gAlpha, &gX, CLSE::control);
         }
 
         ASSERT_EQ (clsparseSuccess, status);
@@ -290,11 +310,11 @@ public:
         //  GPU result;
         if (typeid(T) == typeid(cl_float))
         {
-            status = cldenseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
+            status = cldenseSaxpy(&gY, &gAlpha, &gX, &gY, CLSE::control);
         }
         else if ( typeid(T) == typeid(cl_double) )
         {
-            status = cldenseDaxpy(&gY, &gAlpha, &gX, CLSE::control);
+            status = cldenseDaxpy(&gY, &gAlpha, &gX, &gY, CLSE::control);
         }
 
         ASSERT_EQ (clsparseSuccess, status);
@@ -331,16 +351,16 @@ public:
         //  GPU result;
         if (typeid(T) == typeid(cl_float))
         {
-            status = cldenseSaxpby(&gY, &gAlpha, &gX, &gBeta, CLSE::control);
+            status = cldenseSaxpby(&gY, &gAlpha, &gX, &gBeta, &gY, CLSE::control);
         }
         else if ( typeid(T) == typeid(cl_double) )
         {
-            status = cldenseDaxpby(&gY, &gAlpha, &gX, &gBeta, CLSE::control);
+            status = cldenseDaxpby(&gY, &gAlpha, &gX, &gBeta, &gY, CLSE::control);
         }
 
         ASSERT_EQ (clsparseSuccess, status);
 
-        hY = uBLAS::blas_1::axpy (uBLAS::blas_1::scal(hY, hBeta), hAlpha, hX);
+        hY = uBLAS::blas_1::axpy(uBLAS::blas_1::scal(hY, hBeta), hAlpha, hX);
 
         // Map device data to host
         cl_int cl_status;
@@ -522,15 +542,7 @@ public:
 
     }
 
-    boost::numeric::ublas::vector<T> hY;
-    boost::numeric::ublas::vector<T> hX;
-    T hAlpha = 2.0;
-    T hBeta = 4.0;
 
-    cldenseVector gX;
-    cldenseVector gY;
-    clsparseScalar gAlpha;
-    clsparseScalar gBeta;
 };
 
 
@@ -598,12 +610,16 @@ int main (int argc, char* argv[])
 {
 
     using CLSE = ClSparseEnvironment;
+    using BLAS1E = Blas1Environment;
 
 
     std::string platform;
     cl_platform_type pID;
     cl_uint dID;
     cl_uint size;
+
+    double alpha;
+    double beta;
 
     po::options_description desc("Allowed options");
 
@@ -613,8 +629,12 @@ int main (int argc, char* argv[])
              "OpenCL platform: AMD or NVIDIA.")
             ("device,d", po::value(&dID)->default_value(0),
              "Device id within platform.")
-            ("Size,n",po::value(&size)->default_value(1024),
-             "Size of the vectors used for testing");
+            ("size,n",po::value(&size)->default_value(1024),
+             "Size of the vectors used for testing")
+            ("alpha,a", po::value(&alpha)->default_value(2),
+             "Alpha coefficient for blas1 operations i.e. r = alpha * x + beta * y")
+            ("beta,b", po::value(&beta)->default_value(4),
+             "Beta coefficient for blas1 operations i.e. r = alpha * x + beta * y");
 
 
     po::variables_map vm;
@@ -662,6 +682,7 @@ int main (int argc, char* argv[])
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
     ::testing::AddGlobalTestEnvironment( new CLSE(pID, dID, size));
+    ::testing::AddGlobalTestEnvironment( new BLAS1E(alpha, beta));
 
     return RUN_ALL_TESTS();
 
