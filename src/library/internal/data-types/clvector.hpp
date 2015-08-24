@@ -49,8 +49,12 @@ class vector : public array_base<T>
 public:
 
     typedef typename BASE::value_type value_type;
+    typedef typename BASE::size_type  size_type;
+
     typedef value_type* naked_pointer;
+
     typedef vector<value_type> self_type;
+
     typedef reference_base<self_type> reference;
 
     typedef iterator_base<self_type> iterator;
@@ -118,12 +122,12 @@ public:
         return internal::fill(*this, value);
     }
 
-    size_t size() const
+    size_type size() const
     {
         return BASE::_size;
     }
 
-    void resize(size_t size)
+    void resize(size_type size)
     {
         if(this->size() != size)
         {
@@ -149,7 +153,7 @@ public:
     }
 
 
-    reference operator[]( size_t n )
+    reference operator[]( size_type n )
     {
         assert(n < size());
 
@@ -291,7 +295,7 @@ public:
 
 private:
 
-    cl::Buffer create_buffer(size_t size, cl_map_flags flags = CL_MEM_READ_WRITE)
+    cl::Buffer create_buffer(size_type size, cl_map_flags flags = CL_MEM_READ_WRITE)
         {
             if(size > 0)
             {

@@ -111,7 +111,7 @@ public:
         int col;
         clsparseStatus fileError = clsparseHeaderfromFile(&nnz, &row, &col, sparseFile.c_str());
         if (clsparseSuccess != fileError)
-            throw std::runtime_error("Could not read matrix market header from disk");
+             throw clsparse::io_exception( "Could not read matrix market header from disk: " + sparseFile );
 
         // Now initialize a CSR matrix from the CSR matrix
         // VK we have to handle other cases if input mtx file is not in CSR format
@@ -138,7 +138,7 @@ public:
 			fileError = clsparseInvalidType;
 
         if (fileError != clsparseSuccess)
-            throw std::runtime_error("Could not read matrix market data from disk");
+            throw std::runtime_error("Could not read matrix market data from disk: " + sparseFile);
 
         clsparseCsrMetaSize(&csrMtx, control);
         csrMtx.rowBlocks = ::clCreateBuffer(ctx, CL_MEM_READ_WRITE, csrMtx.rowBlockSize * sizeof(cl_ulong), NULL, &status);
