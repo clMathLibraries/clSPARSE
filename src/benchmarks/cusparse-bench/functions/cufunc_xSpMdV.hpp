@@ -81,12 +81,12 @@ public:
 
         if( sparseHeaderfromFile( &n_vals, &n_rows, &n_cols, path.c_str( ) ) )
         {
-            throw clsparse::io_exception( "Could not read matrix market header from disk" );
+            throw clsparse::io_exception( "Could not read matrix market header from disk: " + path);
         }
 
         if (csrMatrixfromFile( row_offsets, col_indices, values, path.c_str( ) ) )
         {
-            throw clsparse::io_exception( "Could not read matrix market header from disk" );
+            throw clsparse::io_exception( "Could not read matrix market from disk: " + path);
         }
 
         cudaError_t err = cudaMalloc( (void**) &device_row_offsets, row_offsets.size( ) * sizeof( int ) );

@@ -46,6 +46,7 @@ class array_base
 public:
 
     typedef T value_type;
+    typedef size_t size_type;
     //typedef typename clContainer<T>::type BUFF_TYPE;
     typedef typename clContainer::type BUFF_TYPE;
 
@@ -67,12 +68,12 @@ public:
         return _buff;
     }
 
-    size_t size()
+    size_type size()
     {
         return _size;
     }
 
-    const size_t size() const
+    const size_type size() const
     {
         return _size;
     }
@@ -95,7 +96,7 @@ public:
 
 protected:
     BUFF_TYPE _buff;
-    size_t _size;
+    size_type _size;
 }; // array_base
 
 
