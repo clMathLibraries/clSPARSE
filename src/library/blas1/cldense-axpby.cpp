@@ -16,6 +16,75 @@
 
 #include "include/clSPARSE-private.hpp"
 #include "cldense-axpby.hpp"
+#include "cldense-axpy.hpp"
+#include "cldense-scale.hpp"
+
+namespace internal
+{
+
+// this will trigger the right proper code depends on the
+// alpha and beta parameters;
+template<typename T>
+clsparseStatus
+axpby(clsparse::vector<T>& pR,
+     const clsparse::vector<T>& pAlpha,
+     const clsparse::vector<T>& pX,
+     const clsparse::vector<T>& pBeta,
+     const clsparse::vector<T>& pY,
+     const clsparseControl control)
+{
+    //check if we can run ligher code;
+    T _alpha = pAlpha[0];
+    T _beta =  pBeta[0];
+
+    T zero = 0.0;
+
+    if (_alpha == 0.0)
+    {
+        if (_beta == 0.0)
+        {
+            pR.fill(control, zero);
+            return clsparseSuccess;
+        }
+        else
+        {
+            // r = beta * y
+            return scale(pR, pBeta, pY, control);
+        }
+    }
+
+    else if ( _beta == 0.0 )
+    {
+        if ( _alpha == 0.0 )
+        {
+            pR.fill(control, zero);
+            return clsparseSuccess;
+        }
+        else
+        {
+            // r = alpha * x
+            return scale(pR, pAlpha, pX, control);
+        }
+    }
+
+    // r = by + x;
+    else if ( _alpha == 1.0 )
+    {
+        return axpy(pR, pBeta, pY, pX, control);
+    }
+
+    // r = ax + y;
+    else if ( _beta == 1.0 )
+    {
+        return axpy(pR, pAlpha, pX, pY, control);
+    }
+
+    //reach out of internal namespace;
+    return ::axpby(pR, pAlpha, pX, pBeta, pY, control);
+}
+
+} // namespace internal
+
 
 clsparseStatus
 cldenseSaxpby(cldenseVector *r,
@@ -47,7 +116,7 @@ cldenseSaxpby(cldenseVector *r,
 
     if(size == 0) return clsparseSuccess;
 
-    return axpby<cl_float>(pR, pAlpha, pX, pBeta, pY, control);
+    return internal::axpby(pR, pAlpha, pX, pBeta, pY, control);
 }
 
 clsparseStatus
@@ -79,41 +148,5 @@ cldenseDaxpby(cldenseVector *r,
 
     if(size == 0) return clsparseSuccess;
 
-    /*TODO: Is it worth to check alpha and beta to call
-     * axpy, scale or just copy? It might matter for very large vectors
-     *
-     * Example of how the code might look like
-     *
-     * cl_double _alpha = pAlpha[0];
-     * cl_double _beta =  pBeta[0];
-     *
-     * cl_double zero = 0.0;
-     *
-     * if (_alpha == 0.0)
-     * {
-     *      if (_beta == 0.0)
-     *      {
-     *          pR.fill(control, zero);
-     *          return clsparseSuccess;
-     *      }
-     *      else
-     *      {
-     *          return scale<cl_double>(pR, pBeta, pY);
-     *      }
-     * }
-     * else if ( _beta == 0.0 )
-     * {
-     *      if ( _alpha == 0.0 )
-     *      {
-     *          pR.fill(control, zero);
-     *          return clsparseSuccess;
-     *      }
-     *      else
-     *      {
-     *          return scale<cl_double>(pR, pAlpha, pX);
-     *      }
-     * }
-     */
-
-    return axpby(pR, pAlpha, pX, pBeta, pY, control);
+    return internal::axpby(pR, pAlpha, pX, pBeta, pY, control);
 }

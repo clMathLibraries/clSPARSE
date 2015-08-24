@@ -257,14 +257,17 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile )
 
     const int exp_zeroes = 0;
 
+    //silence warnings from fscanf (-Wunused-result)
+    int rv = 0;
+
     for( int i = 0; i < nNZ; i++ )
     {
         if( mm_is_real( Typecode ) )
         {
             if( typeid( FloatType ) == typeid( float ) )
-                fscanf( infile, "%d %d %f\n", &ir, &ic, (float*)( &val ) );
+              rv = fscanf( infile, "%d %d %f\n", &ir, &ic, (float*)( &val ) );
             else if( typeid( FloatType ) == typeid( double ) )
-                fscanf( infile, "%d %d %lf\n", &ir, &ic, (double*)( &val ) );
+              rv = fscanf( infile, "%d %d %lf\n", &ir, &ic, (double*)( &val ) );
 
             if( exp_zeroes == 0 && val == 0 )
                 continue;
@@ -274,9 +277,9 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile )
         else if( mm_is_integer( Typecode ) )
         {
             if(typeid(FloatType) == typeid(float))
-                fscanf(infile, "%d %d %f\n", &ir, &ic, (float*)( &val ) );
+               rv = fscanf(infile, "%d %d %f\n", &ir, &ic, (float*)( &val ) );
             else if(typeid(FloatType) == typeid(double))
-                fscanf(infile, "%d %d %lf\n", &ir, &ic, (double*)( &val ) );
+               rv = fscanf(infile, "%d %d %lf\n", &ir, &ic, (double*)( &val ) );
 
             if( exp_zeroes == 0 && val == 0 )
                 continue;
@@ -286,7 +289,7 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile )
         }
         else if( mm_is_pattern( Typecode ) )
         {
-            fscanf( infile, "%d %d", &ir, &ic );
+            rv = fscanf( infile, "%d %d", &ir, &ic );
             val = static_cast<FloatType>( MAX_RAND_VAL * ( rand( ) / ( RAND_MAX + 1.0 ) ) );
 
             if( exp_zeroes == 0 && val == 0 )

@@ -216,15 +216,15 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     /* SCALE r = alpha * y */
 
     CLSPARSE_EXPORT clsparseStatus
-        cldenseSscale( cldenseVector* r,
-        const cldenseVector* y,
+        cldenseSscale(cldenseVector* r,
         const clsparseScalar* alpha,
+        const cldenseVector* y,
         const clsparseControl control );
 
     CLSPARSE_EXPORT clsparseStatus
         cldenseDscale( cldenseVector* r,
-        const cldenseVector* y,
         const clsparseScalar* alpha,
+        const cldenseVector* y,
         const clsparseControl control );
 
     /* AXPY: r = alpha*x + y */

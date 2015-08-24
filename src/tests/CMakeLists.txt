@@ -100,6 +100,7 @@ set( headers
   resources/clsparse_environment.h
   resources/matrix_utils.h
   resources/csr_matrix_environment.h
+  resources/blas1_environment.h
   #resources/uBLAS-linalg/ublas_pcg.hpp
   #resources/uBLAS-linalg/precond.hpp
   #resources/uBLAS-linalg/cholesky.hpp
