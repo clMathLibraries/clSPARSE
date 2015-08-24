@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
     }
     /** Step 4. Execute AXPY algorithm **/
 
-    status = cldenseSaxpy(&gpuY, &gpuAlpha, &gpuX, control);
+    status = cldenseSaxpy(&gpuY, &gpuAlpha, &gpuX, &gpuY, control);
 
     if (status != clsparseSuccess)
     {
