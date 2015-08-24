@@ -73,7 +73,7 @@ before_build:
 # build_script invokes the compiler
 build_script:
   - echo build_script step
-  - nmake
+  - nmake clSPARSE-samples
   - cd clSPARSE-build
   - nmake package
 
@@ -86,3 +86,19 @@ on_finish:
 
   # Uncomment the following to pause the VM and wait for RDP connetion to debug
   # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+# artifacts:
+#   - path: clSPARSE-build\*.zip
+#     name: binary release
+#     type: zip
+#
+# deploy:
+#   release: clSPARSE
+#   provider: GitHub
+#   auth_token:
+#     secure: <your encrypted token>
+#   artifact: clSPARSE-build\*.zip
+#   draft: false
+#   prerelease: true
+#   on:
+#     appveyor_repo_tag: true

@@ -120,6 +120,15 @@ before_script:
 
 # use script: to execute build steps
 script:
-  - make
+  - make clSPARSE-samples
   - cd clSPARSE-build
   - make package
+
+# deploy:
+#   provider: releases
+#   api-key: "GITHUB OAUTH TOKEN"
+#   file_glob: true
+#   file: clSPARSE-build/*.tar.gz
+#   skip_cleanup: true
+#   on:
+#     tags: true
