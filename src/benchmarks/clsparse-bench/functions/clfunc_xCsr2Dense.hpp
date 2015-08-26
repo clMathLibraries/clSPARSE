@@ -119,7 +119,6 @@ public:
         csrMtx.num_nonzeros = nnz;
         csrMtx.num_rows     = row;
         csrMtx.num_cols     = col;
-        clsparseCsrMetaSize( &csrMtx, control );
 
         cl_int status;
         csrMtx.values = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(T), NULL, &status);
@@ -131,9 +130,6 @@ public:
         csrMtx.rowOffsets = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(cl_int), NULL, &status);
         CLSPARSE_V(status, "::clCreateBuffer csrMtx.rowOffsets");
 
-        csrMtx.rowBlocks = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.rowBlockSize * sizeof(cl_ulong), NULL, &status);
-        CLSPARSE_V(status, "::clCreateBuffer csrMtx.rowBlocks");
-
 		if (typeid(T) == typeid(float))
 			fileError = clsparseSCsrMatrixfromFile(&csrMtx, sparseFile.c_str(), control);
 		else if (typeid(T) == typeid(double))
@@ -143,6 +139,11 @@ public:
 
         if (fileError != clsparseSuccess)
             throw std::runtime_error("Could not read matrix market data from disk");
+
+        clsparseCsrMetaSize(&csrMtx, control);
+        csrMtx.rowBlocks = ::clCreateBuffer(ctx, CL_MEM_READ_WRITE, csrMtx.rowBlockSize * sizeof(cl_ulong), NULL, &status);
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
+        clsparseCsrMetaCompute(&csrMtx, control);
 
         // Initialize the output dense matrix
         cldenseInitMatrix(&denseMtx);
