@@ -191,7 +191,7 @@ int main (int argc, char* argv[])
     // the structure will not be calculated and clSPARSE will run the vectorized
     // version of SpMV instead of adaptive;
     clsparseCsrMetaSize( &A, control );
-    A.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
+    A.rowBlocks = ::clCreateBuffer( context(), CL_MEM_READ_WRITE,
             A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );
     clsparseCsrMetaCompute( &A, control );
 
