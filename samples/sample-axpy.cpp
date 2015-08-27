@@ -1,6 +1,6 @@
 /* ************************************************************************
  * Copyright 2015 Vratis, Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,11 @@
 #include <iostream>
 #include <vector>
 
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/cl.hpp>
+#else
 #include <CL/cl.hpp>
+#endif
 
 #include <clSPARSE.h>
 
