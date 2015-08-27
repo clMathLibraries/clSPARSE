@@ -15,11 +15,14 @@
  * ************************************************************************ */
 
 #pragma once
-#ifndef _CL_COMPUTEROWBLOCKS_H_
-#define _CL_COMPUTEROWBLOCKS_H_
+#ifndef _CL_CSR_META_H_
+#define _CL_CSR_META_H_
 
 #include <iterator>
 #include <cassert>
+#include <cmath>
+
+#include "include/clSPARSE-private.hpp"
 
 #ifndef __has_builtin
   #define __has_builtin(x) 0
@@ -257,4 +260,4 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
         rowBlockSize = 2 * total_row_blocks;
 }
 
-#endif
+#endif //_CL_CSR_META_H_

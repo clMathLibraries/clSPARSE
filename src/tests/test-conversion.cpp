@@ -111,7 +111,7 @@ public:
             for(int i = 0; i < ublas_dense.data().size(); i++)
             {
                 // there should be exactly the same data
-                EXPECT_FLOAT_EQ(ublas_dense.data()[i], result[i]);
+                ASSERT_NEAR(ublas_dense.data()[i], result[i], 1e-7);
             }
 
         }
@@ -136,7 +136,7 @@ public:
             for(int i = 0; i < ublas_dense.data().size(); i++)
             {
                 // there should be exactly the same data
-                EXPECT_DOUBLE_EQ(ublas_dense.data()[i], result[i]);
+                ASSERT_NEAR(ublas_dense.data()[i], result[i], 1e-14);
             }
         }
     }
@@ -175,7 +175,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             // call conversion routine
-            clsparseStatus status = clsparseSdense2csr(&csrMatx, &A, CLSE::control);
+            clsparseStatus status = clsparseSdense2csr(&A, &csrMatx, CLSE::control);
 
             ASSERT_EQ(clsparseSuccess, status);
 
@@ -193,7 +193,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                EXPECT_FLOAT_EQ(CSRE::ublasSCsr.value_data()[i], values[i]);
+                ASSERT_NEAR(CSRE::ublasSCsr.value_data()[i], values[i], 1e-7);
 
 
             // Compare row_offsets
@@ -254,7 +254,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             // call conversion routine
-            clsparseStatus status = clsparseDdense2csr(&csrMatx, &A, CLSE::control);
+            clsparseStatus status = clsparseDdense2csr(&A, &csrMatx, CLSE::control);
 
             ASSERT_EQ(clsparseSuccess, status);
 
@@ -368,9 +368,8 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             // Compare values;
-            for (int i = 0; i < values.size(); i++)
+            for (int i = 0; i <  values.size(); i++)
                 EXPECT_FLOAT_EQ(values[i], CSRE::ublasSCsr.value_data()[i]);
-
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.colIndices,
                                               CL_TRUE, 0, col_indices.size() * sizeof(cl_int),
@@ -607,8 +606,8 @@ public:
 
 };
 
+//typedef ::testing::Types<cl_float, cl_double> TYPES;
 typedef ::testing::Types<cl_float, cl_double> TYPES;
-//typedef ::testing::Types<cl_float> TYPES;
 TYPED_TEST_CASE(MatrixConversion, TYPES);
 
 TYPED_TEST(MatrixConversion, csr_to_dense)

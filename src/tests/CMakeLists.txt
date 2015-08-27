@@ -60,21 +60,14 @@ include_directories(
   )
 
 set( TESTS_CPP
-  #test_clsparse_csr2dense
-  #test_readMMcoo
-  #test_clsparse_csr2coo
-  #test_solver_cg
-  #test_solver_bicgStab
-  #test_csrmm
-  #test_interface_cpp
-  #test_clsparse_coo2csr
-  #test_clsparse_dense2csr
   test-blas1
   test-blas2
   test-blas3
   test-solvers
   test-conversion
   test-clsparse-utils
+  test-scan
+  test-reduce-by-key
 )
 
 set( TESTS_C

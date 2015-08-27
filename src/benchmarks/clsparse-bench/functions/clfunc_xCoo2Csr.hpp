@@ -98,7 +98,7 @@ public:
 
         clsparseStatus fileError = clsparseHeaderfromFile( &n_vals, &n_rows, &n_cols, path.c_str( ) );
         if( fileError != clsparseSuccess )
-           throw std::runtime_error( "Could not read matrix market header from disk" );
+            throw clsparse::io_exception( "Could not read matrix market header from disk: " + path );
 
         clsparseInitCooMatrix( &cooMatx );
         cooMatx.num_nonzeros = n_vals;
@@ -113,9 +113,14 @@ public:
                                                cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
 
         if (typeid(T) == typeid(float))
-            clsparseSCooMatrixfromFile(&cooMatx, path.c_str(), control);
-        if (typeid(T) == typeid(double))
-            clsparseDCooMatrixfromFile(&cooMatx, path.c_str(), control);
+           fileError = clsparseSCooMatrixfromFile(&cooMatx, path.c_str(), control);
+        else if (typeid(T) == typeid(double))
+            fileError = clsparseDCooMatrixfromFile(&cooMatx, path.c_str(), control);
+        else
+            fileError = clsparseInvalidType;
+
+        if( fileError != clsparseSuccess )
+            throw std::runtime_error( "Could not read matrix market data from disk: " + path );
 
         //clsparseCsrMatrix csrMatx;
         clsparseInitCsrMatrix( &csrMtx );

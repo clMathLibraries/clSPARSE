@@ -41,11 +41,13 @@ to copyright protection within the United States.
 #include <iostream>
 #include <typeinfo>
 
+
 #include "include/clSPARSE-private.hpp"
 #include "include/external/mmio.h"
 #include "clSPARSE.hpp"
 #include "internal/clsparse-control.hpp"
-#include "internal/computeRowBlocks.hpp"
+#include "internal/data-types/csr-meta.hpp"
+#include "internal/clsparse-validate.hpp"
 
 // Class declarations
 template<typename FloatType>
@@ -481,6 +483,10 @@ clsparseSCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cl
     cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
 
     Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
+    //JPA:: Coo matrix is need to be sorted as well because we need to have matrix
+    // which is sorted by row and then column, in the mtx files usually is opposite.
+    std::sort( coords, coords + pCooMatx->num_nonzeros, CoordinateCompare< cl_float > );
+
     for( cl_int c = 0; c < pCooMatx->num_nonzeros; ++c )
     {
         iCooRowIndices[ c ] = coords[ c ].x;
@@ -527,6 +533,10 @@ clsparseDCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cl
     cl_int* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
 
     Coordinate< cl_double >* coords = mm_reader.GetUnsymCoordinates( );
+    //JPA:: Coo matrix is need to be sorted as well because we need to have matrix
+    // which is sorted by row and then column, in the mtx files usually is opposite.
+    std::sort( coords, coords + pCooMatx->num_nonzeros, CoordinateCompare< cl_double > );
+
     for( cl_int c = 0; c < pCooMatx->num_nonzeros; ++c )
     {
         iCooRowIndices[ c ] = coords[ c ].x;
@@ -562,6 +572,30 @@ clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
         return clsparseInvalidFile;
 
     // BUG: We need to check to see if openCL buffers currently exist and deallocate them first!
+    // FIX: Below code will check whether the buffers were allocated in the first place;
+    {
+        clsparseStatus validationStatus = validateMemObject(pCsrMatx->values,
+                                                            mm_reader.GetNumNonZeroes() * sizeof(cl_float));
+
+        // I dont want to reallocate buffer because I suppress the users buffer memory flags;
+        // It is users responsibility to provide good buffer;
+        if (validationStatus != clsparseSuccess)
+            return validationStatus;
+
+        validationStatus = validateMemObject(pCsrMatx->colIndices,
+                                             mm_reader.GetNumNonZeroes() * sizeof(cl_int));
+        if (validationStatus != clsparseSuccess)
+            return validationStatus;
+
+        validationStatus = validateMemObject(pCsrMatx->rowOffsets,
+                                             (mm_reader.GetNumRows() + 1) * sizeof(cl_int));
+        if (validationStatus != clsparseSuccess)
+            return validationStatus;
+    }
+
+    // JPA: Shouldn't that just be an assertion check? It seems to me that
+    // the user have to call clsparseHeaderfromFile before calling this function,
+    // otherwise the whole pCsrMatrix will be broken;
 
     pCsrMatx->num_rows = mm_reader.GetNumRows( );
     pCsrMatx->num_cols = mm_reader.GetNumCols( );
@@ -617,6 +651,7 @@ clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
 
     return clsparseSuccess;
 
+
 }
 
 clsparseStatus
@@ -644,19 +679,65 @@ clsparseDCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
         return clsparseInvalidFile;
 
     // BUG: We need to check to see if openCL buffers currently exist and deallocate them first!
+    // FIX: Below code will check whether the buffers were allocated in the first place;
+    {
+        clsparseStatus validationStatus = validateMemObject(pCsrMatx->values,
+                                                            mm_reader.GetNumNonZeroes() * sizeof(cl_double));
+
+        // I dont want to reallocate buffer because I suppress the users buffer memory flags;
+        // It is users responsibility to provide good buffer;
+        if (validationStatus != clsparseSuccess)
+            return validationStatus;
+
+        validationStatus = validateMemObject(pCsrMatx->colIndices,
+                                             mm_reader.GetNumNonZeroes() * sizeof(cl_int));
+        if (validationStatus != clsparseSuccess)
+            return validationStatus;
+
+        validationStatus = validateMemObject(pCsrMatx->rowOffsets,
+                                             (mm_reader.GetNumRows() + 1) * sizeof(cl_int));
+        if (validationStatus != clsparseSuccess)
+            return validationStatus;
+    }
+
+
 
     pCsrMatx->num_rows = mm_reader.GetNumRows( );
     pCsrMatx->num_cols = mm_reader.GetNumCols( );
     pCsrMatx->num_nonzeros = mm_reader.GetNumNonZeroes( );
 
     // Transfers data from CPU buffer to GPU buffers
-    clMemRAII< cl_double > rCsrValues( control->queue( ), pCsrMatx->values );
+    cl_int mapStatus = 0;
+    clMemRAII< cl_double > rCsrValues( control->queue( ), pCsrMatx->values);
     clMemRAII< cl_int > rCsrColIndices( control->queue( ), pCsrMatx->colIndices );
     clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
 
-    cl_double* fCsrValues = rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->valOffset( ), pCsrMatx->num_nonzeros );
-    cl_int* iCsrColIndices = rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->num_nonzeros );
-    cl_int* iCsrRowOffsets = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
+    cl_double* fCsrValues =
+            rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION,
+                                 pCsrMatx->valOffset( ), pCsrMatx->num_nonzeros, &mapStatus );
+    if (mapStatus != CL_SUCCESS)
+    {
+        CLSPARSE_V(mapStatus, "Error: Mapping rCsrValues failed");
+        return clsparseInvalidMemObj;
+    }
+
+    cl_int* iCsrColIndices =
+            rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION,
+                                     pCsrMatx->colIndOffset( ), pCsrMatx->num_nonzeros, &mapStatus );
+    if (mapStatus != CL_SUCCESS)
+    {
+        CLSPARSE_V(mapStatus, "Error: Mapping rCsrColIndices failed");
+        return clsparseInvalidMemObj;
+    }
+
+    cl_int* iCsrRowOffsets =
+            rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION,
+                                     pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1, &mapStatus );
+    if (mapStatus != CL_SUCCESS)
+    {
+        CLSPARSE_V(mapStatus, "Error: Mapping rCsrRowOffsets failed");
+        return clsparseInvalidMemObj;
+    }
 
     //  The following section of code converts the sparse format from COO to CSR
     Coordinate< cl_double >* coords = mm_reader.GetUnsymCoordinates( );

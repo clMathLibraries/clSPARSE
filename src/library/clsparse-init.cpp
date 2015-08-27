@@ -106,6 +106,7 @@ cldenseInitMatrix( cldenseMatrix* denseMatx )
     return clsparseSuccess;
 }
 
+// To be removed?
 CLSPARSE_EXPORT clsparseStatus
 clsparseCoo2Csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx )
 {
