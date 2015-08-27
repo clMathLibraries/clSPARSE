@@ -30,8 +30,7 @@ indices_to_offsets(clsparse::vector<T>& offsets,
                    const clsparseControl control)
 {
     typedef typename clsparse::vector<T> IndicesArray;
-    //typedef typename clsparse::vector<T>::size_type SizeType;
-    typedef cl_ulong SizeType;
+    typedef typename clsparse::vector<T>::size_type SizeType;
 
     //if (std::is_integral<T>)
 
@@ -105,8 +104,7 @@ offsets_to_indices(clsparse::vector<T>& indices,
                    typename clsparse::vector<T>::size_type num_rows,
                    const clsparseControl control)
 {
-    //typedef typename clsparse::vector<T>::size_type SizeType;
-    typedef cl_ulong SizeType;
+    typedef typename clsparse::vector<T>::size_type SizeType;
 
     assert (num_rows + 1 == offsets.size());
 
@@ -192,8 +190,7 @@ transform_csr_2_dense(/*csr matrix*/
                       clsparse::vector<V>& A,
                       const clsparseControl control)
 {
-    //typedef typename clsparse::vector<I>::size_type SizeType;
-    typedef cl_ulong SizeType;
+    typedef typename clsparse::vector<I>::size_type SizeType;
 
     if (!clsparseInitialized)
     {
@@ -280,7 +277,7 @@ calculate_num_nonzeros(/*dense matrix*/
                        I& num_nonzeros,
                        const clsparseControl control)
 {
-    typedef cl_ulong SizeType;
+    typedef typename clsparse::vector<I>::size_type SizeType;
 
     SizeType dense_size = A.size();
 
@@ -349,7 +346,7 @@ dense_to_coo(clsparseCooMatrix* coo,
              const clsparse::vector<I>& coo_indexes,
              const clsparseControl control)
 {
-    typedef cl_ulong SizeType;
+    typedef typename clsparse::vector<V>::size_type SizeType;
 
     assert(coo->num_nonzeros > 0);
     assert(coo->num_cols > 0);
