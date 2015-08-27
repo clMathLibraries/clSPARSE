@@ -30,7 +30,8 @@ indices_to_offsets(clsparse::vector<T>& offsets,
                    const clsparseControl control)
 {
     typedef typename clsparse::vector<T> IndicesArray;
-    typedef typename clsparse::vector<T>::size_type SizeType;
+    //typedef typename clsparse::vector<T>::size_type SizeType;
+    typedef cl_ulong SizeType;
 
     //if (std::is_integral<T>)
 
@@ -104,7 +105,8 @@ offsets_to_indices(clsparse::vector<T>& indices,
                    typename clsparse::vector<T>::size_type num_rows,
                    const clsparseControl control)
 {
-    typedef typename clsparse::vector<T>::size_type SizeType;
+    //typedef typename clsparse::vector<T>::size_type SizeType;
+    typedef cl_ulong SizeType;
 
     assert (num_rows + 1 == offsets.size());
 
@@ -190,7 +192,8 @@ transform_csr_2_dense(/*csr matrix*/
                       clsparse::vector<V>& A,
                       const clsparseControl control)
 {
-    typedef typename clsparse::vector<I>::size_type SizeType;
+    //typedef typename clsparse::vector<I>::size_type SizeType;
+    typedef cl_ulong SizeType;
 
     if (!clsparseInitialized)
     {
