@@ -26,11 +26,9 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control )
 {
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
 
-    // This allocates up front the maximum size of rowBlocks at start; likely not all the memory is used but
-    // this is the fastest
-    // The formula is 3 * (NNZ / block size) + 2, but we double this because CSR-Adaptive uses the
-    // second half of the rowBlocks buffer for global reductions.
-    pCsrMatx->rowBlockSize = 6 * ( pCsrMatx->num_nonzeros / BLKSIZE ) + 4;
+    clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+    cl_int* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
+    pCsrMatx->rowBlockSize = pCsrMatx->rowBlockSize = ComputeRowBlocksSize( rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
 
     return clsparseSuccess;
 }
