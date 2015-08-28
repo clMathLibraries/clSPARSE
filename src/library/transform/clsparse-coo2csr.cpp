@@ -70,16 +70,18 @@ cl_float* fCsrValues, cl_int* iCsrColIndices, cl_int* iCsrRowOffsets )
     return clsparseSuccess;
 }
 
+// This function allocates memory for rowBlocks structure. If not called
+// the structure will not be calculated and clSPARSE will run the vectorized
+// version of SpMV instead of adaptive;
+// Note: this function can only be called once you've read in the rowDelimiters.
 clsparseStatus
 clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control )
 {
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
 
-    // This allocates up front the maximum size of rowBlocks at start; likely not all the memory is used but
-    // this is the fastest
-    // The formula is 3 * (NNZ / block size) + 2, but we double this because CSR-Adaptive uses the
-    // second half of the rowBlocks buffer for global reductions.
-    pCsrMatx->rowBlockSize = 6 * ( pCsrMatx->num_nonzeros / BLKSIZE ) + 4;
+    clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+    cl_int* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
+    pCsrMatx->rowBlockSize = pCsrMatx->rowBlockSize = ComputeRowBlocksSize( rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
 
     return clsparseSuccess;
 }
@@ -102,7 +104,7 @@ clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control )
     clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
     cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize );
 
-    ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
+    ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
 
     return clsparseSuccess;
 }
