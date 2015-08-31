@@ -344,6 +344,10 @@ void compression_scan(__local volatile short *s_scan,
     }
 }
 
+)"
+
+R"(
+
 __kernel
 void ESC_bitonic_scan(__global const int      *d_queue,
                       __global const int      *d_csrRowPtrA,
