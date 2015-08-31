@@ -424,6 +424,9 @@ void mergepath_liu(__local int          *s_a_key,
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 }
+)"
+
+R"(
 
 inline
 int mergepath_partition_global_liu(__global int   *s_a_key,
@@ -711,6 +714,9 @@ void readwrite_mergedlist_global(__global int   *d_csrColIndCt,
         }
     }
 }
+)"
+
+R"(
 
 __kernel
 void EM_mergepath(__global int            *d_queue,
@@ -938,6 +944,9 @@ void EM_mergepath(__global int            *d_queue,
     reg_reuse1 = d_queue[queue_id + 1]; //d_csrRowPtrCt[row_id];
     readwrite_mergedlist(d_csrColIndCt, d_csrValCt, s_key_merged, s_val_merged, merged_size, reg_reuse1, 1);
 }
+)"
+
+R"(
 
 __kernel
 void EM_mergepath_global(__global int            *d_queue,
