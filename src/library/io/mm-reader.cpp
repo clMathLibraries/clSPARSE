@@ -594,29 +594,7 @@ clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
     while( current_row <= pCsrMatx->num_rows )
         iCsrRowOffsets[ current_row++ ] = pCsrMatx->num_nonzeros;
 
-
-    // Compute the csr matrix meta data and fill in buffers
-    if( pCsrMatx->rowBlockSize )
-    {
-        clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
-        ComputeRowBlocks( (cl_ulong*)NULL, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, false );
-
-        // matrix SMALL/Reuters/Reuters911.mtx throws here segfault
-        // due to wrong estimation of rowBlockSize in function clsparseCsrMetaSize.
-        cl_int mapStatus = 0;
-        cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize, &mapStatus );
-
-        if (mapStatus != CL_SUCCESS)
-        {
-            std::cerr << "Error: Row block estimation too low, invalid value returned from mapping" << std::endl;
-            return clsparseInvalidValue;
-        }
-
-        ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
-    }
-
     return clsparseSuccess;
-
 }
 
 clsparseStatus
@@ -676,18 +654,7 @@ clsparseDCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
     while( current_row <= pCsrMatx->num_rows )
         iCsrRowOffsets[ current_row++ ] = pCsrMatx->num_nonzeros;
 
-    // Compute the csr matrix meta data and fill in buffers
-    if( pCsrMatx->rowBlockSize )
-    {
-        clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
-        ComputeRowBlocks( (cl_ulong*)NULL, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, false );
-        cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize );
-
-        ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
-    }
-
     return clsparseSuccess;
-
 }
 
 //clsparseStatus
@@ -744,16 +711,6 @@ clsparseDCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
 //            iCsrRowOffsets[ current_row++ ] = i;
 //    }
 //    iCsrRowOffsets[ current_row ] = pCsrMatx->num_nonzeros;
-
-//    // Compute the csr matrix meta data and fill in buffers
-//    if( pCsrMatx->rowBlockSize )
-//    {
-//        clMemRAII< cl_ulong > rRowBlocks( control->queue( ), pCsrMatx->rowBlocks );
-//        ComputeRowBlocks( (cl_ulong*)NULL, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, false );
-//        cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowBlocksOffset( ), pCsrMatx->rowBlockSize );
-
-//        ComputeRowBlocks( ulCsrRowBlocks, pCsrMatx->rowBlockSize, iCsrRowOffsets, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
-//    }
 
 //    return clsparseSuccess;
 //}

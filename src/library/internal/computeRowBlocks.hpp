@@ -47,7 +47,7 @@ static inline unsigned int flp2(unsigned int x)
 // working on each row. If you have 5 rows, only 32 threads could
 // reliably work on each row because our reduction assumes power-of-2.
 template< typename rowBlockType >
-static inline rowBlockType numThreadsForReduction(rowBlockType num_rows)
+static inline rowBlockType numThreadsForReduction(const rowBlockType num_rows)
 {
 #if defined(__INTEL_COMPILER)
     return 256 >> (_bit_scan_reverse(num_rows-1)+1);
@@ -89,7 +89,7 @@ static inline rowBlockType numThreadsForReduction(rowBlockType num_rows)
 //  rowBlockType is currently instantiated as ulong
 template< typename rowBlockType >
 void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters,
-                       int nRows, int blkSize, int blkMultiplier, int rows_for_vector, bool allocate_row_blocks = true )
+                       const int nRows, const int blkSize, const int blkMultiplier, const int rows_for_vector, const bool allocate_row_blocks = true )
 {
     rowBlockType* rowBlocksBase;
     int total_row_blocks = 1; // Start at one because of rowBlock[0]
@@ -255,6 +255,14 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
     }
     else
         rowBlockSize = 2 * total_row_blocks;
+}
+
+inline size_t ComputeRowBlocksSize( const int* rowDelimiters, const int nRows, const unsigned int blkSize,
+                                    const unsigned int blkMultiplier, const unsigned int rows_for_vector )
+{
+    size_t rowBlockSize;
+    ComputeRowBlocks( (cl_uint*)NULL, rowBlockSize, rowDelimiters, nRows, blkSize, blkMultiplier, rows_for_vector, false );
+    return rowBlockSize;
 }
 
 #endif

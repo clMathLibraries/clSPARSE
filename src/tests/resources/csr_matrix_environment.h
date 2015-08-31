@@ -60,7 +60,6 @@ public:
         csrSMatrix.num_nonzeros = n_vals;
         csrSMatrix.num_rows = n_rows;
         csrSMatrix.num_cols = n_cols;
-        clsparseCsrMetaSize( &csrSMatrix, CLSE::control );
 
          //  Load single precision data from file; this API loads straight into GPU memory
         cl_int status;
@@ -73,12 +72,14 @@ public:
         csrSMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                                   ( csrSMatrix.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
 
-        csrSMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
-                                                 csrSMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-
         clsparseStatus fileError = clsparseSCsrMatrixfromFile( &csrSMatrix, file_name.c_str( ), CLSE::control );
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk" );
+
+        clsparseCsrMetaSize( &csrSMatrix, CLSE::control );
+        csrSMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
+                                                 csrSMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
+        clsparseCsrMetaCompute( &csrSMatrix, CLSE::control );
 
         //reassign the new matrix dimmesnions calculated clsparseCCsrMatrixFromFile to global variables
         n_vals = csrSMatrix.num_nonzeros;

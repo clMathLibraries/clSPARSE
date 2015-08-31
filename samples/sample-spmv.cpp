@@ -17,7 +17,11 @@
 #include <iostream>
 #include <vector>
 
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/cl.hpp>
+#else
 #include <CL/cl.hpp>
+#endif
 
 #include <clSPARSE.h>
 
@@ -43,8 +47,9 @@
  * for given matrix stored in CSR format. It is enough to calculate the
  * structure once, it is related to its nnz pattern.
  *
- * rowBlocks are also calculated while reading matrix from disk with function
+ * After the matrix is read from disk with the function
  * clsparse<S,D>CsrMatrixfromFile
+ * the rowBlock structure can be calculated using clsparseCsrMetaCompute
  *
  * If rowBlocks are calculated the clsparseCsrMatrix.rowBlocks field is not null.
  *
@@ -203,11 +208,6 @@ int main (int argc, char* argv[])
     A.num_rows = row;
     A.num_cols = col;
 
-    // This function allocates memory for rowBlocks structure. If not called
-    // the structure will not be calculated and clSPARSE will run the vectorized
-    // version of SpMV instead of adaptive;
-    clsparseCsrMetaSize( &A, control );
-
     // Allocate memory for CSR matrix
     A.values = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                  A.num_nonzeros * sizeof( float ), NULL, &cl_status );
@@ -224,6 +224,13 @@ int main (int argc, char* argv[])
 
     fileError = clsparseSCsrMatrixfromFile( &A, matrix_path.c_str( ), control );
 
+    // This function allocates memory for rowBlocks structure. If not called
+    // the structure will not be calculated and clSPARSE will run the vectorized
+    // version of SpMV instead of adaptive;
+    clsparseCsrMetaSize( &A, control );
+    A.rowBlocks = ::clCreateBuffer( context(), CL_MEM_READ_WRITE,
+            A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );
+    clsparseCsrMetaCompute( &A, control );
 
     if (fileError != clsparseSuccess)
     {
