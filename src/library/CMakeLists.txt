@@ -98,6 +98,7 @@ set( clSPARSE.source.internal
   internal/kernel-cache.cpp
   internal/ocl-type-traits.cpp
   internal/kernel-wrap.cpp
+  ${ocl_kernels_file_name}
 )
 
 set( clSPARSE.source.transform
@@ -202,7 +203,6 @@ set( clSPARSE.Headers.internal
   internal/data-types/iterator-base.hpp
   internal/computeRowBlocks.hpp
   transform/transform-kernels.h
-  ${ocl_kernels_file_name}
 )
 
 # source_group( kernels REGULAR_EXPRESSION ".*cl$" )
