@@ -369,9 +369,7 @@ void mergepath_liu(__local int          *s_a_key,
                    __local  int             *s_a_border,
                    __local  int             *s_b_border,
                    int                      *reg_key,
-                   vT                       *reg_val)//,
-                   //__global int          *d_a_border,
-                   //__global int          *d_b_border)
+                   vT                       *reg_val)
 {
     if (b_length == 0)
         return;
@@ -393,16 +391,12 @@ void mergepath_liu(__local int          *s_a_key,
     {
         s_a_border[active_threads] = a_length;
         s_b_border[active_threads] = b_length;
-        //d_a_border[active_threads] = s_a_border[active_threads];
-        //d_b_border[active_threads] = s_b_border[active_threads];
     }
 
     if (local_id < active_threads)
     {
         s_a_border[local_id] = a_start = mergepath_partition_liu(s_a_key, a_length, s_b_key, b_length, offset);
         s_b_border[local_id] = b_start = y_pos(s_a_border[local_id], b_length, offset);
-        //d_a_border[local_id] = s_a_border[local_id];
-        //d_b_border[local_id] = s_b_border[local_id];
     }
 
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -422,19 +416,8 @@ void mergepath_liu(__local int          *s_a_key,
                                   &s_b_val[b_start],
                                   b_stop - b_start,
                                   reg_key, reg_val);
-
-        //d_a_border[local_id] = (s_a_border[local_id+1] - s_a_border[local_id]);
-        //d_b_border[local_id] = (s_b_border[local_id+1] - s_b_border[local_id]);
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-
-    //if (local_id == active_threads - 1)
-    //{
-    //    for (int i = 0; i < (s_b_border[local_id+1] - s_b_border[local_id]); i++)
-    //    {
-    //        d_b_border[i] = reg_key[i];
-    //    }
-    //}
 
     if (local_id < active_threads)
     {
@@ -459,9 +442,9 @@ int mergepath_partition_global_liu(__global int   *s_a_key,
 {
     int x_start = offset > b_length ? offset - b_length : 0;
     int x_stop  = offset > a_length ? a_length : offset;
-    
+
     int x_median;
-    
+
     while (x_stop >= x_start)
     {
         x_median = (x_stop + x_start) / 2;
@@ -482,7 +465,6 @@ int mergepath_partition_global_liu(__global int   *s_a_key,
             x_start = x_median + 1;
         }
     }
-    
     return x_median;
 }
 
@@ -498,7 +480,7 @@ void mergepath_serialmerge_global_liu(__global int          *s_a_key,
 {
     int a_pointer = 0;
     int b_pointer = 0;
-    
+
     for (int c_pointer = 0; c_pointer < a_length + b_length; c_pointer++)
     {
         if (a_pointer < a_length && (b_pointer >= b_length || s_a_key[a_pointer] <= s_b_key[b_pointer]))
@@ -1141,7 +1123,6 @@ void EM_mergepath_global(__global int            *d_queue,
                                      s_key_merged_l1, s_val_merged_l1,
                                      &d_key_merged[merged_size_l2 + merged_size_l1],
                                      &d_val_merged[merged_size_l2 + merged_size_l1]);
-
                 return;
             }
 
