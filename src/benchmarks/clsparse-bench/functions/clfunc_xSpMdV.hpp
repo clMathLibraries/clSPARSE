@@ -107,7 +107,7 @@ public:
         int nnz, row, col;
         clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, sparseFile.c_str( ) );
         if( fileError != clsparseSuccess )
-            throw clsparse::io_exception( "Could not read matrix market header from disk" );
+            throw clsparse::io_exception( "Could not read matrix market header from disk: " + sparseFile );
 
         // Now initialise a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );
@@ -136,7 +136,7 @@ public:
             fileError = clsparseInvalidType;
 
         if( fileError != clsparseSuccess )
-            throw clsparse::io_exception( "Could not read matrix market data from disk" );
+            throw clsparse::io_exception( "Could not read matrix market data from disk: " + sparseFile );
 
         clsparseCsrMetaSize( &csrMtx, control );
         csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,

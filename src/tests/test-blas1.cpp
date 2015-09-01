@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <string>
+#include <numeric>
 #include <boost/program_options.hpp>
 
 //boost ublas
@@ -33,9 +34,7 @@ cl_context ClSparseEnvironment::context = NULL;
 
 double Blas1Environment::alpha = 0;
 double Blas1Environment::beta = 0;
-
-//cl_uint ClSparseEnvironment::N = 1024;
-static const cl_uint N = 1024;
+int Blas1Environment::size = 0;
 
 namespace po = boost::program_options;
 namespace uBLAS = boost::numeric::ublas;
@@ -59,10 +58,9 @@ public:
         clsparseInitVector(&gX);
         clsparseInitVector(&gY);
 
-        //hY.resize(CLSE::N, 2.0);
-        //hX.resize(CLSE::N, 4.0);
-        hY = uBLAS::vector<T>(N, 2);
-        hX = uBLAS::vector<T>(N, 4);
+        hY = uBLAS::vector<T>(BLAS1E::size, 2);
+        hX = uBLAS::vector<T>(BLAS1E::size, 4);
+        //std::iota(hX.begin(), hX.end(), 1);
 
 
         cl_int status;
@@ -542,7 +540,6 @@ public:
 
     }
 
-
 };
 
 
@@ -629,7 +626,7 @@ int main (int argc, char* argv[])
              "OpenCL platform: AMD or NVIDIA.")
             ("device,d", po::value(&dID)->default_value(0),
              "Device id within platform.")
-            ("size,n",po::value(&size)->default_value(1024),
+            ("size,s",po::value(&size)->default_value(1024),
              "Size of the vectors used for testing")
             ("alpha,a", po::value(&alpha)->default_value(2),
              "Alpha coefficient for blas1 operations i.e. r = alpha * x + beta * y")
@@ -682,7 +679,7 @@ int main (int argc, char* argv[])
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
     ::testing::AddGlobalTestEnvironment( new CLSE(pID, dID, size));
-    ::testing::AddGlobalTestEnvironment( new BLAS1E(alpha, beta));
+    ::testing::AddGlobalTestEnvironment( new BLAS1E(alpha, beta, size));
 
     return RUN_ALL_TESTS();
 

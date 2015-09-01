@@ -24,10 +24,11 @@ class Blas1Environment : public ::testing::Environment
 {
 public:
 
-    Blas1Environment(double alpha, double beta)
+    Blas1Environment(double alpha, double beta, int size)
     {
         this->alpha = alpha;
         this->beta = beta;
+        this->size = size;
     }
 
     void SetUp( )  {  }
@@ -36,6 +37,7 @@ public:
 
     static double alpha;
     static double beta;
+    static int size;
 };
 
 
