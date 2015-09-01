@@ -375,48 +375,70 @@ void mergepath_liu(__local int          *s_a_key,
 {
     if (b_length == 0)
         return;
-    
+
     if (s_a_key[a_length-1] < s_b_key[0])
         return;
-    
+
     int local_id = get_local_id(0);
     int local_size = get_local_size(0);
-    
+
     int delta = ceil((float)(a_length + b_length) / (float)local_size);
     int active_threads = ceil((float)(a_length + b_length) / (float)delta);
-    
+
     int offset = delta * local_id;
-    
+
+    int a_start, a_stop, b_start, b_stop;
+
     if (!local_id)
     {
         s_a_border[active_threads] = a_length;
         s_b_border[active_threads] = b_length;
+        //d_a_border[active_threads] = s_a_border[active_threads];
+        //d_b_border[active_threads] = s_b_border[active_threads];
     }
-    
+
     if (local_id < active_threads)
     {
-        s_a_border[local_id] = mergepath_partition_liu(s_a_key, a_length, s_b_key, b_length, offset);
-        s_b_border[local_id] = y_pos(s_a_border[local_id], b_length, offset);
+        s_a_border[local_id] = a_start = mergepath_partition_liu(s_a_key, a_length, s_b_key, b_length, offset);
+        s_b_border[local_id] = b_start = y_pos(s_a_border[local_id], b_length, offset);
+        //d_a_border[local_id] = s_a_border[local_id];
+        //d_b_border[local_id] = s_b_border[local_id];
     }
-    
+
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+
     if (local_id < active_threads)
     {
-        mergepath_serialmerge_liu(&s_a_key[s_a_border[local_id]],
-                                  &s_a_val[s_a_border[local_id]],
-                                  s_a_border[local_id+1] - s_a_border[local_id],
-                                  &s_b_key[s_b_border[local_id]],
-                                  &s_b_val[s_b_border[local_id]],
-                                  s_b_border[local_id+1] - s_b_border[local_id],
+        a_stop = s_a_border[local_id+1];
+        b_stop = s_b_border[local_id+1];
+    }
+
+    if (local_id < active_threads)
+    {
+        mergepath_serialmerge_liu(&s_a_key[a_start],
+                                  &s_a_val[a_start],
+                                  a_stop - a_start,
+                                  &s_b_key[b_start],
+                                  &s_b_val[b_start],
+                                  b_stop - b_start,
                                   reg_key, reg_val);
-        
+
+        //d_a_border[local_id] = (s_a_border[local_id+1] - s_a_border[local_id]);
+        //d_b_border[local_id] = (s_b_border[local_id+1] - s_b_border[local_id]);
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+
+    //if (local_id == active_threads - 1)
+    //{
+    //    for (int i = 0; i < (s_b_border[local_id+1] - s_b_border[local_id]); i++)
+    //    {
+    //        d_b_border[i] = reg_key[i];
+    //    }
+    //}
+
     if (local_id < active_threads)
     {
-        for (int is = 0; is < (s_a_border[local_id+1] - s_a_border[local_id]) + (s_b_border[local_id+1] - s_b_border[local_id]); is++)
+        for (int is = 0; is < (a_stop - a_start) + (b_stop - b_start); is++)
         {
             s_a_key[offset + is] = reg_key[is];
             s_a_val[offset + is] = reg_val[is];
@@ -508,47 +530,55 @@ void mergepath_global_liu(__global int          *s_a_key,
 {
     if (b_length == 0)
         return;
-    
+
     if (s_a_key[a_length-1] < s_b_key[0])
         return;
-    
+
     int local_id = get_local_id(0);
     int local_size = get_local_size(0);
-    
+
     int delta = ceil((float)(a_length + b_length) / (float)local_size);
     int active_threads = ceil((float)(a_length + b_length) / (float)delta);
-    
+
     int offset = delta * local_id;
-    
+
+    int a_start, a_stop, b_start, b_stop;
+
     if (!local_id)
     {
         s_a_border[active_threads] = a_length;
         s_b_border[active_threads] = b_length;
     }
-    
+
     if (local_id < active_threads)
     {
-        s_a_border[local_id] = mergepath_partition_global_liu(s_a_key, a_length, s_b_key, b_length, offset);
-        s_b_border[local_id] = y_pos(s_a_border[local_id], b_length, offset);
+        s_a_border[local_id] = a_start = mergepath_partition_global_liu(s_a_key, a_length, s_b_key, b_length, offset);
+        s_b_border[local_id] = b_start = y_pos(s_a_border[local_id], b_length, offset);
     }
-    
+
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+
     if (local_id < active_threads)
     {
-        mergepath_serialmerge_global_liu(&s_a_key[s_a_border[local_id]],
-                                  &s_a_val[s_a_border[local_id]],
-                                  s_a_border[local_id+1] - s_a_border[local_id],
-                                  &s_b_key[s_b_border[local_id]],
-                                  &s_b_val[s_b_border[local_id]],
-                                  s_b_border[local_id+1] - s_b_border[local_id],
+        a_stop = s_a_border[local_id+1];
+        b_stop = s_b_border[local_id+1];
+    }
+
+    if (local_id < active_threads)
+    {
+        mergepath_serialmerge_global_liu(&s_a_key[a_start],
+                                  &s_a_val[a_start],
+                                  a_stop - a_start,
+                                  &s_b_key[b_start],
+                                  &s_b_val[b_start],
+                                  b_stop - b_start,
                                   reg_key, reg_val);
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+
     if (local_id < active_threads)
     {
-        for (int is = 0; is < (s_a_border[local_id+1] - s_a_border[local_id]) + (s_b_border[local_id+1] - s_b_border[local_id]); is++)
+        for (int is = 0; is < (a_stop - a_start) + (b_stop - b_start); is++)
         {
             s_a_key[offset + is] = reg_key[is];
             s_a_val[offset + is] = reg_val[is];
@@ -556,6 +586,7 @@ void mergepath_global_liu(__global int          *s_a_key,
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 }
+
 
 inline
 void mergepath_global_2level_liu(__global int          *s_a_key,
@@ -595,10 +626,20 @@ void mergepath_global_2level_liu(__global int          *s_a_key,
         b_border_2level_l = i == 0 ? 0 : b_border_2level_r; //y_pos(a_border_2level_l, b_length, offset_2level);
 
         int offset_2level_next = delta_2level * (i + 1);
-        a_border_2level_r = i == (loop_2level - 1) ? a_length : mergepath_partition_global_liu(s_a_key, a_length, s_b_key, b_length, offset_2level_next);
-        b_border_2level_r = i == (loop_2level - 1) ? b_length : y_pos(a_border_2level_r, b_length, offset_2level_next);
 
-        barrier(CLK_GLOBAL_MEM_FENCE);
+        if (i == (loop_2level - 1)){
+            a_border_2level_r = a_length;
+            b_border_2level_r = b_length;
+        }
+        else
+        {
+           s_a_border[local_id] = a_border_2level_r = local_id < 64 ? mergepath_partition_global_liu(s_a_key, a_length, s_b_key, b_length, offset_2level_next) : 0;
+           barrier(CLK_LOCAL_MEM_FENCE);
+           a_border_2level_r = local_id < 64 ? a_border_2level_r : s_a_border[local_id % 64];
+           b_border_2level_r = y_pos(a_border_2level_r, b_length, offset_2level_next);
+        }
+
+        //barrier(CLK_GLOBAL_MEM_FENCE);
 
         // load entries in the borders
         int a_size = a_border_2level_r - a_border_2level_l;
