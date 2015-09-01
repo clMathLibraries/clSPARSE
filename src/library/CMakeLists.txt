@@ -102,8 +102,6 @@ set( clSPARSE.source.transform
   transform/clsparse-csr2dense.cpp
   transform/clsparse-coo2csr.cpp
   transform/clsparse-csr2coo.cpp
-  transform/scan.cpp
-  transform/reduce-by-key.cpp
   transform/sort-by-key.cpp
   transform/clsparse-dense2csr.cpp
 )

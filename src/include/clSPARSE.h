@@ -360,41 +360,6 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
         const cldenseVector* y,
         const clsparseControl control );
 
-    // functions for tests of scan transformation, as simple as possible
-    // it will be used mostly internally.
-    // exclusive = 1 - exclusive scan
-    // exclusive = 0 - inclusive scan;
-    CLSPARSE_EXPORT clsparseStatus
-    clsparseIscan(cldenseVector* r,
-                        const cldenseVector* x,
-                        int exclusive,
-                        const clsparseControl control);
-    CLSPARSE_EXPORT clsparseStatus
-    clsparseSscan(cldenseVector* r,
-                        const cldenseVector* x,
-                        int exclusive,
-                        const clsparseControl control);
-    CLSPARSE_EXPORT clsparseStatus
-    clsparseDscan(cldenseVector* r,
-                        const cldenseVector* x,
-                        int exclusive,
-                        const clsparseControl control);
-
-    // functions for testing reduce by key transformation
-    CLSPARSE_EXPORT clsparseStatus
-    clsparseSreduceByKey(cldenseVector* keys_out,
-                         cldenseVector* vals_out,
-                         const cldenseVector* keys_in,
-                         const cldenseVector* vals_in,
-                         const clsparseControl control);
-
-    CLSPARSE_EXPORT clsparseStatus
-    clsparseDreduceByKey(cldenseVector* keys_out,
-                         cldenseVector* vals_out,
-                         const cldenseVector* keys_in,
-                         const cldenseVector* vals_in,
-                         const clsparseControl control);
-
     // BLAS 2 routines
     // SpM-dV
     // y = \alpha * A * x + \beta * y

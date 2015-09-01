@@ -66,8 +66,6 @@ set( TESTS_CPP
   test-solvers
   test-conversion
   test-clsparse-utils
-  test-scan
-  test-reduce-by-key
 )
 
 set( TESTS_C
