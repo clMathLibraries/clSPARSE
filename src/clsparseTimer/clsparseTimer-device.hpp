@@ -30,7 +30,7 @@
 #endif
 
 /**
- * \file clsparseTimer.device.hpp
+ * \file clsparseTimer-device.hpp
  * \brief A timer class that provides a cross platform timer for use
  * in timing code progress with a high degree of accuracy.
  *	This class is implemented entirely in the header, to facilitate inclusion into multiple

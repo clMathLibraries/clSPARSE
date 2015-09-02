@@ -14,6 +14,11 @@
  * limitations under the License.
  * ************************************************************************ */
 
+/*! \file
+* \brief Simple demonstration code for how to execute an iterative CG solver with
+* clSPARSE
+*/
+
 #include <iostream>
 #include <vector>
 
@@ -25,9 +30,9 @@
 
 #include <clSPARSE.h>
 
-/**
- * Sample Conjugate Gradients Solver (CG C++)
- * Solves equation A * x = b
+/*!
+ * \brief Sample Conjugate Gradients Solver (CG C++)
+ * \details Solves equation A * x = b
  *
  * A - [m x n] matrix in CSR format
  * x - dense vector of n elements (unknowns)
@@ -43,7 +48,8 @@
  * For more theoretical details check
  * http://www.cs.cmu.edu/~./quake-papers/painless-conjugate-gradient.pdf
  *
- * */
+ *
+ */
 
 int main (int argc, char* argv[])
 {

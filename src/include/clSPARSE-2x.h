@@ -1,12 +1,12 @@
 /* ************************************************************************
  * Copyright 2015 Advanced Micro Devices, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,69 +14,94 @@
  * limitations under the License.
  * ************************************************************************ */
 
+ /*! \file
+ * \brief clSPARSE-2x.h defines public types specific to OpenCL 2.x API's.
+ * This file is kept as a strictly 'C' compatible interface.
+ */
+
 #pragma once
 #ifndef _CL_SPARSE_2x_H_
 #define _CL_SPARSE_2x_H_
 
 #include "clSPARSE-xx.h"
 
-// Data types used to pass OpenCL objects into the clSPARSE library
-// These are plain PoD containers; no methods defined
-// Users are responsible for creating and destroying the OpenCL objects
-// Helper functions may be provided to assist users in creating and 
-// destroying these objects
+ /*! \brief Structure to encapsulate scalar data to clSPARSE API
+ */
 typedef struct clsparseScalar_
 {
-    // OpenCL state
-    void* value;
+    void* value;  /**< OpenCL 2.0 memory pointer */
 } clsparseScalar;
 
+/*! \brief Structure to encapsulate dense vector data to clSPARSE API
+*/
 typedef struct cldenseVector_
 {
-    // Matrix meta
-    cl_int num_values;
+    cl_int num_values;  /*!< Length of dense vector */
 
-    // OpenCL state
-    void* values;
+    void* values;  /**< OpenCL 2.0 memory pointer */
 } cldenseVector;
 
+/*! \brief Structure to encapsulate sparse matrix data encoded in CSR
+* form to clSPARSE API
+* \note The indices stored are 0-based
+* \note It is the users responsibility to allocate/deallocate OpenCL buffers
+*/
 typedef struct clsparseCsrMatrix_
 {
-    // Matrix meta
-    cl_int num_rows;
-    cl_int num_cols;
-    cl_int num_nonzeros;
+    /** @name CSR matrix data */
+    /**@{*/
+    cl_int num_rows;  /*!< Number of rows this matrix has if viewed as dense */
+    cl_int num_cols;  /*!< Number of columns this matrix has if viewed as dense */
+    cl_int num_nonzeros;  /*!< Number of values in matrix that are non-zero */
+    /**@}*/
 
-    // OpenCL state
-    void* values;
-    void* colIndices;
-    void* rowOffsets;
-    void* rowBlocks;      // It is possible that this pointer may be NULL
+    /** @name OpenCL state */
+    /**@{*/
+    void* values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
+    void* colIndices;  /*!< column index for corresponding value of size num_nonzeros */
+    void* rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
+    void* rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
+    /**@}*/
 
-    size_t rowBlockSize;
+    size_t rowBlockSize;  /*!< Size of array used by the rowBlocks pointer */
 } clsparseCsrMatrix;
 
+/*! \brief Structure to encapsulate sparse matrix data encoded in COO
+* form to clSPARSE API
+* \note The indices stored are 0-based
+* \note It is the users responsibility to allocate/deallocate OpenCL buffers
+*/
 typedef struct clsparseCooMatrix_
 {
-    // Matrix meta
-    cl_int num_rows;
-    cl_int num_cols;
-    cl_int num_nonzeros;
+    /** @name COO matrix data */
+    /**@{*/
+    cl_int num_rows;  /*!< Number of rows this matrix has if viewed as dense */
+    cl_int num_cols;  /*!< Number of columns this matrix has if viewed as dense */
+    cl_int num_nonzeros;  /*!< Number of values in matrix that are non-zero */
+    /**@}*/
 
-    // OpenCL state
-    void* values;
-    void* colIndices;
-    void* rowIndices;
+    /** @name OpenCL state */
+    /**@{*/
+    void* values;  /*!< CSR non-zero values of size num_nonzeros */
+    void* colIndices;  /*!< column index for corresponding element; array size num_nonzeros */
+    void* rowIndices;  /*!< row index for corresponding element; array size num_nonzeros */
+    /**@}*/
 } clsparseCooMatrix;
 
+/*! \brief Structure to encapsulate dense matrix data to clSPARSE API
+* \note It is the users responsibility to allocate/deallocate OpenCL buffers
+*/
 typedef struct cldenseMatrix_
 {
-    size_t num_rows;
-    size_t num_cols;
-    size_t lead_dim;
-    cldenseMajor major;
+    /** @name Dense matrix data */
+    /**@{*/
+    size_t num_rows;  /*!< Number of rows */
+    size_t num_cols;  /*!< Number of columns */
+    size_t lead_dim;  /*! Stride to the next row or column, in units of elements */
+    cldenseMajor major;  /*! Memory layout for dense matrix */
+    /**@}*/
 
-    void* values;
+    void* values;  /*!< Array of matrix values */
 
 } cldenseMatrix;
 

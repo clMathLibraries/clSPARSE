@@ -1,12 +1,12 @@
 /* ************************************************************************
  * Copyright 2015 Advanced Micro Devices, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,12 +14,14 @@
  * limitations under the License.
  * ************************************************************************ */
 
-/* ************************************************************************
-* Copyright 2015 Advanced Micro Devices, Inc.
-* ************************************************************************/
+/*! \file
+ * \brief defines 'C' compatible macros and inline functions
+ * to help pretty print error messages from clSPARSE library
+ */
+
 #pragma once
-#ifndef __CLSPARSE_ERROR_H__
-#define __CLSPARSE_ERROR_H__
+#ifndef _CLSPARSE_ERROR_H_
+#define _CLSPARSE_ERROR_H_
 
 #if defined(__APPLE__) || defined(__MACOSX)
 #   include <OpenCL/cl.h>
@@ -36,6 +38,10 @@
 #define inline __inline
 #endif
 
+/*! \brief Inline function to return a const char* for an enum value.
+ * \details Each case label corresponds with an enum value that may be returned
+ * from a clSPARSE API.
+ */
 inline const char*
 stringifyStatus( const cl_int status )
 {
@@ -141,11 +147,9 @@ stringifyStatus( const cl_int status )
     }
 }
 
-// This is used to either wrap an OpenCL function call, or to
-// explicitly check a variable for an OpenCL error condition.
-// If an error occurs, we throw.
-// Note: std::runtime_error does not take unicode strings as input, so
-// only strings supported
+/*! \brief Inline function that wraps around a case statement.  If built in
+ * release mode, this function does nothing except flow through
+ */
 inline cl_int
 clSPARSE_V( cl_int res, const char* msg, const char* file, size_t lineno )
 {
@@ -168,6 +172,9 @@ clSPARSE_V( cl_int res, const char* msg, const char* file, size_t lineno )
     return res;
 }
 
+/*! \brief Debug macro provided to users to check the return code of clSPARSE API calculates
+ * and print messages to CONSOLE for debug builds only
+ */
 #define CLSPARSE_V( _status, _message ) clSPARSE_V( _status, _message, __FILE__, __LINE__ )
 
 #endif

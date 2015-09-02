@@ -19,6 +19,10 @@
 
 #include <clSPARSE.h>
 
+/*! \file
+* \brief Simple demonstration code for calculating Norm1 from within 'C' host code
+*/
+
 /**
  * Sample Reduce (C)
  * Program presents use of clSPARSE library in Norm1  (|x|_L1) operation
