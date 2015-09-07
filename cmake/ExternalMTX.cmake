@@ -19,6 +19,7 @@ message( STATUS "Downloading MTX sparse Matrix Market files..." )
 option( DOWNLOAD_MTX_BELL_GARLAND "Sparse matrix files used in Bell-Garlands paper" OFF )
 option( DOWNLOAD_MTX_LARGE "MTX files where majority of time is in kernel" OFF )
 option( DOWNLOAD_MTX_SMALL "MTX files less than 4GB in dense format" OFF )
+option( DOWNLOAD_MTX_SPGEMM "MTX files used in Weifeng Paper for benchmarking SpGEMM" OFF )
 
 # Emulate a mapping data structure in CMake
 macro( MAP_ENTRY K V )
@@ -179,4 +180,53 @@ set( MTX_Small_path ${PROJECT_BINARY_DIR}/Externals/MTX/Small )
 
 if( DOWNLOAD_MTX_SMALL )
   MTX_process_files( MTX_Small_files MTX_Small_path )
+endif( )
+
+##### SPGEMM Square MTX sparse data #####
+set( MTX_SPGEMM_BENCH_files
+  Williams/cant.tar.gz  
+  Williams/mac_econ_fwd500.tar.gz
+  Williams/mc2depi.tar.gz
+  Williams/cop20k_A.tar.gz
+  Williams/webbase-1M.tar.gz
+  Boeing/pwtk.tar.gz
+  DNVS/shipsec1.tar.gz
+  Hamm/scircuit.tar.gz  
+  Oberwolfach/filter3D.tar.gz
+  Um/2cubes_sphere.tar.gz
+  vanHeukelum/cage12.tar.gz
+  GHS_psdef/hood.tar.gz
+  JGD_Homology/m133-b3.tar.gz
+  QLi/majorbasis.tar.gz
+  GHS_indef/mario002.tar.gz
+  FreeFieldTechnologies/mono_500Hz.tar.gz
+  Um/offshore.tar.gz
+  Pajek/patents_main.tar.gz
+  FEMLAB/poisson3Da.tar.gz  
+)
+
+MAP_ENTRY( "Oberwolfach/filter3D.tar.gz" "fdbfaa0edb11e799f67870ebf16adfb0" )
+MAP_ENTRY( "Um/2cubes_sphere.tar.gz" "797e984d97d0057c9b88a3e4dd9af139" )
+MAP_ENTRY( "Williams/cant.tar.gz" "a5360391e462640583e59a7b36fa216c" )
+MAP_ENTRY( "Boeing/pwtk.tar.gz" "51617ea77ac8212ca3bf5c1eb041061b" )
+MAP_ENTRY( "vanHeukelum/cage12.tar.gz" "a899a0c48b9a58d081c52ffd88a84955" )
+MAP_ENTRY( "DNVS/shipsec1.tar.gz" "73372e7d6a0848f8b19d64a924fab73e" )
+MAP_ENTRY( "Williams/mac_econ_fwd500.tar.gz" "f1b0e56fbb75d1d6862874e3d7d33060" )
+MAP_ENTRY( "Williams/mc2depi.tar.gz" "8c8633eada6455c1784269b213c85ea6" )
+MAP_ENTRY( "Williams/cop20k_A.tar.gz" "beb2302025bbfae6fd1f5604957ffe52" )
+MAP_ENTRY( "Hamm/scircuit.tar.gz" "3e62f7ea83914f7e20019aefb2a5176f" )
+MAP_ENTRY( "Williams/webbase-1M.tar.gz" "2d4c239daad6f12d66a1e6a2af44cbdb" )
+MAP_ENTRY( "GHS_psdef/hood.tar.gz" "6279700b7d44b44fd630c079b31eee46" )
+MAP_ENTRY( "JGD_Homology/m133-b3.tar.gz" "29c5595e95c1f2476ada6fb397f0e2c9" )
+MAP_ENTRY( "QLi/majorbasis.tar.gz" "81a89740c4cd77052af9df5edaae2d1c" )
+MAP_ENTRY( "GHS_indef/mario002.tar.gz" "6cc995b3c4ec92cddaf9706ef2ac7457" )
+MAP_ENTRY( "FreeFieldTechnologies/mono_500Hz.tar.gz" "082f48c8d5af68c67ba229685691d09e" )
+MAP_ENTRY( "Um/offshore.tar.gz" "bac8efa0265bf9bd19d287677c2f455e" )
+MAP_ENTRY( "Pajek/patents_main.tar.gz" "bacaaa14de4398c981ba749665459324" )
+MAP_ENTRY( "FEMLAB/poisson3Da.tar.gz" "1eaf7aaf38385287505fe1d504f8a716" )
+
+set( SPGEMM_BENCH_MTX_path ${PROJECT_BINARY_DIR}/Externals/MTX/SpGemmData )
+
+if( DOWNLOAD_MTX_SPGEMM )
+  MTX_process_files( MTX_SPGEMM_BENCH_files SPGEMM_BENCH_MTX_path )
 endif( )
