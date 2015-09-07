@@ -334,9 +334,9 @@ TYPED_TEST(TestCSRSpGeMM, square)
         {
             ASSERT_EQ(0, this->C.value_data()[i]);
         }
-    }        
+    }
 
-}//end
+}//end TestCSRSpGeMM: square
 
 
 
