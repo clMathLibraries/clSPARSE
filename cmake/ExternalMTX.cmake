@@ -199,31 +199,29 @@ set( MTX_SPGEMM_BENCH_files
   JGD_Homology/m133-b3.tar.gz
   QLi/majorbasis.tar.gz
   GHS_indef/mario002.tar.gz
-  FreeFieldTechnologies/mono_500Hz.tar.gz
   Um/offshore.tar.gz
   Pajek/patents_main.tar.gz
   FEMLAB/poisson3Da.tar.gz  
 )
 
-MAP_ENTRY( "Oberwolfach/filter3D.tar.gz" "fdbfaa0edb11e799f67870ebf16adfb0" )
-MAP_ENTRY( "Um/2cubes_sphere.tar.gz" "797e984d97d0057c9b88a3e4dd9af139" )
+MAP_ENTRY( "Oberwolfach/filter3D.tar.gz" "7711518ed944ace91be385379ab329d6" )
+MAP_ENTRY( "Um/2cubes_sphere.tar.gz" "754df75667ef998582a0496df617f669" )
 MAP_ENTRY( "Williams/cant.tar.gz" "a5360391e462640583e59a7b36fa216c" )
 MAP_ENTRY( "Boeing/pwtk.tar.gz" "51617ea77ac8212ca3bf5c1eb041061b" )
-MAP_ENTRY( "vanHeukelum/cage12.tar.gz" "a899a0c48b9a58d081c52ffd88a84955" )
+MAP_ENTRY( "vanHeukelum/cage12.tar.gz" "845b88a6f304d0fa9b990e7602a25bcc" )
 MAP_ENTRY( "DNVS/shipsec1.tar.gz" "73372e7d6a0848f8b19d64a924fab73e" )
 MAP_ENTRY( "Williams/mac_econ_fwd500.tar.gz" "f1b0e56fbb75d1d6862874e3d7d33060" )
 MAP_ENTRY( "Williams/mc2depi.tar.gz" "8c8633eada6455c1784269b213c85ea6" )
 MAP_ENTRY( "Williams/cop20k_A.tar.gz" "beb2302025bbfae6fd1f5604957ffe52" )
 MAP_ENTRY( "Hamm/scircuit.tar.gz" "3e62f7ea83914f7e20019aefb2a5176f" )
 MAP_ENTRY( "Williams/webbase-1M.tar.gz" "2d4c239daad6f12d66a1e6a2af44cbdb" )
-MAP_ENTRY( "GHS_psdef/hood.tar.gz" "6279700b7d44b44fd630c079b31eee46" )
-MAP_ENTRY( "JGD_Homology/m133-b3.tar.gz" "29c5595e95c1f2476ada6fb397f0e2c9" )
-MAP_ENTRY( "QLi/majorbasis.tar.gz" "81a89740c4cd77052af9df5edaae2d1c" )
-MAP_ENTRY( "GHS_indef/mario002.tar.gz" "6cc995b3c4ec92cddaf9706ef2ac7457" )
-MAP_ENTRY( "FreeFieldTechnologies/mono_500Hz.tar.gz" "082f48c8d5af68c67ba229685691d09e" )
-MAP_ENTRY( "Um/offshore.tar.gz" "bac8efa0265bf9bd19d287677c2f455e" )
-MAP_ENTRY( "Pajek/patents_main.tar.gz" "bacaaa14de4398c981ba749665459324" )
-MAP_ENTRY( "FEMLAB/poisson3Da.tar.gz" "1eaf7aaf38385287505fe1d504f8a716" )
+MAP_ENTRY( "GHS_psdef/hood.tar.gz" "a88f673a6db10396188c26cfa20a20c4" )
+MAP_ENTRY( "JGD_Homology/m133-b3.tar.gz" "e2d3e32057598212f2ff0cfa6cb79dc6" )
+MAP_ENTRY( "QLi/majorbasis.tar.gz" "3f5d8f793dc7a9a154d360242ea59ba2" )
+MAP_ENTRY( "GHS_indef/mario002.tar.gz" "f30b3b246a343aadadf85e2f57258b5f" )
+MAP_ENTRY( "Um/offshore.tar.gz" "d175ea29a0ce7a35100f453126b1b357" )
+MAP_ENTRY( "Pajek/patents_main.tar.gz" "93eb3adebfb9052f5015598f59291920" )
+MAP_ENTRY( "FEMLAB/poisson3Da.tar.gz" "e37b9dd446d0374291359fe6589e3ffb" )
 
 set( SPGEMM_BENCH_MTX_path ${PROJECT_BINARY_DIR}/Externals/MTX/SpGemmData )
 
