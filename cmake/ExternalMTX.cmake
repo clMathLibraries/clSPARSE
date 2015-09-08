@@ -184,12 +184,15 @@ endif( )
 
 ##### SPGEMM Square MTX sparse data #####
 set( MTX_SPGEMM_BENCH_files
+  Williams/pdb1HYS.tar.gz  
+  Williams/consph.tar.gz
   Williams/cant.tar.gz  
   Williams/mac_econ_fwd500.tar.gz
   Williams/mc2depi.tar.gz
   Williams/cop20k_A.tar.gz
   Williams/webbase-1M.tar.gz
   Boeing/pwtk.tar.gz
+  Bova/rma10.tar.gz
   DNVS/shipsec1.tar.gz
   Hamm/scircuit.tar.gz  
   Oberwolfach/filter3D.tar.gz
@@ -204,10 +207,13 @@ set( MTX_SPGEMM_BENCH_files
   FEMLAB/poisson3Da.tar.gz  
 )
 
+MAP_ENTRY( "Williams/pdb1HYS.tar.gz" "fdbfaa0edb11e799f67870ebf16adfb0" )
+MAP_ENTRY( "Williams/consph.tar.gz" "797e984d97d0057c9b88a3e4dd9af139" )
 MAP_ENTRY( "Oberwolfach/filter3D.tar.gz" "7711518ed944ace91be385379ab329d6" )
 MAP_ENTRY( "Um/2cubes_sphere.tar.gz" "754df75667ef998582a0496df617f669" )
 MAP_ENTRY( "Williams/cant.tar.gz" "a5360391e462640583e59a7b36fa216c" )
 MAP_ENTRY( "Boeing/pwtk.tar.gz" "51617ea77ac8212ca3bf5c1eb041061b" )
+MAP_ENTRY( "Bova/rma10.tar.gz" "a899a0c48b9a58d081c52ffd88a84955" )
 MAP_ENTRY( "vanHeukelum/cage12.tar.gz" "845b88a6f304d0fa9b990e7602a25bcc" )
 MAP_ENTRY( "DNVS/shipsec1.tar.gz" "73372e7d6a0848f8b19d64a924fab73e" )
 MAP_ENTRY( "Williams/mac_econ_fwd500.tar.gz" "f1b0e56fbb75d1d6862874e3d7d33060" )
