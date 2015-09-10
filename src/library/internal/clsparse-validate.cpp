@@ -64,7 +64,7 @@ validateMemObject( cl_mem mem, size_t required_size)
         size_t current_size;
         clGetMemObjectInfo(mem, CL_MEM_SIZE,
                             sizeof(current_size), &current_size, NULL);
-        if(current_size != required_size)
+        if(current_size < required_size)
             return clsparseInvalidSize;
 #ifndef NDEBUG
      printf("Mem size: %lu\n", current_size);
