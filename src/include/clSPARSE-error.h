@@ -41,8 +41,10 @@
 /*! \brief Inline function to return a const char* for an enum value.
  * \details Each case label corresponds with an enum value that may be returned
  * from a clSPARSE API.
+ * \note Proper decleration of function in header is 'static inline' for C99 compatibility
+ * \sa http://clang.llvm.org/compatibility.html#inline
  */
-inline const char*
+static inline const char*
 stringifyStatus( const cl_int status )
 {
     switch( status )
@@ -149,8 +151,10 @@ stringifyStatus( const cl_int status )
 
 /*! \brief Inline function that wraps around a case statement.  If built in
  * release mode, this function does nothing except flow through
+ * \note Proper decleration of function in header is 'static inline' for C99 compatibility
+ * \sa http://clang.llvm.org/compatibility.html#inline
  */
-inline cl_int
+static inline cl_int
 clSPARSE_V( cl_int res, const char* msg, const char* file, size_t lineno )
 {
     switch( res )

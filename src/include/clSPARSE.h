@@ -137,7 +137,7 @@ extern "C" {
     /*!
     * \defgroup INIT Routines to initialize a clsparse object
     *
-    * \brief Clear a clsparse data structure
+    * \brief Initialize a clsparse data structure to default values
     */
     /**@{*/
 
