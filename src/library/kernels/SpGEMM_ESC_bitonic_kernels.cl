@@ -1,5 +1,25 @@
 R"(
-
+/* ************************************************************************
+* The MIT License (MIT)
+* Copyright 2014-2015 weifengliu
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+ 
+*  The above copyright notice and this permission notice shall be included in
+*  all copies or substantial portions of the Software.
+ 
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*  THE SOFTWARE.
+* ************************************************************************ */
 //////////////////////////////////////////////////////////////////////////
 // < A CUDA/OpenCL General Sparse Matrix-Matrix Multiplication Program >
 //
@@ -250,6 +270,10 @@ void scan_512(__local volatile short *s_scan)
     barrier(CLK_LOCAL_MEM_FENCE);
     ai = baseai - 1;   bi = basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;
 }
+
+)"
+
+R"(
 
 inline
 void compression_scan(__local volatile short *s_scan,
