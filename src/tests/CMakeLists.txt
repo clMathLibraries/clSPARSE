@@ -76,14 +76,17 @@ set( TESTS_C
 set( src
   resources/csr_matrix_environment.cpp
   resources/opencl_utils.cpp
+  resources/sparse_matrix_environment.cpp
 )
 
 set( headers
   resources/opencl_utils.h
   resources/clsparse_environment.h
   resources/matrix_utils.h
+  resources/sparse_matrix_environment.h
   resources/csr_matrix_environment.h
   resources/blas1_environment.h
+  resources/sparse_matrix_fill.hpp
   #resources/uBLAS-linalg/ublas_pcg.hpp
   #resources/uBLAS-linalg/precond.hpp
   #resources/uBLAS-linalg/cholesky.hpp

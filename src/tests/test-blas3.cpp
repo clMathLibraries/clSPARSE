@@ -22,9 +22,12 @@
 #include <vector>
 #include <string>
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "resources/clsparse_environment.h"
 #include "resources/csr_matrix_environment.h"
+#include "resources/sparse_matrix_environment.h"
+#include "resources/sparse_matrix_fill.hpp"
 #include "resources/matrix_utils.h"
 
 //boost ublas
@@ -37,10 +40,14 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/operation_sparse.hpp>
 
+//#define _DEBUG_SpMxSpM_ 1 // For debugging where errors are occuring
+const float SPGEMM_PREC_ERROR = 0.2f;
+const float SPGEMM_REL_ERROR = 0.001f;
 
 clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
+
 
 namespace po = boost::program_options;
 namespace uBLAS = boost::numeric::ublas;
@@ -48,6 +55,407 @@ namespace uBLAS = boost::numeric::ublas;
 //number of columns in dense B matrix;
 cl_int B_num_cols;
 cl_double B_values;
+
+template<typename T>
+clsparseStatus generateSpGemmResult(clsparseCsrMatrix& sparseMatC)
+{
+    using SPER = CSRSparseEnvironment;
+    using CLSE = ClSparseEnvironment;
+
+    if (typeid(T) == typeid(float))
+    {
+        return clsparseScsrSpGemm(&SPER::csrSMatrix, &SPER::csrSMatrix, &sparseMatC, CLSE::control);
+    }
+    /*
+    else if (typeid(T) == typeid(double))
+    {
+        return clsparseDcsrSpGemm(SPER::csrSMatrix, SPER::csrSMatrix, sparseMatC, CLSE::control);
+    }*/
+
+    return clsparseSuccess;
+}// end
+
+#ifdef TEST_LONG
+    template<typename T>
+    clsparseStatus generateSpGemmResult_long(clsparseCsrMatrix& sparseMatC)
+    {
+       using SPER = CSRSparseEnvironment;
+       using CLSE = ClSparseEnvironment;
+
+       if (typeid(T) == typeid(float))
+       {
+          return clsparseScsrSpGemm(&SPER::csrSMatrixA, &SPER::csrSMatrixB, &sparseMatC, CLSE::control);
+       }
+    /*
+    else if (typeid(T) == typeid(double))
+    {
+        return clsparseDcsrSpGemm(SPER::csrSMatrix, SPER::csrSMatrix, sparseMatC, CLSE::control);
+    }*/
+
+    return clsparseSuccess;
+}// end
+
+#endif
+
+template <typename T>
+class TestCSRSpGeMM : public ::testing::Test {
+
+    using SPER = CSRSparseEnvironment;
+    using CLSE = ClSparseEnvironment;
+
+public:
+    void SetUp()
+    {
+        clsparseInitCsrMatrix(&csrMatrixC);
+    }
+
+    void TearDown()
+    {
+        ::clReleaseMemObject(csrMatrixC.values);
+        ::clReleaseMemObject(csrMatrixC.colIndices);
+        ::clReleaseMemObject(csrMatrixC.rowOffsets);
+
+        clsparseInitCsrMatrix(&csrMatrixC);
+    }// end
+    
+    void checkRowOffsets(std::vector<int>& amdRowPtr)
+    {
+        for (int i = 0; i < amdRowPtr.size(); i++)
+        {
+            //ASSERT_EQ(amdRowPtr[i], this->C.index1_data()[i]);
+            //EXPECT_EQ(amdRowPtr[i], this->C.index1_data()[i]);
+            if (amdRowPtr[i] != this->C.index1_data()[i])
+            {
+                this->browOffsetsMisFlag = true;
+                break;
+            }
+        }
+    }// end
+
+    void checkInDense(std::vector<int>& amdRowPtr, std::vector<int>& amdColIndices, std::vector<T>& amdVals)
+    {
+        uBLAS::mapped_matrix<T> sparseDense(csrMatrixC.num_rows, csrMatrixC.num_cols, 0);
+        uBLAS::mapped_matrix<T> boostDense(csrMatrixC.num_rows, csrMatrixC.num_cols, 0);
+
+        // boost sparse_prod cancels out zeros and hence reports more accurately non-zeros
+        // In clSPARSE, spGeMM produces more non-zeros, and considers some zeros as nonzeros.
+        // Therefore converting to dense and verifying the output in  dense format
+        // Convert CSR to Dense
+
+        for (int i = 0; i < amdRowPtr.size() - 1; i++)
+        {
+            // i corresponds to row index
+            for (int j = amdRowPtr[i]; j < amdRowPtr[i + 1]; j++)
+                sparseDense(i, amdColIndices[j]) = amdVals[j];
+        }
+
+        for (int i = 0; i < this->C.index1_data().size() - 1; i++)
+        {
+            for (int j = this->C.index1_data()[i]; j < this->C.index1_data()[i + 1]; j++)
+                boostDense(i, this->C.index2_data()[j]) = this->C.value_data()[j];
+        }
+
+        bool brelativeErrorFlag = false;
+        bool babsErrorFlag = false;
+        
+        for (int i = 0; i < csrMatrixC.num_rows; i++)
+        {
+            for (int j = 0; j < csrMatrixC.num_cols; j++)
+            {
+                //ASSERT_EQ(boostDense(i, j), sparseDense(i, j));
+#ifdef _DEBUG_SpMxSpM_
+                ASSERT_NEAR(boostDense(i, j), sparseDense(i, j), SPGEMM_PREC_ERROR);
+#else
+                if (fabs(boostDense(i, j) - sparseDense(i, j)) > SPGEMM_PREC_ERROR)
+                {
+                    babsErrorFlag = true;
+                    SCOPED_TRACE("Absolute Error Fail");
+                    break;
+                }
+#endif
+            }
+        }
+        // Relative Error
+        for (int i = 0; i < csrMatrixC.num_rows; i++)
+        {
+            for (int j = 0; j < csrMatrixC.num_cols; j++)
+            {
+                float diff  = fabs(boostDense(i, j) - sparseDense(i, j));
+                float ratio = diff / boostDense(i, j);
+#ifdef _DEBUG_SpMxSpM_
+                // ratio is less than or almost equal to SPGEMM_REL_ERROR
+                EXPECT_PRED_FORMAT2(::testing::FloatLE, ratio, SPGEMM_REL_ERROR);
+#else
+                if (diff / boostDense(i, j) > SPGEMM_REL_ERROR)
+                {
+                    brelativeErrorFlag = true;
+                    SCOPED_TRACE("Relative Error Fail");
+                    break;
+                }
+#endif
+            }
+        }//
+#ifndef _DEBUG_SpMxSpM_
+        if (brelativeErrorFlag)
+        {
+            ASSERT_FALSE(babsErrorFlag);
+        }
+
+        if (babsErrorFlag)
+        {
+            ASSERT_FALSE(brelativeErrorFlag);
+        }
+#endif
+    }// end
+
+    typedef typename uBLAS::compressed_matrix<T, uBLAS::row_major, 0, uBLAS::unbounded_array<size_t> > uBlasCSRM;
+
+    uBlasCSRM C;
+    bool browOffsetsMisFlag;
+    clsparseCsrMatrix csrMatrixC;
+}; // End of class TestCSRSpGeMM
+
+//typedef ::testing::Types<float, double> SPGEMMTYPES;
+typedef ::testing::Types<float> SPGEMMTYPES;
+TYPED_TEST_CASE(TestCSRSpGeMM, SPGEMMTYPES);
+
+// C = A * A; // Square matrices are only supported
+TYPED_TEST(TestCSRSpGeMM, square)
+{
+    using SPER = CSRSparseEnvironment;
+    using CLSE = ClSparseEnvironment;
+    typedef typename uBLAS::compressed_matrix<float, uBLAS::row_major, 0, uBLAS::unbounded_array<int> > uBlasCSRM;
+ 
+    cl::Event event;
+    clsparseEnableAsync(CLSE::control, true);
+
+#ifdef TEST_LONG
+    clsparseStatus status = generateSpGemmResult_long<TypeParam>(this->csrMatrixC);
+#else
+    clsparseStatus status = generateSpGemmResult<TypeParam>(this->csrMatrixC);
+#endif
+
+    EXPECT_EQ(clsparseSuccess, status);
+
+    status = clsparseGetEvent(CLSE::control, &event());
+    EXPECT_EQ(clsparseSuccess, status);
+    event.wait();
+
+    //std::cout << "nrows =" << (this->csrMatrixC).num_rows << std::endl;
+    //std::cout << "nnz =" << (this->csrMatrixC).num_nonzeros << std::endl;
+
+    std::vector<int> resultRowPtr((this->csrMatrixC).num_rows + 1); // Get row ptr of Output CSR matrix
+    std::vector<int> resultColIndices((this->csrMatrixC).num_nonzeros); // Col Indices
+    std::vector<TypeParam> resultVals((this->csrMatrixC).num_nonzeros); // Values
+
+    this->C = uBlasCSRM((this->csrMatrixC).num_rows, (this->csrMatrixC).num_cols, (this->csrMatrixC).num_nonzeros);
+    (this->C).complete_index1_data();
+
+    cl_int cl_status = clEnqueueReadBuffer(CLSE::queue,
+        this->csrMatrixC.values, CL_TRUE, 0,
+        (this->csrMatrixC).num_nonzeros *sizeof(TypeParam),
+        resultVals.data(), 0, NULL, NULL);
+    
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+    
+    cl_status = clEnqueueReadBuffer(CLSE::queue,
+        this->csrMatrixC.colIndices, CL_TRUE, 0,
+        (this->csrMatrixC).num_nonzeros * sizeof(int), resultColIndices.data(), 0, NULL, NULL);
+    
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+    
+    cl_status = clEnqueueReadBuffer(CLSE::queue,
+        this->csrMatrixC.rowOffsets, CL_TRUE, 0,
+        ((this->csrMatrixC).num_rows + 1)  * sizeof(int), resultRowPtr.data(), 0, NULL, NULL);
+
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+    std::cout << "Done with GPU" << std::endl;
+
+#ifdef TEST_LONG 
+    // Generate referencee result from ublas
+    if (typeid(TypeParam) == typeid(float))
+    {
+        this->C = uBLAS::sparse_prod(SPER::ublasSCsrA, SPER::ublasSCsrB, this->C);
+    }
+#else
+    if (typeid(TypeParam) == typeid(float))
+    {
+        this->C = uBLAS::sparse_prod(SPER::ublasSCsr, SPER::ublasSCsr, this->C);
+    }
+
+#endif
+    
+    /*
+    if (typeid(TypeParam) == typeid(double))
+    {
+        this->C = uBLAS::sparse_prod(SPER::ublasDCsr, SPER::ublasDCsr, this->C);;
+    }*/
+
+    /*
+    for (int i = 0; i < resultRowPtr.size(); i++)
+    {
+        ASSERT_EQ(resultRowPtr[i], this->C.index1_data()[i]);
+    }*/
+    this->browOffsetsMisFlag = false;
+   this->checkRowOffsets(resultRowPtr);
+   //if (::testing::Test::HasFailure())
+   if (this->browOffsetsMisFlag == true)
+    {
+        // Check the values in Dense format
+        this->checkInDense(resultRowPtr, resultColIndices, resultVals);
+    }
+    else
+    {
+        /* Check Col Indices */
+        for (int i = 0; i < resultColIndices.size(); i++)
+        {
+            ASSERT_EQ(resultColIndices[i], this->C.index2_data()[i]);
+        }
+
+        /* Check Values */
+        for (int i = 0; i < resultVals.size(); i++)
+        {
+            //TODO: how to define the tolerance 
+            ASSERT_NEAR(resultVals[i], this->C.value_data()[i], 0.1);
+        }
+
+        ASSERT_EQ(resultRowPtr.size(), this->C.index1_data().size());
+
+        //Rest of the col_indices should be zero
+        for (size_t i = resultColIndices.size(); i < this->C.index2_data().size(); i++)
+        {
+            ASSERT_EQ(0, this->C.index2_data()[i]);
+        }
+
+        // Rest of the values should be zero
+        for (size_t i = resultVals.size(); i < this->C.value_data().size(); i++)
+        {
+            ASSERT_EQ(0, this->C.value_data()[i]);
+        }
+    }
+
+}//end TestCSRSpGeMM: square
+
+
+// C = A * A; // A is filled with random powers of 2
+TYPED_TEST(TestCSRSpGeMM, Powersof2)
+{
+    using SPER = CSRSparseEnvironment;
+    using CLSE = ClSparseEnvironment;
+    typedef typename uBLAS::compressed_matrix<float, uBLAS::row_major, 0, uBLAS::unbounded_array<int> > uBlasCSRM;
+
+    cl::Event event;
+    clsparseEnableAsync(CLSE::control, true);
+
+    clsparse_matrix_fill<float> objFillVals(42, -14, 14);
+
+    std::vector<float> tmpArray;
+    tmpArray.resize(SPER::csrSMatrix.num_nonzeros);
+
+    objFillVals.fillMtxTwoPowers(tmpArray.data(), tmpArray.size());
+    //objFillVals.fillMtxOnes(tmpArray.data(), tmpArray.size());
+
+    // Fill ublas scr with the same matrix values
+    for (size_t i = 0; i < tmpArray.size(); i++)
+    {
+        SPER::ublasSCsr.value_data()[i] = tmpArray[i];
+    }
+    
+    // Copy host to the device
+    cl_int cl_status = clEnqueueWriteBuffer(CLSE::queue, SPER::csrSMatrix.values, TRUE, 0, sizeof(float)* tmpArray.size(),
+                                                 tmpArray.data(), 0, nullptr, nullptr);
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+    tmpArray.clear();
+
+    clsparseStatus status = generateSpGemmResult<TypeParam>(this->csrMatrixC);
+
+    EXPECT_EQ(clsparseSuccess, status);
+
+    status = clsparseGetEvent(CLSE::control, &event());
+    EXPECT_EQ(clsparseSuccess, status);
+    event.wait();
+
+
+    std::vector<int> resultRowPtr((this->csrMatrixC).num_rows + 1); // Get row ptr of Output CSR matrix
+    std::vector<int> resultColIndices((this->csrMatrixC).num_nonzeros); // Col Indices
+    std::vector<TypeParam> resultVals((this->csrMatrixC).num_nonzeros); // Values
+
+    this->C = uBlasCSRM((this->csrMatrixC).num_rows, (this->csrMatrixC).num_cols, (this->csrMatrixC).num_nonzeros);
+    (this->C).complete_index1_data();
+
+    cl_status = clEnqueueReadBuffer(CLSE::queue,
+        this->csrMatrixC.values, CL_TRUE, 0,
+        (this->csrMatrixC).num_nonzeros *sizeof(TypeParam),
+        resultVals.data(), 0, NULL, NULL);
+
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+
+    cl_status = clEnqueueReadBuffer(CLSE::queue,
+        this->csrMatrixC.colIndices, CL_TRUE, 0,
+        (this->csrMatrixC).num_nonzeros * sizeof(int), resultColIndices.data(), 0, NULL, NULL);
+
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+
+    cl_status = clEnqueueReadBuffer(CLSE::queue,
+        this->csrMatrixC.rowOffsets, CL_TRUE, 0,
+        ((this->csrMatrixC).num_rows + 1)  * sizeof(int), resultRowPtr.data(), 0, NULL, NULL);
+
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+    std::cout << "Done with GPU" << std::endl;
+
+    if (typeid(TypeParam) == typeid(float))
+    {
+        this->C = uBLAS::sparse_prod(SPER::ublasSCsr, SPER::ublasSCsr, this->C);
+    }
+
+    this->browOffsetsMisFlag = false;
+    this->checkRowOffsets(resultRowPtr);
+    //if (::testing::Test::HasFailure())
+    if (this->browOffsetsMisFlag == true)
+    {
+        // Check the values in Dense format
+        this->checkInDense(resultRowPtr, resultColIndices, resultVals);
+    }
+    else
+    {
+        /* Check Col Indices */
+        for (int i = 0; i < resultColIndices.size(); i++)
+        {
+            ASSERT_EQ(resultColIndices[i], this->C.index2_data()[i]);
+        }
+
+        /* Check Values */
+        for (int i = 0; i < resultVals.size(); i++)
+        {
+            //TODO: how to define the tolerance 
+            ASSERT_NEAR(resultVals[i], this->C.value_data()[i], 0.0);
+        }
+
+        ASSERT_EQ(resultRowPtr.size(), this->C.index1_data().size());
+
+        //Rest of the col_indices should be zero
+        for (size_t i = resultColIndices.size(); i < this->C.index2_data().size(); i++)
+        {
+            ASSERT_EQ(0, this->C.index2_data()[i]);
+        }
+
+        // Rest of the values should be zero
+        for (size_t i = resultVals.size(); i < this->C.value_data().size(); i++)
+        {
+            ASSERT_EQ(0, this->C.value_data()[i]);
+        }
+    }
+
+}//end TestCSRSpGeMM: Powersof2
+
+
+
 
 
 
@@ -230,9 +638,11 @@ int main (int argc, char* argv[])
 {
     using CLSE = ClSparseEnvironment;
     using CSRE = CSREnvironment;
+    using SPER = CSRSparseEnvironment;
     //pass path to matrix as an argument, We can switch to boost po later
 
     std::string path;
+    std::string function;
     double alpha;
     double beta;
     std::string platform;
@@ -244,6 +654,7 @@ int main (int argc, char* argv[])
     desc.add_options()
             ("help,h", "Produce this message.")
             ("path,p", po::value(&path)->required(), "Path to matrix in mtx format.")
+            ("function,f", po::value<std::string>(&function)->default_value("SpMdM"), "Sparse functions to test. Options: SpMdM, SpMSpM, All")
             ("platform,l", po::value(&platform)->default_value("AMD"),
              "OpenCL platform: AMD or NVIDIA.")
             ("device,d", po::value(&dID)->default_value(0),
@@ -290,20 +701,52 @@ int main (int argc, char* argv[])
         }
         else
         {
-
             std::cout << "The platform option is missing or is ill defined!\n";
             std::cout << "Given [" << platform << "]" << std::endl;
             platform = "AMD";
             pID = AMD;
             std::cout << "Setting [" << platform << "] as default" << std::endl;
         }
-
     }
 
-    ::testing::InitGoogleTest(&argc, argv);
-    //order does matter!
-    ::testing::AddGlobalTestEnvironment( new CLSE(pID, dID));
-    ::testing::AddGlobalTestEnvironment( new CSRE(path, alpha, beta,
-                                                  CLSE::queue, CLSE::context));
+    if (boost::iequals(function, "SpMdM"))
+    {
+        std::cout << "SpMdM Testing \n";
+        ::testing::GTEST_FLAG(filter) = "*TestCSRMM*" ;
+        //::testing::GTEST_FLAG(list_tests) = true;
+
+        ::testing::InitGoogleTest(&argc, argv);
+        //order does matter!
+        ::testing::AddGlobalTestEnvironment(new CLSE(pID, dID));
+        ::testing::AddGlobalTestEnvironment(new CSRE(path, alpha, beta,
+            CLSE::queue, CLSE::context));
+
+    }
+    else if (boost::iequals(function, "SpMSpM"))
+    {
+        std::cout << "SpMSpM Testing \n";
+        ::testing::GTEST_FLAG(filter) = "*TestCSRSpGeMM*" ;
+        //::testing::GTEST_FLAG(list_tests) = true;
+        
+        ::testing::InitGoogleTest(&argc, argv);
+
+        ::testing::AddGlobalTestEnvironment(new CLSE(pID, dID));
+        ::testing::AddGlobalTestEnvironment(new SPER(path, CLSE::queue, CLSE::context));
+    }
+    else if (boost::iequals(function, "All"))
+    {
+        ::testing::InitGoogleTest(&argc, argv);
+        //order does matter!
+        ::testing::AddGlobalTestEnvironment(new CLSE(pID, dID));
+        ::testing::AddGlobalTestEnvironment(new CSRE(path, alpha, beta,
+            CLSE::queue, CLSE::context));
+        ::testing::AddGlobalTestEnvironment(new SPER(path, CLSE::queue, CLSE::context));
+    }
+    else
+    {
+        std::cerr << " unknown Level3 function" << std::endl;
+        return -1;
+    }
+    
     return RUN_ALL_TESTS();
-}
+}// end
