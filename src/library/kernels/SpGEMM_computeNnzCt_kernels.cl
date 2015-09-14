@@ -20,6 +20,19 @@ R"(
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 *  THE SOFTWARE.
 * ************************************************************************ */
+/* ************************************************************************
+*  < A CUDA/OpenCL General Sparse Matrix-Matrix Multiplication Program >
+*  
+*  < See papers:
+*  1. Weifeng Liu and Brian Vinter, "A Framework for General Sparse 
+*      Matrix-Matrix Multiplication on GPUs and Heterogeneous 
+*      Processors," Journal of Parallel and Distributed Computing, 2015.
+*  2. Weifeng Liu and Brian Vinter, "An Efficient GPU General Sparse
+*      Matrix-Matrix Multiplication for Irregular Data," Parallel and
+*      Distributed Processing Symposium, 2014 IEEE 28th International
+*      (IPDPS '14), pp.370-381, 19-23 May 2014.
+*  for details. >
+* ************************************************************************ */ 
 
 #define GROUPSIZE_256 256
 
