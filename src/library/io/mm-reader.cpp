@@ -43,7 +43,6 @@ to copyright protection within the United States.
 
 #include "include/clSPARSE-private.hpp"
 #include "include/external/mmio.h"
-#include "clSPARSE.hpp"
 #include "internal/clsparse-control.hpp"
 #include "internal/data-types/csr-meta.hpp"
 #include "internal/clsparse-validate.hpp"

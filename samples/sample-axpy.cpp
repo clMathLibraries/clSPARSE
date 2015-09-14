@@ -14,6 +14,11 @@
  * limitations under the License.
  * ************************************************************************ */
 
+/*! \file
+ * \brief Simple demonstration code for how to execute an Axpy operation with
+ * clSPARSE
+ */
+
 #include <iostream>
 #include <vector>
 
@@ -25,9 +30,9 @@
 
 #include <clSPARSE.h>
 
-/**
- * Sample AXPY (C++)
- * Program presents use of clSPARSE library in AXPY (y = alpha * x + y) operation
+/*!
+ * \brief Sample AXPY (C++)
+ * \details Program presents use of clSPARSE library in AXPY (y = alpha * x + y) operation
  * by completing following steps:
  * 1. Setup OpenCL environment
  * 2. Setup GPU buffers
@@ -35,7 +40,7 @@
  * 4. Execute algorithm cldenseSaxpy
  * 5. Shutdown clSPARSE library & OpenCL
  *
- * UNIX Hint: Before allocating more than 3GB of VRAM define GPU_FORCE_64BIT_PTR=1
+ * \note UNIX Hint: Before allocating more than 3GB of VRAM define GPU_FORCE_64BIT_PTR=1
  * in your system environment to enable 64bit addresing;
  */
 

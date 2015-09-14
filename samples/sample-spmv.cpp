@@ -14,6 +14,11 @@
  * limitations under the License.
  * ************************************************************************ */
 
+ /*! \file
+ * \brief Simple demonstration code for how to calculate a SpM-dV (Sparse matrix
+ * times dense Vector) multiply
+ */
+
 #include <iostream>
 #include <vector>
 
@@ -26,8 +31,8 @@
 #include <clSPARSE.h>
 
 /**
- * Sample Sparse Matrix dense Vector multiplication (SPMV C++)
- *  [y = alpha * A*x + beta * y]
+ * \brief Sample Sparse Matrix dense Vector multiplication (SPMV C++)
+ *  \details [y = alpha * A*x + beta * y]
  *
  * A - [m x n] matrix in CSR format
  * x - dense vector of n elements
