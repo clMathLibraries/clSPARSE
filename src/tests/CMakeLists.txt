@@ -86,6 +86,7 @@ set( headers
   resources/sparse_matrix_environment.h
   resources/csr_matrix_environment.h
   resources/blas1_environment.h
+  resources/sparse_matrix_fill.hpp
   #resources/uBLAS-linalg/ublas_pcg.hpp
   #resources/uBLAS-linalg/precond.hpp
   #resources/uBLAS-linalg/cholesky.hpp
