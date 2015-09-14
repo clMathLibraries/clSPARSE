@@ -27,6 +27,7 @@
 #include "resources/clsparse_environment.h"
 #include "resources/csr_matrix_environment.h"
 #include "resources/sparse_matrix_environment.h"
+#include "resources/sparse_matrix_fill.hpp"
 #include "resources/matrix_utils.h"
 
 //boost ublas
@@ -40,8 +41,8 @@
 #include <boost/numeric/ublas/operation_sparse.hpp>
 
 //#define _DEBUG_SpMxSpM_ 1 // For debugging where errors are occuring
-const float SPGEMM_PREC_ERROR = 0.2;
-const float SPGEMM_REL_ERROR = 0.001;
+const float SPGEMM_PREC_ERROR = 0.2f;
+const float SPGEMM_REL_ERROR = 0.001f;
 
 clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
@@ -337,6 +338,124 @@ TYPED_TEST(TestCSRSpGeMM, square)
     }
 
 }//end TestCSRSpGeMM: square
+
+
+// C = A * A; // A is filled with random powers of 2
+TYPED_TEST(TestCSRSpGeMM, Powersof2)
+{
+    using SPER = CSRSparseEnvironment;
+    using CLSE = ClSparseEnvironment;
+    typedef typename uBLAS::compressed_matrix<float, uBLAS::row_major, 0, uBLAS::unbounded_array<int> > uBlasCSRM;
+
+    cl::Event event;
+    clsparseEnableAsync(CLSE::control, true);
+
+    clsparse_matrix_fill<float> objFillVals(42, -14, 14);
+
+    std::vector<float> tmpArray;
+    tmpArray.resize(SPER::csrSMatrix.num_nonzeros);
+
+    objFillVals.fillMtxTwoPowers(tmpArray.data(), tmpArray.size());
+    //objFillVals.fillMtxOnes(tmpArray.data(), tmpArray.size());
+
+    // Fill ublas scr with the same matrix values
+    for (size_t i = 0; i < tmpArray.size(); i++)
+    {
+        SPER::ublasSCsr.value_data()[i] = tmpArray[i];
+    }
+    
+    // Copy host to the device
+    cl_int cl_status = clEnqueueWriteBuffer(CLSE::queue, SPER::csrSMatrix.values, TRUE, 0, sizeof(float)* tmpArray.size(),
+                                                 tmpArray.data(), 0, nullptr, nullptr);
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+    tmpArray.clear();
+
+    clsparseStatus status = generateSpGemmResult<TypeParam>(this->csrMatrixC);
+
+    EXPECT_EQ(clsparseSuccess, status);
+
+    status = clsparseGetEvent(CLSE::control, &event());
+    EXPECT_EQ(clsparseSuccess, status);
+    event.wait();
+
+
+    std::vector<int> resultRowPtr((this->csrMatrixC).num_rows + 1); // Get row ptr of Output CSR matrix
+    std::vector<int> resultColIndices((this->csrMatrixC).num_nonzeros); // Col Indices
+    std::vector<TypeParam> resultVals((this->csrMatrixC).num_nonzeros); // Values
+
+    this->C = uBlasCSRM((this->csrMatrixC).num_rows, (this->csrMatrixC).num_cols, (this->csrMatrixC).num_nonzeros);
+    (this->C).complete_index1_data();
+
+    cl_status = clEnqueueReadBuffer(CLSE::queue,
+        this->csrMatrixC.values, CL_TRUE, 0,
+        (this->csrMatrixC).num_nonzeros *sizeof(TypeParam),
+        resultVals.data(), 0, NULL, NULL);
+
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+
+    cl_status = clEnqueueReadBuffer(CLSE::queue,
+        this->csrMatrixC.colIndices, CL_TRUE, 0,
+        (this->csrMatrixC).num_nonzeros * sizeof(int), resultColIndices.data(), 0, NULL, NULL);
+
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+
+    cl_status = clEnqueueReadBuffer(CLSE::queue,
+        this->csrMatrixC.rowOffsets, CL_TRUE, 0,
+        ((this->csrMatrixC).num_rows + 1)  * sizeof(int), resultRowPtr.data(), 0, NULL, NULL);
+
+    EXPECT_EQ(CL_SUCCESS, cl_status);
+
+    std::cout << "Done with GPU" << std::endl;
+
+    if (typeid(TypeParam) == typeid(float))
+    {
+        this->C = uBLAS::sparse_prod(SPER::ublasSCsr, SPER::ublasSCsr, this->C);
+    }
+
+    this->browOffsetsMisFlag = false;
+    this->checkRowOffsets(resultRowPtr);
+    //if (::testing::Test::HasFailure())
+    if (this->browOffsetsMisFlag == true)
+    {
+        // Check the values in Dense format
+        this->checkInDense(resultRowPtr, resultColIndices, resultVals);
+    }
+    else
+    {
+        /* Check Col Indices */
+        for (int i = 0; i < resultColIndices.size(); i++)
+        {
+            ASSERT_EQ(resultColIndices[i], this->C.index2_data()[i]);
+        }
+
+        /* Check Values */
+        for (int i = 0; i < resultVals.size(); i++)
+        {
+            //TODO: how to define the tolerance 
+            ASSERT_NEAR(resultVals[i], this->C.value_data()[i], 0.0);
+        }
+
+        ASSERT_EQ(resultRowPtr.size(), this->C.index1_data().size());
+
+        //Rest of the col_indices should be zero
+        for (size_t i = resultColIndices.size(); i < this->C.index2_data().size(); i++)
+        {
+            ASSERT_EQ(0, this->C.index2_data()[i]);
+        }
+
+        // Rest of the values should be zero
+        for (size_t i = resultVals.size(); i < this->C.value_data().size(); i++)
+        {
+            ASSERT_EQ(0, this->C.value_data()[i]);
+        }
+    }
+
+}//end TestCSRSpGeMM: Powersof2
+
+
+
 
 
 

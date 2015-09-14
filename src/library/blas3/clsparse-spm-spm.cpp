@@ -708,7 +708,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
 
 }
  
- 
+
  CLSPARSE_EXPORT clsparseStatus
         clsparseScsrSpGemm( 
         const clsparseCsrMatrix* sparseMatA,
@@ -717,7 +717,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
         const clsparseControl control )
 {
     cl_int run_status;
-    
+
     if (!clsparseInitialized)
     {
        return clsparseNotInitialized;
@@ -727,11 +727,11 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     {
        return clsparseInvalidControlObject;
     }
-    
+
     const clsparseCsrMatrixPrivate* matA = static_cast<const clsparseCsrMatrixPrivate*>(sparseMatA);
-    const clsparseCsrMatrixPrivate* matB = static_cast<const clsparseCsrMatrixPrivate*>(sparseMatB);	
+    const clsparseCsrMatrixPrivate* matB = static_cast<const clsparseCsrMatrixPrivate*>(sparseMatB);
     clsparseCsrMatrixPrivate* matC = static_cast<clsparseCsrMatrixPrivate*>(sparseMatC);
-  
+
     int m  = matA->num_rows;
     int k1 = matA->num_cols;
     int k2 = matB->num_rows;
@@ -790,7 +790,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     CHECKMAL(queue_one, "queue_one");
     memset(queue_one, 0, TUPLE_QUEUE * m * sizeof(int));
     
-    cl_mem queue_one_d = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, TUPLE_QUEUE * m * sizeof(int), NULL, &run_status );	   
+    cl_mem queue_one_d = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, TUPLE_QUEUE * m * sizeof(int), NULL, &run_status );
         
     run_status = clEnqueueReadBuffer(control->queue(),
                                      csrRowPtrCt_d,
@@ -802,7 +802,6 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
                                      0,
                                      0);
 
-    
     // STAGE 2 - STEP 1 : statistics
     int nnzCt = statistics(csrRowPtrCt_h, counter, counter_one, counter_sum, queue_one, m);
     // STAGE 2 - STEP 2 : create Ct
@@ -834,7 +833,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
                                      0,
                                      0,
                                      0);
-    
+
     int old_val, new_val;
     old_val = csrRowPtrC_h[0];
     csrRowPtrC_h[0] = 0;
@@ -884,7 +883,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     ::clReleaseMemObject(queue_one_d);
     ::clReleaseMemObject(csrColIndCt);
     ::clReleaseMemObject(csrValCt);
-    
+
 }
 
 int statistics(int *_h_csrRowPtrCt, int *_h_counter, int *_h_counter_one, int *_h_counter_sum, int *_h_queue_one, int _m)
