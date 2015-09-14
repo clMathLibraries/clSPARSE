@@ -1,5 +1,27 @@
+/* ************************************************************************
+* The MIT License (MIT)
+* Copyright 2014-2015 weifengliu
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the "Software"), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+
+*  The above copyright notice and this permission notice shall be included in
+*  all copies or substantial portions of the Software.
+
+*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*  THE SOFTWARE.
+* ************************************************************************ */
+
 //////////////////////////////////////////////////////////////////////////
-// < A CUDA/OpenCL General Sparse Matrix-Matrix Multiplication Program >
+// < A OpenCL General Sparse Matrix-Matrix Multiplication Program >
 //
 // < See paper:
 // Weifeng Liu and Brian Vinter, "An Efficient GPU General Sparse
@@ -41,14 +63,14 @@ using namespace std;
 int statistics(int *_h_csrRowPtrCt, int *_h_counter, int *_h_counter_one, int *_h_counter_sum, int *_h_queue_one, int _m);
 
 clsparseStatus compute_nnzCt(int _m, cl_mem csrRowPtrA, cl_mem csrColIndA, cl_mem csrRowPtrB, cl_mem csrColIndB, cl_mem csrRowPtrCt, clsparseControl control){
-	
+    
      const std::string params = std::string() +
                "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type;
-	
-	
-    cl::Kernel kernel = KernelCache::get(control->queue,"computeNnzCt_kernels", "compute_nnzCt_kernel", params);
-	
+    
+    
+    cl::Kernel kernel = KernelCache::get(control->queue,"SpGEMM_computeNnzCt_kernels", "compute_nnzCt_kernel", params);
+    
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
 
@@ -61,7 +83,7 @@ clsparseStatus compute_nnzCt(int _m, cl_mem csrRowPtrA, cl_mem csrColIndA, cl_me
     KernelWrap kWrapper(kernel);
 
     kWrapper << csrRowPtrA << csrColIndA << csrRowPtrB << csrRowPtrCt << _m;
-	
+    
     cl::NDRange local(szLocalWorkSize[0]);
     cl::NDRange global(szGlobalWorkSize[0]);
 
@@ -71,9 +93,9 @@ clsparseStatus compute_nnzCt(int _m, cl_mem csrRowPtrA, cl_mem csrColIndA, cl_me
     {
         return clsparseInvalidKernelExecution;
     }
-	
-	return clsparseSuccess;
-	
+    
+    return clsparseSuccess;
+    
  }
  
 
@@ -83,16 +105,16 @@ clsparseStatus compute_nnzC_Ct_0(int num_threads, int num_blocks, int j, int cou
     const std::string params = std::string() +
                "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type;
-	
-	
-    cl::Kernel kernel = KernelCache::get(control->queue,"ESC_0_1_kernels", "ESC_0", params);
+    
+    
+    cl::Kernel kernel = KernelCache::get(control->queue,"SpGEMM_ESC_0_1_kernels", "ESC_0", params);
 
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
 
     szLocalWorkSize[0]  = num_threads;
     szGlobalWorkSize[0] = num_blocks * szLocalWorkSize[0];
-	
+    
     KernelWrap kWrapper(kernel);
     kWrapper << queue_one << csrRowPtrC << counter << position;
 
@@ -100,14 +122,14 @@ clsparseStatus compute_nnzC_Ct_0(int num_threads, int num_blocks, int j, int cou
     cl::NDRange global(szGlobalWorkSize[0]);
 
     cl_int status = kWrapper.run(control, global, local);
-	
+    
     if (status != CL_SUCCESS)
     {
         return clsparseInvalidKernelExecution;
     }
-	
+    
     return clsparseSuccess;
-	
+    
 }
 
 clsparseStatus compute_nnzC_Ct_1(int num_threads, int num_blocks, int j, int counter, int position, cl_mem queue_one, 
@@ -117,9 +139,9 @@ clsparseStatus compute_nnzC_Ct_1(int num_threads, int num_blocks, int j, int cou
     const std::string params = std::string() +
                "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type;
-	
-	
-    cl::Kernel kernel = KernelCache::get(control->queue,"ESC_0_1_kernels", "ESC_1", params);
+    
+    
+    cl::Kernel kernel = KernelCache::get(control->queue,"SpGEMM_ESC_0_1_kernels", "ESC_1", params);
 
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
@@ -135,20 +157,20 @@ clsparseStatus compute_nnzC_Ct_1(int num_threads, int num_blocks, int j, int cou
     cl::NDRange global(szGlobalWorkSize[0]);
 
     cl_int status = kWrapper.run(control, global, local);
-	
+    
     if (status != CL_SUCCESS)
     {
         return clsparseInvalidKernelExecution;
     }
 
     return clsparseSuccess;
-	
+    
 }
 
 clsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local(int num_threads, int num_blocks, int j, int counter, int position, 
                                              cl_mem queue_one, cl_mem csrRowPtrA, cl_mem csrColIndA, cl_mem csrValA, 
-											 cl_mem csrRowPtrB, cl_mem csrColIndB, cl_mem csrValB, cl_mem csrRowPtrC, 
-											 cl_mem csrRowPtrCt, cl_mem csrColIndCt, cl_mem csrValCt, clsparseControl control)
+                                             cl_mem csrRowPtrB, cl_mem csrColIndB, cl_mem csrValB, cl_mem csrRowPtrC, 
+                                             cl_mem csrRowPtrCt, cl_mem csrColIndCt, cl_mem csrValCt, clsparseControl control)
 {
     const std::string params = std::string() +
                "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
@@ -156,7 +178,7 @@ clsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local(int num_threads, int num
 
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
-	
+    
     cl::Kernel kernel = KernelCache::get(control->queue,"SpGEMM_ESC_2heap_kernels", "ESC_2heap_noncoalesced_local", params);
 
     szLocalWorkSize[0]  = num_threads;
@@ -165,12 +187,12 @@ clsparseStatus compute_nnzC_Ct_2heap_noncoalesced_local(int num_threads, int num
     KernelWrap kWrapper(kernel);
     kWrapper << queue_one << csrRowPtrA << csrColIndA << csrValA << csrRowPtrB << csrColIndB << csrValB << csrRowPtrC 
              << csrRowPtrCt << csrColIndCt << csrValCt << cl::__local(j*num_threads * sizeof(int) ) << cl::__local(j*num_threads * sizeof(float)) << counter << position;
-	
+    
     cl::NDRange local(szLocalWorkSize[0]);
     cl::NDRange global(szGlobalWorkSize[0]);
 
     cl_int status = kWrapper.run(control, global, local);
-	
+    
     if (status != CL_SUCCESS)
     {
         return clsparseInvalidKernelExecution;
@@ -190,10 +212,10 @@ clsparseStatus compute_nnzC_Ct_bitonic_scan(int num_threads, int num_blocks, int
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type;
 
     cl::Kernel kernel = KernelCache::get(control->queue,"SpGEMM_ESC_bitonic_kernels", "ESC_bitonic_scan", params);
-	
+    
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
-	
+    
     szLocalWorkSize[0]  = num_threads;
     szGlobalWorkSize[0] = num_blocks * szLocalWorkSize[0];
 
@@ -201,25 +223,25 @@ clsparseStatus compute_nnzC_Ct_bitonic_scan(int num_threads, int num_blocks, int
 
     KernelWrap kWrapper(kernel);
     kWrapper << queue_one << csrRowPtrA << csrColIndA << csrValA << csrRowPtrB << csrColIndB << csrValB << csrRowPtrC << csrRowPtrCt
-	                      << csrColIndCt << csrValCt << cl::__local(buffer_size * sizeof(int)) << cl::__local(buffer_size * sizeof(float)) << cl::__local((buffer_size+1) * sizeof(short)) << position << _n;
-	
+                          << csrColIndCt << csrValCt << cl::__local(buffer_size * sizeof(int)) << cl::__local(buffer_size * sizeof(float)) << cl::__local((buffer_size+1) * sizeof(short)) << position << _n;
+    
     cl::NDRange local(szLocalWorkSize[0]);
     cl::NDRange global(szGlobalWorkSize[0]);
 
     cl_int status = kWrapper.run(control, global, local);
-	
+    
     if (status != CL_SUCCESS)
     {
         return clsparseInvalidKernelExecution;
     }
-	
-	return clsparseSuccess;
+    
+    return clsparseSuccess;
 
 }
 
 clsparseStatus compute_nnzC_Ct_mergepath(int num_threads, int num_blocks, int j, int mergebuffer_size, int position, int *count_next, int mergepath_location, 
                                          cl_mem queue_one, cl_mem csrRowPtrA, cl_mem csrColIndA, cl_mem csrValA, cl_mem csrRowPtrB, cl_mem csrColIndB, cl_mem csrValB, 
-										 cl_mem csrRowPtrC, cl_mem csrRowPtrCt, cl_mem *csrColIndCt, cl_mem *csrValCt, int *_nnzCt, int m, int *_h_queue_one, clsparseControl control)
+                                         cl_mem csrRowPtrC, cl_mem csrRowPtrCt, cl_mem *csrColIndCt, cl_mem *csrValCt, int *_nnzCt, int m, int *_h_queue_one, clsparseControl control)
 {
     const std::string params = std::string() +
                "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
@@ -227,13 +249,13 @@ clsparseStatus compute_nnzC_Ct_mergepath(int num_threads, int num_blocks, int j,
 
     cl::Kernel kernel1  = KernelCache::get(control->queue,"SpGEMM_EM_kernels", "EM_mergepath", params);
     cl::Kernel kernel2  = KernelCache::get(control->queue,"SpGEMM_EM_kernels", "EM_mergepath_global", params);
-	
+    
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
-	
+    
     szLocalWorkSize[0]  = num_threads;
     szGlobalWorkSize[0] = num_blocks * szLocalWorkSize[0];
-	
+    
     cl::NDRange local(szLocalWorkSize[0]);
     cl::NDRange global(szGlobalWorkSize[0]);
 
@@ -245,26 +267,26 @@ clsparseStatus compute_nnzC_Ct_mergepath(int num_threads, int num_blocks, int j,
        kWrapper1 << queue_one << csrRowPtrA << csrColIndA << csrValA << csrRowPtrB << csrColIndB <<  csrValB << csrRowPtrC 
                 << csrRowPtrCt <<  *csrColIndCt <<  *csrValCt << cl::__local((mergebuffer_size) * sizeof(int)) << cl::__local((mergebuffer_size) * sizeof(float)) <<  cl::__local((num_threads+1) * sizeof(short)) <<  position << mergebuffer_size << cl::__local(sizeof(cl_int)   * (num_threads + 1)) << cl::__local(sizeof(cl_int)   * (num_threads + 1));
 
-						   
+                           
     status = kWrapper1.run(control, global, local);
-	
+    
        if (status != CL_SUCCESS)
        {
           return clsparseInvalidKernelExecution;
        }
-	
+    
     }
     else if (mergepath_location == MERGEPATH_GLOBAL)
     {
        int mergebuffer_size_local = 2304;
-	
+    
        KernelWrap kWrapper2(kernel2);
        kWrapper2 << queue_one << csrRowPtrA << csrColIndA << csrValA << csrRowPtrB << csrColIndB << csrValB << csrRowPtrC
                           << csrRowPtrCt << *csrColIndCt <<  *csrValCt << cl::__local((mergebuffer_size_local) * sizeof(int)) << cl::__local((mergebuffer_size_local) * sizeof(float)) << cl::__local(( num_threads+1) * sizeof(short)) << position << mergebuffer_size_local << cl::__local(sizeof(cl_int)   * (num_threads + 1)) << cl::__local(sizeof(cl_int)   * (num_threads + 1));
 
-	
+    
        status = kWrapper2.run(control, global, local);
-	
+    
        if (status != CL_SUCCESS)
        {
          return clsparseInvalidKernelExecution;
@@ -386,8 +408,8 @@ clsparseStatus compute_nnzC_Ct_mergepath(int num_threads, int num_blocks, int j,
         //cout << endl << "    ==> nnzCt_new = " << nnzCt_new << endl;
 
         cl::Context cxt = control->getContext();
-	
-	cl_mem  csrColIndCt_new = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzCt_new * sizeof( cl_int ), NULL, NULL );
+    
+    cl_mem  csrColIndCt_new = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzCt_new * sizeof( cl_int ), NULL, NULL );
         cl_mem  csrValCt_new    = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzCt_new * sizeof( cl_float ), NULL, NULL );
 
         clEnqueueCopyBuffer (	control->queue(),
@@ -399,8 +421,8 @@ clsparseStatus compute_nnzC_Ct_mergepath(int num_threads, int num_blocks, int j,
                                 0,
                                 NULL,
                                 NULL);
-		
-	clEnqueueCopyBuffer (	control->queue(),
+        
+    clEnqueueCopyBuffer (	control->queue(),
                                *csrValCt,
                                 csrValCt_new,
                                 0,
@@ -409,8 +431,8 @@ clsparseStatus compute_nnzC_Ct_mergepath(int num_threads, int num_blocks, int j,
                                 0,
                                 NULL,
                                 NULL);
-		
-	clReleaseMemObject (*csrColIndCt);
+        
+    clReleaseMemObject (*csrColIndCt);
         clReleaseMemObject (*csrValCt);
 
         *csrColIndCt = csrColIndCt_new;
@@ -426,16 +448,16 @@ clsparseStatus compute_nnzC_Ct_mergepath(int num_threads, int num_blocks, int j,
     {
         return clsparseInvalidKernelExecution;
     }
-	
+    
     return clsparseSuccess;
-	
+    
 }
  
 clsparseStatus compute_nnzC_Ct_opencl(int *_h_counter_one, cl_mem queue_one, cl_mem csrRowPtrA, cl_mem csrColIndA, cl_mem csrValA, cl_mem csrRowPtrB, cl_mem csrColIndB, cl_mem csrValB, cl_mem csrRowPtrC, cl_mem csrRowPtrCt, cl_mem *csrColIndCt, cl_mem *csrValCt, int _n, int _nnzCt, int m, int *queue_one_h, clsparseControl control)
 {
     //int err = 0;
     int counter = 0;
-	
+    
     clsparseStatus run_status;
     
     for (int j = 0; j < NUM_SEGMENTS; j++)
@@ -528,13 +550,13 @@ clsparseStatus compute_nnzC_Ct_opencl(int *_h_counter_one, cl_mem queue_one, cl_
 
             }
       
-	    if (run_status != clsparseSuccess)
+        if (run_status != clsparseSuccess)
             {
                return clsparseInvalidKernelExecution;
             }
         }
     }
-	
+    
     return clsparseSuccess;
 
 }
@@ -549,10 +571,10 @@ clsparseStatus copy_Ct_to_C_Single(int num_threads, int num_blocks, int local_si
     const std::string params = std::string() +
                "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type;
-	
-	
-    cl::Kernel kernel = KernelCache::get(control->queue,"copyCt2C_kernels", "copyCt2C_Single", params);
-	
+    
+    
+    cl::Kernel kernel = KernelCache::get(control->queue,"SpGEMM_copyCt2C_kernels", "copyCt2C_Single", params);
+    
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
 
@@ -566,12 +588,12 @@ clsparseStatus copy_Ct_to_C_Single(int num_threads, int num_blocks, int local_si
     cl::NDRange global(szGlobalWorkSize[0]);
 
     cl_int status = kWrapper.run(control, global, local);
-	
+    
     if (status != CL_SUCCESS)
     {
         return clsparseInvalidKernelExecution;
     }
-	
+    
     return clsparseSuccess;
 }
 
@@ -581,10 +603,10 @@ clsparseStatus copy_Ct_to_C_Loopless(int num_threads, int num_blocks, int j, int
     const std::string params = std::string() +
                "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type;
-	
-	
-    cl::Kernel kernel = KernelCache::get(control->queue,"copyCt2C_kernels", "copyCt2C_Loopless", params);
-	
+    
+    
+    cl::Kernel kernel = KernelCache::get(control->queue,"SpGEMM_copyCt2C_kernels", "copyCt2C_Loopless", params);
+    
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
 
@@ -598,28 +620,28 @@ clsparseStatus copy_Ct_to_C_Loopless(int num_threads, int num_blocks, int j, int
     cl::NDRange global(szGlobalWorkSize[0]);
 
     cl_int status = kWrapper.run(control, global, local);
-	
+    
     if (status != CL_SUCCESS)
     {
         return clsparseInvalidKernelExecution;
     }
-	
+    
     return clsparseSuccess;
-	
+    
 }
 
 clsparseStatus copy_Ct_to_C_Loop(int num_threads, int num_blocks, int j, int position, 
                                  cl_mem csrValC, cl_mem csrRowPtrC, cl_mem csrColIndC, cl_mem csrValCt, 
-								 cl_mem csrRowPtrCt, cl_mem csrColIndCt, cl_mem queue_one, clsparseControl control)
+                                 cl_mem csrRowPtrCt, cl_mem csrColIndCt, cl_mem queue_one, clsparseControl control)
 {
 
     const std::string params = std::string() +
                "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type;
-	
-	
-    cl::Kernel kernel = KernelCache::get(control->queue,"copyCt2C_kernels", "copyCt2C_Loop", params);
-	
+    
+    
+    cl::Kernel kernel = KernelCache::get(control->queue,"SpGEMM_copyCt2C_kernels", "copyCt2C_Loop", params);
+    
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
 
@@ -633,20 +655,20 @@ clsparseStatus copy_Ct_to_C_Loop(int num_threads, int num_blocks, int j, int pos
     cl::NDRange global(szGlobalWorkSize[0]);
 
     cl_int status = kWrapper.run(control, global, local);
-	
+    
     if (status != CL_SUCCESS)
     {
         return clsparseInvalidKernelExecution;
     }
-	
-	return clsparseSuccess;
+    
+    return clsparseSuccess;
 }
 
 
 int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_mem csrColIndC, cl_mem csrValCt, cl_mem csrRowPtrCt, cl_mem csrColIndCt, cl_mem queue_one, clsparseControl control)
 {
     int counter = 0;
-	
+    
     clsparseStatus run_status;
 
     for (int j = 1; j < NUM_SEGMENTS; j++)
@@ -676,12 +698,12 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
                 run_status = copy_Ct_to_C_Loop( 256, counter, j, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
 
             if (run_status != CL_SUCCESS)
-			{
-				return clsparseInvalidKernelExecution;
-			}
+            {
+                return clsparseInvalidKernelExecution;
+            }
         }
     }
-	
+    
     return clsparseSuccess;
 
 }
@@ -694,9 +716,9 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
               clsparseCsrMatrix* sparseMatC,
         const clsparseControl control )
 {
-	cl_int run_status;
-	
-	if (!clsparseInitialized)
+    cl_int run_status;
+    
+    if (!clsparseInitialized)
     {
        return clsparseNotInitialized;
     }
@@ -705,7 +727,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     {
        return clsparseInvalidControlObject;
     }
-	
+    
     const clsparseCsrMatrixPrivate* matA = static_cast<const clsparseCsrMatrixPrivate*>(sparseMatA);
     const clsparseCsrMatrixPrivate* matB = static_cast<const clsparseCsrMatrixPrivate*>(sparseMatB);	
     clsparseCsrMatrixPrivate* matC = static_cast<clsparseCsrMatrixPrivate*>(sparseMatC);
@@ -716,27 +738,27 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     int n  = matB->num_cols;
     int nnzA = matA->num_nonzeros;
     int nnzB = matB->num_nonzeros;
-	
+    
     if(k1 != k2)
     {
         std::cerr << "A.n and B.m don't match!" << std::endl; 
         return clsparseInvalidKernelExecution;
     }  
-	
+    
     cl_mem csrRowPtrA = matA->rowOffsets;
     cl_mem csrColIndA = matA->colIndices;
     cl_mem csrValA    = matA->values;
     cl_mem csrRowPtrB = matB->rowOffsets;
     cl_mem csrColIndB = matB->colIndices;
     cl_mem csrValB    = matB->values;
-	
+    
     cl::Context cxt = control->getContext();
-	
+    
     matC->rowOffsets = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, (m + 1) * sizeof( cl_int ), NULL, &run_status );
-	
+    
     int pattern = 0;
     clEnqueueFillBuffer(control->queue(), matC->rowOffsets, &pattern, sizeof(cl_int), 0, (m + 1)*sizeof(cl_int), 0, NULL, NULL);
-						
+                        
     cl_mem csrRowPtrC = matC->rowOffsets;
     int *csrRowPtrC_h = (int *) malloc((m + 1) * sizeof(int));
     memset(csrRowPtrC_h, 0, (m + 1) * sizeof(int));
@@ -744,13 +766,13 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
 
     cl_mem csrRowPtrCt_d = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, (m + 1) * sizeof( cl_int ), NULL, &run_status );	   
     clEnqueueFillBuffer(control->queue(), csrRowPtrCt_d, &pattern, sizeof(cl_int), 0, (m + 1)*sizeof(cl_int), 0, NULL, NULL);
-	
+    
     int *csrRowPtrCt_h = (int *) malloc((m + 1) * sizeof(int));
     memset(csrRowPtrCt_h, 0, (m + 1) * sizeof(int));
-	
+    
     // STAGE 1
     compute_nnzCt(m, csrRowPtrA, csrColIndA, csrRowPtrB, csrColIndB, csrRowPtrCt_d, control);
-	
+    
     // statistics
     int *counter = (int *)malloc(NUM_SEGMENTS * sizeof(int));
     CHECKMAL(counter, "counter");
@@ -767,9 +789,9 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     int *queue_one = (int *) malloc(TUPLE_QUEUE * m * sizeof(int));
     CHECKMAL(queue_one, "queue_one");
     memset(queue_one, 0, TUPLE_QUEUE * m * sizeof(int));
-	
+    
     cl_mem queue_one_d = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, TUPLE_QUEUE * m * sizeof(int), NULL, &run_status );	   
-		
+        
     run_status = clEnqueueReadBuffer(control->queue(),
                                      csrRowPtrCt_d,
                                      1,
@@ -780,15 +802,15 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
                                      0,
                                      0);
 
-	
+    
     // STAGE 2 - STEP 1 : statistics
     int nnzCt = statistics(csrRowPtrCt_h, counter, counter_one, counter_sum, queue_one, m);
     // STAGE 2 - STEP 2 : create Ct
     //cout << "nnzCt == " <<  nnzCt << endl; 
-	
+    
     cl_mem csrColIndCt = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzCt * sizeof( cl_int ), NULL, &run_status );
     cl_mem csrValCt    = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzCt * sizeof( cl_float ), NULL, &run_status );
-	
+    
     //copy queue_one
     run_status = clEnqueueWriteBuffer(control->queue(),
                                      queue_one_d,
@@ -799,7 +821,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
                                      0,
                                      0,
                                      0);
-	
+    
     // STAGE 3 - STEP 1 : compute nnzC and Ct
     compute_nnzC_Ct_opencl(counter_one, queue_one_d, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt_d, &csrColIndCt, &csrValCt, n, nnzCt, m, queue_one, control);
     // STAGE 3 - STEP 2 : malloc C on devices
@@ -812,7 +834,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
                                      0,
                                      0,
                                      0);
-	
+    
     int old_val, new_val;
     old_val = csrRowPtrC_h[0];
     csrRowPtrC_h[0] = 0;
@@ -827,10 +849,10 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
 
     int nnzC = csrRowPtrC_h[m];
     //std::cout << "nnzC = " << nnzC << std::endl;
-	
+    
     matC->colIndices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_int ), NULL, &run_status );	   
     matC->values =     ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_float ), NULL, &run_status );
-	
+    
     cl_mem csrColIndC = matC->colIndices;
     cl_mem csrValC    = matC->values;
 
@@ -846,7 +868,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
 
 
     copy_Ct_to_C_opencl(counter_one, csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt_d, csrColIndCt, queue_one_d, control);
-	
+    
     matC->num_rows = m;
     matC->num_cols = n;
     matC->num_nonzeros  = nnzC;
@@ -862,7 +884,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     ::clReleaseMemObject(queue_one_d);
     ::clReleaseMemObject(csrColIndCt);
     ::clReleaseMemObject(csrValCt);
-	
+    
 }
 
 int statistics(int *_h_csrRowPtrCt, int *_h_counter, int *_h_counter_one, int *_h_counter_sum, int *_h_queue_one, int _m)
