@@ -33,6 +33,7 @@ R"(
 *      (IPDPS '14), pp.370-381, 19-23 May 2014.
 *  for details. >
 * ************************************************************************ */ 
+
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
 
@@ -272,11 +273,9 @@ void scan_512(__local volatile short *s_scan)
     barrier(CLK_LOCAL_MEM_FENCE);
     ai = baseai - 1;   bi = basebi - 1;   temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; s_scan[bi] += temp;
 }
-
 )"
 
 R"(
-
 inline
 void compression_scan(__local volatile short *s_scan,
                       __local int            *s_key,
@@ -369,11 +368,9 @@ void compression_scan(__local volatile short *s_scan,
         s_val[final_position_halfwidth] = final_value_halfwidth;
     }
 }
-
 )"
 
 R"(
-
 __kernel
 void ESC_bitonic_scan(__global const int      *d_queue,
                       __global const int      *d_csrRowPtrA,
@@ -487,5 +484,4 @@ void ESC_bitonic_scan(__global const int      *d_queue,
         d_csrValCt[global_offset] = s_val[local_id_halfwidth];
     }
 }
-
 )"

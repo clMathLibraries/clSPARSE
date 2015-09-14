@@ -13,7 +13,6 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * ************************************************************************ */
-
 #ifndef CUSPARSE_BENCHMARK_xSpMSpM_HXX__
 #define CUSPARSE_BENCHMARK_xSpMSpM_HXX__
 

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ************************************************************************ */
-
 #pragma once
 #ifndef CLSPARSE_BENCHMARK_SpM_SpM_HXX
 #define CLSPARSE_BENCHMARK_SpM_SpM_HXX

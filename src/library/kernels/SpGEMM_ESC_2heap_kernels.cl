@@ -33,7 +33,6 @@ R"(
 *      (IPDPS '14), pp.370-381, 19-23 May 2014.
 *  for details. >
 * ************************************************************************ */ 
-
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define TUPLE_QUEUE 6
@@ -241,6 +240,4 @@ void ESC_2heap_noncoalesced_local(__global const int   *d_queue,
         }
     }
 }
-
-
 )"
