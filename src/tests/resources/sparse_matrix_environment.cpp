@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /* ************************************************************************
 * Copyright 2015 Advanced Micro Devices, Inc.
 *
@@ -14,8 +13,6 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * ************************************************************************ */
-=======
->>>>>>> merged SpMSpM code
 #include "sparse_matrix_environment.h"
 
 CSRSparseEnvironment::sMatrixType CSRSparseEnvironment::ublasSCsr = CSRSparseEnvironment::sMatrixType();
