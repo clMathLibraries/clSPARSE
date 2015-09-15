@@ -365,7 +365,7 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
     }
     
     // Copy host to the device
-    cl_int cl_status = clEnqueueWriteBuffer(CLSE::queue, SPER::csrSMatrix.values, TRUE, 0, sizeof(float)* tmpArray.size(),
+    cl_int cl_status = clEnqueueWriteBuffer(CLSE::queue, SPER::csrSMatrix.values, CL_TRUE, 0, sizeof(float)* tmpArray.size(),
                                                  tmpArray.data(), 0, nullptr, nullptr);
     EXPECT_EQ(CL_SUCCESS, cl_status);
     tmpArray.clear();
