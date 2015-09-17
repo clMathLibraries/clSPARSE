@@ -264,7 +264,7 @@ inline size_t ComputeRowBlocksSize( const int* rowDelimiters, const int nRows, c
                                     const unsigned int blkMultiplier, const unsigned int rows_for_vector )
 {
     size_t rowBlockSize;
-    ComputeRowBlocks( (cl_uint*)NULL, rowBlockSize, rowDelimiters, nRows, blkSize, blkMultiplier, rows_for_vector, false );
+    ComputeRowBlocks( (cl_ulong*)NULL, rowBlockSize, rowDelimiters, nRows, blkSize, blkMultiplier, rows_for_vector, false );
     return rowBlockSize;
 }
 

@@ -36,11 +36,23 @@ axpy(clsparse::array_base<T>& pR,
 {
     const int group_size = 256; // this or higher? control->max_wg_size?
 
-    const std::string params = std::string()
+    std::string params = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string( group_size )
             + " -D" + ElementWiseOperatorTrait<OP>::operation;
+
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
 
     cl::Kernel kernel = KernelCache::get(control->queue, "blas1", "axpy",
                                          params);

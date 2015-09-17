@@ -100,12 +100,23 @@ scan(VectorType& output, const VectorType& input,
         //local mem size
         std::size_t lds = kernel0_WgSize * 2 * sizeof(T);
 
-        const std::string params = std::string()
+        std::string params = std::string()
                 + " -DSIZE_TYPE="  + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
                 + " -DWG_SIZE="    + std::to_string(kernel0_WgSize)
                 + " -D" + ElementWiseOperatorTrait<OP>::operation;
 
+        if(typeid(T) == typeid(cl_double))
+        {
+            params.append(" -DDOUBLE");
+            if (!control->dpfp_support)
+            {
+#ifndef NDEBUG
+                std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+                return clsparseInvalidDevice;
+            }
+        }
 
         cl::Kernel kernel = KernelCache::get(control->queue, "scan",
                                              "per_block_inclusive_scan", params);
@@ -142,11 +153,23 @@ scan(VectorType& output, const VectorType& input,
 
         SizeType workPerThread = sizeScanBuff / kernel1_WgSize;
 
-        const std::string params = std::string()
+        std::string params = std::string()
                 + " -DSIZE_TYPE="  + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
                 + " -DWG_SIZE="    + std::to_string(kernel1_WgSize)
                 + " -D" + ElementWiseOperatorTrait<OP>::operation;
+
+        if(typeid(T) == typeid(cl_double))
+        {
+            params.append(" -DDOUBLE");
+            if (!control->dpfp_support)
+            {
+#ifndef NDEBUG
+                std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+                return clsparseInvalidDevice;
+            }
+        }
 
         cl::Kernel kernel = KernelCache::get(control->queue, "scan",
                                              "intra_block_inclusive_scan", params);
@@ -176,12 +199,23 @@ scan(VectorType& output, const VectorType& input,
     {
         std::size_t lds = kernel0_WgSize * sizeof(T); //local mem size
 
-        const std::string params = std::string()
+        std::string params = std::string()
                 + " -DSIZE_TYPE="  + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
                 + " -DWG_SIZE="    + std::to_string(kernel1_WgSize)
                 + " -D" + ElementWiseOperatorTrait<OP>::operation;
 
+        if(typeid(T) == typeid(cl_double))
+        {
+            params.append(" -DDOUBLE");
+            if (!control->dpfp_support)
+            {
+#ifndef NDEBUG
+                std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+                return clsparseInvalidDevice;
+            }
+        }
 
         cl::Kernel kernel = KernelCache::get(control->queue, "scan",
                                              "per_block_addition", params);
