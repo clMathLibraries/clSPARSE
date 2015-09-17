@@ -186,6 +186,7 @@ public:
                 //std::cout << "\tFloat hY[" << i << "] = " << std::scientific << hY[i] << " (0x" << std::hex << *(uint32_t *)&hY[i] << "), " << std::dec;
                 //std::cout << "host_result[" << i << "] = " << std::scientific << host_result[i] << " (0x" << std::hex << *(uint32_t *)&host_result[i] << ")" << std::dec << std::endl;
             }
+#ifndef NDEBUG
             if (extended_precision)
             {
                 std::cout << "Float Min ulps: " << min_ulps << std::endl;
@@ -193,6 +194,7 @@ public:
                 std::cout << "Float Total ulps: " << total_ulps << std::endl;
                 std::cout << "Float Average ulps: " << (double)total_ulps/(double)hY.size() <<  " (Size: " << hY.size() << ")" << std::endl;
             }
+#endif
 
             for (int i = 0; i < hY.size(); i++)
             {
@@ -275,10 +277,12 @@ public:
             }
             if (extended_precision)
             {
+#ifndef NDEBUG
                 std::cout << "Double Min ulps: " << min_ulps << std::endl;
                 std::cout << "Double Max ulps: " << max_ulps << std::endl;
                 std::cout << "Double Total ulps: " << total_ulps << std::endl;
                 std::cout << "Double Average ulps: " << (double)total_ulps/(double)hY.size() <<  " (Size: " << hY.size() << ")" << std::endl;
+#endif
 
                 for (int i = 0; i < hY.size(); i++)
                 {
