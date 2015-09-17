@@ -338,6 +338,8 @@ csrmv_batched( global const FPTYPE * restrict sparseVals,
             }
         }
     }
+)"
+R"(
     else
     {
         // In CSR-Vector, we may have more than one workgroup calculating this row
