@@ -43,11 +43,18 @@ cl::Kernel KernelCache::getKernel(cl::CommandQueue& queue,
 {
     //!! ASSUMPTION: Kernel name == program name;
 #if (BUILD_CLVERSION >= 120)
-    std::string _params = " -cl-kernel-arg-info -cl-std=CL1.2 ";
+    std::string _params = " -cl-kernel-arg-info -cl-std=CL1.2";
 #else
-    std::string _params = " -cl-std=CL1.1 ";
+    std::string _params = " -cl-std=CL1.1";
 #endif
-    _params.append(params);
+    if (params.length() > 0)
+    {
+        // Ensure only one space after the -cl-std.
+        // >1 space can cause an Apple compiler bug. See clSPARSE issue #141.
+        if (params.at(0) != ' ')
+            _params.append(" ");
+        _params.append(params);
+    }
     std::string key;
     key.append( "[" + program_name + "/"  + kernel_name + "]");
     key.append(_params);

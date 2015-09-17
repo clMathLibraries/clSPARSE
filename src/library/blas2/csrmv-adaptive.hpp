@@ -42,6 +42,7 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
     + " -DINDEX_TYPE=uint"
     + " -DROWBITS=" + std::to_string( ROW_BITS )
     + " -DWGBITS=" + std::to_string( WG_BITS )
+    + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
     + " -DWG_SIZE=" + std::to_string( group_size )
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
     + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
@@ -49,19 +50,20 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
 
     std::string options;
     if(typeid(T) == typeid(cl_double))
-        options = std::string() + " -DVALUE_TYPE=double -DDOUBLE";
-    else if(typeid(T) == typeid(cl_float))
-        options = std::string() + " -DVALUE_TYPE=float";
-    else if(typeid(T) == typeid(cl_uint))
-        options = std::string() + " -DVALUE_TYPE=uint";
-    else if(typeid(T) == typeid(cl_int))
-        options = std::string() + " -DVALUE_TYPE=int";
+    {
+        options = std::string() + " -DDOUBLE";
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
     else if(typeid(T) == typeid(cl_ulong))
-        options = std::string() + " -DVALUE_TYPE=ulong -DLONG";
+        options = std::string() + " -DLONG";
     else if(typeid(T) == typeid(cl_long))
-        options = std::string() + " -DVALUE_TYPE=long -DLONG";
-    else
-        return clsparseInvalidKernelArgs;
+        options = std::string() + " -DLONG";
 
     if(control->extended_precision)
         options += " -DEXTENDED_PRECISION";
@@ -122,6 +124,7 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
     + " -DINDEX_TYPE=uint"
     + " -DROWBITS=" + std::to_string( ROW_BITS )
     + " -DWGBITS=" + std::to_string( WG_BITS )
+    + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
     + " -DWG_SIZE=" + std::to_string( group_size )
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
     + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
@@ -129,19 +132,20 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
 
     std::string options;
     if(typeid(T) == typeid(cl_double))
-        options = std::string() + " -DVALUE_TYPE=double -DDOUBLE";
-    else if(typeid(T) == typeid(cl_float))
-        options = std::string() + " -DVALUE_TYPE=float";
-    else if(typeid(T) == typeid(cl_uint))
-        options = std::string() + " -DVALUE_TYPE=uint";
-    else if(typeid(T) == typeid(cl_int))
-        options = std::string() + " -DVALUE_TYPE=int";
+    {
+        options = std::string() + " -DDOUBLE";
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
     else if(typeid(T) == typeid(cl_ulong))
-        options = std::string() + " -DVALUE_TYPE=ulong -DLONG";
+        options = std::string() + " -DLONG";
     else if(typeid(T) == typeid(cl_long))
-        options = std::string() + " -DVALUE_TYPE=long -DLONG";
-    else
-        return clsparseInvalidKernelArgs;
+        options = std::string() + " -DLONG";
 
     if(control->extended_precision)
         options += " -DEXTENDED_PRECISION";
