@@ -21,7 +21,7 @@
 clsparseStatus
 validateMemObject(clsparseScalarPrivate &scalar, size_t required_size)
 {
-#if (BUILD_CLVERSION >= 200)
+#if !defined(NDEBUG) && (BUILD_CLVERSION >= 200)
     std::cout << "Don't know how to validate SVM void* buffer" << std::endl;
     return clsparseSuccess;
 #else
@@ -32,7 +32,7 @@ validateMemObject(clsparseScalarPrivate &scalar, size_t required_size)
 clsparseStatus
 validateMemObject(cldenseVector &vector, size_t required_size)
 {
-#if (BUILD_CLVERSION >= 200)
+#if !defined(NDEBUG) && (BUILD_CLVERSION >= 200)
     std::cout << "Don't know how to validate SVM void* buffer" << std::endl;
     return clsparseSuccess;
 #else
@@ -43,18 +43,20 @@ validateMemObject(cldenseVector &vector, size_t required_size)
 clsparseStatus
 validateMemObject(void* mem, size_t required_size)
 {
+#ifndef NDEBUG
     std::cout << "validateMemObject void* buffer" << std::endl;
-
+#endif
     return clsparseSuccess;
 }
 
 clsparseStatus
 validateMemObject( cl_mem mem, size_t required_size)
 {
+#ifndef NDEBUG
     //check if valid mem object,
     cl_mem_object_type mem_type = 0;
     clGetMemObjectInfo(mem, CL_MEM_TYPE, sizeof(mem_type), &mem_type, NULL);
-    if(mem_type != CL_MEM_OBJECT_BUFFER)
+    if (mem_type != CL_MEM_OBJECT_BUFFER)
     {
         return clsparseInvalidMemObj;
     }
@@ -64,14 +66,12 @@ validateMemObject( cl_mem mem, size_t required_size)
         size_t current_size;
         clGetMemObjectInfo(mem, CL_MEM_SIZE,
                             sizeof(current_size), &current_size, NULL);
-        if(current_size < required_size)
+        std::cout << "[validateMemObject] Buffer size: " << current_size << " bytes. ";
+        std::cout << "Required size: " << required_size << " bytes." << std::endl;
+        if (current_size < required_size)
             return clsparseInvalidSize;
-#ifndef NDEBUG
-     printf("Mem size: %lu\n", current_size);
-     printf("Required size: %lu\n", required_size);
-#endif
     }
-
+#endif
     return clsparseSuccess;
 }
 
@@ -88,6 +88,7 @@ validateMemObjectSize(size_t element_size,
                        cl_mem mem,
                        size_t off_mem)
 {
+#ifndef NDEBUG
     size_t mem_size; //cl_mem current size
     size_t vec_size = count * element_size;
     off_mem *= element_size; //it's a copy
@@ -109,6 +110,6 @@ validateMemObjectSize(size_t element_size,
     {
         return clsparseInsufficientMemory;
     }
-
+#endif
     return clsparseSuccess;
 }
