@@ -88,7 +88,7 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
     std::string strProgram = "reduce_by_key";
     //  offset calculation
     {
-        const std::string params = std::string()
+        std::string params = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<ValueType>::type
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
@@ -96,6 +96,20 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
 
         cl::Kernel kernel = KernelCache::get(control->queue, strProgram,
                                              "offset_calculation", params);
+
+        if( typeid(SizeType) == typeid(cl_double)  ||
+            typeid(ValueType) == typeid(cl_double) ||
+            typeid(KeyType) == typeid(cl_double))
+        {
+            params.append(" -DDOUBLE");
+            if (!control->dpfp_support)
+            {
+#ifndef NDEBUG
+                std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+                return clsparseInvalidDevice;
+            }
+        }
 
         KernelWrap kWrapper (kernel);
 
@@ -132,11 +146,25 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
     // per block scan by key
     {
 
-        const std::string params = std::string()
+        std::string params = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<ValueType>::type
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
                 + " -DWG_SIZE=" + std::to_string(kernel_WgSize);
+
+        if( typeid(SizeType) == typeid(cl_double)  ||
+            typeid(ValueType) == typeid(cl_double) ||
+            typeid(KeyType) == typeid(cl_double))
+        {
+            params.append(" -DDOUBLE");
+            if (!control->dpfp_support)
+            {
+#ifndef NDEBUG
+                std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+                return clsparseInvalidDevice;
+            }
+        }
 
         cl::Kernel kernel = KernelCache::get(control->queue, strProgram,
                                              "per_block_scan_by_key", params);
@@ -169,11 +197,25 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
 
     // intra block inclusive scan by key
     {
-        const std::string params = std::string()
+        std::string params = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<ValueType>::type
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
                 + " -DWG_SIZE=" + std::to_string(kernel_WgSize);
+
+        if( typeid(SizeType) == typeid(cl_double)  ||
+            typeid(ValueType) == typeid(cl_double) ||
+            typeid(KeyType) == typeid(cl_double))
+        {
+            params.append(" -DDOUBLE");
+            if (!control->dpfp_support)
+            {
+#ifndef NDEBUG
+                std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+                return clsparseInvalidDevice;
+            }
+        }
 
         cl::Kernel kernel = KernelCache::get(control->queue, strProgram,
                                              "intra_block_inclusive_scan_by_key",
@@ -204,11 +246,25 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
 
     // per block addition by key
     {
-        const std::string params = std::string()
+        std::string params = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<ValueType>::type
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
                 + " -DWG_SIZE=" + std::to_string(kernel_WgSize);
+
+        if( typeid(SizeType) == typeid(cl_double)  ||
+            typeid(ValueType) == typeid(cl_double) ||
+            typeid(KeyType) == typeid(cl_double))
+        {
+            params.append(" -DDOUBLE");
+            if (!control->dpfp_support)
+            {
+#ifndef NDEBUG
+                std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+                return clsparseInvalidDevice;
+            }
+        }
 
         cl::Kernel kernel = KernelCache::get(control->queue, strProgram,
                                              "per_block_addition_by_key",
@@ -237,11 +293,25 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
 
     // key value mapping
     {
-        const std::string params = std::string()
+        std::string params = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<ValueType>::type
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
                 + " -DWG_SIZE=" + std::to_string(kernel_WgSize);
+
+        if( typeid(SizeType) == typeid(cl_double)  ||
+            typeid(ValueType) == typeid(cl_double) ||
+            typeid(KeyType) == typeid(cl_double))
+        {
+            params.append(" -DDOUBLE");
+            if (!control->dpfp_support)
+            {
+#ifndef NDEBUG
+                std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+                return clsparseInvalidDevice;
+            }
+        }
 
         cl::Kernel kernel = KernelCache::get(control->queue, strProgram,
                                              "key_value_mapping",

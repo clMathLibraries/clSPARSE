@@ -83,7 +83,7 @@ inline unsigned long clsparse_atomic_xor(__global unsigned long * restrict const
 #ifdef ATOM64
     return atom_xor(ptr, xor_val);
 #else
-    return atomic_max((__global unsigned int*)ptr, (unsigned int)xor_val);
+    return atomic_xor((__global unsigned int*)ptr, (unsigned int)xor_val);
 #endif
 }
 

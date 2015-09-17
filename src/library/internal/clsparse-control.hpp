@@ -57,6 +57,9 @@ struct _clsparseControl
     // Should we attempt to perform compensated summation?
     cl_bool extended_precision;
 
+    // Does our device have double precision support?
+    cl_bool dpfp_support;
+
     // current device max compute units;
     cl_uint max_compute_units;
 
