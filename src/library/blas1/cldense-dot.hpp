@@ -46,6 +46,18 @@ inner_product (cldenseVectorPrivate* partial,
             + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DN_THREADS=" + std::to_string(nthreads);
 
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
+
     cl::Kernel kernel = KernelCache::get(control->queue,
                                          "dot", "inner_product", params);
 
@@ -153,6 +165,18 @@ inner_product (clsparse::array_base<T>& partial,
             + " -DWG_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DN_THREADS=" + std::to_string(nthreads);
+
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
 
     cl::Kernel kernel = KernelCache::get(control->queue,
                                          "dot", "inner_product", params);

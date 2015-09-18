@@ -15,41 +15,43 @@ R"(
 * limitations under the License.
 * ************************************************************************ */
 
-#ifdef cl_khr_fp64
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#elif defined(cl_amd_fp64)
-#pragma OPENCL EXTENSION cl_amd_fp64 : enable
-#else
-#error "Double precision floating point not supported by OpenCL implementation."
+// No reason to include these beyond version 1.2, where double is not an extension.
+#if defined(DOUBLE) && __OPENCL_VERSION__ < CL_VERSION_1_2
+  #ifdef cl_khr_fp64
+    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+  #elif defined(cl_amd_fp64)
+    #pragma OPENCL EXTENSION cl_amd_fp64 : enable
+  #else
+    #error "Double precision floating point not supported by OpenCL implementation."
+  #endif
 #endif
 
 #ifndef VALUE_TYPE
-#error VALUE_TYPE undefined!
+#error "VALUE_TYPE undefined!"
 #endif
 
 #ifndef SIZE_TYPE
-#error SIZE_TYPE undefined!
+#error "SIZE_TYPE undefined!"
 #endif
 
 #ifndef INDEX_TYPE
-#error INDEX_TYPE undefined!
+#error "INDEX_TYPE undefined!"
 #endif
 
 #ifndef WG_SIZE
-#error WG_SIZE undefined!
+#error "WG_SIZE undefined!"
 #endif
-
 
 #ifndef WAVE_SIZE
 #define WAVE_SIZE 32
 #endif
 
 #ifndef SUBWAVE_SIZE
-#error SUBWAVE_SIZE undefined!
+#error "SUBWAVE_SIZE undefined!"
 #endif
 
 #if ( (SUBWAVE_SIZE > WAVE_SIZE) || (SUBWAVE_SIZE != 2 && SUBWAVE_SIZE != 4 && SUBWAVE_SIZE != 8 && SUBWAVE_SIZE != 16 && SUBWAVE_SIZE != 32 && SUBWAVE_SIZE != 64) )
-# error SUBWAVE_SIZE is not  a power of two!
+#error "SUBWAVE_SIZE is not  a power of two!"
 #endif
 
 )"

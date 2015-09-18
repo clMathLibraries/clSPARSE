@@ -65,6 +65,18 @@ elementwise_transform(cldenseVectorPrivate* r,
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ElementWiseOperatorTrait<OP>::operation;
 
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
+
     cl::Kernel kernel = KernelCache::get(control->queue, "elementwise_transform",
                                          "transform", params);
 

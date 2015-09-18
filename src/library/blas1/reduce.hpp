@@ -49,6 +49,18 @@ global_reduce (cldenseVectorPrivate* partial,
             + " -DN_THREADS=" + std::to_string(nthreads)
             + " -D" + ReduceOperatorTrait<OP>::operation;
 
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
+
     cl::Kernel kernel = KernelCache::get(control->queue,
                                          "reduce", "reduce", params);
 
@@ -164,6 +176,18 @@ global_reduce (clsparse::array_base<T>& partial,
             + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DN_THREADS=" + std::to_string(nthreads)
             + " -D" + ReduceOperatorTrait<OP>::operation;
+
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
 
     cl::Kernel kernel = KernelCache::get(control->queue,
                                          "reduce", "reduce", params);

@@ -56,6 +56,17 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
+    if(typeid(T) == typeid(cl_double))
+    {
+        params += " -DDOUBLE";
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
     if(control->extended_precision)
         params += " -DEXTENDED_PRECISION";
 
@@ -134,6 +145,17 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
+    if(typeid(T) == typeid(cl_double))
+    {
+        params += " -DDOUBLE";
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
     if(control->extended_precision)
         params += " -DEXTENDED_PRECISION";
 
