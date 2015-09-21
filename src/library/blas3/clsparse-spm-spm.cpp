@@ -1,6 +1,6 @@
 /* ************************************************************************
 * The MIT License (MIT)
-* Copyright 2014-2015 weifengliu
+* Copyright 2014-2015 University of Copenhagen
 *  Permission is hereby granted, free of charge, to any person obtaining a copy
 *  of this software and associated documentation files (the "Software"), to deal
 *  in the Software without restriction, including without limitation the rights
@@ -46,7 +46,7 @@
 #define GROUPSIZE_256 256
 #define TUPLE_QUEUE 6
 #define NUM_SEGMENTS 128
-#define WARPSIZE_NV_2HEAP 64
+//#define WARPSIZE_NV_2HEAP 64
 #define value_type float
 #define index_type int 
 #define MERGEPATH_LOCAL     0
@@ -486,7 +486,7 @@ clsparseStatus compute_nnzC_Ct_opencl(int *_h_counter_one, cl_mem queue_one, cl_
             }
             else if (j > 1 && j <= 32)
             {
-                int num_threads = WARPSIZE_NV_2HEAP;
+              int num_threads = 64; //WARPSIZE_NV_2HEAP;
                 int num_blocks = ceil((double)counter / (double)num_threads);
                 run_status = compute_nnzC_Ct_2heap_noncoalesced_local(num_threads, num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, *csrColIndCt, *csrValCt, control);
             }
