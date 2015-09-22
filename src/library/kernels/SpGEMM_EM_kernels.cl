@@ -1,7 +1,7 @@
 R"(
 /* ************************************************************************
 * The MIT License (MIT)
-* Copyright 2014-2015 weifengliu
+* Copyright 2014-2015 University of Copenhagen
 *  Permission is hereby granted, free of charge, to any person obtaining a copy
 *  of this software and associated documentation files (the "Software"), to deal
 *  in the Software without restriction, including without limitation the rights
@@ -35,7 +35,15 @@ R"(
 * ************************************************************************ */ 
 
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+
+#ifdef cl_khr_fp64
+      #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#elif defined(cl_amd_fp64)
+      #pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#else
+      #error "Double precision floating point not supported by OpenCL implementation."
+#endif
+
 
 #define TUPLE_QUEUE 6
 //typedef double   vT;

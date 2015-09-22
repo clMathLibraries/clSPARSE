@@ -1,7 +1,7 @@
 R"(
 /* ************************************************************************
 * The MIT License (MIT)
-* Copyright 2014-2015 weifengliu
+* Copyright 2014-2015 University of Copenhagen
 *  Permission is hereby granted, free of charge, to any person obtaining a copy
 *  of this software and associated documentation files (the "Software"), to deal
 *  in the Software without restriction, including without limitation the rights
@@ -34,7 +34,7 @@ R"(
 *  for details. >
 * ************************************************************************ */ 
 
-#define GROUPSIZE_256 256
+//#define GROUPSIZE_256 256
 
 __kernel
 void compute_nnzCt_kernel(
@@ -44,7 +44,6 @@ void compute_nnzCt_kernel(
         __global int *d_csrRowPtrCt,
         const int m)
 {
-    __local int s_csrRowPtrA[GROUPSIZE_256+1];
     int global_id = get_global_id(0);
     int start, stop, index, strideB, row_size_Ct = 0;
 
