@@ -100,18 +100,12 @@ public:
 
     double bandwidth()
     {
-        //  Assuming that accesses to the vector always hit in the cache after the first access
-        //  There are NNZ integers in the cols[ ] array
-        //  You access each integer value in row_delimiters[ ] once.
-        //  There are NNZ float_types in the vals[ ] array
-        //  You read num_cols floats from the vector, afterwards they cache perfectly.
-        //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return (sizeof(int)*(n_vals + n_rows) + sizeof(T) * (n_vals + n_cols + n_rows)) / time_in_ns();
+        return (double)(flopCnt) / time_in_ns();
     }
 
     std::string bandwidth_formula()
     {
-        return "GiB/s";
+        return "GFlop/s";
     }
 
     void setup_buffer(double alpha, double beta, const std::string& path)
@@ -136,6 +130,8 @@ public:
 
         err = cudaMalloc((void**)&dev_csrValA, values.size() * sizeof(T));
         CUDA_V_THROW(err, "cudaMalloc device_values");
+
+        flopCnt = xSpMSpM_Getflopcount(); // Get total number of flop.
         
     }// end of function
 
@@ -227,6 +223,24 @@ private:
     void createBuffersNNZ_C(void);
     void xSpMSpM_Function(bool flush);
 
+    size_t xSpMSpM_Getflopcount(void)
+    {
+        // C = A * B
+        // But here C = A* A, the A & B matrices are same
+        int nnzA = col_indices.size();
+
+        size_t flop = 0;
+        for (int i = 0; i < nnzA; i++)
+        {
+            int colIdx = col_indices[i]; // Get colIdx of A
+            flop += row_offsets[colIdx + 1] - row_offsets[colIdx]; // nnz in 'colIdx'th row of B
+        }
+
+        flop = 2 * flop; // Two operations - Multiply & Add
+
+        return flop;
+    }// end of function
+
     //Input host matrix in csr format : A
     std::vector< int > row_offsets;
     std::vector< int > col_indices;
@@ -234,6 +248,7 @@ private:
 
     T alpha;
     T beta;
+    size_t flopCnt; // Indicates total number of floating point operations
     int n_rows;
     int n_cols;
     int n_vals; 

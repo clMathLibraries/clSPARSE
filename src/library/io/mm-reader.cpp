@@ -569,7 +569,7 @@ clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
     MatrixMarketReader< cl_float > mm_reader;
     if( mm_reader.MMReadFormat( filePath ) )
         return clsparseInvalidFile;
-
+#if 0
     // BUG: We need to check to see if openCL buffers currently exist and deallocate them first!
     // FIX: Below code will check whether the buffers were allocated in the first place;
     {
@@ -591,6 +591,7 @@ clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
         if (validationStatus != clsparseSuccess)
             return validationStatus;
     }
+#endif
 
     // JPA: Shouldn't that just be an assertion check? It seems to me that
     // the user have to call clsparseHeaderfromFile before calling this function,

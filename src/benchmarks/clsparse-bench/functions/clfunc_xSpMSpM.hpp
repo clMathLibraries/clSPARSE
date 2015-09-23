@@ -168,6 +168,9 @@ public:
             1 * sizeof(T), NULL, &status);
         CLSPARSE_V(status, "::clCreateBuffer b.value");
 
+        //std::cout << "Flops = " << xSpMSpM_Getflopcount() << std::endl;
+        flopCnt = xSpMSpM_Getflopcount();
+
     }// end of function
 
     void initialize_cpu_buffer()
@@ -205,13 +208,12 @@ public:
         if (gpuTimer && cpuTimer)
         {
             std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-            size_t sparseBytes = sizeof(cl_int)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows);
             cpuTimer->pruneOutliers(3.0);
-            cpuTimer->Print(sparseBytes, "GiB/s");
+            cpuTimer->Print(flopCnt, "GFlop/s");
             cpuTimer->Reset();
 
             gpuTimer->pruneOutliers(3.0);
-            gpuTimer->Print(sparseBytes, "GiB/s");
+            gpuTimer->Print(flopCnt, "GFlop/s");
             gpuTimer->Reset();
         }
 
@@ -238,6 +240,46 @@ public:
 
 private:
     void xSpMSpM_Function(bool flush);
+    size_t xSpMSpM_Getflopcount(void)
+    {
+        // C = A * B
+        // But here C = A* A, the A & B matrices are same
+        int nnzA = csrMtx.num_nonzeros;
+        int Browptrlen = csrMtx.num_rows + 1; // Number of row offsets
+
+        std::vector<int> colIdxA(nnzA, 0);
+        std::vector<int> rowptrB (Browptrlen, 0);
+
+        cl_int run_status = 0;
+
+        run_status = clEnqueueReadBuffer(queue, 
+                                          csrMtx.colIndices, 
+                                          CL_TRUE, 0, 
+                                          nnzA*sizeof(cl_int), 
+                                          colIdxA.data(), 0, nullptr, nullptr);
+        CLSPARSE_V(run_status, "Reading colIndices from GPU failed");
+
+        // copy rowptrs
+
+        run_status = clEnqueueReadBuffer(queue,
+                                            csrMtx.rowOffsets,
+                                            CL_TRUE, 0,
+                                            Browptrlen*sizeof(cl_int),
+                                            rowptrB.data(), 0, nullptr, nullptr);
+
+        CLSPARSE_V(run_status, "Reading row offsets from GPU failed");
+
+        size_t flop = 0;
+        for (int i = 0; i < nnzA; i++)
+        {
+            int colIdx = colIdxA[i]; // Get colIdx of A
+            flop += rowptrB[colIdx + 1] - rowptrB[colIdx]; // nnz in 'colIdx'th row of B
+        }
+
+        flop = 2 * flop; // Two operations - Multiply & Add
+
+        return flop;
+    }// end of function
 
     //  Timers we want to keep
     clsparseTimer* gpuTimer;
@@ -256,7 +298,7 @@ private:
     // host values
     T alpha;
     T beta;
-
+    size_t flopCnt; // Indicates total number of floating point operations
     //  OpenCL state
     //cl_command_queue_properties cqProp;
 }; // class xSpMSpM

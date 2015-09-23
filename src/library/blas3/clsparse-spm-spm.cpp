@@ -55,13 +55,6 @@
 #define MERGELIST_INITSIZE 256
 #define BHSPARSE_SUCCESS 0
  
-#define CHECKMAL(a, b) \
-    if(a==NULL) \
-    {     \
-        std::cerr << "Malloc Error:" << b << std::endl; \
-        exit(1); \
-    }
- 
 using namespace std;
 
 int statistics(int *_h_csrRowPtrCt, int *_h_counter, int *_h_counter_one, int *_h_counter_sum, int *_h_queue_one, int _m);
