@@ -1252,6 +1252,24 @@ extern "C" {
                             const clsparseControl control );
     /**@}*/
 
+  /*!
+   * \brief Single Precision CSR Sparse Matrix times Sparse Matrix
+   * \details \f$ C \leftarrow A \ast B \f$
+   * \param[in] sparseMatA Input CSR sparse matrix
+   * \param[in] sparseMatB Input CSR sparse matrix
+   * \param[out] sparseMatC Output CSR sparse matrix
+   * \param[in] control A valid clsparseControl created with clsparseCreateControl
+   *
+   * \ingroup BLAS-3
+   */
+ CLSPARSE_EXPORT clsparseStatus
+        clsparseScsrSpGemm(
+        const clsparseCsrMatrix* sparseMatA,
+        const clsparseCsrMatrix* sparseMatB,
+              clsparseCsrMatrix* sparseMatC,
+        const clsparseControl control );
+
+
 #ifdef __cplusplus
 }      // extern C
 #endif
