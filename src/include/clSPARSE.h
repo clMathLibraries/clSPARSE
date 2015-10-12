@@ -1255,6 +1255,7 @@ extern "C" {
   /*!
    * \brief Single Precision CSR Sparse Matrix times Sparse Matrix
    * \details \f$ C \leftarrow A \ast B \f$
+   * \warning The column index of each row of CSR matrixes must be ordered (sorted)
    * \param[in] sparseMatA Input CSR sparse matrix
    * \param[in] sparseMatB Input CSR sparse matrix
    * \param[out] sparseMatC Output CSR sparse matrix
