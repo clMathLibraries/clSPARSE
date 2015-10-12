@@ -324,8 +324,8 @@ extern "C" {
         VERBOSE
     } PRINT_MODE;
 
-    /*! \brief Enumeration to select the pre-conditioner algorithm used pre-conditioner
-     * the sparse data before the iterative solvers execution
+    /*! \brief Enumeration to select the preconditioning algorithm used to precondition
+     * the sparse data before the iterative solver execution phase
      *
      * \ingroup SOLVER
      */
@@ -511,6 +511,7 @@ extern "C" {
     * \note The number of non-zeroes actually read from the file may be less than the number of
     * non-zeroes reported from the file header
     * \note The OpenCL device memory must be allocated before the call to this function.
+    * \post The sparse data is sorted first by row, then by column
     * \returns \b clsparseSuccess
     *
     * \ingroup FILE
@@ -532,6 +533,7 @@ extern "C" {
      * \note The number of non-zeroes actually read from the file may be less than the number of
      * non-zeroes reported from the file header
      * \note The OpenCL device memory must be allocated before the call to this function.
+     * \post The sparse data is sorted first by row, then by column
      * \returns \b clsparseSuccess
      *
      * \ingroup FILE
@@ -552,6 +554,7 @@ extern "C" {
      * \note The number of non-zeroes actually read from the file may be less than the number of
      * non-zeroes reported from the file header
      * \note The OpenCL device memory must be allocated before the call to this function.
+     * \post The sparse data is sorted first by row, then by column
      * \returns \b clsparseSuccess
      *
      * \ingroup FILE
@@ -573,6 +576,7 @@ extern "C" {
      * \note The number of non-zeroes actually read from the file may be less than the number of
      * non-zeroes reported from the file header
      * \note The OpenCL device memory must be allocated before the call to this function.
+     * \post The sparse data is sorted first by row, then by column
      * \returns \b clsparseSuccess
      *
      * \ingroup FILE
@@ -1046,7 +1050,7 @@ extern "C" {
      * \brief Single precision COO sparse matrix times dense vector
      * \details \f$ y \leftarrow \alpha \ast A \ast x + \beta \ast y \f$
      * \param[in] alpha  Scalar value to multiply against sparse matrix
-     * \param[in] matx  Input CSR sparse matrix
+     * \param[in] matx  Input COO sparse matrix
      * \param[in] x  Input dense vector
      * \param[in] beta  Scalar value to multiply against sparse vector
      * \param[out] y  Output dense vector
@@ -1063,10 +1067,10 @@ extern "C" {
                         const clsparseControl control );
 
     /*!
-     * \brief Single precision COO sparse matrix times dense vector
+     * \brief Double precision COO sparse matrix times dense vector
      * \details \f$ y \leftarrow \alpha \ast A \ast x + \beta \ast y \f$
      * \param[in] alpha  Scalar value to multiply against sparse matrix
-     * \param[in] matx  Input CSR sparse matrix
+     * \param[in] matx  Input COO sparse matrix
      * \param[in] x  Input dense vector
      * \param[in] beta  Scalar value to multiply against sparse vector
      * \param[out] y  Output dense vector
@@ -1136,15 +1140,31 @@ extern "C" {
                         const clsparseScalar* beta,
                         cldenseMatrix* denseMatC,
                         const clsparseControl control );
+
+    /*!
+     * \brief Single Precision CSR Sparse Matrix times Sparse Matrix
+     * \details \f$ C \leftarrow A \ast B \f$
+     * \param[in] sparseMatA Input CSR sparse matrix
+     * \param[in] sparseMatB Input CSR sparse matrix
+     * \param[out] sparseMatC Output CSR sparse matrix
+     * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     *
+     * \ingroup BLAS-3
+     */
+   CLSPARSE_EXPORT clsparseStatus
+      clsparseScsrSpGemm( const clsparseCsrMatrix* sparseMatA,
+                        const clsparseCsrMatrix* sparseMatB,
+                              clsparseCsrMatrix* sparseMatC,
+                        const clsparseControl control );
     /**@}*/
 
     /*!
      * \defgroup CONVERT Matrix conversion routines
      *
-     * \brief Sparse matrix routines to convert from one format into another
-     * \note Input sparse matrices have to be sorted by row first and then column.
-     * The sparse conversion routines below require this property, and the clsparse
-     * matrix file reading routines clsparse?C??MatrixfromFile guarantee that property
+     * \brief Sparse matrix routines to convert from one sparse format into another
+     * \note Input sparse matrices have to be sorted by row and then by column.
+     * The sparse conversion routines provided by clSPARSE require this as a pre-condition.  The clsparse
+     * matrix file reading routines `clsparse_C__MatrixfromFile` guarantee this property as a post-condition.
      */
     /**@{*/
 
@@ -1153,6 +1173,7 @@ extern "C" {
      * \param[in] csr  Input CSR encoded sparse matrix
      * \param[out] coo  Output COO encoded sparse matrix
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
      */
@@ -1166,6 +1187,7 @@ extern "C" {
      * \param[in] csr  Input CSR encoded sparse matrix
      * \param[out] coo  Output COO encoded sparse matrix
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
      */
@@ -1179,6 +1201,7 @@ extern "C" {
      * \param[in] coo  Input COO encoded sparse matrix
      * \param[out] csr  Output CSR encoded sparse matrix
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
      */
@@ -1192,6 +1215,7 @@ extern "C" {
      * \param[in] coo  Input COO encoded sparse matrix
      * \param[out] csr  Output CSR encoded sparse matrix
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
      */
@@ -1205,6 +1229,7 @@ extern "C" {
      * \param[in] csr  Input CSR encoded sparse matrix
      * \param[out] A  Output dense matrix
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
      */
@@ -1218,6 +1243,7 @@ extern "C" {
      * \param[in] csr  Input CSR encoded sparse matrix
      * \param[out] A  Output dense matrix
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
      */
@@ -1231,6 +1257,7 @@ extern "C" {
      * \param[in] A  Input dense matrix
      * \param[out] csr  Output CSR encoded sparse matrix
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
      */
@@ -1244,6 +1271,7 @@ extern "C" {
      * \param[in] A  Input dense matrix
      * \param[out] csr  Output CSR encoded sparse matrix
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \pre The sparse matrix data must first be sorted by rows, then by columns
      *
      * \ingroup CONVERT
      */
@@ -1251,24 +1279,6 @@ extern "C" {
         clsparseDdense2csr( const cldenseMatrix* A, clsparseCsrMatrix* csr,
                             const clsparseControl control );
     /**@}*/
-
-  /*!
-   * \brief Single Precision CSR Sparse Matrix times Sparse Matrix
-   * \details \f$ C \leftarrow A \ast B \f$
-   * \param[in] sparseMatA Input CSR sparse matrix
-   * \param[in] sparseMatB Input CSR sparse matrix
-   * \param[out] sparseMatC Output CSR sparse matrix
-   * \param[in] control A valid clsparseControl created with clsparseCreateControl
-   *
-   * \ingroup BLAS-3
-   */
- CLSPARSE_EXPORT clsparseStatus
-        clsparseScsrSpGemm(
-        const clsparseCsrMatrix* sparseMatA,
-        const clsparseCsrMatrix* sparseMatB,
-              clsparseCsrMatrix* sparseMatC,
-        const clsparseControl control );
-
 
 #ifdef __cplusplus
 }      // extern C
