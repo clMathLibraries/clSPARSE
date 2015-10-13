@@ -1148,14 +1148,14 @@ extern "C" {
      * \param[in] sparseMatB Input CSR sparse matrix
      * \param[out] sparseMatC Output CSR sparse matrix
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
-     *
+     * \pre The input sparse matrices data must first be sorted by rows, then by columns
      * \ingroup BLAS-3
      */
    CLSPARSE_EXPORT clsparseStatus
       clsparseScsrSpGemm( const clsparseCsrMatrix* sparseMatA,
-                        const clsparseCsrMatrix* sparseMatB,
-                              clsparseCsrMatrix* sparseMatC,
-                        const clsparseControl control );
+                          const clsparseCsrMatrix* sparseMatB,
+                                clsparseCsrMatrix* sparseMatC,
+                          const clsparseControl control );
     /**@}*/
 
     /*!
