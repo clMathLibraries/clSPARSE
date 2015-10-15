@@ -35,8 +35,8 @@ R"(
 #if __OPENCL_VERSION__ > CL_VERSION_1_0
   #define ATOM32
 #elif defined(cl_khr_global_int32_base_atomics) && defined(cl_khr_global_int32_extended_atomics)
-  #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : require
-  #pragma OPENCL_EXTENSION cl_khr_global_int32_extended_atomics : require
+  #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+  #pragma OPENCL_EXTENSION cl_khr_global_int32_extended_atomics : enable
   #define ATOM32
 #else
   #error "Required integer atomics not supported by this OpenCL implemenation."
