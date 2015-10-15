@@ -1,0 +1,18 @@
+Csr2Coo, 
+,
+CUDA Driver,352.39
+OpenCL Device,k40c
+,
+Matrix Name,Gi-Elements/s
+cant,12.5796
+consph,13.2247
+cop20k_A,6.11234
+mac_econ_fwd500,1.88724
+mc2depi,1.2577
+pdb1HYS,16.6086
+pwtk,12.4184
+rail4284,14.4921
+rma10,10.8246
+scircuit,1.714
+shipsec1,13.0084
+webbase_1M,0.989887

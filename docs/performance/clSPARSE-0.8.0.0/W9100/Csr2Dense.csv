@@ -1,0 +1,16 @@
+Csr2Dense, 
+,
+OpenCL runtime,1642.5 (VM)
+OpenCL Device,w9100
+,
+Matrix Name,Gi-Elements/s
+Dubcova1,0.025644
+hydr1c_A_11,0.0169621
+hydr1c_A_72,0.0170693
+hydr1c_A_76,0.0179919
+Maragal_6,0.0623863
+Na5,0.165182
+psse1,0.00876455
+Reuters911,0.0398191
+Si10H16,0.0777071
+tomography,0.101941

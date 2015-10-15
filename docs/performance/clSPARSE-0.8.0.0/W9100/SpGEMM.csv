@@ -1,0 +1,27 @@
+SpGemm, 
+,
+OpenCL runtime,1642.5 (VM)
+OpenCL Device,w9100
+,
+Matrix Name,G-Flop/s
+2cubes_sphere,0.928289
+cage12,1.06262
+cant,3.41712
+consph,3.47913
+cop20k_A,1.79591
+filter3D,1.73384
+hood,4.59367
+m133-b3,0.499885
+mac_econ_fwd500,0.36654
+majorbasis,1.69818
+mario002,0.647947
+mc2depi,0.564147
+offshore,1.15078
+patents_main,0.0800872
+pdb1HYS,3.18338
+poisson3Da,1.02704
+pwtk,4.93038
+rma10,3.59276
+scircuit,0.247432
+shipsec1,1.75098
+webbase_1M,0.278071

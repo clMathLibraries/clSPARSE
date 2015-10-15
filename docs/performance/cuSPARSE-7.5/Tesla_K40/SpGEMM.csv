@@ -1,0 +1,27 @@
+SpGEMM, 
+,
+CUDA Driver,352.39
+OpenCL Device,k40c
+,
+Matrix Name,G-Flop/s
+2cubes_sphere,0.895677
+cage12,0.48655
+cant,5.12327
+consph,4.30423
+cop20k_A,0.67811
+filter3D,1.11123
+hood,1.9952
+m133-b3,0.15196
+mac_econ_fwd500,0.38369
+majorbasis,0.541907
+mario002,0.169338
+mc2depi,0.346675
+offshore,0.691809
+patents_main,0.0662424
+pdb1HYS,6.17243
+poisson3Da,0.911867
+pwtk,4.96245
+rma10,4.18639
+scircuit,0.296162
+shipsec1,1.64348
+webbase_1M,0.130227
