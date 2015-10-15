@@ -71,12 +71,12 @@ public:
 
     double gflops( )
     {
-        return 0.0;
+        return ((2 * csrMtx.num_nonzeros) / time_in_ns ( ));
     }
 
     std::string gflops_formula( )
     {
-        return "N/A";
+        return "GFLOPs";
     }
 
     double bandwidth( )
@@ -207,12 +207,15 @@ public:
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
           size_t sparseBytes = sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows );
+          size_t sparseFlops = 2 * csrMtx.num_nonzeros;
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
+          cpuTimer->Print( sparseFlops, "GFLOPs" );
           cpuTimer->Reset( );
 
           gpuTimer->pruneOutliers( 3.0 );
           gpuTimer->Print( sparseBytes, "GiB/s" );
+          gpuTimer->Print( sparseFlops, "GFLOPs" );
           gpuTimer->Reset( );
         }
 

@@ -278,8 +278,10 @@ int main(int argc, char *argv[])
         timer.pruneOutliers( 3.0 );
         std::cout << "cuSPARSE matrix: " << path << std::endl;
         std::cout << "cuSPARSE kernel execution time < ns >: " << my_function->time_in_ns( ) << std::endl;
-        std::cout << "cuSPARSE kernel execution Gflops < " <<
+        std::cout << "cuSPARSE kernel execution < " <<
             my_function->bandwidth_formula( ) << " >: " << my_function->bandwidth( ) << std::endl << std::endl;
+        std::cout << "cuSPARSE kernel execution < " <<
+            my_function->gflops_formula( ) << " >: " << my_function->gflops( ) << std::endl << std::endl;
       }
 
   }
