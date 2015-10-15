@@ -25,7 +25,7 @@ template <typename T>
 class xSpMdV: public clsparseFunc
 {
 public:
-    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool extended_precision, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool extended_precision, cl_bool explicit_zeroes, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -43,6 +43,7 @@ public:
         }
 
         clsparseEnableExtendedPrecision( control, extended_precision );
+        clsparseEnableExplicitZeroes( control, explicit_zeroes );
 
         clsparseEnableAsync( control, false );
     }

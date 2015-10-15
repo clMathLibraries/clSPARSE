@@ -41,7 +41,7 @@ clsparseStatus clsparseDcsrSpGemm(const clsparseCsrMatrix* sparseMatA, const cls
 template <typename T>
 class xSpMSpM : public clsparseFunc {
 public:
-    xSpMSpM(PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType) : clsparseFunc(devType, CL_QUEUE_PROFILING_ENABLE), gpuTimer(nullptr), cpuTimer(nullptr)
+    xSpMSpM(PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool explicit_zeroes, cl_device_type devType) : clsparseFunc(devType, CL_QUEUE_PROFILING_ENABLE), gpuTimer(nullptr), cpuTimer(nullptr)
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if (sparseGetTimer)
@@ -58,6 +58,7 @@ public:
             cpuTimerID = cpuTimer->getUniqueID("CPU xSpMSpM", 0);
         }
         clsparseEnableAsync(control, false);
+        clsparseEnableExplicitZeroes( control, explicit_zeroes);
     }
 
     ~xSpMSpM() {}

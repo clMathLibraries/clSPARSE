@@ -25,7 +25,7 @@ template <typename T>
 class xDense2Csr: public clsparseFunc
 {
 public:
-    xDense2Csr( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xDense2Csr( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool explicit_zeroes, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
 		gpuTimer = nullptr;
 		cpuTimer = nullptr;
@@ -45,6 +45,7 @@ public:
             cpuTimerID = cpuTimer->getUniqueID( "CPU xDense2Csr", 0 );
         }
         clsparseEnableAsync( control, false );
+        clsparseEnableExplicitZeroes( control, explicit_zeroes);
     }// End of constructor
 
     ~xDense2Csr( )

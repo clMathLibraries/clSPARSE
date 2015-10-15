@@ -114,6 +114,7 @@ clsparseCreateControl( cl_command_queue queue, clsparseStatus *status )
     control->async = false;
     control->extended_precision = false;
     control->dpfp_support = false;
+    control->exp_zeroes = true;
 
     collectEnvParams( control );
 
@@ -163,6 +164,18 @@ clsparseEnableExtendedPrecision( clsparseControl control, cl_bool extended_preci
     }
 
     control->extended_precision = extended_precision;
+    return clsparseSuccess;
+}
+
+clsparseStatus
+clsparseEnableExplicitZeroes( clsparseControl control, cl_bool exp_zeroes )
+{
+    if( control == NULL )
+    {
+        return clsparseInvalidControlObject;
+    }
+
+    control->exp_zeroes = exp_zeroes;
     return clsparseSuccess;
 }
 

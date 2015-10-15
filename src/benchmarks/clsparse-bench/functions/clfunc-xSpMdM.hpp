@@ -25,7 +25,7 @@ template <typename T>
 class xSpMdM: public clsparseFunc
 {
 public:
-    xSpMdM( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType, size_t columns ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr ), num_columns( columns )
+    xSpMdM( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType, cl_bool explicit_zeroes, size_t columns ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr ), num_columns( columns )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -44,6 +44,7 @@ public:
 
 
         clsparseEnableAsync( control, false );
+        clsparseEnableExplicitZeroes( control, explicit_zeroes);
     }
 
     ~xSpMdM( )

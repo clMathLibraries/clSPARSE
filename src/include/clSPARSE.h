@@ -260,6 +260,20 @@ extern "C" {
         clsparseEnableExtendedPrecision( clsparseControl control, cl_bool extPrecision );
 
     /*!
+    * \brief Enable/Disable reading explicit zero values from the matrix market files.
+    *
+    * \param[in] control   A valid clsparseControl created with clsparseCreateControl
+    * \param[in] expZeroes   True to enable reading explicit zeroes, false to skip reading them
+    *
+    * \returns \b clsparseSuccess
+    *
+    * \ingroup STATE
+    */
+    CLSPARSE_EXPORT clsparseStatus
+        clsparseEnableExplicitZeroes( clsparseControl control, cl_bool expZeroes );
+
+
+    /*!
     * \brief Configure the library to use an array of events
     * \warning NOT WORKING! NDRange throws Failure
     *

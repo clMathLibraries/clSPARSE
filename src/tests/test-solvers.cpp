@@ -43,6 +43,7 @@ cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 //cl_uint ClSparseEnvironment::N = 1024;
 
+static cl_bool explicit_zeroes = true;
 
 namespace po = boost::program_options;
 namespace uBLAS = boost::numeric::ublas;
@@ -276,7 +277,9 @@ int main (int argc, char* argv[])
             ("initx,x", po::value(&initialUnknownsValue)->default_value(0),
              "Initial value for vector of unknowns")
             ("initb,b", po::value(&initialRhsValue)->default_value(1),
-             "Initial value for rhs vector");
+             "Initial value for rhs vector")
+            ("no_zeroes,z", po::bool_switch()->default_value(false),
+             "Disable reading explicit zeroes from the input matrix market file.");
 
 
     po::variables_map vm;
@@ -321,6 +324,9 @@ int main (int argc, char* argv[])
 
     }
 
+    if (vm["no_zeroes"].as<bool>())
+        explicit_zeroes = false;
+
     //pickup preconditioner
     if ( boost::iequals(strPrecond, "Diagonal"))
     {
@@ -362,6 +368,7 @@ int main (int argc, char* argv[])
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
     ::testing::AddGlobalTestEnvironment( new CLSE(pID, dID));
+    clsparseEnableExplicitZeroes(CLSE::control, explicit_zeroes);
     ::testing::AddGlobalTestEnvironment( new CSRE(path, 0, 0,
                                                   CLSE::queue, CLSE::context));
 

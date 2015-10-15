@@ -87,10 +87,10 @@ public:
 
     bool MMReadHeader( FILE* infile );
     bool MMReadHeader( const std::string& filename );
-    bool MMReadFormat( const std::string& _filename );
+    bool MMReadFormat( const std::string& _filename, clsparseControl control );
     int MMReadBanner( FILE* infile );
     int MMReadMtxCrdSize( FILE* infile );
-    void MMGenerateCOOFromFile( FILE* infile );
+    void MMGenerateCOOFromFile( FILE* infile, clsparseControl control );
 
     int GetNumRows( )
     {
@@ -192,7 +192,7 @@ bool MatrixMarketReader<FloatType>::MMReadHeader( const std::string &filename )
 }
 
 template<typename FloatType>
-bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename )
+bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename, clsparseControl control )
 {
     FILE *mm_file = ::fopen( filename.c_str( ), "r" );
     if( mm_file == NULL )
@@ -212,7 +212,7 @@ bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename )
     else
         unsym_coords = new Coordinate<FloatType>[ nNZ ];
 
-    MMGenerateCOOFromFile( mm_file );
+    MMGenerateCOOFromFile( mm_file, control );
     ::fclose( mm_file );
 
     return 0;
@@ -249,13 +249,13 @@ void FillCoordData( char Typecode[ ],
 }
 
 template<typename FloatType>
-void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile )
+void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, clsparseControl control )
 {
     int unsym_actual_nnz = 0;
     FloatType val;
     int ir, ic;
 
-    const int exp_zeroes = 0;
+    const int exp_zeroes = control->exp_zeroes;
 
     //silence warnings from fscanf (-Wunused-result)
     int rv = 0;
@@ -464,7 +464,7 @@ clsparseSCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cl
         return clsparseInvalidFileFormat;
 
     MatrixMarketReader< cl_float > mm_reader;
-    if( mm_reader.MMReadFormat( filePath ) )
+    if( mm_reader.MMReadFormat( filePath, control ) )
         return clsparseInvalidFile;
 
     pCooMatx->num_rows = mm_reader.GetNumRows( );
@@ -514,7 +514,7 @@ clsparseDCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cl
         return clsparseInvalidFileFormat;
 
     MatrixMarketReader< cl_double > mm_reader;
-    if( mm_reader.MMReadFormat( filePath ) )
+    if( mm_reader.MMReadFormat( filePath, control ) )
         return clsparseInvalidFile;
 
     pCooMatx->num_rows = mm_reader.GetNumRows( );
@@ -566,7 +566,7 @@ clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
     // Read data from a file on disk into CPU buffers
     // Data is read natively as COO format with the reader
     MatrixMarketReader< cl_float > mm_reader;
-    if( mm_reader.MMReadFormat( filePath ) )
+    if( mm_reader.MMReadFormat( filePath, control ) )
         return clsparseInvalidFile;
     // BUG: We need to check to see if openCL buffers currently exist and deallocate them first!
     // FIX: Below code will check whether the buffers were allocated in the first place;
@@ -649,7 +649,7 @@ clsparseDCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
     // Read data from a file on disk into CPU buffers
     // Data is read natively as COO format with the reader
     MatrixMarketReader< cl_double > mm_reader;
-    if( mm_reader.MMReadFormat( filePath ) )
+    if( mm_reader.MMReadFormat( filePath, control ) )
         return clsparseInvalidFile;
 
     // BUG: We need to check to see if openCL buffers currently exist and deallocate them first!
@@ -755,7 +755,7 @@ clsparseDCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
 //    // Read data from a file on disk into CPU buffers
 //    // Data is read natively as COO format with the reader
 //    MatrixMarketReader< cl_float > mm_reader;
-//    if( mm_reader.MMReadFormat( filePath ) )
+//    if( mm_reader.MMReadFormat( filePath, control ) )
 //        return clsparseInvalidFile;
 
 //    // BUG: We need to check to see if openCL buffers currently exist and deallocate them first!

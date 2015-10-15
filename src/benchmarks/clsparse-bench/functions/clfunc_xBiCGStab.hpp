@@ -28,7 +28,7 @@ template <typename T>
 class xBiCGStab : public clsparseFunc
 {
 public:
-    xBiCGStab( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ):
+    xBiCGStab( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool explicit_zeroes, cl_device_type devType ):
         clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ),/* gpuTimer( nullptr ),*/ cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
@@ -48,6 +48,7 @@ public:
 
 
         clsparseEnableAsync( control, false );
+        clsparseEnableExplicitZeroes( control, explicit_zeroes);
 
         solverControl = clsparseCreateSolverControl(DIAGONAL, 1000, 1e-6, 0);
         clsparseSolverPrintMode(solverControl, VERBOSE);
