@@ -18,21 +18,36 @@ R"(
 #define WGSIZE 256
 
 #ifdef DOUBLE
-#define FPTYPE double
-
-#ifdef cl_khr_fp64
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#elif defined(cl_amd_fp64)
-#pragma OPENCL EXTENSION cl_amd_fp64 : enable
+  #define FPTYPE double
+  // No reason to include these beyond version 1.2, where double is not an extension.
+  #if __OPENCL_VERSION__ < CL_VERSION_1_2
+    #ifdef cl_khr_fp64
+      #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+    #elif defined(cl_amd_fp64)
+      #pragma OPENCL EXTENSION cl_amd_fp64 : enable
+    #else
+      #error "Double precision floating point not supported by OpenCL implementation."
+    #endif
+  #endif
 #else
-#error "Double precision floating point not supported by OpenCL implementation."
-#endif
-#else
-#define FPTYPE float
+  #define FPTYPE float
 #endif
 
-#pragma OPENCL EXTENSION cl_khr_int64_base_atomics: enable
-#pragma OPENCL EXTENSION cl_khr_int64_extended_atomics: enable
+#if defined(cl_khr_int64_base_atomics) && defined(cl_khr_int64_extended_atomics)
+  #pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
+  #pragma OPENCL EXTENSION cl_khr_int64_extended_atomics : enable
+  #define ATOM64
+#endif
+
+#if __OPENCL_VERSION__ > CL_VERSION_1_0
+  #define ATOM32
+#elif defined(cl_khr_global_int32_base_atomics) && defined(cl_khr_global_int32_extended_atomics)
+  #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : require
+  #pragma OPENCL_EXTENSION cl_khr_global_int32_extended_atomics : require
+  #define ATOM32
+#else
+  #error "Required integer atomics not supported by this OpenCL implemenation."
+#endif
 
 int lowerPowerOf2( int num )
 {
@@ -51,6 +66,46 @@ int lowerPowerOf2( int num )
     return num;
 }
 
+// Internal functions to wrap atomics, depending on if we support 64-bit
+// atomics or not. Helps keep the code clean in the other parts of the code.
+// All of the 32-bit atomics are built assuming we're on a little endian architecture.
+inline unsigned long clsparse_atomic_xor(__global unsigned long * restrict const ptr,
+                                    const unsigned long xor_val)
+{
+#ifdef ATOM64
+    return atom_xor(ptr, xor_val);
+#else
+    return atomic_xor((__global unsigned int*)ptr, (unsigned int)xor_val);
+#endif
+}
+
+inline unsigned long clsparse_atomic_max(__global unsigned long * restrict const ptr,
+                                    const unsigned long compare)
+{
+#ifdef ATOM64
+    return atom_max(ptr, compare);
+#else
+    return atomic_max((__global unsigned int*)ptr, (unsigned int)compare);
+#endif
+}
+
+inline unsigned long clsparse_atomic_cmpxchg(__global unsigned long * restrict const ptr,
+                                    const unsigned long compare,
+                                    const unsigned long val)
+{
+#ifdef DOUBLE
+  #ifdef ATOM64
+    return atom_cmpxchg(ptr, compare, val);
+  #else
+    // Should never run this. Don't use a path that requires cmpxchg for doubles
+    // if you don't support 64-bit atomics.
+    return compare;
+  #endif
+#else
+    return atomic_cmpxchg((__global unsigned int*)ptr, compare, val);
+#endif
+}
+
 void atomic_add_float( global FPTYPE *ptr, FPTYPE temp )
 {
 #ifdef DOUBLE
@@ -60,7 +115,7 @@ void atomic_add_float( global FPTYPE *ptr, FPTYPE temp )
     {
         prevVal = as_ulong(*ptr);
         newVal = as_ulong(temp + *ptr);
-    } while (atom_cmpxchg((global unsigned long *)ptr, prevVal, newVal) != prevVal);
+    } while ( clsparse_atomic_cmpxchg((global unsigned long *)ptr, prevVal, newVal) != prevVal );
 
 #else
     unsigned int newVal;
@@ -69,7 +124,7 @@ void atomic_add_float( global FPTYPE *ptr, FPTYPE temp )
     {
         prevVal = as_uint( *ptr );
         newVal = as_uint( temp + *ptr );
-    } while( atomic_cmpxchg( ( global unsigned int * )ptr, prevVal, newVal ) != prevVal );
+    } while( clsparse_atomic_cmpxchg( ( global unsigned long * )ptr, prevVal, newVal ) != prevVal );
 #endif
 }
 )"
@@ -112,15 +167,36 @@ csrmv_batched( global const FPTYPE * restrict sparseVals,
     // workgroup will spin-loop.
 
     // Row & stop_row is same for every thread in the workgroup
-    unsigned int row = ( ( rowBlocks[ groupID ] >> ROWBITS ) & ( ( 1UL << ROWBITS ) - 1UL ) );
-    unsigned int stop_row = ( ( rowBlocks[ groupID + 1 ] >> ROWBITS ) & ( ( 1UL << ROWBITS ) - 1UL ) );
+    unsigned int row = ( ( rowBlocks[ groupID ] >> (64-ROWBITS) ) & ( ( 1UL << ROWBITS ) - 1UL ) );
+    unsigned int stop_row = ( ( rowBlocks[ groupID + 1 ] >> (64-ROWBITS) ) & ( ( 1UL << ROWBITS ) - 1UL ) );
+    unsigned int num_rows = stop_row - row;
+
+    // Get the "workgroup within this long row" ID out of the bottom bits of the row block.
+    unsigned int wg = rowBlocks[groupID] & ((1 << WGBITS) - 1);
+
+    // Any workgroup only calculates, at most, BLOCKSIZE items in a row.
+    // If there are more items in this row, we assign more workgroups.
+    unsigned int vecStart = mad24(wg, (unsigned int)(BLOCKSIZE), sparseRowPtrs[row]);
+    unsigned int vecEnd = (sparseRowPtrs[row + 1] > vecStart + BLOCKSIZE) ? vecStart + BLOCKSIZE : sparseRowPtrs[row + 1];
+
+#if (defined(DOUBLE) || defined(LONG)) && !defined(ATOM64)
+    // In here because we don't support 64-bit atomics while working on 64-bit data.
+    // As such, we can't use CSR-LongRows. Time to do a fixup -- first WG does the
+    // entire row with CSR-Vector. Other rows immediately exit.
+    if (num_rows == 0 || (num_rows == 1 && wg)) // CSR-LongRows case
+    {
+        num_rows = 1;
+        stop_row = wg ? row : (row + 1);
+        wg = 0;
+    }
+#endif
 
     // If the next row block starts more than 2 rows away, then we choose CSR-Stream.
     // If this is zero (long rows) or one (final workgroup in a long row, or a single
     // row in a row block), we want to use the CSR-Vector algorithm.
     // We have found, through experimentation, that CSR-Vector is generally faster
     // when working on 2 rows, due to its simplicity and better reduction method.
-    if( stop_row - row > 2 )
+    if( num_rows > 2 )
     {
         // CSR-Stream case. See Sections III.A and III.B in the SC'14 paper:
         // "Efficient Sparse Matrix-Vector Multiplication on GPUs using the CSR Storage Format"
@@ -142,7 +218,7 @@ csrmv_batched( global const FPTYPE * restrict sparseVals,
         // We want the closest lower-power-of-2 to this number -- that is how many
         // threads can work in each row's reduction using our algorithm.
 
-        int possibleThreadsRed = get_local_size( 0 ) / ( stop_row - row );
+        int possibleThreadsRed = get_local_size( 0 ) / ( num_rows );
         int numThreadsForRed = lowerPowerOf2( possibleThreadsRed );
 
         unsigned int local_row = row + localID;
@@ -196,7 +272,7 @@ csrmv_batched( global const FPTYPE * restrict sparseVals,
 
             // Not all row blocks are full -- they may have an odd number of rows. As such,
             // we need to ensure that adjacent-groups only work on real data for this rowBlock.
-            if( st < ( stop_row - row ) )
+            if( st < ( num_rows ) )
             {
                 // only works when numThreadsForRed is a power of 2
                 for( int i = 0; i < workForEachThread; i++ )
@@ -219,7 +295,7 @@ csrmv_batched( global const FPTYPE * restrict sparseVals,
             // each of the adjacent-groups and uses it to walk through those values and reduce
             // them into a final output value for the row.
             temp = 0.;
-            if( localID < ( stop_row - row ) )
+            if( localID < ( num_rows ) )
             {
 #pragma unroll 4
                 for( int i = 0; i < numThreadsForRed; i++ )
@@ -262,6 +338,8 @@ csrmv_batched( global const FPTYPE * restrict sparseVals,
             }
         }
     }
+)"
+R"(
     else
     {
         // In CSR-Vector, we may have more than one workgroup calculating this row
@@ -291,14 +369,14 @@ csrmv_batched( global const FPTYPE * restrict sparseVals,
                 denseC[ row * ldC ] = 0.;
             // We currently have, at most, two rows in a CSR-Vector calculation.
             // If we have two, we need to initialize the second output as well.
-            if( stop_row - row == 2 )
+            if( num_rows == 2 )
             {
                 if( beta != 0. )
                     denseC[ (row * ldC) + 1 ] *= beta;
                 else
                     denseC[ (row * ldC) + 1 ] = 0.;
             }
-            atom_xor( &rowBlocks[ first_wg_in_row ], ( 1UL << WGBITS ) ); // Release other workgroups.
+            clsparse_atomic_xor( &rowBlocks[ first_wg_in_row ], ( 1UL << WGBITS ) ); // Release other workgroups.
         }
         // For every other workgroup, bit 24 holds the value they wait on.
         // If your bit 24 == first_wg's bit 24, you spin loop.
@@ -306,7 +384,7 @@ csrmv_batched( global const FPTYPE * restrict sparseVals,
         barrier( CLK_GLOBAL_MEM_FENCE );
         while( groupID != first_wg_in_row &&
                localID == 0 &&
-               ( ( atom_max( &rowBlocks[ first_wg_in_row ], 0UL ) & ( 1UL << WGBITS ) ) == compare_value ) );
+               ( ( clsparse_atomic_max( &rowBlocks[ first_wg_in_row ], 0UL ) & ( 1UL << WGBITS ) ) == compare_value ) );
         barrier( CLK_GLOBAL_MEM_FENCE );
 
         // After you've passed the barrier, update your local flag to make sure that

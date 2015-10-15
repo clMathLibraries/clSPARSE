@@ -140,7 +140,7 @@ offsets_to_indices(clsparse::vector<T>& indices,
     if (elements_per_row < 4)  {  subwave_size = 2;  }
 
 
-    const std::string params = std::string ()
+    std::string params = std::string ()
             + " -DINDEX_TYPE=" + OclTypeTraits<T>::type
             //not used in this kernel but required by program conversion_utils
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
@@ -148,6 +148,18 @@ offsets_to_indices(clsparse::vector<T>& indices,
             + " -DWG_SIZE=" + std::to_string(group_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
+
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
 
     cl::Kernel kernel = KernelCache::get(control->queue, "conversion_utils",
                                          "offsets_to_indices", params);

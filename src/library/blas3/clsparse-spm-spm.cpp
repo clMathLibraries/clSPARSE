@@ -55,13 +55,6 @@
 #define MERGELIST_INITSIZE 256
 #define BHSPARSE_SUCCESS 0
  
-#define CHECKMAL(a, b) \
-    if(a==NULL) \
-    {     \
-        std::cerr << "Malloc Error:" << b << std::endl; \
-        exit(1); \
-    }
- 
 using namespace std;
 
 int statistics(int *_h_csrRowPtrCt, int *_h_counter, int *_h_counter_one, int *_h_counter_sum, int *_h_queue_one, int _m);
@@ -764,35 +757,25 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     clEnqueueFillBuffer(control->queue(), matC->rowOffsets, &pattern, sizeof(cl_int), 0, (m + 1)*sizeof(cl_int), 0, NULL, NULL);
                         
     cl_mem csrRowPtrC = matC->rowOffsets;
-    int *csrRowPtrC_h = (int *) malloc((m + 1) * sizeof(int));
-    memset(csrRowPtrC_h, 0, (m + 1) * sizeof(int));
-    CHECKMAL(csrRowPtrC_h, "csrRowPtrC_h");
 
-    cl_mem csrRowPtrCt_d = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, (m + 1) * sizeof( cl_int ), NULL, &run_status );	   
+    std::vector<int> csrRowPtrC_h(m + 1, 0);
+
+    cl_mem csrRowPtrCt_d = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, (m + 1) * sizeof( cl_int ), NULL, &run_status );
     clEnqueueFillBuffer(control->queue(), csrRowPtrCt_d, &pattern, sizeof(cl_int), 0, (m + 1)*sizeof(cl_int), 0, NULL, NULL);
-    
-    int *csrRowPtrCt_h = (int *) malloc((m + 1) * sizeof(int));
-    memset(csrRowPtrCt_h, 0, (m + 1) * sizeof(int));
+
+    std::vector<int> csrRowPtrCt_h(m + 1, 0);
     
     // STAGE 1
     compute_nnzCt(m, csrRowPtrA, csrColIndA, csrRowPtrB, csrColIndB, csrRowPtrCt_d, control);
     
     // statistics
-    int *counter = (int *)malloc(NUM_SEGMENTS * sizeof(int));
-    CHECKMAL(counter, "counter");
-    memset(counter, 0, NUM_SEGMENTS * sizeof(int));
+    std::vector<int> counter(NUM_SEGMENTS, 0);
 
-    int *counter_one = (int *)malloc((NUM_SEGMENTS + 1) * sizeof(int));
-    CHECKMAL(counter_one, "counter_one");
-    memset(counter_one, 0, (NUM_SEGMENTS + 1) * sizeof(int));
+    std::vector<int> counter_one(NUM_SEGMENTS + 1, 0);
 
-    int *counter_sum = (int *)malloc((NUM_SEGMENTS + 1) * sizeof(int));
-    CHECKMAL(counter_sum, "counter_sum");
-    memset(counter_sum, 0, (NUM_SEGMENTS + 1) * sizeof(int));
+    std::vector<int> counter_sum(NUM_SEGMENTS + 1, 0);
 
-    int *queue_one = (int *) malloc(TUPLE_QUEUE * m * sizeof(int));
-    CHECKMAL(queue_one, "queue_one");
-    memset(queue_one, 0, TUPLE_QUEUE * m * sizeof(int));
+    std::vector<int> queue_one(m * TUPLE_QUEUE, 0);
     
     cl_mem queue_one_d = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, TUPLE_QUEUE * m * sizeof(int), NULL, &run_status );
         
@@ -801,13 +784,13 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
                                      1,
                                      0,
                                      (m + 1)*sizeof(cl_int),
-                                     csrRowPtrCt_h,
+                                     csrRowPtrCt_h.data(),
                                      0,
                                      0,
                                      0);
 
     // STAGE 2 - STEP 1 : statistics
-    int nnzCt = statistics(csrRowPtrCt_h, counter, counter_one, counter_sum, queue_one, m);
+    int nnzCt = statistics(csrRowPtrCt_h.data(), counter.data(), counter_one.data(), counter_sum.data(), queue_one.data(), m);
     // STAGE 2 - STEP 2 : create Ct
     //cout << "nnzCt == " <<  nnzCt << endl; 
     
@@ -820,20 +803,20 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
                                      1,
                                      0,
                                      TUPLE_QUEUE * m * sizeof(int),
-                                     queue_one,
+                                     queue_one.data(),
                                      0,
                                      0,
                                      0);
     
     // STAGE 3 - STEP 1 : compute nnzC and Ct
-    compute_nnzC_Ct_opencl(counter_one, queue_one_d, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt_d, &csrColIndCt, &csrValCt, n, nnzCt, m, queue_one, control);
+    compute_nnzC_Ct_opencl(counter_one.data(), queue_one_d, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt_d, &csrColIndCt, &csrValCt, n, nnzCt, m, queue_one.data(), control);
     // STAGE 3 - STEP 2 : malloc C on devices
     run_status = clEnqueueReadBuffer(control->queue(),
                                      csrRowPtrC,
                                      1,
                                      0,
                                      (m + 1)*sizeof(cl_int),
-                                     csrRowPtrC_h,
+                                     csrRowPtrC_h.data(),
                                      0,
                                      0,
                                      0);
@@ -853,7 +836,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     int nnzC = csrRowPtrC_h[m];
     //std::cout << "nnzC = " << nnzC << std::endl;
     
-    matC->colIndices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_int ), NULL, &run_status );	   
+    matC->colIndices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_int ), NULL, &run_status );
     matC->values =     ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_float ), NULL, &run_status );
     
     cl_mem csrColIndC = matC->colIndices;
@@ -864,30 +847,22 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
                                      1,
                                      0,
                                      (m + 1)*sizeof(cl_int),
-                                     csrRowPtrC_h,
+                                     csrRowPtrC_h.data(),
                                      0,
                                      0,
                                      0);
 
 
-    copy_Ct_to_C_opencl(counter_one, csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt_d, csrColIndCt, queue_one_d, control);
+    copy_Ct_to_C_opencl(counter_one.data(), csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt_d, csrColIndCt, queue_one_d, control);
     
     matC->num_rows = m;
     matC->num_cols = n;
     matC->num_nonzeros  = nnzC;
-
-    free(csrRowPtrC_h);
-    free(csrRowPtrCt_h);
-    free(counter);
-    free(counter_one);
-    free(counter_sum);
-    free(queue_one);
  
     ::clReleaseMemObject(csrRowPtrCt_d);
     ::clReleaseMemObject(queue_one_d);
     ::clReleaseMemObject(csrColIndCt);
     ::clReleaseMemObject(csrValCt);
-
 }
 
 int statistics(int *_h_csrRowPtrCt, int *_h_counter, int *_h_counter_one, int *_h_counter_sum, int *_h_queue_one, int _m)

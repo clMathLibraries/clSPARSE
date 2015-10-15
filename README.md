@@ -26,7 +26,7 @@ projects to build wrappers around clSPARSE in any language they need.  A great d
 of thought and effort went into designing the API’s to make them less ‘cluttered’
 compared to the older clMath libraries.  OpenCL state is not explicitly passed
 through the API, which enables the library to be forward compatible when users are
-ready to switch from OpenCL 1.2 to OpenCL 2.0 _(OpenCL 2.0 support not completely finished)_
+ready to switch from OpenCL 1.2 to OpenCL 2.0 <sup>[1](#opencl-2)</sup>
 
 The API’s are designed such that users are in control of where input and output
 buffers live, and they maintain control of when data transfers to/from device
@@ -66,7 +66,7 @@ Please refer to and read the [Contributing](CONTRIBUTING.md) document for guidel
 how to contribute code to this open source project. Code in the
 /master branch is considered to be stable and new library releases are made
 when commits are merged into /master.  Active development and pull-requests should
-be made to the **/develop** branch.
+be made to the **develop** branch.
 
 ## Build
 clSPARSE is primarily written with C++ using C++11 core features.  It does export
@@ -102,3 +102,6 @@ files
 ### Bench & Test infrastructure dependencies
 -   Googletest v1.7
 -   Boost v1.58
+
+## Clarifications
+<a name="opencl-2">[1]</a>: OpenCL 2.0 support is not yet fully implemented; only the interfaces have been designed

@@ -118,6 +118,13 @@ const clsparseControl control )
     if( typeid( T ) == typeid( cl_double ) )
     {
         params += " -DDOUBLE";
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
     }
 
     cl::Kernel kernel = KernelCache::get( control->queue,
