@@ -1,0 +1,16 @@
+Csr2Dense, 
+,
+CUDA Driver,352.39
+OpenCL Device,k40c
+,
+Matrix Name,Gi-Elements/s
+Dubcova1,0.010733
+hydr1c_A_11,0.0121546
+hydr1c_A_72,0.0121434
+hydr1c_A_76,0.0121483
+Maragal_6,0.0259574
+Na5,0.155875
+psse1,0.00518171
+Reuters911,0.0217409
+Si10H16,0.0308072
+tomography,0.569722

@@ -1,0 +1,18 @@
+SpM-dV, 
+,
+CUDA Driver,352.39
+OpenCL Device,k40c
+,
+Matrix Name,Gi-Bytes/s
+cant,132.192
+consph,136.732
+cop20k_A,85.7759
+mac_econ_fwd500,66.1886
+mc2depi,100.872
+pdb1HYS,137.62
+pwtk,94.678
+rail4284,45.4369
+rma10,87.7385
+scircuit,68.8223
+shipsec1,216.15
+webbase_1M,46.0537
