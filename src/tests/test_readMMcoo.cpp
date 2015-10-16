@@ -28,6 +28,8 @@ clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 
+static cl_bool explicit_zeroes = true;
+
 /** Just a simple test checking if the io functions for matrices are ok */
 
 namespace po = boost::program_options;
@@ -150,7 +152,9 @@ int main( int argc, char* argv[ ] )
     desc.add_options( )
         ( "help,h", "Produce this message." )
         ( "path,p", po::value( &path )->required( ),
-        "Path to matrix in mtx format." );
+        "Path to matrix in mtx format." )
+        ("no_zeroes,z", po::bool_switch()->default_value(false),
+         "Disable reading explicit zeroes from the input matrix market file.");
 
     po::variables_map vm;
     try
@@ -165,6 +169,9 @@ int main( int argc, char* argv[ ] )
         return false;
     }
 
+    if (vm["no_zeroes"].as<bool>())
+        explicit_zeroes = false;
+
     double alpha = 1.0;
     double beta = 1.0;
 
@@ -172,6 +179,7 @@ int main( int argc, char* argv[ ] )
 
     //order does matter!
     ::testing::AddGlobalTestEnvironment( new CLSE( ) );
+    clsparseEnableExplicitZeroes(CLSE::control, explicit_zeroes);
     ::testing::AddGlobalTestEnvironment( new CSRE( path, alpha, beta,
         CLSE::queue, CLSE::context ) );
 

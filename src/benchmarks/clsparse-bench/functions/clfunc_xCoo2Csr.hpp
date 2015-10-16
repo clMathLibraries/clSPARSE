@@ -25,7 +25,7 @@ template <typename T>
 class xCoo2Csr: public clsparseFunc
 {
 public:
-    xCoo2Csr( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xCoo2Csr( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool explicit_zeroes, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -44,6 +44,7 @@ public:
 
 
         clsparseEnableAsync( control, false );
+        clsparseEnableExplicitZeroes( control, explicit_zeroes);
     }
 
     ~xCoo2Csr( )

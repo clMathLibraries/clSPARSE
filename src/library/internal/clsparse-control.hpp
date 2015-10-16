@@ -67,6 +67,10 @@ struct _clsparseControl
     //otherwise after every kernel call we are syncing internally;
     cl_bool async;
 
+    // When reading in values from matrix market files, should we store zero values that
+    // are explicit in the file?
+    cl_bool exp_zeroes;
+
     // Handle/pointer to the librar logger
     clsparseDeviceTimer* pDeviceTimer;
 

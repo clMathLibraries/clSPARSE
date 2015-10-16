@@ -26,7 +26,7 @@ template <typename T>
 class xCG : public clsparseFunc
 {
 public:
-    xCG( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ):
+    xCG( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool explicit_zeroes, cl_device_type devType ):
         clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ),/* gpuTimer( nullptr ),*/ cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
@@ -46,6 +46,7 @@ public:
 
 
         clsparseEnableAsync( control, false );
+        clsparseEnableExplicitZeroes(control, explicit_zeroes);
 
         solverControl = clsparseCreateSolverControl(NOPRECOND, 10000, 1e-4, 1e-8);
         clsparseSolverPrintMode(solverControl, NORMAL);

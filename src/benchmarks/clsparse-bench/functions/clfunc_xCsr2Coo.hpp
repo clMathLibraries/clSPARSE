@@ -26,7 +26,7 @@ template <typename T>
 class xCsr2Coo : public clsparseFunc
 {
 public:
-	xCsr2Coo(PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type dev_type) : clsparseFunc(dev_type, CL_QUEUE_PROFILING_ENABLE)
+	xCsr2Coo(PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool explicit_zeroes, cl_device_type dev_type) : clsparseFunc(dev_type, CL_QUEUE_PROFILING_ENABLE)
 	{
 		gpuTimer = nullptr;
 		cpuTimer = nullptr;
@@ -47,6 +47,7 @@ public:
 		}
 
 		clsparseEnableAsync(control, false);
+                clsparseEnableExplicitZeroes( control, explicit_zeroes);
 	}// End of constructor
 
 	~xCsr2Coo()

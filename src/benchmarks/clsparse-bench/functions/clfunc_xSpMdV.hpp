@@ -25,7 +25,7 @@ template <typename T>
 class xSpMdV: public clsparseFunc
 {
 public:
-    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool extended_precision, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool extended_precision, cl_bool explicit_zeroes, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -43,6 +43,7 @@ public:
         }
 
         clsparseEnableExtendedPrecision( control, extended_precision );
+        clsparseEnableExplicitZeroes( control, explicit_zeroes );
 
         clsparseEnableAsync( control, false );
     }
@@ -71,12 +72,12 @@ public:
 
     double gflops( )
     {
-        return 0.0;
+        return ((2 * csrMtx.num_nonzeros) / time_in_ns ( ));
     }
 
     std::string gflops_formula( )
     {
-        return "N/A";
+        return "GFLOPs";
     }
 
     double bandwidth( )
@@ -207,12 +208,15 @@ public:
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
           size_t sparseBytes = sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows );
+          size_t sparseFlops = 2 * csrMtx.num_nonzeros;
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
+          cpuTimer->Print( sparseFlops, "GFLOPs" );
           cpuTimer->Reset( );
 
           gpuTimer->pruneOutliers( 3.0 );
           gpuTimer->Print( sparseBytes, "GiB/s" );
+          gpuTimer->Print( sparseFlops, "GFLOPs" );
           gpuTimer->Reset( );
         }
 
