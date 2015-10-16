@@ -15,30 +15,49 @@ R"(
  * limitations under the License.
  * ************************************************************************ */
 
-#ifdef cl_khr_fp64
+// No reason to include these beyond version 1.2, where double is not an extension.
+#if defined(ATOMIC_DOUBLE) && __OPENCL_VERSION__ < CL_VERSION_1_2
+  #ifdef cl_khr_fp64
     #pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#elif defined(cl_amd_fp64)
+  #elif defined(cl_amd_fp64)
     #pragma OPENCL EXTENSION cl_amd_fp64 : enable
-#else
-    #error "Double precision floating point not supported by OpenCL implementation."
+  #else
+    #error "Double precision floating point not supported by this OpenCL implementation."
+  #endif
 #endif
 
-#pragma OPENCL EXTENSION cl_khr_int64_base_atomics: enable
-#pragma OPENCL EXTENSION cl_khr_int64_extended_atomics: enable
+#ifdef ATOMIC_DOUBLE
+  #if defined(cl_khr_int64_base_atomics) && defined(cl_khr_int64_extended_atomics)
+    #pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
+    #pragma OPENCL EXTENSION cl_khr_int64_extended_atomics : enable
+  #else
+    #error "Required 64-bit atomics not supported by this OpenCL implementation."
+  #endif
+#endif
+
+#if __OPENCL_VERSION__ <= CL_VERSION_1_0 && (defined(ATOMIC_FLOAT) || defined (ATOMIC_INT))
+  #if defined(cl_khr_global_int32_base_atomics) && defined(cl_khr_global_int32_extended_atomics)
+    #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+    #pragma OPENCL_EXTENSION cl_khr_global_int32_extended_atomics : enable
+  #else
+    #error "Required 32-bit atomics not supported by this OpenCL implemenation."
+  #endif
+#endif
 
 #ifndef VALUE_TYPE
-#error VALUE_TYPE undefined!
+#error "VALUE_TYPE undefined!"
 #endif
 
 #ifndef SIZE_TYPE
-#error SIZE_TYPE undefined!
+#error "SIZE_TYPE undefined!"
 #endif
 
 #ifndef WG_SIZE
-#error WG_SIZE undefined!
+#error "WG_SIZE undefined!"
 #endif
+)"
 
-
+R"(
 void atomic_add_float (global VALUE_TYPE *ptr, VALUE_TYPE temp)
 {
 #ifdef ATOMIC_DOUBLE
@@ -63,7 +82,7 @@ void atomic_add_float (global VALUE_TYPE *ptr, VALUE_TYPE temp)
 )"
 
 R"(
-VALUE_TYPE operation(VALUE_TYPE A)
+inline VALUE_TYPE operation(VALUE_TYPE A)
 {
 #ifdef OP_RO_SQRT
     return sqrt(A);

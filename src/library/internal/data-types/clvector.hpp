@@ -49,7 +49,12 @@ class vector : public array_base<T>
 public:
 
     typedef typename BASE::value_type value_type;
+    typedef typename BASE::size_type  size_type;
+
+    typedef value_type* naked_pointer;
+
     typedef vector<value_type> self_type;
+
     typedef reference_base<self_type> reference;
 
     typedef iterator_base<self_type> iterator;
@@ -117,12 +122,12 @@ public:
         return internal::fill(*this, value);
     }
 
-    size_t size() const
+    size_type size() const
     {
         return BASE::_size;
     }
 
-    void resize(size_t size)
+    void resize(size_type size)
     {
         if(this->size() != size)
         {
@@ -148,11 +153,37 @@ public:
     }
 
 
-    reference operator[]( size_t n )
+    reference operator[]( size_type n )
     {
         assert(n < size());
 
         return reference( *this, n, queue);
+    }
+
+    // returns constant value instead of reference
+    // since it is not a mutable object
+    const value_type operator[]( size_t n ) const
+    {
+        assert(n < size());
+
+        cl_int clStatus;
+
+        naked_pointer buffer = reinterpret_cast< naked_pointer >
+                ( queue.enqueueMapBuffer(BASE::_buff, CL_TRUE, CL_MAP_READ,
+                                         n * sizeof( value_type ), sizeof( value_type ),
+                                         NULL, NULL, &clStatus));
+        CLSPARSE_V(clStatus, "clVector failed to map value to host memory");
+
+        const value_type retValue = *buffer;
+
+        cl::Event unmapEvent;
+        clStatus = queue.enqueueUnmapMemObject(BASE::_buff, buffer, NULL, &unmapEvent);
+
+        CLSPARSE_V(clStatus, "clVector failed to unmap pointer from device mem");
+        clStatus = unmapEvent.wait();
+        CLSPARSE_V(clStatus, "clVector unmap event failed");
+
+        return retValue;
     }
 
 
@@ -264,7 +295,7 @@ public:
 
 private:
 
-    cl::Buffer create_buffer(size_t size, cl_map_flags flags = CL_MEM_READ_WRITE)
+    cl::Buffer create_buffer(size_type size, cl_map_flags flags = CL_MEM_READ_WRITE)
         {
             if(size > 0)
             {

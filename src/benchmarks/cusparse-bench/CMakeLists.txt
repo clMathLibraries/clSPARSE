@@ -32,6 +32,7 @@ set( CLIENT_HEADER
   functions/cufunc_xCsr2Coo.hpp
   functions/cufunc_xDense2Csr.hpp
   functions/cufunc_xCoo2Csr.hpp
+  functions/cufunc_xSpMSpM.hpp
 )
 
 include_directories(

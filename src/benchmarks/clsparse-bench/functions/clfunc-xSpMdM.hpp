@@ -106,14 +106,13 @@ public:
         int nnz, row, col;
         clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, sparseFile.c_str( ) );
         if( fileError != clsparseSuccess )
-            throw clsparse::io_exception( "Could not read matrix market header from disk" );
+             throw clsparse::io_exception( "Could not read matrix market header from disk: " + sparseFile );
 
         // Now initialise a CSR matrix from the CSR matrix
         clsparseInitCsrMatrix( &csrMtx );
         csrMtx.num_nonzeros = nnz;
         csrMtx.num_rows = row;
         csrMtx.num_cols = col;
-        clsparseCsrMetaSize( &csrMtx, control );
 
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
@@ -125,12 +124,14 @@ public:
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
-        csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
-
         fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
         if( fileError != clsparseSuccess )
-            throw std::runtime_error( "Could not read matrix market data from disk" );
+            throw std::runtime_error( "Could not read matrix market data from disk: " + sparseFile);
+
+        clsparseCsrMetaSize( &csrMtx, control );
+        csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE, csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
+        clsparseCsrMetaCompute( &csrMtx, control );
 
         // Initialize the dense B & C matrices that we multiply against the sparse matrix
         // We are shaping B, such that no matter what shape A is, C will result in a square matrix

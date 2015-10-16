@@ -40,7 +40,7 @@ clsparseStatus
 elementwise_transform(cldenseVectorPrivate* r,
                       const cldenseVectorPrivate* x,
                       const cldenseVectorPrivate* y,
-                      clsparseControl control)
+                      const clsparseControl control)
 {
     if (!clsparseInitialized)
     {
@@ -54,7 +54,7 @@ elementwise_transform(cldenseVectorPrivate* r,
     }
 
     assert(x->num_values == y->num_values);
-    assert(x->num_values== r->num_values);
+    assert(x->num_values == r->num_values);
 
     cl_ulong size = x->num_values;
     cl_uint wg_size = 256;
@@ -64,6 +64,18 @@ elementwise_transform(cldenseVectorPrivate* r,
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ElementWiseOperatorTrait<OP>::operation;
+
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
 
     cl::Kernel kernel = KernelCache::get(control->queue, "elementwise_transform",
                                          "transform", params);
@@ -95,7 +107,7 @@ clsparseStatus
 elementwise_transform(clsparse::array_base<T>& r,
                       const clsparse::array_base<T>& x,
                       const clsparse::array_base<T>& y,
-                      clsparseControl control)
+                      const clsparseControl control)
 {
     if (!clsparseInitialized)
     {

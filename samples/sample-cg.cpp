@@ -14,16 +14,25 @@
  * limitations under the License.
  * ************************************************************************ */
 
+/*! \file
+* \brief Simple demonstration code for how to execute an iterative CG solver with
+* clSPARSE
+*/
+
 #include <iostream>
 #include <vector>
 
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/cl.hpp>
+#else
 #include <CL/cl.hpp>
+#endif
 
 #include <clSPARSE.h>
 
-/**
- * Sample Conjugate Gradients Solver (CG C++)
- * Solves equation A * x = b
+/*!
+ * \brief Sample Conjugate Gradients Solver (CG C++)
+ * \details Solves equation A * x = b
  *
  * A - [m x n] matrix in CSR format
  * x - dense vector of n elements (unknowns)
@@ -39,7 +48,8 @@
  * For more theoretical details check
  * http://www.cs.cmu.edu/~./quake-papers/painless-conjugate-gradient.pdf
  *
- * */
+ *
+ */
 
 int main (int argc, char* argv[])
 {
@@ -171,11 +181,6 @@ int main (int argc, char* argv[])
     A.num_rows = row;
     A.num_cols = col;
 
-    // This function allocates memory for rowBlocks structure. If not called
-    // the structure will not be calculated and clSPARSE will run the vectorized
-    // version of SpMV instead of adaptive;
-    clsparseCsrMetaSize( &A, control );
-
     // Allocate memory for CSR matrix
     A.values = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                  A.num_nonzeros * sizeof( float ), NULL, &cl_status );
@@ -192,6 +197,13 @@ int main (int argc, char* argv[])
 
     fileError = clsparseSCsrMatrixfromFile( &A, matrix_path.c_str( ), control );
 
+    // This function allocates memory for rowBlocks structure. If not called
+    // the structure will not be calculated and clSPARSE will run the vectorized
+    // version of SpMV instead of adaptive;
+    clsparseCsrMetaSize( &A, control );
+    A.rowBlocks = ::clCreateBuffer( context(), CL_MEM_READ_WRITE,
+            A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );
+    clsparseCsrMetaCompute( &A, control );
 
     if (fileError != clsparseSuccess)
     {

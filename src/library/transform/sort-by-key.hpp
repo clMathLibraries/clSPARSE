@@ -14,28 +14,8 @@
  * limitations under the License.
  * ************************************************************************ */
 
-CLSPARSE_EXPORT clsparseStatus
-scan( int first,
-      int last,
-      cl_mem input_array,
-      cl_mem output_result,
-      int init_T,
-      int exclusive,
-      clsparseControl control
-     );
+//JPA:: this need to be rewritten in a good way
 
-CLSPARSE_EXPORT clsparseStatus
-reduce_by_key(
-      int keys_first,
-      int keys_last,
-      int values_first,
-      cl_mem keys_input,
-      cl_mem values_input,
-      cl_mem keys_output,
-      cl_mem values_output,
-      int *count,
-      clsparseControl control
-);
 //ascending sort
 CLSPARSE_EXPORT clsparseStatus
 radix_sort_by_key(

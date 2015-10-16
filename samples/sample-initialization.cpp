@@ -18,7 +18,8 @@
 
 #include <clSPARSE.h>
 
-/**
+/*!
+ * \file
  * Sample clSPARSE initialization (C++)
  * This is the simplest program using clSPARSE API calls.
  */

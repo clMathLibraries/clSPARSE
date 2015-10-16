@@ -34,6 +34,7 @@
 #include "functions/cufunc_xCsr2Coo.hpp"
 #include "functions/cufunc_xDense2Csr.hpp"
 #include "functions/cufunc_xCoo2Csr.hpp"
+#include "functions/cufunc_xSpMSpM.hpp"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -124,7 +125,8 @@ int main(int argc, char *argv[])
     ( "alpha", po::value<double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
     ( "beta", po::value<double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
     //( "transposeA", po::value<int>( &transA_option )->default_value( 0 ), "0 = no transpose, 1 = transpose, 2 = conjugate transpose" )
-    ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: SpMdV, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
+    ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: "
+                "SpMdV, SpMSpM, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
     ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
     ( "profile,p", po::value<int>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
     ;
@@ -169,6 +171,18 @@ int main(int argc, char *argv[])
       std::cerr << "Unknown spmdv precision" << std::endl;
       return -1;
     }
+  }
+  else if (boost::iequals(function, "SpMSpM"))
+  {
+      if (precision == "s")
+          my_function = std::unique_ptr< cusparseFunc >(new xSpMSpM< float >(timer));
+      else if (precision == "d") // Currently not supported
+          my_function = std::unique_ptr< cusparseFunc >(new xSpMSpM< double >(timer));
+      else
+      {
+          std::cerr << "Unknown spmspm precison" << std::endl;
+          return -1;
+      }
   }
   else if( boost::iequals( function, "Csr2Dense" ) )
   {
@@ -264,8 +278,10 @@ int main(int argc, char *argv[])
         timer.pruneOutliers( 3.0 );
         std::cout << "cuSPARSE matrix: " << path << std::endl;
         std::cout << "cuSPARSE kernel execution time < ns >: " << my_function->time_in_ns( ) << std::endl;
-        std::cout << "cuSPARSE kernel execution Gflops < " <<
+        std::cout << "cuSPARSE kernel execution < " <<
             my_function->bandwidth_formula( ) << " >: " << my_function->bandwidth( ) << std::endl << std::endl;
+        std::cout << "cuSPARSE kernel execution < " <<
+            my_function->gflops_formula( ) << " >: " << my_function->gflops( ) << std::endl << std::endl;
       }
 
   }

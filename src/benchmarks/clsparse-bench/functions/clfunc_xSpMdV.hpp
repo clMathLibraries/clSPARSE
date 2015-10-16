@@ -25,7 +25,7 @@ template <typename T>
 class xSpMdV: public clsparseFunc
 {
 public:
-    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool extended_precision, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -42,6 +42,7 @@ public:
             cpuTimerID = cpuTimer->getUniqueID( "CPU xSpMdV", 0 );
         }
 
+        clsparseEnableExtendedPrecision( control, extended_precision );
 
         clsparseEnableAsync( control, false );
     }
@@ -70,12 +71,12 @@ public:
 
     double gflops( )
     {
-        return 0.0;
+        return ((2 * csrMtx.num_nonzeros) / time_in_ns ( ));
     }
 
     std::string gflops_formula( )
     {
-        return "N/A";
+        return "GFLOPs";
     }
 
     double bandwidth( )
@@ -106,14 +107,13 @@ public:
         int nnz, row, col;
         clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, sparseFile.c_str( ) );
         if( fileError != clsparseSuccess )
-            throw clsparse::io_exception( "Could not read matrix market header from disk" );
+            throw clsparse::io_exception( "Could not read matrix market header from disk: " + sparseFile );
 
         // Now initialise a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );
         csrMtx.num_nonzeros = nnz;
         csrMtx.num_rows = row;
         csrMtx.num_cols = col;
-        clsparseCsrMetaSize( &csrMtx, control );
 
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
@@ -128,10 +128,6 @@ public:
             ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
-        csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
-
         if(typeid(T) == typeid(float))
             fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
         else if (typeid(T) == typeid(double))
@@ -140,7 +136,13 @@ public:
             fileError = clsparseInvalidType;
 
         if( fileError != clsparseSuccess )
-            throw clsparse::io_exception( "Could not read matrix market data from disk" );
+            throw clsparse::io_exception( "Could not read matrix market data from disk: " + sparseFile );
+
+        clsparseCsrMetaSize( &csrMtx, control );
+        csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
+                csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
+        clsparseCsrMetaCompute( &csrMtx, control );
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );
@@ -205,12 +207,15 @@ public:
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
           size_t sparseBytes = sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows );
+          size_t sparseFlops = 2 * csrMtx.num_nonzeros;
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
+          cpuTimer->Print( sparseFlops, "GFLOPs" );
           cpuTimer->Reset( );
 
           gpuTimer->pruneOutliers( 3.0 );
           gpuTimer->Print( sparseBytes, "GiB/s" );
+          gpuTimer->Print( sparseFlops, "GFLOPs" );
           gpuTimer->Reset( );
         }
 

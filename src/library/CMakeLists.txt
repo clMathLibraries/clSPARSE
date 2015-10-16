@@ -70,21 +70,24 @@ set( clSPARSE.source.cl
   kernels/csrmv_adaptive.cl
   kernels/csrmm_general.cl
   kernels/control.cl
-  kernels/csr2dense.cl
-  kernels/csr2coo.cl
   kernels/blas1.cl
   kernels/reduce.cl
   kernels/dot.cl
   kernels/atomic_reduce.cl
   kernels/elementwise_transform.cl
   kernels/matrix_utils.cl
-  kernels/scan_kernels.cl
-  kernels/reduce_by_key.cl
   kernels/sort_by_key_common.cl
   kernels/sort_by_key_int.cl
   kernels/sort_by_key_uint.cl
-  kernels/prescan_scatter.cl
-  kernels/dense2csr.cl
+  kernels/scan.cl
+  kernels/reduce_by_key.cl
+  kernels/conversion_utils.cl
+  kernels/SpGEMM_computeNnzCt_kernels.cl
+  kernels/SpGEMM_ESC_0_1_kernels.cl
+  kernels/SpGEMM_ESC_2heap_kernels.cl
+  kernels/SpGEMM_ESC_bitonic_kernels.cl
+  kernels/SpGEMM_EM_kernels.cl
+  kernels/SpGEMM_copyCt2C_kernels.cl
 )
 
 set( clSPARSE.source.cpp
@@ -98,16 +101,14 @@ set( clSPARSE.source.internal
   internal/kernel-cache.cpp
   internal/ocl-type-traits.cpp
   internal/kernel-wrap.cpp
+  internal/data-types/csr-meta.cpp
 )
 
 set( clSPARSE.source.transform
   transform/clsparse-csr2dense.cpp
   transform/clsparse-coo2csr.cpp
   transform/clsparse-csr2coo.cpp
-  transform/scan.cpp
-  transform/reduce-by-key.cpp
   transform/sort-by-key.cpp
-  transform/clsparse-coo2csr-GPU.cpp
   transform/clsparse-dense2csr.cpp
 )
 
@@ -120,6 +121,7 @@ set( clSPARSE.source.blas1
   blas1/reduce-operators.cpp
   blas1/cldense-nrm1.cpp
   blas1/cldense-nrm2.cpp
+  blas1/elementwise-transform.cpp
   blas1/elementwise-operators.cpp
 )
 
@@ -129,6 +131,7 @@ set( clSPARSE.source.blas2
 
 set( clSPARSE.source.blas3
   blas3/clsparse-csrmm.cpp
+  blas3/clsparse-spm-spm.cpp
 )
 
 set( clSPARSE.source.solvers
@@ -157,6 +160,7 @@ set( clSPARSE.Headers.blas1
   blas1/reduce-operators.hpp
   blas1/commons.hpp
   blas1/cldense-dot.hpp
+  blas1/cldense-scale.hpp
   blas1/cldense-axpy.hpp
   blas1/cldense-axpby.hpp
   blas1/cldense-nrm1.hpp
@@ -198,10 +202,17 @@ set( clSPARSE.Headers.internal
   internal/data-types/clarray-base.hpp
   internal/data-types/reference-base.hpp
   internal/data-types/iterator-base.hpp
-  internal/computeRowBlocks.hpp
-  transform/transform-kernels.h
+  internal/data-types/csr-meta.hpp
   ${ocl_kernels_file_name}
 )
+
+set ( clSPARSE.Headers.transform
+  transform/sort-by-key.hpp
+  transform/scan.hpp
+  transform/reduce-by-key.hpp
+  transform/conversion-utils.hpp
+)
+
 
 # source_group( kernels REGULAR_EXPRESSION ".*cl$" )
 # Group header files into nice bundles
@@ -213,6 +224,7 @@ source_group( "Header Files\\Blas2" FILES ${clSPARSE.Headers.blas2} )
 source_group( "Header Files\\Blas3" FILES ${clSPARSE.Headers.blas3} )
 source_group( "Header Files\\Solvers" FILES ${clSPARSE.Headers.solvers} )
 source_group( "Header Files\\Internal" FILES ${clSPARSE.Headers.internal} )
+source_group( "Header Files\\Transform" FILES ${clSPARSE.Headers.transform} )
 
 # Group source files into nice bundles
 source_group( "Source Files\\Internal" FILES ${clSPARSE.source.internal} )
@@ -247,6 +259,7 @@ add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   ${clSPARSE.Headers.blas3}
   ${clSPARSE.Headers.solvers}
   ${clSPARSE.Headers.internal}
+  ${clSPARSE.Headers.transform}
   ${clSPARSE.source.cl}
   )
 

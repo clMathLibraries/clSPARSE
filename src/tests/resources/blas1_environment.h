@@ -1,6 +1,5 @@
-R"(
 /* ************************************************************************
- * Copyright 2015 Advanced Micro Devices, Inc.
+ * Copyright 2015 Vratis, Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +14,32 @@ R"(
  * limitations under the License.
  * ************************************************************************ */
 
+#pragma once
+#ifndef _BLAS1_ENVIRONMENT_H_
+#define _BLAS1_ENVIRONMENT_H_
 
-#ifdef cl_khr_fp64
-    #pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#elif defined(cl_amd_fp64)
-    #pragma OPENCL EXTENSION cl_amd_fp64 : enable
-#else
-    #error "Double precision floating point not supported by OpenCL implementation."
-#endif
+#include <gtest/gtest.h>
 
-__kernel
-void prescan_scatter ( __global int *key,
-                       __global int *value,
-                       __global int *scan_input,
-                       const int size)
+class Blas1Environment : public ::testing::Environment
 {
-    const int i = get_global_id(0);
+public:
 
-    //if (i >= size) return;
-    if (i < size){
-        scan_input[key[i]] = value[i];
+    Blas1Environment(double alpha, double beta, int size)
+    {
+        this->alpha = alpha;
+        this->beta = beta;
+        this->size = size;
     }
-}
-)"
+
+    void SetUp( )  {  }
+
+    void TearDown( )  {  }
+
+    static double alpha;
+    static double beta;
+    static int size;
+};
+
+
+#endif //_BLAS1_ENVIRONMENT_H_
+

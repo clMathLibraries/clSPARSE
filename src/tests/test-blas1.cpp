@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <string>
+#include <numeric>
 #include <boost/program_options.hpp>
 
 //boost ublas
@@ -24,13 +25,16 @@
 #include <boost/numeric/ublas/blas.hpp>
 
 #include "resources/clsparse_environment.h"
+#include "resources/blas1_environment.h"
+
 
 clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 
-//cl_uint ClSparseEnvironment::N = 1024;
-static const cl_uint N = 1024;
+double Blas1Environment::alpha = 0;
+double Blas1Environment::beta = 0;
+int Blas1Environment::size = 0;
 
 namespace po = boost::program_options;
 namespace uBLAS = boost::numeric::ublas;
@@ -41,6 +45,7 @@ class Blas1 : public ::testing::Test
 {
 
      using CLSE = ClSparseEnvironment;
+     using BLAS1E = Blas1Environment;
 
 
 public:
@@ -53,10 +58,9 @@ public:
         clsparseInitVector(&gX);
         clsparseInitVector(&gY);
 
-        //hY.resize(CLSE::N, 2.0);
-        //hX.resize(CLSE::N, 4.0);
-        hY = uBLAS::vector<T>(N, 2.0);
-        hX = uBLAS::vector<T>(N, 4.0);
+        hY = uBLAS::vector<T>(BLAS1E::size, 2);
+        hX = uBLAS::vector<T>(BLAS1E::size, 4);
+        //std::iota(hX.begin(), hX.end(), 1);
 
 
         cl_int status;
@@ -78,12 +82,14 @@ public:
         gAlpha.value = clCreateBuffer(CLSE::context,
                                       CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                       sizeof(T), &hAlpha, &status);
+
         ASSERT_EQ(CL_SUCCESS, status);
 
 
         gBeta.value = clCreateBuffer(CLSE::context,
                                      CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
                                      sizeof(T), &hBeta, &status);
+
         ASSERT_EQ(CL_SUCCESS, status);
 
     }
@@ -97,6 +103,18 @@ public:
        clReleaseMemObject( gBeta.value );
     }
 
+    boost::numeric::ublas::vector<T> hY;
+    boost::numeric::ublas::vector<T> hX;
+    T hAlpha = BLAS1E::alpha;
+    T hBeta = BLAS1E::beta;
+
+    cldenseVector gX;
+    cldenseVector gY;
+    clsparseScalar gAlpha;
+    clsparseScalar gBeta;
+
+
+    /*  Test functions  */
 
     void test_reduce()
     {
@@ -214,11 +232,11 @@ public:
         //  GPU result;
         if (typeid(T) == typeid(cl_float))
         {
-            status = cldenseSscale(&gX, &gAlpha, CLSE::control);
+            status = cldenseSscale(&gX, &gAlpha, &gX, CLSE::control);
         }
         else if ( typeid(T) == typeid(cl_double) )
         {
-            status = cldenseDscale(&gX, &gAlpha, CLSE::control);
+            status = cldenseDscale(&gX, &gAlpha, &gX, CLSE::control);
         }
 
         ASSERT_EQ (clsparseSuccess, status);
@@ -290,11 +308,11 @@ public:
         //  GPU result;
         if (typeid(T) == typeid(cl_float))
         {
-            status = cldenseSaxpy(&gY, &gAlpha, &gX, CLSE::control);
+            status = cldenseSaxpy(&gY, &gAlpha, &gX, &gY, CLSE::control);
         }
         else if ( typeid(T) == typeid(cl_double) )
         {
-            status = cldenseDaxpy(&gY, &gAlpha, &gX, CLSE::control);
+            status = cldenseDaxpy(&gY, &gAlpha, &gX, &gY, CLSE::control);
         }
 
         ASSERT_EQ (clsparseSuccess, status);
@@ -331,16 +349,16 @@ public:
         //  GPU result;
         if (typeid(T) == typeid(cl_float))
         {
-            status = cldenseSaxpby(&gY, &gAlpha, &gX, &gBeta, CLSE::control);
+            status = cldenseSaxpby(&gY, &gAlpha, &gX, &gBeta, &gY, CLSE::control);
         }
         else if ( typeid(T) == typeid(cl_double) )
         {
-            status = cldenseDaxpby(&gY, &gAlpha, &gX, &gBeta, CLSE::control);
+            status = cldenseDaxpby(&gY, &gAlpha, &gX, &gBeta, &gY, CLSE::control);
         }
 
         ASSERT_EQ (clsparseSuccess, status);
 
-        hY = uBLAS::blas_1::axpy (uBLAS::blas_1::scal(hY, hBeta), hAlpha, hX);
+        hY = uBLAS::blas_1::axpy(uBLAS::blas_1::scal(hY, hBeta), hAlpha, hX);
 
         // Map device data to host
         cl_int cl_status;
@@ -365,15 +383,163 @@ public:
 
     }
 
-    boost::numeric::ublas::vector<T> hY;
-    boost::numeric::ublas::vector<T> hX;
-    T hAlpha = 2.0;
-    T hBeta = 4.0;
+    void test_add()
+    {
+        clsparseStatus status;
 
-    cldenseVector gX;
-    cldenseVector gY;
-    clsparseScalar gAlpha;
-    clsparseScalar gBeta;
+        if (typeid(T) == typeid(cl_float))
+        {
+            status = cldenseSadd(&gY, &gX, &gY, CLSE::control);
+        }
+        else if ( typeid(T) == typeid(cl_double) )
+        {
+            status = cldenseDadd(&gY, &gX, &gY, CLSE::control);
+        }
+
+        ASSERT_EQ(clsparseSuccess, status);
+
+        hY = hX + hY;
+
+        cl_int cl_status;
+        T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
+                                              CL_TRUE, CL_MAP_READ,
+                                              0, gY.num_values * sizeof(T),
+                                              0, nullptr, nullptr, &cl_status);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+        // change it to some compare template functions
+        if ( typeid(T) == typeid(cl_float) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-7);
+
+        if ( typeid(T) == typeid(cl_double) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-14);
+
+        cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
+                                              host_result, 0, nullptr, nullptr);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+    }
+
+    void test_sub()
+    {
+        clsparseStatus status;
+
+        if (typeid(T) == typeid(cl_float))
+        {
+            status = cldenseSsub(&gY, &gX, &gY, CLSE::control);
+        }
+        else if ( typeid(T) == typeid(cl_double) )
+        {
+            status = cldenseDsub(&gY, &gX, &gY, CLSE::control);
+        }
+
+        ASSERT_EQ(clsparseSuccess, status);
+
+        hY = hX - hY;
+
+        cl_int cl_status;
+        T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
+                                              CL_TRUE, CL_MAP_READ,
+                                              0, gY.num_values * sizeof(T),
+                                              0, nullptr, nullptr, &cl_status);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+        // change it to some compare template functions
+        if ( typeid(T) == typeid(cl_float) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-7);
+
+        if ( typeid(T) == typeid(cl_double) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-14);
+
+        cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
+                                              host_result, 0, nullptr, nullptr);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+
+
+    }
+
+    void test_mul()
+    {
+        clsparseStatus status;
+
+        if (typeid(T) == typeid(cl_float))
+        {
+            status = cldenseSmul(&gY, &gX, &gY, CLSE::control);
+        }
+        else if ( typeid(T) == typeid(cl_double) )
+        {
+            status = cldenseDmul(&gY, &gX, &gY, CLSE::control);
+        }
+
+        ASSERT_EQ(clsparseSuccess, status);
+
+        hY = uBLAS::element_prod(hX, hY);
+
+        cl_int cl_status;
+        T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
+                                              CL_TRUE, CL_MAP_READ,
+                                              0, gY.num_values * sizeof(T),
+                                              0, nullptr, nullptr, &cl_status);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+        // change it to some compare template functions
+        if ( typeid(T) == typeid(cl_float) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-7);
+
+        if ( typeid(T) == typeid(cl_double) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-14);
+
+        cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
+                                              host_result, 0, nullptr, nullptr);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+    }
+
+    void test_div()
+    {
+        clsparseStatus status;
+
+        if (typeid(T) == typeid(cl_float))
+        {
+            status = cldenseSdiv(&gY, &gX, &gY, CLSE::control);
+        }
+        else if ( typeid(T) == typeid(cl_double) )
+        {
+            status = cldenseDdiv(&gY, &gX, &gY, CLSE::control);
+        }
+
+        ASSERT_EQ(clsparseSuccess, status);
+
+        hY = uBLAS::element_div(hX, hY);
+
+        cl_int cl_status;
+        T* host_result = (T*) ::clEnqueueMapBuffer(CLSE::queue, gY.values,
+                                              CL_TRUE, CL_MAP_READ,
+                                              0, gY.num_values * sizeof(T),
+                                              0, nullptr, nullptr, &cl_status);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+        // change it to some compare template functions
+        if ( typeid(T) == typeid(cl_float) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-7);
+
+        if ( typeid(T) == typeid(cl_double) )
+            for(int i = 0; i < hY.size(); i++)
+                ASSERT_NEAR (hY[i], host_result[i], 1e-14);
+
+        cl_status = ::clEnqueueUnmapMemObject(CLSE::queue, gY.values,
+                                              host_result, 0, nullptr, nullptr);
+        ASSERT_EQ (CL_SUCCESS, cl_status);
+
+    }
+
 };
 
 
@@ -417,16 +583,40 @@ TYPED_TEST(Blas1, axpby)
     this->test_axpby();
 }
 
+TYPED_TEST(Blas1, add)
+{
+    this->test_add();
+}
+
+TYPED_TEST(Blas1, sub)
+{
+    this->test_sub();
+}
+
+TYPED_TEST(Blas1, mul)
+{
+    this->test_mul();
+}
+
+TYPED_TEST(Blas1, div)
+{
+    this->test_div();
+}
+
 int main (int argc, char* argv[])
 {
 
     using CLSE = ClSparseEnvironment;
+    using BLAS1E = Blas1Environment;
 
 
     std::string platform;
     cl_platform_type pID;
     cl_uint dID;
     cl_uint size;
+
+    double alpha;
+    double beta;
 
     po::options_description desc("Allowed options");
 
@@ -436,8 +626,12 @@ int main (int argc, char* argv[])
              "OpenCL platform: AMD or NVIDIA.")
             ("device,d", po::value(&dID)->default_value(0),
              "Device id within platform.")
-            ("Size,n",po::value(&size)->default_value(1024),
-             "Size of the vectors used for testing");
+            ("size,s",po::value(&size)->default_value(1024),
+             "Size of the vectors used for testing")
+            ("alpha,a", po::value(&alpha)->default_value(2),
+             "Alpha coefficient for blas1 operations i.e. r = alpha * x + beta * y")
+            ("beta,b", po::value(&beta)->default_value(4),
+             "Beta coefficient for blas1 operations i.e. r = alpha * x + beta * y");
 
 
     po::variables_map vm;
@@ -485,6 +679,7 @@ int main (int argc, char* argv[])
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
     ::testing::AddGlobalTestEnvironment( new CLSE(pID, dID, size));
+    ::testing::AddGlobalTestEnvironment( new BLAS1E(alpha, beta, size));
 
     return RUN_ALL_TESTS();
 

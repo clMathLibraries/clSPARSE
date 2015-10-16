@@ -14,6 +14,11 @@
  * limitations under the License.
  * ************************************************************************ */
 
+ /*! \file
+ * \brief Simple demonstration code for how to initialize the clSPARSE library
+ * from within 'C' host code
+ */
+
 #include <stdio.h>
 
 #include <clSPARSE.h>
@@ -26,7 +31,7 @@ int main( int argc, char* argv[ ] )
 {
     printf("Executing sample clSPARSE initalization C\n");
 
-	clsparseStatus status = clsparseSetup();
+    clsparseStatus status = clsparseSetup();
 
     if (status != clsparseSuccess)
     {

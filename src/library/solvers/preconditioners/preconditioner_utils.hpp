@@ -79,6 +79,17 @@ extract_diagonal(cldenseVectorPrivate* pDiag,
     if (inverse)
         params.append(" -DOP_DIAG_INVERSE");
 
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
 
     cl::Kernel kernel = KernelCache::get(control->queue, "matrix_utils",
                                          "extract_diagonal", params);
@@ -164,6 +175,17 @@ extract_diagonal(clsparse::vector<T>& pDiag,
     if (inverse)
         params.append(" -DOP_DIAG_INVERSE");
 
+    if(typeid(T) == typeid(cl_double))
+    {
+        params.append(" -DDOUBLE");
+        if (!control->dpfp_support)
+        {
+#ifndef NDEBUG
+            std::cerr << "Failure attempting to run double precision kernel on device without DPFP support." << std::endl;
+#endif
+            return clsparseInvalidDevice;
+        }
+    }
 
     cl::Kernel kernel = KernelCache::get(control->queue, "matrix_utils",
                                          "extract_diagonal", params);

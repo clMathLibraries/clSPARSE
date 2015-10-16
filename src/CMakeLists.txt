@@ -27,11 +27,17 @@ if( CMAKE_GENERATOR MATCHES "NMake" )
 	endif( )
 endif( )
 
+# This has to be initialized before the project() command appears
+# Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
+if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
+  set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
+endif()
+
 # Check if cmake supports the new VERSION tag for project() commands
 # clSPARSE becomes the name of the project with a particular version
 if( POLICY CMP0048 )
 	cmake_policy( SET CMP0048 NEW )
-	project( clSPARSE VERSION 0.6.2.0 LANGUAGES C CXX )
+	project( clSPARSE VERSION 0.8.0.0 LANGUAGES C CXX )
 else( )
 	project( clSPARSE C CXX )
 	# Define a version for the code
@@ -40,11 +46,11 @@ else( )
 	endif( )
 
 	if( NOT DEFINED clSPARSE_VERSION_MINOR )
-		set( clSPARSE_VERSION_MINOR 6 )
+		set( clSPARSE_VERSION_MINOR 8 )
 	endif( )
 
 	if( NOT DEFINED clSPARSE_VERSION_PATCH )
-		set( clSPARSE_VERSION_PATCH 2 )
+		set( clSPARSE_VERSION_PATCH 0 )
 	endif( )
 
 	if( NOT DEFINED clSPARSE_VERSION_TWEAK )
@@ -54,15 +60,17 @@ else( )
 	set( clSPARSE_VERSION "${clSPARSE_VERSION_MAJOR}.${clSPARSE_VERSION_MINOR}.${clSPARSE_VERSION_PATCH}.${clSPARSE_VERSION_TWEAK}")
 endif( )
 
-message( STATUS "clSPARSE_VERSION_MAJOR=${clSPARSE_VERSION_MAJOR}" )
-message( STATUS "clSPARSE_VERSION_MINOR=${clSPARSE_VERSION_MINOR}" )
-message( STATUS "clSPARSE_VERSION_PATCH=${clSPARSE_VERSION_PATCH}" )
-message( STATUS "clSPARSE_VERSION_TWEAK=${clSPARSE_VERSION_TWEAK}" )
+message( STATUS "clSPARSE_VERSION= ${clSPARSE_VERSION}" )
+message( STATUS "CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}" )
 
 # This is incremented when the ABI to the library changes
 set( clSPARSE_SOVERSION 1 )
 
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
+
+# This option only works for make/nmake and the ninja generators, but no reason it shouldn't be on all the time
+# This tells cmake to create a compile_commands.json file that can be used with clang tooling or vim
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 # On windows, it's convenient to change the default install prefix such that it does NOT point to 'program files'
 # Need to check out CMAKE_RUNTIME_OUTPUT_DIRECTORY variable, and see if that eliminates the need to modify install path

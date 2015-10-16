@@ -15,24 +15,27 @@ R"(
  * limitations under the License.
  * ************************************************************************ */
 
-#ifdef cl_khr_fp64
+// No reason to include these beyond version 1.2, where double is not an extension.
+#if defined(DOUBLE) && __OPENCL_VERSION__ < CL_VERSION_1_2
+  #ifdef cl_khr_fp64
     #pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#elif defined(cl_amd_fp64)
+  #elif defined(cl_amd_fp64)
     #pragma OPENCL EXTENSION cl_amd_fp64 : enable
-#else
+  #else
     #error "Double precision floating point not supported by OpenCL implementation."
+  #endif
 #endif
 
 #ifndef VALUE_TYPE
-#error VALUE_TYPE undefined!
+#error "VALUE_TYPE undefined!"
 #endif
 
 #ifndef SIZE_TYPE
-#error SIZE_TYPE undefined!
+#error "SIZE_TYPE undefined!"
 #endif
 
 #ifndef WG_SIZE
-#error WG_SIZE undefined!
+#error "WG_SIZE undefined!"
 #endif
 )"
 
@@ -106,18 +109,20 @@ void axpby(const SIZE_TYPE size,
 R"(
 __kernel
 __attribute__((reqd_work_group_size(WG_SIZE, 1, 1)))
-void scale (const SIZE_TYPE pYSize,
-            __global VALUE_TYPE* pY,
+void scale (const SIZE_TYPE pRSize,
+            __global VALUE_TYPE* pR,
+            const SIZE_TYPE pROffset,
+            __global const VALUE_TYPE* pY,
             const SIZE_TYPE pYOffset,
              __global const VALUE_TYPE* pAlpha,
             const SIZE_TYPE pAlphaOffset)
 {
     const int i = get_global_id(0);
 
-    if (i >= pYSize) return;
+    if (i >= pRSize) return;
 
     const VALUE_TYPE alpha = *(pAlpha + pAlphaOffset);
 
-    pY[i + pYOffset] = pY[i + pYOffset]* alpha;
+    pR[i + pROffset] = pY[i + pYOffset]* alpha;
 }
 )"

@@ -18,17 +18,27 @@
 # We require 2.8.10 because of the added support to download from https URL's
 cmake_minimum_required( VERSION 2.8.10 )
 
-# uncomment these to debug nmake and borland makefiles
-#SET(CMAKE_START_TEMP_FILE "")
-#SET(CMAKE_END_TEMP_FILE "")
-#SET(CMAKE_VERBOSE_MAKEFILE 1)
+if( CMAKE_GENERATOR MATCHES "NMake" )
+	option( NMAKE_COMPILE_VERBOSE "Print VERBOSE compile/link msgs to the console" OFF )
+	if( NMAKE_COMPILE_VERBOSE )
+		set( CMAKE_START_TEMP_FILE "" )
+		set( CMAKE_END_TEMP_FILE "" )
+		set( CMAKE_VERBOSE_MAKEFILE 1 )
+	endif( )
+endif( )
+
+# This has to be initialized before the project() command appears
+# Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
+if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
+  set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
+endif()
 
 # Check if cmake supports the new VERSION tag for project() commands
 # SuperBuild.clSPARSE becomes the name of the project with a particular version
 if( POLICY CMP0048 )
   cmake_policy( SET CMP0048 NEW )
 
-  project( SuperBuild.clSPARSE VERSION 0.6.2.0 )
+  project( SuperBuild.clSPARSE VERSION 0.8.0.0 )
 else( )
   project( SuperBuild.clSPARSE )
 
@@ -38,11 +48,11 @@ else( )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_MINOR )
-    set( SuperBuild.clSPARSE_VERSION_MINOR 6 )
+    set( SuperBuild.clSPARSE_VERSION_MINOR 8 )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_PATCH )
-    set( SuperBuild.clSPARSE_VERSION_PATCH 2 )
+    set( SuperBuild.clSPARSE_VERSION_PATCH 0 )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_TWEAK )
@@ -53,11 +63,6 @@ endif( )
 set( SuperBuild.clSPARSE_VERSION "${SuperBuild.clSPARSE_VERSION_MAJOR}.${SuperBuild.clSPARSE_VERSION_MINOR}.${SuperBuild.clSPARSE_VERSION_PATCH}")
 
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
-
-# Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
-if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
-  set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
-endif()
 
 if( MSVC_IDE )
   set( BUILD64 ${CMAKE_CL_64} )
@@ -133,6 +138,10 @@ endif( )
 if( DEFINED OPENCL_ROOT )
   list( APPEND clSPARSE.Cmake.Args -DOPENCL_ROOT=${OPENCL_ROOT} )
   list( APPEND clSPARSE.Samples.Cmake.Args -DOPENCL_ROOT=${OPENCL_ROOT} )
+endif( )
+
+if( DEFINED NMAKE_COMPILE_VERBOSE )
+  list( APPEND clSPARSE.Cmake.Args -DNMAKE_COMPILE_VERBOSE=${NMAKE_COMPILE_VERBOSE} )
 endif( )
 
 # If the user selects, download, uncompress, and setup clBLAS

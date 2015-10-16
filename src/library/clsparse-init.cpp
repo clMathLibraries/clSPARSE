@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2015 Advanced Micro Devices, Inc.
  * Copyright 2015 Vratis, Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -104,16 +104,4 @@ cldenseInitMatrix( cldenseMatrix* denseMatx )
     pDenseMatx->clear();
 
     return clsparseSuccess;
-}
-
-CLSPARSE_EXPORT clsparseStatus
-clsparseCoo2Csr( clsparseCsrMatrix* csrMatx, const clsparseCooMatrix* cooMatx )
-{
-    // There should be logic to convert coo to csr here
-    // This assumes that the data is sitting in GPU buffers, and converts data in place
-    // documentation says that this routins is asynchronous; implying gpu execution
-    // This routine IS RESPONSIBLE FOR creating the rowBlocks data for CSR adaptive algorithms
-    // Ponder:  should we suppose the usecase of allocating 1 cl_mem buffer (values == colIndices == rowIndices )
-    // with all data addressed with offsets within that buffer ( offValues != offColInd != offRowInd != 0 )?
-    return clsparseInitCsrMatrix( csrMatx );
 }

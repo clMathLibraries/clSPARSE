@@ -56,98 +56,106 @@ public:
             exit( -3 );
         }
 
-        clsparseInitCsrMatrix( &csrSMatrix );
-        csrSMatrix.num_nonzeros = n_vals;
-        csrSMatrix.num_rows = n_rows;
-        csrSMatrix.num_cols = n_cols;
-        clsparseCsrMetaSize( &csrSMatrix, CLSE::control );
+        clsparseInitCsrMatrix( &csrDMatrix );
+        csrDMatrix.num_nonzeros = n_vals;
+        csrDMatrix.num_rows = n_rows;
+        csrDMatrix.num_cols = n_cols;
 
          //  Load single precision data from file; this API loads straight into GPU memory
         cl_int status;
-        csrSMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                              csrSMatrix.num_nonzeros * sizeof( cl_float ), NULL, &status );
+        csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                              csrDMatrix.num_nonzeros * sizeof( cl_double ), NULL, &status );
 
-        csrSMatrix.colIndices = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                                  csrSMatrix.num_nonzeros * sizeof( cl_int ), NULL, &status );
+        csrDMatrix.colIndices = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                                  csrDMatrix.num_nonzeros * sizeof( cl_int ), NULL, &status );
 
-        csrSMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                                  ( csrSMatrix.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
+        csrDMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                                  ( csrDMatrix.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
 
-        csrSMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                                 csrSMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
+        csrDMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
+                                                 csrDMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
 
-        clsparseStatus fileError = clsparseSCsrMatrixfromFile( &csrSMatrix, file_name.c_str( ), CLSE::control );
+        clsparseStatus fileError = clsparseDCsrMatrixfromFile( &csrDMatrix, file_name.c_str( ), CLSE::control );
         if( fileError != clsparseSuccess )
-            throw std::runtime_error( "Could not read matrix market data from disk" );
+            throw std::runtime_error( "Could not read matrix market data from disk: " + file_name );
+
+        clsparseCsrMetaSize( &csrDMatrix, CLSE::control );
+        csrDMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
+                                                 csrDMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
+        clsparseCsrMetaCompute( &csrDMatrix, CLSE::control );
+
 
         //reassign the new matrix dimmesnions calculated clsparseCCsrMatrixFromFile to global variables
-        n_vals = csrSMatrix.num_nonzeros;
-        n_cols = csrSMatrix.num_cols;
-        n_rows = csrSMatrix.num_rows;
+        n_vals = csrDMatrix.num_nonzeros;
+        n_cols = csrDMatrix.num_cols;
+        n_rows = csrDMatrix.num_rows;
 
         //  Download sparse matrix data to host
         //  First, create space on host to hold the data
-        ublasSCsr = sMatrixType(n_rows, n_cols, n_vals);
+        ublasDCsr = dMatrixType(n_rows, n_cols, n_vals);
 
         // This is nasty. Without that call ublasSCsr is not working correctly.
-        ublasSCsr.complete_index1_data();
+        ublasDCsr.complete_index1_data();
 
         // copy host matrix arrays to device;
         cl_int copy_status;
 
-        copy_status = clEnqueueReadBuffer( queue, csrSMatrix.values, CL_TRUE, 0,
-                                           csrSMatrix.num_nonzeros * sizeof( cl_float ),
-                                           ublasSCsr.value_data().begin( ),
+        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.values, CL_TRUE, 0,
+                                           csrDMatrix.num_nonzeros * sizeof( cl_double ),
+                                           ublasDCsr.value_data().begin( ),
                                            0, NULL, NULL );
 
-        copy_status = clEnqueueReadBuffer( queue, csrSMatrix.rowOffsets, CL_TRUE, 0,
-                                            ( csrSMatrix.num_rows + 1 ) * sizeof( cl_int ),
-                                            ublasSCsr.index1_data().begin(),
+        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.rowOffsets, CL_TRUE, 0,
+                                            ( csrDMatrix.num_rows + 1 ) * sizeof( cl_int ),
+                                            ublasDCsr.index1_data().begin(),
                                             0, NULL, NULL );
 
-        copy_status = clEnqueueReadBuffer( queue, csrSMatrix.colIndices, CL_TRUE, 0,
-                                            csrSMatrix.num_nonzeros * sizeof( cl_int ),
-                                            ublasSCsr.index2_data().begin(),
+        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.colIndices, CL_TRUE, 0,
+                                            csrDMatrix.num_nonzeros * sizeof( cl_int ),
+                                            ublasDCsr.index2_data().begin(),
                                             0, NULL, NULL );
 
-        // Create matrix in double precision on host;
-        ublasDCsr = dMatrixType(n_rows, n_cols, n_vals);
-        ublasDCsr.complete_index1_data();
+        // Create matrix in float precision on host;
+        ublasSCsr = sMatrixType(n_rows, n_cols, n_vals);
+        ublasSCsr.complete_index1_data();
 
-        // Create matrix in double precision on device;
-        // Init double precision matrix;
-        clsparseInitCsrMatrix( &csrDMatrix );
+        // Create matrix in single precision on device;
+        // Init single precision matrix;
+        clsparseInitCsrMatrix( &csrSMatrix );
 
-        csrDMatrix.num_nonzeros = csrSMatrix.num_nonzeros;
-        csrDMatrix.num_cols = csrSMatrix.num_cols;
-        csrDMatrix.num_rows = csrSMatrix.num_rows;
-        csrDMatrix.rowBlockSize = csrSMatrix.rowBlockSize;
+        csrSMatrix.num_nonzeros = csrDMatrix.num_nonzeros;
+        csrSMatrix.num_cols = csrDMatrix.num_cols;
+        csrSMatrix.num_rows = csrDMatrix.num_rows;
+        csrSMatrix.rowBlockSize = csrDMatrix.rowBlockSize;
 
         // Don't use adaptive kernel in double precision yet.
-        csrDMatrix.rowBlocks = csrSMatrix.rowBlocks;
-        ::clRetainMemObject( csrDMatrix.rowBlocks );
+        csrSMatrix.rowBlocks = csrDMatrix.rowBlocks;
+        ::clRetainMemObject( csrSMatrix.rowBlocks );
 
-        csrDMatrix.colIndices = csrSMatrix.colIndices;
-        ::clRetainMemObject( csrDMatrix.colIndices );
+        csrSMatrix.colIndices = csrDMatrix.colIndices;
+        ::clRetainMemObject( csrSMatrix.colIndices );
 
-        csrDMatrix.rowOffsets = csrSMatrix.rowOffsets;
-        ::clRetainMemObject( csrDMatrix.rowOffsets );
+        csrSMatrix.rowOffsets = csrDMatrix.rowOffsets;
+        ::clRetainMemObject( csrSMatrix.rowOffsets );
 
-        csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                              csrDMatrix.num_nonzeros * sizeof( cl_double ), NULL, &status );
+        csrSMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+                                              csrSMatrix.num_nonzeros * sizeof( cl_float ), NULL, &status );
 
-        // copy the single-precision values over into the double-precision array.
-        for ( int i = 0; i < ublasSCsr.value_data().size(); i++)
-            ublasDCsr.value_data()[i] = static_cast<double>(ublasSCsr.value_data()[i]);
-        for ( int i = 0; i < ublasSCsr.index1_data().size(); i++)
-            ublasDCsr.index1_data()[i] = static_cast<int>(ublasSCsr.index1_data()[i]);
-        for ( int i = 0; i < ublasSCsr.index2_data().size(); i++)
-            ublasDCsr.index2_data()[i] = static_cast<int>(ublasSCsr.index2_data()[i]);
+        cl_int cl_status;
+        cl_double* dvals = (cl_double*) ::clEnqueueMapBuffer(queue, csrDMatrix.values, CL_TRUE, CL_MAP_READ, 0, csrDMatrix.num_nonzeros * sizeof(cl_double), 0, nullptr, nullptr, &cl_status);
 
-        // copy the values in double precision to double precision matrix container
-        copy_status = clEnqueueWriteBuffer( queue, csrDMatrix.values, CL_TRUE, 0,
-                                            csrDMatrix.num_nonzeros * sizeof( cl_double ),
-                                            ublasDCsr.value_data().begin( ),
+        // copy the double-precision values over into the single-precision array.
+        for ( int i = 0; i < ublasDCsr.value_data().size(); i++)
+            ublasSCsr.value_data()[i] = static_cast<double>(ublasDCsr.value_data()[i]);
+        for ( int i = 0; i < ublasDCsr.index1_data().size(); i++)
+            ublasSCsr.index1_data()[i] = static_cast<int>(ublasDCsr.index1_data()[i]);
+        for ( int i = 0; i < ublasDCsr.index2_data().size(); i++)
+            ublasSCsr.index2_data()[i] = static_cast<int>(ublasDCsr.index2_data()[i]);
+
+        // copy the values in single precision on host to single precision matrix container on the device
+        copy_status = clEnqueueWriteBuffer( queue, csrSMatrix.values, CL_TRUE, 0,
+                                            csrSMatrix.num_nonzeros * sizeof( cl_float ),
+                                            ublasSCsr.value_data().begin( ),
                                             0, NULL, NULL);
 
         if( copy_status )

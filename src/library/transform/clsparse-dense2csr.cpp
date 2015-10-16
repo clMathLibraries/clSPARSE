@@ -1,12 +1,12 @@
 /* ************************************************************************
  * Copyright 2015 Advanced Micro Devices, Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,30 +14,22 @@
  * limitations under the License.
  * ************************************************************************ */
 
-#include "clSPARSE.h"
+#include "include/clSPARSE-private.hpp"
 #include "internal/clsparse-internal.hpp"
 #include "internal/clsparse-validate.hpp"
 #include "internal/clsparse-control.hpp"
-#include "internal/kernel-cache.hpp"
-#include "internal/kernel-wrap.hpp"
-#include "transform/transform-kernels.h"
 
-//#include <clBLAS.h>
-#define HERE printf("HERE\n");fflush(stdout);
-// Include appropriate data type definitions appropriate to the cl version supported
-#if( BUILD_CLVERSION >= 200 )
-    #include "include/clSPARSE-2x.hpp"
-#else
-    #include "include/clSPARSE-1x.hpp"
-#endif
+#include "internal/data-types/clvector.hpp"
+#include "transform/scan.hpp"
+#include "transform/conversion-utils.hpp"
 
 clsparseStatus
-clsparseSdense2csr(clsparseCsrMatrix* csr,
-                   const cldenseMatrix* A,
-                   const clsparseControl control)
+clsparseSdense2csr(const cldenseMatrix* A, clsparseCsrMatrix* csr,
+                    const clsparseControl control)
 {
-    clsparseCsrMatrixPrivate* pCsr = static_cast<clsparseCsrMatrixPrivate*>(csr);
-    const cldenseMatrixPrivate* pA = static_cast<const cldenseMatrixPrivate*>(A);
+    typedef cl_float ValueType;
+    typedef cl_int   IndexType;
+    typedef cl_ulong SizeType;
 
     if (!clsparseInitialized)
     {
@@ -51,184 +43,65 @@ clsparseSdense2csr(clsparseCsrMatrix* csr,
     }
 
     clsparseStatus status;
-    cl_int run_status;
 
-    pCsr->num_rows = pA->num_rows;
-    pCsr->num_cols = pA->num_cols;
+    SizeType dense_size = A->num_cols * A->num_rows;
+    clsparse::vector<ValueType> Avalues (control, A->values, dense_size);
 
-    int total = pA->num_rows * pA->num_cols;
-    cl::Context cxt = control->getContext();
+    //calculate nnz
+    clsparse::vector<IndexType> nnz_locations (control, dense_size,
+                                               0, CL_MEM_READ_WRITE, false);
 
-    cl_mem scan_input = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           total * sizeof( cl_int ), NULL, &run_status );
+    IndexType num_nonzeros = 0;
 
-    cl_mem scan_output = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           total * sizeof( cl_int ), NULL, &run_status );
+    status = calculate_num_nonzeros(Avalues, nnz_locations, num_nonzeros, control);
 
-
-    const std::string params = std::string() +
-            "-DINDEX_TYPE="    + OclTypeTraits<cl_int>::type
-            + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type
-            + " -DSIZE_TYPE="  + OclTypeTraits<cl_ulong>::type;
-
-    cl::Kernel kernel = KernelCache::get(control->queue,"dense2csr", "process_scaninput", params);
-
-    KernelWrap kWrapper(kernel);
-
-    kWrapper << total
-             << pA->values
-	     << scan_input;
-
-    cl_uint workgroup_size   = 	256;
-    cl_uint global_work_size = (total % workgroup_size == 0)? total :  total / workgroup_size * workgroup_size + workgroup_size;
-    if (total < workgroup_size) global_work_size = workgroup_size;
-
-    cl::NDRange local(workgroup_size);
-    cl::NDRange global(global_work_size);
-
-    run_status = kWrapper.run(control, global, local);
-
-    if (run_status != CL_SUCCESS)
-   {
+    CLSPARSE_V(status, "Error: calculate num nonzeros");
+    if (status!= clsparseSuccess)
         return clsparseInvalidKernelExecution;
-    }
 
-#if 0
-    //temporarily on CPU
-    int *sum_temp =  (int *)malloc(total * sizeof(int));
-    memset(sum_temp, 0, total * sizeof(int));
-    run_status = clEnqueueReadBuffer(control->queue(),
-                                     scan_input,
-                                     1,
-                                     0,
-                                     total  * sizeof(int),
-                                     sum_temp,
-                                     0,
-                                     0,
-                                     0);
 
-    if(run_status != CL_SUCCESS) { fprintf(stderr, "ERROR: read %d\n", run_status);}
-    //TODO: temporarily on GPU
-    int nnz = 0;
-    for(int i = 0; i < total; i++){
-        nnz += sum_temp[i];
-        //printf("%d ", sum_temp[i]);
-    }
-    printf("nnz............nnz.........nnz = %d\n", nnz);
-    //end on CPU
-#endif
-    clsparseScalar sum;
-    clsparseInitScalar(&sum);
+    clsparse::vector<IndexType> coo_indexes(control, dense_size, 0, CL_MEM_READ_WRITE, false);
+    status = exclusive_scan<EW_PLUS>(coo_indexes, nnz_locations, control);
 
-    cldenseVector gY;
-    clsparseInitVector(&gY);
-
-    gY.values = clCreateBuffer(cxt(),
-                               CL_MEM_READ_WRITE,
-                               total * sizeof(cl_int), NULL, &run_status);
-
-    run_status =   clEnqueueCopyBuffer(control->queue(),
-                                       scan_input,
-                                       gY.values,
-                                       0,
-                                       0,
-                                       total * sizeof(cl_int),
-                                       0, NULL, NULL);
-
-    gY.num_values      = total;
-    sum.value = clCreateBuffer(cxt(), CL_MEM_READ_WRITE,
-                               sizeof(cl_int), NULL, &run_status);
-
-    run_status = cldenseIreduce(&sum, &gY, control);
-
-    if (run_status != CL_SUCCESS)
-    {
+    CLSPARSE_V(status, "Error: exclusive scan");
+    if (status!= clsparseSuccess)
         return clsparseInvalidKernelExecution;
-    }
 
-    int nnz = 0;
-    run_status = clEnqueueReadBuffer(control->queue(),
-                                     sum.value,
-                                     1,
-                                     0,
-                                     sizeof(cl_int),
-                                     &nnz,
-                                     0,
-                                     NULL,
-                                     NULL);
+    cl_int cl_status;
+    clsparseCooMatrix coo;
 
+    clsparseInitCooMatrix(&coo);
 
-    //printf("nnz = %d\n", nnz);
+    coo.num_nonzeros = num_nonzeros;
+    coo.num_rows = A->num_rows;
+    coo.num_cols = A->num_cols;
 
-    status = scan(
-                  0,
-                  total - 1,
-                  scan_input,
-                  scan_output,
-                  0,
-                  1,
-                  control
-                  );
+    //coo is allocated inside this functions
+    status = dense_to_coo(&coo, Avalues, nnz_locations, coo_indexes, control);
 
-    if(status != clsparseSuccess)
-        return status;
-
-    clsparseCooMatrix cooMatx;
-    clsparseInitCooMatrix( &cooMatx );
-
-    cooMatx.num_nonzeros = nnz;
-    cooMatx.num_rows = pCsr->num_rows;
-    cooMatx.num_cols = pCsr->num_cols;
-    //printf("num_rows = %d, num_cols = %d\n", cooMatx.num_rows,  cooMatx.num_cols);
-
-    cooMatx.values     = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           cooMatx.num_nonzeros * sizeof( cl_float ), NULL, &run_status );
-    cooMatx.colIndices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &run_status );
-    cooMatx.rowIndices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &run_status );
-
-    cl::Kernel kernel1 = KernelCache::get(control->queue,"dense2csr", "spread_value", params);
-
-    KernelWrap kWrapper1(kernel1);
-
-    kWrapper1 << cooMatx.num_rows << cooMatx.num_cols << total
-              << pA->values << scan_input
-	      << scan_output
-	      << cooMatx.rowIndices
-	      << cooMatx.colIndices
-	      << cooMatx.values;
-
-    run_status = kWrapper1.run(control, global, local);
-
-    if (run_status != CL_SUCCESS)
-    {
+    CLSPARSE_V(status, "Error: dense_to_coo");
+    if (status != clsparseSuccess)
         return clsparseInvalidKernelExecution;
-    }
 
-    status = clsparseScoo2csr(&cooMatx,
-                               csr,
-                               control);
+    status = clsparseScoo2csr(&coo, csr, control);
 
-    if(status != clsparseSuccess)
-        return status;
 
-    clReleaseMemObject(cooMatx.values);
-    clReleaseMemObject(cooMatx.colIndices);
-    clReleaseMemObject(cooMatx.rowIndices);
-    clReleaseMemObject(gY.values);
-    clReleaseMemObject(sum.value);
+    clReleaseMemObject(coo.values);
+    clReleaseMemObject(coo.colIndices);
+    clReleaseMemObject(coo.rowIndices);
 
-    return clsparseSuccess;
-
+    return status;
 }
+
+
 clsparseStatus
-clsparseDdense2csr(clsparseCsrMatrix* csr,
-                   const cldenseMatrix* A,
+clsparseDdense2csr(const cldenseMatrix* A,
+                   clsparseCsrMatrix* csr,
                    const clsparseControl control)
 {
-    clsparseCsrMatrixPrivate* pCsr = static_cast<clsparseCsrMatrixPrivate*>(csr);
-    const cldenseMatrixPrivate* pA = static_cast<const cldenseMatrixPrivate*>(A);
+    typedef cl_double ValueType;
+    typedef cl_int   IndexType;
+    typedef cl_ulong SizeType;
 
     if (!clsparseInitialized)
     {
@@ -242,151 +115,54 @@ clsparseDdense2csr(clsparseCsrMatrix* csr,
     }
 
     clsparseStatus status;
-    cl_int run_status;
 
-    pCsr->num_rows = pA->num_rows;
-    pCsr->num_cols = pA->num_cols;
+    SizeType dense_size = A->num_cols * A->num_rows;
+    clsparse::vector<ValueType> Avalues (control, A->values, dense_size);
 
-    int total = pA->num_rows * pA->num_cols;
-    cl::Context cxt = control->getContext();
+    //calculate nnz
+    clsparse::vector<IndexType> nnz_locations (control, dense_size,
+                                               0, CL_MEM_READ_WRITE, false);
 
-    cl_mem scan_input = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           total * sizeof( cl_int ), NULL, &run_status );
+    IndexType num_nonzeros = 0;
 
-    cl_mem scan_output = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           total * sizeof( cl_int ), NULL, &run_status );
+    status = calculate_num_nonzeros(Avalues, nnz_locations, num_nonzeros, control);
 
-
-    const std::string params = std::string() +
-            "-DINDEX_TYPE="    + OclTypeTraits<cl_int>::type
-            + " -DVALUE_TYPE=" + OclTypeTraits<cl_double>::type
-            + " -DSIZE_TYPE="  + OclTypeTraits<cl_ulong>::type;
-
-    cl::Kernel kernel = KernelCache::get(control->queue,"dense2csr", "process_scaninput", params);
-
-    KernelWrap kWrapper(kernel);
-
-    kWrapper << total
-             << pA->values
-             << scan_input;
-
-    cl_uint workgroup_size   =  256;
-    cl_uint global_work_size = (total % workgroup_size == 0)? total :  total / workgroup_size * workgroup_size + workgroup_size;
-    if (total < workgroup_size) global_work_size = workgroup_size;
-
-    cl::NDRange local(workgroup_size);
-    cl::NDRange global(global_work_size);
-
-    run_status = kWrapper.run(control, global, local);
-
-    if (run_status != CL_SUCCESS)
-    {
+    CLSPARSE_V(status, "Error: calculate num nonzeros");
+    if (status!= clsparseSuccess)
         return clsparseInvalidKernelExecution;
-    }
 
-    clsparseScalar sum;
-    clsparseInitScalar(&sum);
 
-    cldenseVector gY;
-    clsparseInitVector(&gY);
+    clsparse::vector<IndexType> coo_indexes(control, dense_size, 0, CL_MEM_READ_WRITE, false);
+    status = exclusive_scan<EW_PLUS>(coo_indexes, nnz_locations, control);
 
-    gY.values = clCreateBuffer(cxt(),
-                               CL_MEM_READ_WRITE,
-                               total * sizeof(cl_int), NULL, &run_status);
-
-    run_status =   clEnqueueCopyBuffer(control->queue(),
-                                       scan_input,
-                                       gY.values,
-                                       0,
-                                       0,
-                                       total * sizeof(cl_int),
-                                       0, NULL, NULL);
-
-    gY.num_values      = total;
-    sum.value = clCreateBuffer(cxt(), CL_MEM_READ_WRITE,
-                               sizeof(cl_int), NULL, &run_status);
-
-    run_status = cldenseIreduce(&sum, &gY, control);
-
-    if (run_status != CL_SUCCESS)
-    {
+    CLSPARSE_V(status, "Error: exclusive scan");
+    if (status!= clsparseSuccess)
         return clsparseInvalidKernelExecution;
-    }
 
-    int nnz = 0;
-    run_status = clEnqueueReadBuffer(control->queue(),
-                                     sum.value,
-                                     1,
-                                     0,
-                                     sizeof(cl_int),
-                                     &nnz,
-                                     0,
-                                     NULL,
-                                     NULL);
+    cl_int cl_status;
+    clsparseCooMatrix coo;
 
+    clsparseInitCooMatrix(&coo);
 
-    printf("nnz = %d\n", nnz);
+    coo.num_nonzeros = num_nonzeros;
+    coo.num_rows = A->num_rows;
+    coo.num_cols = A->num_cols;
 
-    status = scan(
-                  0,
-                  total - 1,
-                  scan_input,
-                  scan_output,
-                  0,
-                  1,
-                  control
-                  );
+    //coo is allocated inside this functions
+    status = dense_to_coo(&coo, Avalues, nnz_locations, coo_indexes, control);
 
-    if(status != clsparseSuccess)
-        return status;
-
-    clsparseCooMatrix cooMatx;
-    clsparseInitCooMatrix( &cooMatx );
-
-    cooMatx.num_nonzeros = nnz;
-    cooMatx.num_rows = pCsr->num_rows;
-    cooMatx.num_cols = pCsr->num_cols;
-    //printf("num_rows = %d, num_cols = %d\n", cooMatx.num_rows,  cooMatx.num_cols);
-
-    cooMatx.values     = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           cooMatx.num_nonzeros * sizeof( cl_double ), NULL, &run_status );
-    cooMatx.colIndices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &run_status );
-    cooMatx.rowIndices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE,
-                                           cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &run_status );
-
-    cl::Kernel kernel1 = KernelCache::get(control->queue,"dense2csr", "spread_value", params);
-
-    KernelWrap kWrapper1(kernel1);
-
-    kWrapper1 << cooMatx.num_rows << cooMatx.num_cols << total
-              << pA->values << scan_input
-              << scan_output
-              << cooMatx.rowIndices
-              << cooMatx.colIndices
-              << cooMatx.values;
-
-    run_status = kWrapper1.run(control, global, local);
-
-    if (run_status != CL_SUCCESS)
-    {
+    CLSPARSE_V(status, "Error: dense_to_coo");
+    if (status != clsparseSuccess)
         return clsparseInvalidKernelExecution;
-    }
 
-    status = clsparseDcoo2csr(&cooMatx,
-                               csr,
-                               control);
+    status = clsparseScoo2csr(&coo, csr, control);
 
-    if(status != clsparseSuccess)
-        return status;
 
-    clReleaseMemObject(cooMatx.values);
-    clReleaseMemObject(cooMatx.colIndices);
-    clReleaseMemObject(cooMatx.rowIndices);
-    clReleaseMemObject(gY.values);
-    clReleaseMemObject(sum.value);
+    clReleaseMemObject(coo.values);
+    clReleaseMemObject(coo.colIndices);
+    clReleaseMemObject(coo.rowIndices);
 
-    return clsparseSuccess;
+    return status;
 
 }
 

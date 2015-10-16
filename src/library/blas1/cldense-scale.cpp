@@ -15,61 +15,12 @@
  * ************************************************************************ */
 
 #include "include/clSPARSE-private.hpp"
-#include "internal/kernel-cache.hpp"
-#include "internal/kernel-wrap.hpp"
-#include "internal/clsparse-internal.hpp"
-#include "internal/data-types/clvector.hpp"
-
-
-//TODO:: add offset to the scale kernel
-template <typename T>
-clsparseStatus
-scale(clsparse::array_base<T>& pVector,
-      const clsparse::array_base<T>& pAlpha,
-      clsparseControl control)
-{
-    const int group_size = 256;
-    //const int group_size = control->max_wg_size;
-
-    const std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DVALUE_TYPE="+ OclTypeTraits<T>::type
-            + " -DWG_SIZE=" + std::to_string(group_size);
-
-    cl::Kernel kernel = KernelCache::get(control->queue,
-                                         "blas1", "scale",
-                                         params);
-    KernelWrap kWrapper(kernel);
-
-    cl_ulong size = pVector.size();
-    cl_ulong offset = 0;
-
-    kWrapper << size
-             << pVector.data()
-             << offset
-             << pAlpha.data()
-             << offset;
-
-    int blocksNum = (size + group_size - 1) / group_size;
-    int globalSize = blocksNum * group_size;
-
-    cl::NDRange local(group_size);
-    cl::NDRange global (globalSize);
-
-    cl_int status = kWrapper.run(control, global, local);
-
-    if (status != CL_SUCCESS)
-    {
-        return clsparseInvalidKernelExecution;
-    }
-
-    return clsparseSuccess;
-}
-
+#include "cldense-scale.hpp"
 
 clsparseStatus
-cldenseSscale (cldenseVector* y,
+cldenseSscale ( cldenseVector* r,
                 const clsparseScalar* alpha,
+                const cldenseVector* y,
                 const clsparseControl control)
 {
     if (!clsparseInitialized)
@@ -82,15 +33,18 @@ cldenseSscale (cldenseVector* y,
         return clsparseInvalidControlObject;
     }
 
-    clsparse::vector<cl_float> pY(control, y->values, y->num_values );
+    clsparse::vector<cl_float> pR(control, r->values, r->num_values );
     clsparse::vector<cl_float> pAlpha(control, alpha->value, 1);
+    clsparse::vector<cl_float> pY(control, y->values, y->num_values );
+
+    assert(r->num_values == y->num_values);
 
     cl_float pattern = 0.0f;
 
     if (pAlpha[0] == 0.f)
     {
 
-        cl_int status = pY.fill(control, pattern);
+        cl_int status = pR.fill(control, pattern);
 
         if (status != CL_SUCCESS)
         {
@@ -100,13 +54,15 @@ cldenseSscale (cldenseVector* y,
         return clsparseSuccess;
     }
 
-    return scale(pY, pAlpha, control);
+    return scale(pR, pAlpha, pY, control);
 }
 
+
 clsparseStatus
-cldenseDscale (cldenseVector* y,
-                const clsparseScalar* alpha,
-                const clsparseControl control)
+cldenseDscale( cldenseVector* r,
+               const clsparseScalar* alpha,
+               const cldenseVector* y,
+               const clsparseControl control)
 {
     if (!clsparseInitialized)
     {
@@ -118,15 +74,18 @@ cldenseDscale (cldenseVector* y,
         return clsparseInvalidControlObject;
     }
 
-    clsparse::vector<cl_double> pY(control, y->values, y->num_values );
-    clsparse::vector<cl_double> pAlpha(control, alpha->value, 1);
+    clsparse::vector<cl_double> pR (control, r->values, r->num_values );
+    clsparse::vector<cl_double> pAlpha (control, alpha->value, 1);
+    clsparse::vector<cl_double> pY (control, y->values, y->num_values );
+
+    assert(r->num_values == y->num_values);
 
     cl_double pattern = 0.0;
 
     if (pAlpha[0] == 0.0)
     {
 
-        cl_int status = pY.fill(control, pattern);
+        cl_int status = pR.fill(control, pattern);
 
         if (status != CL_SUCCESS)
         {
@@ -136,5 +95,5 @@ cldenseDscale (cldenseVector* y,
         return clsparseSuccess;
     }
 
-    return scale(pY, pAlpha, control);
+    return scale(pR, pAlpha, pY, control);
 }

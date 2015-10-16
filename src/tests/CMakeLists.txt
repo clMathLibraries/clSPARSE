@@ -24,31 +24,23 @@ find_package( GTest REQUIRED )
 if( DEFINED BOOST_ROOT OR DEFINED ENV{BOOST_ROOT} )
   set( Boost_NO_SYSTEM_PATHS ON )
   set( Boost_NO_BOOST_CMAKE ON )
-
-  # Workaround for a somewhat limiting find_package( Boost ) on MSVC platforms.
-  # Boost uses the prefix 'lib' for static libraries on windows, but it will
-  # not search with that prefix unless Boost_USE_STATIC_LIBS is set.  However, other
-  # than a priori knowledge, a user does not know to set Boost_USE_STATIC_LIBS.
-  # Attempt to do a basic check on windows, which may/may not work in all cases
-  if( MSVC )
-    file( GLOB Boost.static.env.libs RELATIVE "$ENV{BOOST_ROOT}/lib" "$ENV{BOOST_ROOT}/lib/lib*.lib" )
-    file( GLOB Boost.static.define.libs RELATIVE "${BOOST_ROOT}/lib" "${BOOST_ROOT}/lib/lib*.lib" )
-    list( LENGTH Boost.static.env.libs num.static.env.libs )
-    list( LENGTH Boost.static.define.libs num.static.define.libs )
-    math( EXPR Boost.num.static.libs "${num.static.env.libs} + ${num.static.define.libs} " )
-    if( Boost.num.static.libs )
-      message( STATUS "Detected MSVC boost static libs" )
-      set( Boost_USE_STATIC_LIBS ON )
-    endif( )
-  endif( )
 endif( )
 
-set( Boost_USE_MULTITHREADED ON )
-set( Boost_DETAILED_FAILURE_MSG   ON )
-set( Boost_ADDITIONAL_VERSIONS 1.58.0 1.58 1.57.0 1.57 )
 # set( Boost_DEBUG ON )
+set( Boost_USE_MULTITHREADED ON )
+set( Boost_DETAILED_FAILURE_MSG ON )
+set( Boost_ADDITIONAL_VERSIONS 1.59.0 1.59 1.58.0 1.58 1.57.0 1.57 )
 
+# On windows, Boost prefers to link statically unless the user defines BOOST_ALL_DYN_LINK
+# Therefore, we prefer linking  static libs first to avoid extra #defines
+set( Boost_USE_STATIC_LIBS ON )
 find_package( Boost COMPONENTS program_options serialization )
+
+# If static libraries are not found, search again for shared libraries
+if( NOT Boost_FOUND )
+  set( Boost_USE_STATIC_LIBS OFF )
+  find_package( Boost COMPONENTS program_options serialization )
+endif( )
 
 # Unit tests requires OpenCL
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
@@ -68,15 +60,6 @@ include_directories(
   )
 
 set( TESTS_CPP
-  #test_clsparse_csr2dense
-  #test_readMMcoo
-  #test_clsparse_csr2coo
-  #test_solver_cg
-  #test_solver_bicgStab
-  #test_csrmm
-  #test_interface_cpp
-  #test_clsparse_coo2csr
-  #test_clsparse_dense2csr
   test-blas1
   test-blas2
   test-blas3
@@ -93,13 +76,17 @@ set( TESTS_C
 set( src
   resources/csr_matrix_environment.cpp
   resources/opencl_utils.cpp
+  resources/sparse_matrix_environment.cpp
 )
 
 set( headers
   resources/opencl_utils.h
   resources/clsparse_environment.h
   resources/matrix_utils.h
+  resources/sparse_matrix_environment.h
   resources/csr_matrix_environment.h
+  resources/blas1_environment.h
+  resources/sparse_matrix_fill.hpp
   #resources/uBLAS-linalg/ublas_pcg.hpp
   #resources/uBLAS-linalg/precond.hpp
   #resources/uBLAS-linalg/cholesky.hpp
