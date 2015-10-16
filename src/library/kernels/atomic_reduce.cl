@@ -35,7 +35,7 @@ R"(
   #endif
 #endif
 
-#if defined(ATOMIC_FLOAT) || defined (ATOMIC_INT)
+#if __OPENCL_VERSION__ <= CL_VERSION_1_0 && (defined(ATOMIC_FLOAT) || defined (ATOMIC_INT))
   #if defined(cl_khr_global_int32_base_atomics) && defined(cl_khr_global_int32_extended_atomics)
     #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
     #pragma OPENCL_EXTENSION cl_khr_global_int32_extended_atomics : enable

@@ -51,12 +51,12 @@ public:
 
     double gflops( )
     {
-        return 0.0;
+        return ((2 * n_vals) / time_in_ns ( ));
     }
 
     std::string gflops_formula( )
     {
-        return "N/A";
+        return "GFLOPs";
     }
 
     double bandwidth( )
