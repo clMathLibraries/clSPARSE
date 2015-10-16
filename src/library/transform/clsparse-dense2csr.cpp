@@ -155,7 +155,7 @@ clsparseDdense2csr(const cldenseMatrix* A,
     if (status != clsparseSuccess)
         return clsparseInvalidKernelExecution;
 
-    status = clsparseScoo2csr(&coo, csr, control);
+    status = clsparseDcoo2csr(&coo, csr, control);
 
 
     clReleaseMemObject(coo.values);
