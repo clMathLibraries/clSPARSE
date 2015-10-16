@@ -63,7 +63,7 @@ public:
 
     std::string bandwidth_formula( )
     {
-        return "Gi-Elements/s";
+        return "GiElements/s";
     }
 
     void setup_buffer( double alpha, double beta, const std::string& path )

@@ -1,0 +1,16 @@
+Dense2Csr, 
+,
+CUDA Driver,352.39
+OpenCL Device,k40c
+,
+Matrix Name,Gi-Elements/s
+Dubcova1,12.2282
+hydr1c_A_11,16.4208
+hydr1c_A_72,16.4242
+hydr1c_A_76,16.4017
+Maragal_6,12.861
+Na5,13.1853
+psse1,15.7104
+Reuters911,13.3711
+Si10H16,12.6937
+tomography,0.810857
