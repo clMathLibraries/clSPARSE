@@ -7,14 +7,22 @@ Pre-built binaries are available on our [releases page](https://github.com/clMat
 | Visual Studio x64 |  |[![Build status](https://ci.appveyor.com/api/projects/status/93518qe0efy6n7fy/branch/develop?svg=true)](https://ci.appveyor.com/project/kknox/clsparse-otonj/branch/develop) |
 
 # clSPARSE
-an OpenCL&copy; library implementing Sparse linear algebra.  This project is a result of
+an OpenCL&trade; library implementing Sparse linear algebra routines.  This project is a result of
 a collaboration between [AMD Inc.](http://www.amd.com/) and
 [Vratis Ltd.](http://www.vratis.com/).
 
-## Introduction to clSPARSE
-At this time, clSPARSE provides these fundamental sparse operations for OpenCL:
+### What's new in clSPARSE **v0.8**
+- New single precision SpM-SpM (SpGEMM) function
+- Optimizations to the sparse matrix conversion routines
+- [API documentation](http://clmathlibraries.github.io/clSPARSE/) available
+- [SpM-dV routines now provide higher precision accurarcy] (https://github.com/clMathLibraries/clSPARSE/wiki/SpM-dV-Improved-Precision-mode-Accuracy)
+- Various bug fixes integrated
+
+
+## clSPARSE features
 -  Sparse Matrix - dense Vector multiply (SpM-dV)
 -  Sparse Matrix - dense Matrix multiply (SpM-dM)
+-  Sparse Matrix - Sparse Matrix multiply Sparse Matrix Multiply(SpGEMM) - Single Precision
 -  Iterative conjugate gradient solver (CG)
 -  Iterative biconjugate gradient stabilized solver (BiCGStab)
 -  Dense to CSR conversions (& converse)
@@ -27,10 +35,6 @@ of thought and effort went into designing the API’s to make them less ‘clutt
 compared to the older clMath libraries.  OpenCL state is not explicitly passed
 through the API, which enables the library to be forward compatible when users are
 ready to switch from OpenCL 1.2 to OpenCL 2.0 <sup>[1](#opencl-2)</sup>
-
-The API’s are designed such that users are in control of where input and output
-buffers live, and they maintain control of when data transfers to/from device
-memory happen, so that there are no performance surprises.
 
 ### Google Groups
 Two mailing lists have been created for the clMath projects:
@@ -58,7 +62,7 @@ script for clSPARSE also builds the samples as an external project, to demonstra
 how an application would find and link to clSPARSE with cmake.
 
 ### clSPARSE library documentation
-**API documentation** is not yet available, but the samples above give an excellent
+**API documentation** is now available http://clmathlibraries.github.io/clSPARSE/ . The included samples will give an excellent
 starting point to basic library operations.
 
 ### Contributing code
