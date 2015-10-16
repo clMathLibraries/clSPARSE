@@ -4,7 +4,7 @@ Pre-built binaries are available on our [releases page](https://github.com/clMat
 | Build branch | master | develop |
 |-----|-----|-----|
 | GCC/Clang x64 | [![Build Status](https://travis-ci.org/clMathLibraries/clSPARSE.svg?branch=master)](https://travis-ci.org/clMathLibraries/clSPARSE/branches) | [![Build Status](https://travis-ci.org/clMathLibraries/clSPARSE.svg?branch=develop)](https://travis-ci.org/clMathLibraries/clSPARSE/branches) |
-| Visual Studio x64 |  |[![Build status](https://ci.appveyor.com/api/projects/status/93518qe0efy6n7fy/branch/develop?svg=true)](https://ci.appveyor.com/project/kknox/clsparse-otonj/branch/develop) |
+| Visual Studio x64 |[![Build status](https://ci.appveyor.com/api/projects/status/93518qe0efy6n7fy/branch/master?svg=true)](https://ci.appveyor.com/project/kknox/clsparse-otonj/branch/master) |[![Build status](https://ci.appveyor.com/api/projects/status/93518qe0efy6n7fy/branch/develop?svg=true)](https://ci.appveyor.com/project/kknox/clsparse-otonj/branch/develop) |
 
 # clSPARSE
 an OpenCL&trade; library implementing Sparse linear algebra routines.  This project is a result of
@@ -15,7 +15,7 @@ a collaboration between [AMD Inc.](http://www.amd.com/) and
 - New single precision SpM-SpM (SpGEMM) function
 - Optimizations to the sparse matrix conversion routines
 - [API documentation](http://clmathlibraries.github.io/clSPARSE/) available
-- [SpM-dV routines now provide higher precision accurarcy] (https://github.com/clMathLibraries/clSPARSE/wiki/SpM-dV-Improved-Precision-mode-Accuracy)
+- SpM-dV routines now provide [higher precision accuracy] (https://github.com/clMathLibraries/clSPARSE/wiki/Precision)
 - Various bug fixes integrated
 
 
