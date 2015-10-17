@@ -76,10 +76,10 @@ public:
 
     bool MMReadHeader( FILE* infile );
     bool MMReadHeader( const std::string& filename );
-    bool MMReadFormat( const std::string& _filename );
+    bool MMReadFormat( const std::string& _filename, bool explicit_zeroes );
     int MMReadBanner( FILE* infile );
     int MMReadMtxCrdSize( FILE* infile );
-    void MMGenerateCOOFromFile( FILE* infile );
+    void MMGenerateCOOFromFile( FILE* infile, bool explicit_zeroes );
 
     int GetNumRows( )
     {
@@ -181,7 +181,7 @@ bool MatrixMarketReader<FloatType>::MMReadHeader( const std::string &filename )
 }
 
 template<typename FloatType>
-bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename )
+bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename, bool explicit_zeroes )
 {
     FILE *mm_file = ::fopen( filename.c_str( ), "r" );
     if( mm_file == NULL )
@@ -201,7 +201,7 @@ bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename )
     else
         unsym_coords = new Coordinate<FloatType>[ nNZ ];
 
-    MMGenerateCOOFromFile( mm_file );
+    MMGenerateCOOFromFile( mm_file, explicit_zeroes );
     ::fclose( mm_file );
 
     return 0;
@@ -238,15 +238,16 @@ void FillCoordData( char Typecode[ ],
 }
 
 template<typename FloatType>
-void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile )
+void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool explicit_zeroes )
 {
     int unsym_actual_nnz = 0;
     FloatType val;
     int ir, ic;
 
-    int rv;
+    const int exp_zeroes = explicit_zeroes;
 
-    const int exp_zeroes = 0;
+    //silence warnings from fscanf (-Wunused-result)
+    int rv = 0;
 
     for( int i = 0; i < nNZ; i++ )
     {
@@ -409,7 +410,7 @@ bool CoordinateCompare( const Coordinate<FloatType> &c1, const Coordinate<FloatT
 // matrix in the COO struct.
 template< typename T > int
 cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indices,
-    std::vector< T >& values, const char* filePath )
+    std::vector< T >& values, const char* filePath, bool read_explicit_zeroes )
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
@@ -425,7 +426,7 @@ cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indi
         return 1;
 
     MatrixMarketReader< T > mm_reader;
-    if( mm_reader.MMReadFormat( filePath ) )
+    if( mm_reader.MMReadFormat( filePath, read_explicit_zeroes ) )
         return 2;
 
     int m = mm_reader.GetNumRows( );
@@ -452,15 +453,15 @@ cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indi
 
 // Explicit template instantiations for float, double
 template int cooMatrixfromFile<>( std::vector< int >& row_indices, std::vector< int >& col_indices,
-                                  std::vector< float >& values, const char* filePath );
+                                  std::vector< float >& values, const char* filePath, bool read_explicit_zeroes );
 template int cooMatrixfromFile<>( std::vector< int >& row_indices, std::vector< int >& col_indices,
-                                  std::vector< double >& values, const char* filePath );
+                                  std::vector< double >& values, const char* filePath, bool read_explicit_zeroes );
 
 // This function reads the file at the given filepath, and returns the sparse
 // matrix in the CSR struct.
 template< typename T > int
 csrMatrixfromFile( std::vector< int >& row_offsets, std::vector< int >& col_indices,
-std::vector< T >& values, const char* filePath )
+std::vector< T >& values, const char* filePath, bool read_explicit_zeroes )
 {
     // Check that the file format is matrix market; the only format we can read right now
     // This is not a complete solution, and fails for directories with file names etc...
@@ -476,7 +477,7 @@ std::vector< T >& values, const char* filePath )
         return 1;
 
     MatrixMarketReader< T > mm_reader;
-    if( mm_reader.MMReadFormat( filePath ) )
+    if( mm_reader.MMReadFormat( filePath, read_explicit_zeroes ) )
         return 2;
 
     int m = mm_reader.GetNumRows( );
@@ -514,9 +515,9 @@ std::vector< T >& values, const char* filePath )
 
 // Explicit template instantiations for float, double
 template int csrMatrixfromFile<>( std::vector< int >& row_offsets, std::vector< int >& col_indices,
-                                  std::vector< float >& values, const char* filePath );
+                                  std::vector< float >& values, const char* filePath, bool read_explicit_zeroes );
 template int csrMatrixfromFile<>( std::vector< int >& row_offsets, std::vector< int >& col_indices,
-                                  std::vector< double >& values, const char* filePath );
+                                  std::vector< double >& values, const char* filePath, bool read_explicit_zeroes );
 
 // This function reads the file header at the given filepath, and gets the
 // matrix dimensions

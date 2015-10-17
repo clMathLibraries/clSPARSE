@@ -42,6 +42,8 @@ clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 
+static cl_bool explicit_zeroes = true;
+
 namespace po = boost::program_options;
 namespace uBLAS = boost::numeric::ublas;
 
@@ -344,7 +346,8 @@ public:
 
             status = clsparseSCooMatrixfromFile(&cooMatrix,
                                                 CSRE::file_name.c_str(),
-                                                CLSE::control);
+                                                CLSE::control,
+                                                explicit_zeroes);
             ASSERT_EQ(clsparseSuccess, status);
 
             // To save memory let us use the CSRE gpu matrix which have the
@@ -398,7 +401,8 @@ public:
 
             status = clsparseDCooMatrixfromFile(&cooMatrix,
                                                 CSRE::file_name.c_str(),
-                                                CLSE::control);
+                                                CLSE::control,
+                                                explicit_zeroes);
             ASSERT_EQ(clsparseSuccess, status);
 
             // To save memory let us use the CSRE gpu matrix which have the
@@ -689,7 +693,9 @@ int main (int argc, char* argv[])
             ("platform,l", po::value(&platform)->default_value("AMD"),
              "OpenCL platform: AMD or NVIDIA.")
             ("device,d", po::value(&dID)->default_value(0),
-             "Device id within platform.");
+             "Device id within platform.")
+            ("no_zeroes,z", po::bool_switch()->default_value(false),
+             "Disable reading explicit zeroes from the input matrix market file.");
 
     //	Parse the command line options, ignore unrecognized options and collect them into a vector of strings
     //  Googletest itself accepts command line flags that we wish to pass further on
@@ -733,10 +739,13 @@ int main (int argc, char* argv[])
 
     }
 
+    if (vm["no_zeroes"].as<bool>())
+        explicit_zeroes = false;
+
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
     ::testing::AddGlobalTestEnvironment( new CLSE(pID, dID));
     ::testing::AddGlobalTestEnvironment( new CSRE(path, 1, 0,
-                                                  CLSE::queue, CLSE::context));
+                                                  CLSE::queue, CLSE::context, explicit_zeroes ));
     return RUN_ALL_TESTS();
 }

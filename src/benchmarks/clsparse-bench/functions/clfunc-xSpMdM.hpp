@@ -25,7 +25,7 @@ template <typename T>
 class xSpMdM: public clsparseFunc
 {
 public:
-    xSpMdM( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType, size_t columns ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr ), num_columns( columns )
+    xSpMdM( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType, size_t columns, cl_bool keep_explicit_zeroes = true ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr ), num_columns( columns )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -44,6 +44,7 @@ public:
 
 
         clsparseEnableAsync( control, false );
+        explicit_zeroes = keep_explicit_zeroes;
     }
 
     ~xSpMdM( )
@@ -124,7 +125,7 @@ public:
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
-        fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+        fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk: " + sparseFile);
 
@@ -247,6 +248,7 @@ private:
     T alpha;
     T beta;
     size_t num_columns;
+    cl_bool explicit_zeroes;
 
     //  OpenCL state
     cl_command_queue_properties cqProp;

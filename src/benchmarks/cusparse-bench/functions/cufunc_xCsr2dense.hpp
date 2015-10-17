@@ -24,7 +24,7 @@ template <typename T>
 class xCsr2Dense : public cusparseFunc
 {
 public:
-    xCsr2Dense( StatisticalTimer& timer ): cusparseFunc( timer )
+    xCsr2Dense( StatisticalTimer& timer, bool read_explicit_zeroes = true ): cusparseFunc( timer )
     {
         cusparseStatus_t err = cusparseCreateMatDescr( &descrA );
         CUDA_V_THROW( err, "cusparseCreateMatDescr failed" );
@@ -38,6 +38,7 @@ public:
         n_rows = 0;
         n_cols = 0;
         n_vals = 0;
+        explicit_zeroes = read_explicit_zeroes;
     }
 
     ~xCsr2Dense( )
@@ -91,7 +92,7 @@ public:
             throw clsparse::io_exception( "Could not read matrix market header from disk: " + path);
         }
 
-        if (csrMatrixfromFile(row_offsets, col_indices, values, path.c_str()))
+        if (csrMatrixfromFile(row_offsets, col_indices, values, path.c_str(), explicit_zeroes))
         {
             throw clsparse::io_exception( "Could not read matrix market from disk: " + path);
         }
@@ -173,6 +174,8 @@ private:
     int  n_rows; // number of rows
     int  n_cols; // number of cols
     int  n_vals; // number of Non-Zero Values (nnz)
+
+    bool explicit_zeroes;
 
     cusparseMatDescr_t descrA;
 

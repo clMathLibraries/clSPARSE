@@ -130,6 +130,7 @@ int main( int argc, char *argv[ ] )
         ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
         ( "profile,p", po::value<size_t>( &profileCount )->default_value( 20 ), "Number of times to run the desired test function" )
         ( "extended,e", po::bool_switch()->default_value(false), "Use compensated summation to improve accuracy by emulating extended precision" )
+        ( "no_zeroes,z", po::bool_switch()->default_value(false), "Disable reading explicit zeroes from the input matrix market file.")
         ;
 
     po::variables_map vm;
@@ -164,7 +165,10 @@ int main( int argc, char *argv[ ] )
 
     cl_bool extended_precision = false;
     if (vm["extended"].as<bool>())
-                extended_precision = true;
+        extended_precision = true;
+    cl_bool explicit_zeroes = true;
+    if (vm["no_zeroes"].as<bool>())
+        explicit_zeroes = false;
 
     //	Timer module discovered and loaded successfully
     //	Initialize function pointers to call into the shared module
@@ -175,9 +179,9 @@ int main( int argc, char *argv[ ] )
     if( boost::iequals( function, "SpMdV" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< float >( sparseGetTimer, profileCount, extended_precision, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< float >( sparseGetTimer, profileCount, extended_precision, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
         else if( precision == "d" )
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< double >( sparseGetTimer, profileCount, extended_precision, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdV< double >( sparseGetTimer, profileCount, extended_precision, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
         else
         {
             std::cerr << "Unknown spmdv precision" << std::endl;
@@ -187,59 +191,59 @@ int main( int argc, char *argv[ ] )
     else if( boost::iequals( function, "CG" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xCG< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xCG< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
         else
-            my_function = std::unique_ptr< clsparseFunc >( new xCG< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xCG< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
     }
 
     else if( boost::iequals( function, "BiCGStab" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xBiCGStab< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xBiCGStab< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
         else
-            my_function = std::unique_ptr< clsparseFunc >( new xBiCGStab< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xBiCGStab< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
     }
     else if( boost::iequals( function, "SpMdM" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns, explicit_zeroes ) );
         else
-            my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xSpMdM< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, columns, explicit_zeroes ) );
     }
     else if (boost::iequals(function, "SpMSpM"))
     {
         if (precision == "s")
-            my_function = std::unique_ptr< clsparseFunc>(new xSpMSpM< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
+            my_function = std::unique_ptr< clsparseFunc>(new xSpMSpM< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
         else
-            my_function = std::unique_ptr< clsparseFunc >(new xSpMSpM< cl_double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU));
+            my_function = std::unique_ptr< clsparseFunc >(new xSpMSpM< cl_double >(sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
     }
     else if( boost::iequals( function, "Coo2Csr" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xCoo2Csr< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xCoo2Csr< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
         else
-            my_function = std::unique_ptr< clsparseFunc >( new xCoo2Csr< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xCoo2Csr< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
     }
     else if( boost::iequals( function, "Dense2Csr" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xDense2Csr< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xDense2Csr< float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
         else
-            my_function = std::unique_ptr< clsparseFunc >( new xDense2Csr< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xDense2Csr< double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
     }
     else if( boost::iequals( function, "Csr2Dense" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Dense< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Dense< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
         else
-            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Dense< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Dense< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
     }
     else if( boost::iequals( function, "Csr2Coo" ) )
     {
         if( precision == "s" )
-            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Coo< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Coo< cl_float >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
         else
-            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Coo< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU ) );
+            my_function = std::unique_ptr< clsparseFunc >( new xCsr2Coo< cl_double >( sparseGetTimer, profileCount, CL_DEVICE_TYPE_GPU, explicit_zeroes ) );
     }
     else
     {

@@ -48,6 +48,7 @@ clsparseControl ClSparseEnvironment::control = NULL;
 cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 
+static cl_bool explicit_zeroes = true;
 
 namespace po = boost::program_options;
 namespace uBLAS = boost::numeric::ublas;
@@ -666,7 +667,9 @@ int main (int argc, char* argv[])
             ("cols,c", po::value(&B_num_cols)->default_value(8),
              "Number of columns in B matrix while calculating sp_A * d_B = d_C")
             ("vals,v", po::value(&B_values)->default_value(1.0),
-             "Initial value of B columns");
+             "Initial value of B columns")
+            ("no_zeroes,z", po::bool_switch()->default_value(false),
+             "Disable reading explicit zeroes from the input matrix market file.");
 
 
     //	Parse the command line options, ignore unrecognized options and collect them into a vector of strings
@@ -709,6 +712,9 @@ int main (int argc, char* argv[])
         }
     }
 
+    if (vm["no_zeroes"].as<bool>())
+        explicit_zeroes = false;
+
     if (boost::iequals(function, "SpMdM"))
     {
         std::cout << "SpMdM Testing \n";
@@ -719,7 +725,7 @@ int main (int argc, char* argv[])
         //order does matter!
         ::testing::AddGlobalTestEnvironment(new CLSE(pID, dID));
         ::testing::AddGlobalTestEnvironment(new CSRE(path, alpha, beta,
-            CLSE::queue, CLSE::context));
+            CLSE::queue, CLSE::context, explicit_zeroes));
 
     }
     else if (boost::iequals(function, "SpMSpM"))
@@ -731,7 +737,7 @@ int main (int argc, char* argv[])
         ::testing::InitGoogleTest(&argc, argv);
 
         ::testing::AddGlobalTestEnvironment(new CLSE(pID, dID));
-        ::testing::AddGlobalTestEnvironment(new SPER(path, CLSE::queue, CLSE::context));
+        ::testing::AddGlobalTestEnvironment(new SPER(path, CLSE::queue, CLSE::context, explicit_zeroes));
     }
     else if (boost::iequals(function, "All"))
     {
@@ -739,8 +745,8 @@ int main (int argc, char* argv[])
         //order does matter!
         ::testing::AddGlobalTestEnvironment(new CLSE(pID, dID));
         ::testing::AddGlobalTestEnvironment(new CSRE(path, alpha, beta,
-            CLSE::queue, CLSE::context));
-        ::testing::AddGlobalTestEnvironment(new SPER(path, CLSE::queue, CLSE::context));
+            CLSE::queue, CLSE::context, explicit_zeroes));
+        ::testing::AddGlobalTestEnvironment(new SPER(path, CLSE::queue, CLSE::context, explicit_zeroes));
     }
     else
     {

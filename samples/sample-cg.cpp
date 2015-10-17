@@ -195,7 +195,8 @@ int main (int argc, char* argv[])
                                     A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );
 
 
-    fileError = clsparseSCsrMatrixfromFile( &A, matrix_path.c_str( ), control );
+    // Read matrix market file with explicit zero values included.
+    fileError = clsparseSCsrMatrixfromFile( &A, matrix_path.c_str( ), control, true );
 
     // This function allocates memory for rowBlocks structure. If not called
     // the structure will not be calculated and clSPARSE will run the vectorized

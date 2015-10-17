@@ -25,7 +25,7 @@
 template<typename T>
 class xSpMSpM : public cusparseFunc {
 public:
-    xSpMSpM(StatisticalTimer& timer) : cusparseFunc(timer)
+    xSpMSpM( StatisticalTimer& timer, bool read_explicit_zeroes = true ) : cusparseFunc(timer)
     {
         alpha = 1.0;
         beta  = 1.0;
@@ -33,6 +33,8 @@ public:
         n_rows = 0;
         n_cols = 0;
         n_vals = 0;
+
+        explicit_zeroes = read_explicit_zeroes;
 
         dev_csrValA = nullptr;
         dev_csrRowPtrA = nullptr;
@@ -123,7 +125,7 @@ public:
             throw clsparse::io_exception("Could not read matrix market header from disk");
         }
 
-        if (csrMatrixfromFile(row_offsets, col_indices, values, path.c_str()))
+        if (csrMatrixfromFile(row_offsets, col_indices, values, path.c_str(), explicit_zeroes))
         {
             throw clsparse::io_exception("Could not read matrix market header from disk");
         }
@@ -224,6 +226,8 @@ private:
     int n_rows;
     int n_cols;
     int n_vals; 
+
+    bool explicit_zeroes;
 
     csrgemm2Info_t info;
     cusparseMatDescr_t descrA;

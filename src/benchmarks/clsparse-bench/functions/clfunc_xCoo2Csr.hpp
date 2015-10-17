@@ -25,7 +25,7 @@ template <typename T>
 class xCoo2Csr: public clsparseFunc
 {
 public:
-    xCoo2Csr( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xCoo2Csr( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType, cl_bool keep_explicit_zeroes = true ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -44,6 +44,7 @@ public:
 
 
         clsparseEnableAsync( control, false );
+        explicit_zeroes = keep_explicit_zeroes;
     }
 
     ~xCoo2Csr( )
@@ -113,9 +114,9 @@ public:
                                                cooMatx.num_nonzeros * sizeof( cl_int ), NULL, &status );
 
         if (typeid(T) == typeid(float))
-           fileError = clsparseSCooMatrixfromFile(&cooMatx, path.c_str(), control);
+           fileError = clsparseSCooMatrixfromFile( &cooMatx, path.c_str(), control, explicit_zeroes );
         else if (typeid(T) == typeid(double))
-            fileError = clsparseDCooMatrixfromFile(&cooMatx, path.c_str(), control);
+            fileError = clsparseDCooMatrixfromFile( &cooMatx, path.c_str(), control, explicit_zeroes );
         else
             fileError = clsparseInvalidType;
 
@@ -201,6 +202,9 @@ private:
     //device values
     clsparseCsrMatrix csrMtx;
     clsparseCooMatrix cooMatx;
+
+    // host values
+    cl_bool explicit_zeroes;
 
     //matrix dimension
     int n_rows;
