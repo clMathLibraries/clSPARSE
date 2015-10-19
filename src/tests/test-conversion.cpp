@@ -81,10 +81,6 @@ public:
     // uBLAS dense matrix format type
     typedef typename uBLAS::matrix<T, uBLAS::row_major, uBLAS::unbounded_array<T> > uBLASDenseM;
 
-    // uBLAS coo matrix format type;
-    typedef typename uBLAS::coordinate_matrix<T,  uBLAS::row_major, 0, uBLAS::unbounded_array<cl_ulong> > uBLASCooM;
-
-
     cldenseMatrix A;
 
 
@@ -241,15 +237,15 @@ public:
             clsparseInitCsrMatrix( &csrMatx );
 
             csrMatx.values = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                               CSRE::ublasDCsr.value_data().size() * sizeof( T ), NULL, &cl_status );
+                                               CSRE::csrDMatrix.num_nonzeros * sizeof( T ), NULL, &cl_status );
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             csrMatx.rowOffsets = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                                   CSRE::ublasDCsr.index1_data().size() * sizeof( cl_int ), NULL, &cl_status );
+                                                   ( CSRE::csrDMatrix.num_rows + 1 ) * sizeof( cl_int ), NULL, &cl_status );
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             csrMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                                   CSRE::ublasDCsr.index2_data().size() * sizeof( cl_int ), NULL, &cl_status );
+                                                   CSRE::csrDMatrix.num_nonzeros * sizeof( cl_int ), NULL, &cl_status );
 
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -261,10 +257,9 @@ public:
             //Compare
 
             // Download GPU data
-            std::vector<cl_int> row_offsets(CSRE::ublasDCsr.index1_data().size());
-            std::vector<cl_int> col_indices(CSRE::ublasDCsr.index2_data().size());
-            std::vector<T> values(CSRE::ublasDCsr.value_data().size());
-
+            std::vector<cl_int> row_offsets(CSRE::csrDMatrix.num_rows + 1);
+            std::vector<cl_int> col_indices(CSRE::csrDMatrix.num_nonzeros);
+            std::vector<T> values (CSRE::csrDMatrix.num_nonzeros);
 
             // Compare values
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.values, CL_TRUE, 0,
@@ -272,7 +267,9 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
+{
                 EXPECT_DOUBLE_EQ(CSRE::ublasDCsr.value_data()[i], values[i]);
+}
 
 
             // Compare row_offsets
@@ -495,8 +492,25 @@ public:
 
             ASSERT_EQ(clsparseSuccess, status);
 
-            // Generate reference;
-            uBLASCooM ublas_coo(CSRE::ublasSCsr);
+            // Generate reference.
+            float* vals = (float*)&CSRE::ublasSCsr.value_data()[0];
+            int* rows = &CSRE::ublasSCsr.index1_data()[0];
+            int* cols = &CSRE::ublasSCsr.index2_data()[0];
+
+            int* coo_rows = new int[CSRE::n_vals];
+            int* coo_cols = new int[CSRE::n_vals];
+            float* coo_vals = new float[CSRE::n_vals];
+            int total_vals = 0;
+            for (int row = 0; row < CSRE::n_rows; row++)
+            {
+                for (int i = rows[row]; i < rows[row+1]; i++)
+                {
+                    coo_rows[total_vals] = row;
+                    coo_cols[total_vals] = cols[i];
+                    coo_vals[total_vals] = vals[i];
+                    total_vals++;
+                }
+            }
 
             // Compare result
 
@@ -513,7 +527,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < row_indices.size(); i++)
-                ASSERT_EQ(ublas_coo.index1_data()[i], row_indices[i]);
+                ASSERT_EQ(coo_rows[i], row_indices[i]);
 
             // col indices
             cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.colIndices,
@@ -523,7 +537,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < col_indices.size(); i++)
-                ASSERT_EQ(ublas_coo.index2_data()[i], col_indices[i]);
+                ASSERT_EQ(coo_cols[i], col_indices[i]);
 
 
             // values
@@ -533,8 +547,11 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                EXPECT_FLOAT_EQ(ublas_coo.value_data()[i], values[i]);
+                EXPECT_FLOAT_EQ(coo_vals[i], values[i]);
 
+            delete[] coo_rows;
+            delete[] coo_cols;
+            delete[] coo_vals;
         }
 
         if (typeid(T) == typeid(cl_double))
@@ -551,7 +568,24 @@ public:
             ASSERT_EQ(clsparseSuccess, status);
 
             // Generate reference;
-            uBLASCooM ublas_coo(CSRE::ublasDCsr);
+            double* vals = (double*)&CSRE::ublasDCsr.value_data()[0];
+            int* rows = &CSRE::ublasDCsr.index1_data()[0];
+            int* cols = &CSRE::ublasDCsr.index2_data()[0];
+
+            int* coo_rows = new int[CSRE::n_vals];
+            int* coo_cols = new int[CSRE::n_vals];
+            double* coo_vals = new double[CSRE::n_vals];
+            int total_vals = 0;
+            for (int row = 0; row < CSRE::n_rows; row++)
+            {
+                for (int i = rows[row]; i < rows[row+1]; i++)
+                {
+                    coo_rows[total_vals] = row;
+                    coo_cols[total_vals] = cols[i];
+                    coo_vals[total_vals] = vals[i];
+                    total_vals++;
+                }
+            }
 
             // Compare result
 
@@ -569,7 +603,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < row_indices.size(); i++)
-                ASSERT_EQ(ublas_coo.index1_data()[i], row_indices[i]);
+                ASSERT_EQ(coo_rows[i], row_indices[i]);
 
             // col indices
             cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.colIndices,
@@ -579,7 +613,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < col_indices.size(); i++)
-                ASSERT_EQ(ublas_coo.index2_data()[i], col_indices[i]);
+                ASSERT_EQ(coo_cols[i], col_indices[i]);
 
 
             // values
@@ -589,9 +623,11 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             for (int i = 0; i < values.size(); i++)
-                EXPECT_DOUBLE_EQ(ublas_coo.value_data()[i], values[i]);
+                EXPECT_DOUBLE_EQ(coo_vals[i], values[i]);
 
-
+            delete[] coo_rows;
+            delete[] coo_cols;
+            delete[] coo_vals;
         }
 
         cl_status = ::clReleaseMemObject(cooMatrix.colIndices);
@@ -628,7 +664,6 @@ TYPED_TEST(MatrixConversion, csr_to_coo)
 TYPED_TEST(MatrixConversion, coo_to_csr)
 {
     this->test_coo_to_csr();
-
 }
 
 
