@@ -72,9 +72,6 @@ public:
         csrDMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                                   ( csrDMatrix.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
 
-        csrDMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
-                                                 csrDMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-
         clsparseStatus fileError = clsparseDCsrMatrixfromFile( &csrDMatrix, file_name.c_str( ), CLSE::control );
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk: " + file_name );
