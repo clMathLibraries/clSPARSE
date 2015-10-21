@@ -25,7 +25,7 @@ template <typename T>
 class xSpMdV : public cusparseFunc
 {
 public:
-    xSpMdV( StatisticalTimer& timer ): cusparseFunc( timer ), transA( CUSPARSE_OPERATION_NON_TRANSPOSE )
+    xSpMdV( StatisticalTimer& timer, bool read_explicit_zeroes = true ): cusparseFunc( timer ), transA( CUSPARSE_OPERATION_NON_TRANSPOSE )
     {
         cusparseStatus_t err = cusparseCreateMatDescr( &descrA );
         CUDA_V_THROW( err, "cusparseCreateMatDescr failed" );
@@ -35,6 +35,8 @@ public:
 
         err = cusparseSetMatIndexBase( descrA, CUSPARSE_INDEX_BASE_ZERO );
         CUDA_V_THROW( err, "cusparseSetMatIndexBase failed" );
+
+        explicit_zeroes = read_explicit_zeroes;
     }
 
     ~xSpMdV( )
@@ -84,7 +86,7 @@ public:
             throw clsparse::io_exception( "Could not read matrix market header from disk: " + path);
         }
 
-        if (csrMatrixfromFile( row_offsets, col_indices, values, path.c_str( ) ) )
+        if (csrMatrixfromFile( row_offsets, col_indices, values, path.c_str( ), explicit_zeroes ) )
         {
             throw clsparse::io_exception( "Could not read matrix market from disk: " + path);
         }
@@ -173,6 +175,8 @@ private:
     int n_rows;
     int n_cols;
     int n_vals;
+
+    bool explicit_zeroes;
 
     T alpha;
     T beta;

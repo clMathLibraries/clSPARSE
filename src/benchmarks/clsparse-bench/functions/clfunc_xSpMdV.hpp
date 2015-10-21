@@ -25,7 +25,7 @@ template <typename T>
 class xSpMdV: public clsparseFunc
 {
 public:
-    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool extended_precision, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xSpMdV( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_bool extended_precision, cl_device_type devType, cl_bool keep_explicit_zeroes = true ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -43,6 +43,7 @@ public:
         }
 
         clsparseEnableExtendedPrecision( control, extended_precision );
+        explicit_zeroes = keep_explicit_zeroes;
 
         clsparseEnableAsync( control, false );
     }
@@ -129,9 +130,9 @@ public:
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         if(typeid(T) == typeid(float))
-            fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+            fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
         else if (typeid(T) == typeid(double))
-            fileError = clsparseDCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+            fileError = clsparseDCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
         else
             fileError = clsparseInvalidType;
 
@@ -252,6 +253,7 @@ private:
     // host values
     T alpha;
     T beta;
+    cl_bool explicit_zeroes;
 
     //  OpenCL state
     cl_command_queue_properties cqProp;

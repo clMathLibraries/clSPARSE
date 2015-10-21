@@ -26,7 +26,7 @@ template <typename T>
 class xCsr2Coo : public clsparseFunc
 {
 public:
-	xCsr2Coo(PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type dev_type) : clsparseFunc(dev_type, CL_QUEUE_PROFILING_ENABLE)
+	xCsr2Coo(PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type dev_type, cl_bool keep_explicit_zeroes = true) : clsparseFunc(dev_type, CL_QUEUE_PROFILING_ENABLE)
 	{
 		gpuTimer = nullptr;
 		cpuTimer = nullptr;
@@ -47,6 +47,7 @@ public:
 		}
 
 		clsparseEnableAsync(control, false);
+                explicit_zeroes = keep_explicit_zeroes;
 	}// End of constructor
 
 	~xCsr2Coo()
@@ -131,9 +132,9 @@ public:
 		CLSPARSE_V(status, "::clCreateBuffer csrMtx.rowOffsets");
 
 		if (typeid(T) == typeid(float))
-			fileError = clsparseSCsrMatrixfromFile(&csrMtx, sparseFile.c_str(), control);
+			fileError = clsparseSCsrMatrixfromFile(&csrMtx, sparseFile.c_str(), control, explicit_zeroes);
 		else if (typeid(T) == typeid(double))
-			fileError = clsparseDCsrMatrixfromFile(&csrMtx, sparseFile.c_str(), control);
+			fileError = clsparseDCsrMatrixfromFile(&csrMtx, sparseFile.c_str(), control, explicit_zeroes);
 		else
 			fileError = clsparseInvalidType;
 
@@ -262,6 +263,8 @@ private:
 	clsparseCsrMatrix csrMtx;
 	clsparseCooMatrix cooMtx;
 
+        // host values
+        cl_bool explicit_zeroes;
 
 	//OpenCL state
 	cl_command_queue_properties cqProp;

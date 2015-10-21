@@ -35,6 +35,7 @@ cl_command_queue ClSparseEnvironment::queue = NULL;
 cl_context ClSparseEnvironment::context = NULL;
 //cl_uint ClSparseEnvironment::N = 1024;
 static cl_bool extended_precision = false;
+static cl_bool explicit_zeroes = true;
 
 namespace po = boost::program_options;
 namespace uBLAS = boost::numeric::ublas;
@@ -133,8 +134,7 @@ public:
         clsparseStatus status;
         cl_int cl_status;
 
-        if (extended_precision)
-            clsparseEnableExtendedPrecision(CLSE::control, true);
+        clsparseEnableExtendedPrecision(CLSE::control, extended_precision);
 
         if (typeid(T) == typeid(cl_float) )
         {
@@ -417,7 +417,10 @@ int main (int argc, char* argv[])
              "Alpha parameter for eq: \n\ty = alpha * M * x + beta * y")
             ("beta,b", po::value(&beta)->default_value(1.0),
              "Beta parameter for eq: \n\ty = alpha * M * x + beta * y")
-            ("extended,e", po::bool_switch()->default_value(false), "Use compensated summation to improve accuracy by emulating extended precision.");
+            ("extended,e", po::bool_switch()->default_value(false),
+             "Use compensated summation to improve accuracy by emulating extended precision.")
+            ("no_zeroes,z", po::bool_switch()->default_value(false),
+             "Disable reading explicit zeroes from the input matrix market file.");
 
     po::variables_map vm;
     po::parsed_options parsed =
@@ -463,12 +466,14 @@ int main (int argc, char* argv[])
 
     if (vm["extended"].as<bool>())
         extended_precision = true;
+    if (vm["no_zeroes"].as<bool>())
+        explicit_zeroes = false;
 
     ::testing::InitGoogleTest(&argc, argv);
     //order does matter!
     ::testing::AddGlobalTestEnvironment( new CLSE(pID, dID));
     ::testing::AddGlobalTestEnvironment( new CSRE(path, alpha, beta,
-                                                  CLSE::queue, CLSE::context));
+                                                  CLSE::queue, CLSE::context, explicit_zeroes));
 
     return RUN_ALL_TESTS();
 

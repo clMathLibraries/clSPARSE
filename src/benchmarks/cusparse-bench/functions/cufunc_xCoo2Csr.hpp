@@ -24,11 +24,12 @@ template <typename T>
 class xCoo2Csr: public cusparseFunc
 {
 public:
-    xCoo2Csr( StatisticalTimer& timer ): cusparseFunc( timer )
+    xCoo2Csr( StatisticalTimer& timer, bool read_explicit_zeroes = true ): cusparseFunc( timer )
     {
         n_rows = 0;
         n_cols = 0;
         n_vals = 0; // nnz
+        explicit_zeroes = read_explicit_zeroes;
     }
 
     ~xCoo2Csr( )
@@ -74,7 +75,7 @@ public:
             throw clsparse::io_exception( "Could not read matrix market header from disk" + path);
         }
 
-        if( cooMatrixfromFile( row_indices, col_indices, values, path.c_str( ) ) )
+        if( cooMatrixfromFile( row_indices, col_indices, values, path.c_str( ), explicit_zeroes ) )
         {
             throw clsparse::io_exception( "Could not read matrix market from disk: " + path );
         }
@@ -142,6 +143,8 @@ private:
     int  n_cols; // number of cols
     int  n_vals; // number of Non-Zero Values (nnz)
     int* colIndices;
+
+    bool explicit_zeroes;
 
     // device CUDA pointers
     int* deviceCSRRowOffsets; // Input: CSR Row Offsets

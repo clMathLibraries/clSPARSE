@@ -129,6 +129,7 @@ int main(int argc, char *argv[])
                 "SpMdV, SpMSpM, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
     ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )
     ( "profile,p", po::value<int>( &profileCount )->default_value( 20 ), "Time and report the kernel speed (default: profiling off)" )
+    ( "no_zeroes,z", po::bool_switch()->default_value(false), "Disable reading explicit zeroes from the input matrix market file.")
     ;
 
   po::variables_map vm;
@@ -154,6 +155,10 @@ int main(int argc, char *argv[])
       return false;
   }
 
+  cl_bool explicit_zeroes = true;
+  if (vm["no_zeroes"].as<bool>())
+    explicit_zeroes = false;
+
   StatisticalTimer& timer = StatisticalTimer::getInstance( );
   timer.Reserve( 3, profileCount );
   timer.setNormalize( true );
@@ -162,10 +167,10 @@ int main(int argc, char *argv[])
   if( boost::iequals( function, "SpMdV" ) )
   {
     if( precision == "s" )
-        my_function = std::unique_ptr< cusparseFunc >( new xSpMdV< float >( timer ) );
+        my_function = std::unique_ptr< cusparseFunc >( new xSpMdV< float >( timer, explicit_zeroes ) );
     else if( precision == "d" )
     //    my_function = std::make_unique< xSpMdV< double > >( timer );
-      my_function = std::unique_ptr< cusparseFunc >( new xSpMdV< double >( timer ) );
+      my_function = std::unique_ptr< cusparseFunc >( new xSpMdV< double >( timer, explicit_zeroes ) );
     else
     {
       std::cerr << "Unknown spmdv precision" << std::endl;
@@ -175,9 +180,9 @@ int main(int argc, char *argv[])
   else if (boost::iequals(function, "SpMSpM"))
   {
       if (precision == "s")
-          my_function = std::unique_ptr< cusparseFunc >(new xSpMSpM< float >(timer));
+          my_function = std::unique_ptr< cusparseFunc >(new xSpMSpM< float >( timer, explicit_zeroes ));
       else if (precision == "d") // Currently not supported
-          my_function = std::unique_ptr< cusparseFunc >(new xSpMSpM< double >(timer));
+          my_function = std::unique_ptr< cusparseFunc >(new xSpMSpM< double >( timer, explicit_zeroes ));
       else
       {
           std::cerr << "Unknown spmspm precison" << std::endl;
@@ -187,9 +192,9 @@ int main(int argc, char *argv[])
   else if( boost::iequals( function, "Csr2Dense" ) )
   {
       if( precision == "s" )
-          my_function = std::unique_ptr< cusparseFunc >( new xCsr2Dense< float >( timer ) );
+          my_function = std::unique_ptr< cusparseFunc >( new xCsr2Dense< float >( timer, explicit_zeroes ) );
       else if( precision == "d" )
-          my_function = std::unique_ptr< cusparseFunc >( new xCsr2Dense< double >( timer ) );
+          my_function = std::unique_ptr< cusparseFunc >( new xCsr2Dense< double >( timer, explicit_zeroes ) );
       else
       {
           std::cerr << "Unknown xCsr2Dense precision" << std::endl;
@@ -200,11 +205,11 @@ int main(int argc, char *argv[])
   {
       if (precision == "s")
       {
-          my_function = std::unique_ptr< cusparseFunc >(new xCsr2Coo< float >(timer));
+          my_function = std::unique_ptr< cusparseFunc >(new xCsr2Coo< float >( timer, explicit_zeroes ));
       }
       else if (precision == "d")
       {
-          my_function = std::unique_ptr< cusparseFunc >(new xCsr2Coo< double >(timer));
+          my_function = std::unique_ptr< cusparseFunc >(new xCsr2Coo< double >( timer, explicit_zeroes ));
       }
       else
       {
@@ -216,11 +221,11 @@ int main(int argc, char *argv[])
   {
       if (precision == "s")
       {
-          my_function = std::unique_ptr< cusparseFunc >(new xDense2Csr< float >(timer));
+          my_function = std::unique_ptr< cusparseFunc >(new xDense2Csr< float >( timer, explicit_zeroes ));
       }
       else if (precision == "d")
       {
-          my_function = std::unique_ptr< cusparseFunc >(new xDense2Csr< double >(timer));
+          my_function = std::unique_ptr< cusparseFunc >(new xDense2Csr< double >( timer, explicit_zeroes ));
       }
       else
       {
@@ -232,11 +237,11 @@ int main(int argc, char *argv[])
   {
       if( precision == "s" )
       {
-          my_function = std::unique_ptr< cusparseFunc >( new xCoo2Csr< float >( timer ) );
+          my_function = std::unique_ptr< cusparseFunc >( new xCoo2Csr< float >( timer, explicit_zeroes ) );
       }
       else
       {
-          my_function = std::unique_ptr< cusparseFunc >( new xCoo2Csr< double >( timer ) );
+          my_function = std::unique_ptr< cusparseFunc >( new xCoo2Csr< double >( timer, explicit_zeroes ) );
       }
   }
   else

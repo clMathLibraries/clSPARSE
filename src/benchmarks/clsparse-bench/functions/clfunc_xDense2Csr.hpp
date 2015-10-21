@@ -25,7 +25,7 @@ template <typename T>
 class xDense2Csr: public clsparseFunc
 {
 public:
-    xDense2Csr( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
+    xDense2Csr( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType, cl_bool keep_explicit_zeroes = true ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
 		gpuTimer = nullptr;
 		cpuTimer = nullptr;
@@ -45,6 +45,7 @@ public:
             cpuTimerID = cpuTimer->getUniqueID( "CPU xDense2Csr", 0 );
         }
         clsparseEnableAsync( control, false );
+        explicit_zeroes = keep_explicit_zeroes;
     }// End of constructor
 
     ~xDense2Csr( )
@@ -135,9 +136,9 @@ public:
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         if(typeid(T) == typeid(float))
-            fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+            fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
         else if (typeid(T) == typeid(double))
-            fileError = clsparseDCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+            fileError = clsparseDCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
         else
             fileError = clsparseInvalidType;
 
@@ -261,8 +262,11 @@ private:
 
     //device values
     clsparseCsrMatrix csrMtx;
-	clsparseCsrMatrix csrMatx;
+    clsparseCsrMatrix csrMatx;
     cldenseMatrix A;
+
+    // host values
+    cl_bool explicit_zeroes;
 
     //  OpenCL state
     cl_command_queue_properties cqProp;

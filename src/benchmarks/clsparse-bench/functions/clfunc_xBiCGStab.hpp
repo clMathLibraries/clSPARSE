@@ -28,7 +28,7 @@ template <typename T>
 class xBiCGStab : public clsparseFunc
 {
 public:
-    xBiCGStab( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType ):
+    xBiCGStab( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType, cl_bool keep_explicit_zeroes = true ):
         clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ),/* gpuTimer( nullptr ),*/ cpuTimer( nullptr )
     {
         //	Create and initialize our timer class, if the external timer shared library loaded
@@ -48,6 +48,7 @@ public:
 
 
         clsparseEnableAsync( control, false );
+        explicit_zeroes = keep_explicit_zeroes;
 
         solverControl = clsparseCreateSolverControl(DIAGONAL, 1000, 1e-6, 0);
         clsparseSolverPrintMode(solverControl, VERBOSE);
@@ -130,9 +131,9 @@ public:
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         if(typeid(T) == typeid(float))
-            fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+            fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
         else if (typeid(T) == typeid(double))
-            fileError = clsparseDCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control );
+            fileError = clsparseDCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
         else
             fileError = clsparseInvalidType;
 
@@ -241,6 +242,8 @@ private:
     cldenseVector x;
     cldenseVector y;
 
+    // host values
+    cl_bool explicit_zeroes;
 
     //  OpenCL state
     cl_command_queue_properties cqProp;

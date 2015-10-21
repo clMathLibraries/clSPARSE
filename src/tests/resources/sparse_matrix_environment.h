@@ -43,7 +43,7 @@ public:
     using sMatrixType = uBLAS::compressed_matrix<float,  uBLAS::row_major, 0, uBLAS::unbounded_array<int> >;
     //using dMatrixType = uBLAS::compressed_matrix<double, uBLAS::row_major, 0, uBLAS::unbounded_array<size_t> >;
 
-    explicit CSRSparseEnvironment(const std::string& path, cl_command_queue queue, cl_context context)
+    explicit CSRSparseEnvironment(const std::string& path, cl_command_queue queue, cl_context context, cl_bool explicit_zeroes = true)
         : queue(queue), context(context)
     {
         file_name = path;
@@ -69,7 +69,7 @@ public:
         csrSMatrix.rowOffsets = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             (csrSMatrix.num_rows + 1) * sizeof(cl_int), NULL, &status);
 
-        clsparseStatus fileError = clsparseSCsrMatrixfromFile(&csrSMatrix, file_name.c_str(), CLSE::control);
+        clsparseStatus fileError = clsparseSCsrMatrixfromFile(&csrSMatrix, file_name.c_str(), CLSE::control, explicit_zeroes);
         if (fileError != clsparseSuccess)
             throw std::runtime_error("Could not read matrix market data from disk");
 

@@ -24,10 +24,10 @@ int sparseHeaderfromFile( int* nnz, int* rows, int* cols, const char* filePath )
 
 template< class T > int
 cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indices,
-std::vector< T >& values, const char* filePath );
+std::vector< T >& values, const char* filePath, bool read_explicit_zeroes = true );
 
 template< class T > int
 csrMatrixfromFile( std::vector< int >& row_offsets, std::vector< int >& col_indices,
-std::vector< T >& values, const char* filePath );
+std::vector< T >& values, const char* filePath, bool read_explicit_zeroes = true );
 
 #endif

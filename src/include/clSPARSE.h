@@ -507,17 +507,21 @@ extern "C" {
     * \param[out] cooMatx  The COO sparse structure that represents the matrix in device memory
     * \param[in] filePath  A path in the file-system to the sparse matrix file
     * \param[in] control A valid clsparseControl created with clsparseCreateControl
+    * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this controls
+    * whether they are stored in the COO
     *
-    * \note The number of non-zeroes actually read from the file may be less than the number of
-    * non-zeroes reported from the file header
+    * \note The number of non-zeroes actually read from the file may be different than the number of
+    * non-zeroes reported from the file header. Symmetrix matrices may store up to twice as many non-zero
+    * values compared to the number of values in the file. Explicitly declared zeroes may be stored
+    * or not depending on the input \p read_explicit_zeroes.
     * \note The OpenCL device memory must be allocated before the call to this function.
-    * \post The sparse data is sorted first by row, then by column
+    * \post The sparse data is sorted first by row, then by column.
     * \returns \b clsparseSuccess
     *
     * \ingroup FILE
     */
     CLSPARSE_EXPORT clsparseStatus
-        clsparseSCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control );
+        clsparseSCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control, cl_bool read_explicit_zeroes );
 
     /*!
      * \brief Read sparse matrix data from file in double precision COO format
@@ -529,17 +533,21 @@ extern "C" {
      * \param[out] cooMatx  The COO sparse structure that represents the matrix in device memory
      * \param[in] filePath  A path in the file-system to the sparse matrix file
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this controls
+     * whether they are stored in the COO
      *
      * \note The number of non-zeroes actually read from the file may be less than the number of
-     * non-zeroes reported from the file header
+     * non-zeroes reported from the file header. Symmetrix matrices may store up to twice as many non-zero
+     * values compared to the number of values in the file. Explicitly declared zeroes may be stored
+     * or not depending on the input \p read_explicit_zeroes.
      * \note The OpenCL device memory must be allocated before the call to this function.
-     * \post The sparse data is sorted first by row, then by column
+     * \post The sparse data is sorted first by row, then by column.
      * \returns \b clsparseSuccess
      *
      * \ingroup FILE
      */
     CLSPARSE_EXPORT clsparseStatus
-        clsparseDCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control );
+        clsparseDCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, clsparseControl control, cl_bool read_explicit_zeroes );
 
     /*!
      * \brief Read sparse matrix data from file in single precision CSR format
@@ -550,17 +558,21 @@ extern "C" {
      * \param[out] csrMatx  The CSR sparse structure that represents the matrix in device memory
      * \param[in] filePath  A path in the file-system to the sparse matrix file
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this controls
+     * whether they are stored in the CSR
      *
      * \note The number of non-zeroes actually read from the file may be less than the number of
-     * non-zeroes reported from the file header
+     * non-zeroes reported from the file header. Symmetrix matrices may store up to twice as many non-zero
+     * values compared to the number of values in the file. Explicitly declared zeroes may be stored
+     * or not depending on the input \p read_explicit_zeroes.
      * \note The OpenCL device memory must be allocated before the call to this function.
-     * \post The sparse data is sorted first by row, then by column
+     * \post The sparse data is sorted first by row, then by column.
      * \returns \b clsparseSuccess
      *
      * \ingroup FILE
      */
     CLSPARSE_EXPORT clsparseStatus
-        clsparseSCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
+        clsparseSCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control, cl_bool read_explicit_zeroes );
 
     /*!
      * \brief Read sparse matrix data from file in double precision CSR format
@@ -572,9 +584,13 @@ extern "C" {
      * \param[out] csrMatx  The CSR sparse structure that represents the matrix in device memory
      * \param[in] filePath  A path in the file-system to the sparse matrix file
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
+     * \param[in] read_explicit_zeroes If the file contains values explicitly declared zero, this controls
+     * whether they are stored in the CSR
      *
      * \note The number of non-zeroes actually read from the file may be less than the number of
-     * non-zeroes reported from the file header
+     * non-zeroes reported from the file header. Symmetrix matrices may store up to twice as many non-zero
+     * values compared to the number of values in the file. Explicitly declared zeroes may be stored
+     * or not depending on the input \p read_explicit_zeroes.
      * \note The OpenCL device memory must be allocated before the call to this function.
      * \post The sparse data is sorted first by row, then by column
      * \returns \b clsparseSuccess
@@ -582,7 +598,7 @@ extern "C" {
      * \ingroup FILE
      */
     CLSPARSE_EXPORT clsparseStatus
-        clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control );
+        clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control, cl_bool read_explicit_zeroes );
 
     /*!
      * \brief Calculate the amount of device memory required to hold meta-data for csr-adaptive SpM-dV algorithm
