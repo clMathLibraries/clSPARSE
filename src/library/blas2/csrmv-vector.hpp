@@ -31,10 +31,10 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
        cldenseVectorPrivate* pY,
        clsparseControl control)
 {
-    cl_uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
-    cl_uint wave_size = control->wavefront_size;
+    clsparseIdx_t nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
+    clsparseIdx_t wave_size = control->wavefront_size;
     cl_uint group_size = 256;    // 256 gives best performance!
-    cl_uint subwave_size = wave_size;
+    clsparseIdx_t subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
     // each wavefron will be assigned to the row of the csr matrix
@@ -49,12 +49,24 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
     std::string params = std::string() +
-            "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DWG_SIZE=" + std::to_string(group_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
+
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -87,12 +99,12 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
-    cl_uint predicted = subwave_size * pMatx->num_rows;
+    clsparseIdx_t predicted = subwave_size * pMatx->num_rows;
 
     // if NVIDIA is used it does not allow to run the group size
     // which is not a multiplication of group_size. Don't know if that
     // have an impact on performance
-    cl_uint global_work_size =
+    clsparseIdx_t global_work_size =
             group_size* ((predicted + group_size - 1 ) / group_size);
     cl::NDRange local(group_size);
     //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
@@ -120,10 +132,10 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
        clsparse::array_base<T>& pY,
        clsparseControl control)
 {
-    cl_uint nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
-    cl_uint wave_size = control->wavefront_size;
+    clsparseIdx_t nnz_per_row = pMatx->nnz_per_row(); //average nnz per row
+    clsparseIdx_t wave_size = control->wavefront_size;
     cl_uint group_size = 256;    // 256 gives best performance!
-    cl_uint subwave_size = wave_size;
+    clsparseIdx_t subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
     // each wavefron will be assigned to the row of the csr matrix
@@ -138,12 +150,25 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
     if (nnz_per_row < 4)  {  subwave_size = 2;  }
 
     std::string params = std::string() +
-            "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DWG_SIZE=" + std::to_string(group_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
+
+    if (control->addressBits == GPUADDRESS64WORD)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -178,12 +203,12 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
-    cl_uint predicted = subwave_size * pMatx->num_rows;
+    clsparseIdx_t predicted = subwave_size * pMatx->num_rows;
 
     // if NVIDIA is used it does not allow to run the group size
     // which is not a multiplication of group_size. Don't know if that
     // have an impact on performance
-    cl_uint global_work_size =
+    clsparseIdx_t global_work_size =
             group_size* ((predicted + group_size - 1 ) / group_size);
     cl::NDRange local(group_size);
     //cl::NDRange global(predicted > local[0] ? predicted : local[0]);

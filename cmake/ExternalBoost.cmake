@@ -24,7 +24,7 @@ include( ExternalProject )
 # ExternalProject
 
 # Change this one line to upgrade to newer versions of boost
-set( ext.Boost_VERSION "1.58.0" CACHE STRING "Boost version to download/use" )
+set( ext.Boost_VERSION "1.59.0" CACHE STRING "Boost version to download/use" )
 mark_as_advanced( ext.Boost_VERSION )
 string( REPLACE "." "_" ext.Boost_Version_Underscore ${ext.Boost_VERSION} )
 
@@ -41,7 +41,11 @@ else( )
   set( Boost_Ext "tar.bz2" )
 endif( )
 
-set( Boost.Command ./b2 --prefix=<INSTALL_DIR>/package )
+if( WIN32 )
+  set( Boost.Command b2 --prefix=<INSTALL_DIR>/package )
+else( )
+  set( Boost.Command ./b2 --prefix=<INSTALL_DIR>/package )
+endif( )
 
 if( CMAKE_COMPILER_IS_GNUCXX )
   list( APPEND Boost.Command cxxflags=-fPIC -std=c++11 )
@@ -67,6 +71,8 @@ else( )
 endif( )
 
 message( STATUS "ExternalBoost using ( " ${Cores} " ) cores to build with" )
+message( STATUS "ExternalBoost building [ program_options, serialization, filesystem, system, regex ] components" )
+
 list( APPEND Boost.Command -j ${Cores} --with-program_options --with-serialization --with-filesystem --with-system --with-regex )
 
 if( BUILD64 )
@@ -141,20 +147,20 @@ mark_as_advanced( ext.Boost_URL )
 set( Boost.Bootstrap "" )
 set( ext.MD5_HASH "" )
 if( WIN32 )
-  set( Boost.Bootstrap ".\\bootstrap.bat" )
+  set( Boost.Bootstrap "bootstrap.bat" )
 
   if( CMAKE_VERSION VERSION_LESS "3.1.0" )
     # .zip file
-    set( ext.MD5_HASH "b0605a9323f1e960f7434dbbd95a7a5c" )
+    set( ext.MD5_HASH "08d29a2d85db3ebc8c6fdfa3a1f2b83c" )
   else( )
     # .7z file
-    set( ext.MD5_HASH "f7255aeb692c1c38fe761c32fb0d3ecd" )
+    set( ext.MD5_HASH "0a2e512844f3e30a6240f8139ee983f3" )
   endif( )
 else( )
   set( Boost.Bootstrap "./bootstrap.sh" )
 
   # .tar.bz2
-  set( ext.MD5_HASH "b8839650e61e9c1c0a89f371dd475546" )
+  set( ext.MD5_HASH "6aa9a5c6a4ca1016edd0ed1178e3cb87" )
 
   if( XCODE_VERSION )
     list( APPEND Boost.Bootstrap --with-toolset=clang )

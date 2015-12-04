@@ -101,10 +101,22 @@ scan(VectorType& output, const VectorType& input,
         std::size_t lds = kernel0_WgSize * 2 * sizeof(T);
 
         std::string params = std::string()
-                + " -DSIZE_TYPE="  + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
                 + " -DWG_SIZE="    + std::to_string(kernel0_WgSize)
                 + " -D" + ElementWiseOperatorTrait<OP>::operation;
+
+        if (control->addressBits == GPUADDRESS64WORD)
+        {
+            std::string options = std::string()
+                + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+            params.append(options);
+        }
+        else
+        {
+            std::string options = std::string()
+                + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+            params.append(options);
+        }
 
         if(typeid(T) == typeid(cl_double))
         {
@@ -154,10 +166,22 @@ scan(VectorType& output, const VectorType& input,
         SizeType workPerThread = sizeScanBuff / kernel1_WgSize;
 
         std::string params = std::string()
-                + " -DSIZE_TYPE="  + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
                 + " -DWG_SIZE="    + std::to_string(kernel1_WgSize)
                 + " -D" + ElementWiseOperatorTrait<OP>::operation;
+
+        if (control->addressBits == GPUADDRESS64WORD)
+        {
+            std::string options = std::string()
+                + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+            params.append(options);
+        }
+        else
+        {
+            std::string options = std::string()
+                + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+            params.append(options);
+        }
 
         if(typeid(T) == typeid(cl_double))
         {
@@ -200,10 +224,22 @@ scan(VectorType& output, const VectorType& input,
         std::size_t lds = kernel0_WgSize * sizeof(T); //local mem size
 
         std::string params = std::string()
-                + " -DSIZE_TYPE="  + OclTypeTraits<SizeType>::type
                 + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
                 + " -DWG_SIZE="    + std::to_string(kernel1_WgSize)
                 + " -D" + ElementWiseOperatorTrait<OP>::operation;
+
+        if (control->addressBits == GPUADDRESS64WORD)
+        {
+            std::string options = std::string()
+                + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+            params.append(options);
+        }
+        else
+        {
+            std::string options = std::string()
+                + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+            params.append(options);
+        }
 
         if(typeid(T) == typeid(cl_double))
         {

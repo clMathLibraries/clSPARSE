@@ -304,7 +304,7 @@ public:
     void test_coo_to_csr()
     {
 
-        cl_int nnz, num_rows, num_cols;
+        clsparseIdx_t nnz, num_rows, num_cols;
         clsparseStatus status;
         cl_int cl_status;
 
@@ -368,7 +368,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             // Compare values;
-            for (int i = 0; i <  values.size(); i++)
+            for (clsparseIdx_t i = 0; i < values.size(); i++)
                 EXPECT_FLOAT_EQ(values[i], CSRE::ublasSCsr.value_data()[i]);
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.colIndices,
@@ -377,7 +377,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             // Compare column indices
-            for (int i = 0; i < col_indices.size(); i++)
+            for (clsparseIdx_t i = 0; i < col_indices.size(); i++)
                 ASSERT_EQ(col_indices[i], CSRE::ublasSCsr.index2_data()[i]);
 
 
@@ -387,7 +387,7 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             // Compare row offsets
-            for (int i = 0; i < row_offsets.size(); i++)
+            for (clsparseIdx_t i = 0; i < row_offsets.size(); i++)
                 ASSERT_EQ(row_offsets[i], CSRE::ublasSCsr.index1_data()[i]);
         }
 
@@ -498,16 +498,16 @@ public:
 
             // Generate reference.
             float* vals = (float*)&CSRE::ublasSCsr.value_data()[0];
-            int* rows = &CSRE::ublasSCsr.index1_data()[0];
-            int* cols = &CSRE::ublasSCsr.index2_data()[0];
+            clsparseIdx_t* rows = &CSRE::ublasSCsr.index1_data()[0];
+            clsparseIdx_t* cols = &CSRE::ublasSCsr.index2_data()[0];
 
-            int* coo_rows = new int[CSRE::n_vals];
-            int* coo_cols = new int[CSRE::n_vals];
+            clsparseIdx_t* coo_rows = new clsparseIdx_t[CSRE::n_vals];
+            clsparseIdx_t* coo_cols = new clsparseIdx_t[CSRE::n_vals];
             float* coo_vals = new float[CSRE::n_vals];
-            int total_vals = 0;
-            for (int row = 0; row < CSRE::n_rows; row++)
+            clsparseIdx_t total_vals = 0;
+            for ( clsparseIdx_t row = 0; row < CSRE::n_rows; row++)
             {
-                for (int i = rows[row]; i < rows[row+1]; i++)
+                for ( clsparseIdx_t i = rows[row]; i < rows[row + 1]; i++)
                 {
                     coo_rows[total_vals] = row;
                     coo_cols[total_vals] = cols[i];
@@ -519,28 +519,28 @@ public:
             // Compare result
 
             // Download results from GPU
-            std::vector<cl_int> row_indices(cooMatrix.num_nonzeros);
-            std::vector<cl_int> col_indices(cooMatrix.num_nonzeros);
+            std::vector<clsparseIdx_t> row_indices(cooMatrix.num_nonzeros);
+            std::vector<clsparseIdx_t> col_indices(cooMatrix.num_nonzeros);
             std::vector<T> values(cooMatrix.num_nonzeros);
 
             // row indices
             cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.rowIndices,
-                                            CL_TRUE, 0, row_indices.size() * sizeof(cl_int),
+                                            CL_TRUE, 0, row_indices.size() * sizeof( clsparseIdx_t ),
                                             row_indices.data(), 0, nullptr, nullptr);
 
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for (int i = 0; i < row_indices.size(); i++)
+            for (clsparseIdx_t i = 0; i < row_indices.size(); i++)
                 ASSERT_EQ(coo_rows[i], row_indices[i]);
 
             // col indices
             cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.colIndices,
-                                            CL_TRUE, 0, col_indices.size() * sizeof(cl_int),
+                                            CL_TRUE, 0, col_indices.size() * sizeof( clsparseIdx_t ),
                                             col_indices.data(), 0, nullptr, nullptr);
 
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for (int i = 0; i < col_indices.size(); i++)
+            for (clsparseIdx_t i = 0; i < col_indices.size(); i++)
                 ASSERT_EQ(coo_cols[i], col_indices[i]);
 
 
@@ -550,7 +550,7 @@ public:
                                             values.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for (int i = 0; i < values.size(); i++)
+            for (clsparseIdx_t i = 0; i < values.size(); i++)
                 EXPECT_FLOAT_EQ(coo_vals[i], values[i]);
 
             delete[] coo_rows;
@@ -573,16 +573,16 @@ public:
 
             // Generate reference;
             double* vals = (double*)&CSRE::ublasDCsr.value_data()[0];
-            int* rows = &CSRE::ublasDCsr.index1_data()[0];
-            int* cols = &CSRE::ublasDCsr.index2_data()[0];
+            clsparseIdx_t* rows = &CSRE::ublasDCsr.index1_data()[0];
+            clsparseIdx_t* cols = &CSRE::ublasDCsr.index2_data()[0];
 
-            int* coo_rows = new int[CSRE::n_vals];
-            int* coo_cols = new int[CSRE::n_vals];
+            clsparseIdx_t* coo_rows = new clsparseIdx_t[CSRE::n_vals];
+            clsparseIdx_t* coo_cols = new clsparseIdx_t[CSRE::n_vals];
             double* coo_vals = new double[CSRE::n_vals];
-            int total_vals = 0;
-            for (int row = 0; row < CSRE::n_rows; row++)
+            clsparseIdx_t total_vals = 0;
+            for ( clsparseIdx_t row = 0; row < CSRE::n_rows; row++)
             {
-                for (int i = rows[row]; i < rows[row+1]; i++)
+                for ( clsparseIdx_t i = rows[row]; i < rows[row + 1]; i++)
                 {
                     coo_rows[total_vals] = row;
                     coo_cols[total_vals] = cols[i];
@@ -594,29 +594,29 @@ public:
             // Compare result
 
             // Download results from GPU
-            std::vector<cl_int> row_indices(cooMatrix.num_nonzeros);
-            std::vector<cl_int> col_indices(cooMatrix.num_nonzeros);
+            std::vector<clsparseIdx_t> row_indices(cooMatrix.num_nonzeros);
+            std::vector<clsparseIdx_t> col_indices(cooMatrix.num_nonzeros);
             std::vector<T> values(cooMatrix.num_nonzeros);
 
 
             // row indices
             cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.rowIndices,
-                                            CL_TRUE, 0, row_indices.size() * sizeof(cl_int),
+                                            CL_TRUE, 0, row_indices.size() * sizeof( clsparseIdx_t ),
                                             row_indices.data(), 0, nullptr, nullptr);
 
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for (int i = 0; i < row_indices.size(); i++)
+            for (clsparseIdx_t i = 0; i < row_indices.size(); i++)
                 ASSERT_EQ(coo_rows[i], row_indices[i]);
 
             // col indices
             cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.colIndices,
-                                            CL_TRUE, 0, col_indices.size() * sizeof(cl_int),
+                                            CL_TRUE, 0, col_indices.size() * sizeof( clsparseIdx_t ),
                                             col_indices.data(), 0, nullptr, nullptr);
 
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for (int i = 0; i < col_indices.size(); i++)
+            for (clsparseIdx_t i = 0; i < col_indices.size(); i++)
                 ASSERT_EQ(coo_cols[i], col_indices[i]);
 
 
@@ -626,7 +626,7 @@ public:
                                             values.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for (int i = 0; i < values.size(); i++)
+            for (clsparseIdx_t i = 0; i < values.size(); i++)
                 EXPECT_DOUBLE_EQ(coo_vals[i], values[i]);
 
             delete[] coo_rows;
@@ -679,8 +679,8 @@ int main (int argc, char* argv[])
     //pass path to matrix as an argument, We can switch to boost po later
 
     std::string path;
-    double alpha;
-    double beta;
+//    double alpha;
+//    double beta;
     std::string platform;
     cl_platform_type pID;
     cl_uint dID;

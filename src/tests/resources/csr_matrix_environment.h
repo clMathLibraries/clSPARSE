@@ -39,8 +39,8 @@ public:
     // We need this long declaration because index vector need to be cl_int.
     // Also it is more flexible for future use if we will start to play with
     // row_major / column_major or base indexing which is 0 for now.
-    using sMatrixType = uBLAS::compressed_matrix<cl_float,  uBLAS::row_major, 0, uBLAS::unbounded_array<int> >;
-    using dMatrixType = uBLAS::compressed_matrix<cl_double, uBLAS::row_major, 0, uBLAS::unbounded_array<int> >;
+    using sMatrixType = uBLAS::compressed_matrix<cl_float,  uBLAS::row_major, 0, uBLAS::unbounded_array<clsparseIdx_t> >;
+    using dMatrixType = uBLAS::compressed_matrix<cl_double, uBLAS::row_major, 0, uBLAS::unbounded_array<clsparseIdx_t> >;
 
     explicit CSREnvironment( const std::string& path,
                              cl_double alpha, cl_double beta,
@@ -68,10 +68,10 @@ public:
                                               csrDMatrix.num_nonzeros * sizeof( cl_double ), NULL, &status );
 
         csrDMatrix.colIndices = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                                  csrDMatrix.num_nonzeros * sizeof( cl_int ), NULL, &status );
+            csrDMatrix.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &status);
 
         csrDMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
-                                                  ( csrDMatrix.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
+            (csrDMatrix.num_rows + 1) * sizeof( clsparseIdx_t ), NULL, &status);
 
         clsparseStatus fileError = clsparseDCsrMatrixfromFile( &csrDMatrix, file_name.c_str( ), CLSE::control, read_explicit_zeroes );
         if( fileError != clsparseSuccess )
@@ -83,7 +83,7 @@ public:
         clsparseCsrMetaCompute( &csrDMatrix, CLSE::control );
 
 
-        //reassign the new matrix dimmesnions calculated clsparseCCsrMatrixFromFile to global variables
+        //reassign the new matrix dimensions calculated clsparseCCsrMatrixFromFile to global variables
         n_vals = csrDMatrix.num_nonzeros;
         n_cols = csrDMatrix.num_cols;
         n_rows = csrDMatrix.num_rows;
@@ -104,12 +104,12 @@ public:
                                            0, NULL, NULL );
 
         copy_status = clEnqueueReadBuffer( queue, csrDMatrix.rowOffsets, CL_TRUE, 0,
-                                            ( csrDMatrix.num_rows + 1 ) * sizeof( cl_int ),
+                                            ( csrDMatrix.num_rows + 1 ) * sizeof( clsparseIdx_t ),
                                             ublasDCsr.index1_data().begin(),
                                             0, NULL, NULL );
 
         copy_status = clEnqueueReadBuffer( queue, csrDMatrix.colIndices, CL_TRUE, 0,
-                                            csrDMatrix.num_nonzeros * sizeof( cl_int ),
+                                            csrDMatrix.num_nonzeros * sizeof( clsparseIdx_t ),
                                             ublasDCsr.index2_data().begin(),
                                             0, NULL, NULL );
 
@@ -143,12 +143,12 @@ public:
         cl_double* dvals = (cl_double*) ::clEnqueueMapBuffer(queue, csrDMatrix.values, CL_TRUE, CL_MAP_READ, 0, csrDMatrix.num_nonzeros * sizeof(cl_double), 0, nullptr, nullptr, &cl_status);
 
         // copy the double-precision values over into the single-precision array.
-        for ( int i = 0; i < ublasDCsr.value_data().size(); i++)
+        for (clsparseIdx_t i = 0; i < ublasDCsr.value_data().size(); i++)
             ublasSCsr.value_data()[i] = static_cast<double>(ublasDCsr.value_data()[i]);
-        for ( int i = 0; i < ublasDCsr.index1_data().size(); i++)
-            ublasSCsr.index1_data()[i] = static_cast<int>(ublasDCsr.index1_data()[i]);
-        for ( int i = 0; i < ublasDCsr.index2_data().size(); i++)
-            ublasSCsr.index2_data()[i] = static_cast<int>(ublasDCsr.index2_data()[i]);
+        for (clsparseIdx_t i = 0; i < ublasDCsr.index1_data().size(); i++)
+            ublasSCsr.index1_data()[i] = static_cast<clsparseIdx_t>(ublasDCsr.index1_data()[i]);
+        for (clsparseIdx_t i = 0; i < ublasDCsr.index2_data().size(); i++)
+            ublasSCsr.index2_data()[i] = static_cast<clsparseIdx_t>(ublasDCsr.index2_data()[i]);
 
         // copy the values in single precision on host to single precision matrix container on the device
         copy_status = clEnqueueWriteBuffer( queue, csrSMatrix.values, CL_TRUE, 0,
@@ -209,7 +209,7 @@ public:
     static sMatrixType ublasSCsr;
     static dMatrixType ublasDCsr;
 
-    static cl_int n_rows, n_cols, n_vals;
+    static clsparseIdx_t n_rows, n_cols, n_vals;
 
     //cl buffers for above matrix definition;
 

@@ -57,7 +57,7 @@ void indicesToOffsets(const std::vector<INDEX_TYPE>& row_indices,
     if (row_offsets.size() != (n_rows + 1))
         row_offsets.resize(n_rows + 1);
 
-    for (int i = 0; i < nnz; i++)
+    for (clsparseIdx_t i = 0; i < nnz; i++)
     {
         if (row_indices[i] != index)
         {
@@ -83,7 +83,7 @@ void offsetsToIndices(const std::vector<INDEX_TYPE>& row_offsets,
         row_indices.resize(nnz);
 
     for( size_t i = 0; i < n_rows; i++ )
-        for (int j = row_offsets[i]; j < row_offsets[i+1]; j++)
+        for (clsparseIdx_t j = row_offsets[i]; j < row_offsets[i+1]; j++)
             row_indices[j] = i;
 
 }
@@ -102,7 +102,7 @@ void sortByRowCol(std::vector<INDEX_TYPE>& rows,
 
     std::vector<Element> matrix;//(size);
 
-    for (int i = 0; i < size; i++)
+    for (clsparseIdx_t i = 0; i < size; i++)
     {
         matrix.push_back(std::make_tuple(rows[i], cols[i], vals[i]));
     }
@@ -122,14 +122,14 @@ void sortByRowCol(std::vector<INDEX_TYPE>& rows,
 
               );
 
-    for(int i = 0; i < size; i++)
+    for(clsparseIdx_t i = 0; i < size; i++)
         std::tie(rows[i], cols[i], vals[i]) = matrix[i];
 }
 
 
 //simple spmv for csr matrix to obtain reference results;
 template<typename VALUE_TYPE, typename INDEX_TYPE>
-void csrmv(int n_rows, int n_cols, int nnz,
+void csrmv(clsparseIdx_t n_rows, clsparseIdx_t n_cols, clsparseIdx_t nnz,
       const std::vector<INDEX_TYPE>& row_offsets,
       const std::vector<INDEX_TYPE>& col_indices,
       const std::vector<VALUE_TYPE>& values,
@@ -147,10 +147,10 @@ void csrmv(int n_rows, int n_cols, int nnz,
     assert(values.size() == nnz);
 
 
-    for (int i = 0; i < n_rows; i++)
+    for (clsparseIdx_t i = 0; i < n_rows; i++)
     {
         VALUE_TYPE sum = (VALUE_TYPE)0;
-        for(int j = row_offsets[i]; j < row_offsets[i+1]; j++)
+        for(clsparseIdx_t j = row_offsets[i]; j < row_offsets[i+1]; j++)
         {
             sum += alpha * values[j] * x[col_indices[j]];
         }
@@ -161,7 +161,7 @@ void csrmv(int n_rows, int n_cols, int nnz,
 
 //simple spmv for csr matrix to obtain reference results;
 template<typename VALUE_TYPE, typename INDEX_TYPE>
-void csrmm( int n_rows, int n_cols, int nnz,
+void csrmm(clsparseIdx_t n_rows, clsparseIdx_t n_cols, clsparseIdx_t nnz,
             const std::vector<INDEX_TYPE>& row_offsets,
             const std::vector<INDEX_TYPE>& col_indices,
             const std::vector<VALUE_TYPE>& values,
@@ -179,12 +179,12 @@ void csrmm( int n_rows, int n_cols, int nnz,
     assert( values.size( ) == nnz );
 
 
-    for( int c = 0; c < n_cols; ++c )
+    for (clsparseIdx_t c = 0; c < n_cols; ++c)
     {
-        for( int i = 0; i < n_rows; i++ )
+        for (clsparseIdx_t i = 0; i < n_rows; i++)
         {
             VALUE_TYPE sum = (VALUE_TYPE)0;
-            for( int j = row_offsets[ i ]; j < row_offsets[ i + 1 ]; j++ )
+            for (clsparseIdx_t j = row_offsets[i]; j < row_offsets[i + 1]; j++)
             {
                 sum += alpha * values[ j ] * matB.data[ c + ( col_indices[ j ] * matB.leading_dim ) ];
             }
@@ -195,7 +195,7 @@ void csrmm( int n_rows, int n_cols, int nnz,
 
 //simple spmv for csr matrix to obtain reference results;
 template<typename VALUE_TYPE, typename INDEX_TYPE>
-void coomv(int n_rows, int n_cols, int nnz,
+void coomv(clsparseIdx_t n_rows, clsparseIdx_t n_cols, clsparseIdx_t nnz,
       const std::vector<INDEX_TYPE>& row_indices,
       const std::vector<INDEX_TYPE>& col_indices,
       const std::vector<VALUE_TYPE>& values,
@@ -211,7 +211,7 @@ void coomv(int n_rows, int n_cols, int nnz,
     assert(col_indices.size() == nnz);
     assert(values.size() == nnz);
 
-    for (int i = 0; i < nnz; i++)
+    for (clsparseIdx_t i = 0; i < nnz; i++)
     {
         y[row_indices[i]] += (alpha * values[i] * x[col_indices[i]])
                                 + beta * y[row_indices[i]];
@@ -224,7 +224,7 @@ void coomv(int n_rows, int n_cols, int nnz,
  */
 
 template<typename VALUE_TYPE, typename INDEX_TYPE>
-void csr_transpose(int n_rows, int n_cols, int nnz,
+void csr_transpose(clsparseIdx_t n_rows, clsparseIdx_t n_cols, clsparseIdx_t nnz,
                    const std::vector<INDEX_TYPE>& row_offsets,
                    const std::vector<INDEX_TYPE>& col_indices,
                    const std::vector<VALUE_TYPE>& values,
@@ -293,13 +293,13 @@ void csr_transpose(int n_rows, int n_cols, int nnz,
     //This looks like gather / reduce operation. maybe with
     // help of row_offsets it can be done in parallel mode nicely!
     //or reduce. but requires atomic due to indirect mem access.
-    for (int i = 0; i < nnz; i++)
+    for (clsparseIdx_t i = 0; i < nnz; i++)
         col_nnz[col_indices[i]] += 1;
 
     //calculate col offsets; its easy since we know how many nnz in each col
     //we have from previous loop
     row_offsets_t[0] = 0;
-    for (int i = 1; i <= n_cols; i++)
+    for (clsparseIdx_t i = 1; i <= n_cols; i++)
     {
         row_offsets_t[i] = row_offsets_t[i-1] + col_nnz[i - 1];
         col_nnz[i - 1] = 0;
@@ -308,9 +308,9 @@ void csr_transpose(int n_rows, int n_cols, int nnz,
     //calculate row_indices;
     //this might look similar to the csr multiply algorithm
     //or offsets to indices on gpu
-    for (int i = 0; i < n_rows; i++)
+    for (clsparseIdx_t i = 0; i < n_rows; i++)
     {
-        for (int j = row_offsets[i]; j < row_offsets[i+1]; j++)
+        for (clsparseIdx_t j = row_offsets[i]; j < row_offsets[i + 1]; j++)
         {
             VALUE_TYPE v = values[j];
             int k = col_indices[j];
@@ -326,7 +326,7 @@ void csr_transpose(int n_rows, int n_cols, int nnz,
 
 //simple spmv for csr matrix to obtain reference results;
 template<typename VALUE_TYPE, typename INDEX_TYPE>
-void csr2dense(int n_rows, int n_cols, int nnz,
+void csr2dense(clsparseIdx_t n_rows, clsparseIdx_t n_cols, clsparseIdx_t nnz,
                const std::vector<INDEX_TYPE>& row_offsets,
                const std::vector<INDEX_TYPE>& col_indices,
                const std::vector<VALUE_TYPE>& values,
@@ -339,9 +339,9 @@ void csr2dense(int n_rows, int n_cols, int nnz,
     assert(values.size() == nnz);
 
 
-    for (int i = 0; i < n_rows; i++)
+    for (clsparseIdx_t i = 0; i < n_rows; i++)
     {
-        for(int j = row_offsets[i]; j < row_offsets[i+1]; j++)
+        for (clsparseIdx_t j = row_offsets[i]; j < row_offsets[i + 1]; j++)
         {
             dense[i * n_cols + col_indices[j]] = values[j];
         }
@@ -351,7 +351,7 @@ void csr2dense(int n_rows, int n_cols, int nnz,
 
 //simple spmv for csr matrix to obtain reference results;
 template<typename VALUE_TYPE, typename INDEX_TYPE>
-void csr2coo(int n_rows, int n_cols, int nnz,
+void csr2coo(clsparseIdx_t n_rows, clsparseIdx_t n_cols, clsparseIdx_t nnz,
              const std::vector<INDEX_TYPE>& csr_row_offsets,
              const std::vector<INDEX_TYPE>& csr_col_indices,
              const std::vector<VALUE_TYPE>& csr_values,
@@ -373,9 +373,9 @@ void csr2coo(int n_rows, int n_cols, int nnz,
     copy(csr_col_indices.begin(), csr_col_indices.end(), coo_col_indices.begin());
     copy(csr_values.begin(), csr_values.end(), coo_values.begin());
 
-    for (int i = 0; i < n_rows; i++)
+    for (clsparseIdx_t i = 0; i < n_rows; i++)
     {
-        for(int j = csr_row_offsets[i]; j < csr_row_offsets[i+1]; j++)
+        for (clsparseIdx_t j = csr_row_offsets[i]; j < csr_row_offsets[i + 1]; j++)
         {
             coo_row_indices[j] = i;
         }

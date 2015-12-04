@@ -28,7 +28,7 @@ clsparseSdense2csr(const cldenseMatrix* A, clsparseCsrMatrix* csr,
                     const clsparseControl control)
 {
     typedef cl_float ValueType;
-    typedef cl_int   IndexType;
+    typedef clsparseIdx_t IndexType;
     typedef cl_ulong SizeType;
 
     if (!clsparseInitialized)
@@ -67,7 +67,6 @@ clsparseSdense2csr(const cldenseMatrix* A, clsparseCsrMatrix* csr,
     if (status!= clsparseSuccess)
         return clsparseInvalidKernelExecution;
 
-    cl_int cl_status;
     clsparseCooMatrix coo;
 
     clsparseInitCooMatrix(&coo);
@@ -100,7 +99,7 @@ clsparseDdense2csr(const cldenseMatrix* A,
                    const clsparseControl control)
 {
     typedef cl_double ValueType;
-    typedef cl_int   IndexType;
+    typedef clsparseIdx_t IndexType;
     typedef cl_ulong SizeType;
 
     if (!clsparseInitialized)
@@ -139,7 +138,6 @@ clsparseDdense2csr(const cldenseMatrix* A,
     if (status!= clsparseSuccess)
         return clsparseInvalidKernelExecution;
 
-    cl_int cl_status;
     clsparseCooMatrix coo;
 
     clsparseInitCooMatrix(&coo);

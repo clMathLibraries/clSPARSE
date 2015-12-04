@@ -106,7 +106,7 @@ public:
         sparseFile = path;
 
         // Read sparse data from file and construct a COO matrix from it
-        int nnz, row, col;
+        clsparseIdx_t nnz, row, col;
         clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, sparseFile.c_str( ) );
         if( fileError != clsparseSuccess )
              throw clsparse::io_exception( "Could not read matrix market header from disk: " + sparseFile );
@@ -123,11 +123,11 @@ public:
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
+            csrMtx.num_nonzeros * sizeof(size_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
+            (csrMtx.num_rows + 1) * sizeof(size_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         if(typeid(T) == typeid(float))
@@ -204,7 +204,7 @@ public:
         if(/* gpuTimer && */cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-          size_t sparseBytes = sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows );
+          size_t sparseBytes = sizeof(size_t)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows);
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
           cpuTimer->Reset( );

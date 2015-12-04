@@ -196,7 +196,7 @@ public:
         offValues = offColInd = offRowOff = offRowBlocks = rowBlockSize = 0;
     }
 
-    cl_uint nnz_per_row() const
+    clsparseIdx_t nnz_per_row() const
     {
         return num_nonzeros / num_rows;
     }
@@ -233,7 +233,7 @@ public:
         offValues = offColInd = offRowInd = 0;
     }
 
-    cl_uint nnz_per_row( ) const
+    clsparseIdx_t nnz_per_row( ) const
     {
         return num_nonzeros / num_rows;
     }
@@ -259,7 +259,8 @@ class cldenseMatrixPrivate: public cldenseMatrix
 public:
     void clear( )
     {
-        num_rows = num_cols = lead_dim = offValues = 0;
+        num_rows = num_cols = lead_dim = 0;
+        offValues = 0;
         major = rowMajor;
         values = nullptr;
     }

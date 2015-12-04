@@ -69,12 +69,25 @@ extract_diagonal(cldenseVectorPrivate* pDiag,
 
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
+
+    if (control->addressBits == GPUADDRESS64WORD)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if (inverse)
         params.append(" -DOP_DIAG_INVERSE");
@@ -165,12 +178,25 @@ extract_diagonal(clsparse::vector<T>& pDiag,
 
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
+
+    if (control->addressBits == GPUADDRESS64WORD)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if (inverse)
         params.append(" -DOP_DIAG_INVERSE");
@@ -198,9 +224,9 @@ extract_diagonal(clsparse::vector<T>& pDiag,
              << pA->colIndices
              << pA->values;
 
-    cl_uint predicted = subwave_size * size;
+    size_t predicted = subwave_size * size;
 
-    cl_uint global_work_size =
+    size_t global_work_size =
             wg_size * ((predicted + wg_size - 1 ) / wg_size);
     cl::NDRange local(wg_size);
     //cl::NDRange global(predicted > local[0] ? predicted : local[0]);

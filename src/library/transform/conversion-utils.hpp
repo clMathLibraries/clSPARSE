@@ -18,10 +18,12 @@
 #ifndef _CLSPARSE_CONVERSION_UTILS_HPP_
 #define _CLSPARSE_CONVERSION_UTILS_HPP_
 
+
 #include "internal/data-types/clvector.hpp"
 #include "scan.hpp"
 #include "reduce-by-key.hpp"
 #include "blas1/reduce.hpp"
+
 
 template <typename T> //index type
 clsparseStatus
@@ -107,8 +109,7 @@ offsets_to_indices(clsparse::vector<T>& indices,
     typedef typename clsparse::vector<T>::size_type SizeType;
 
     assert (num_rows + 1 == offsets.size());
-
-
+    
     if (!clsparseInitialized)
     {
         return clsparseNotInitialized;
@@ -139,15 +140,27 @@ offsets_to_indices(clsparse::vector<T>& indices,
     if (elements_per_row < 8)  {  subwave_size = 4;  }
     if (elements_per_row < 4)  {  subwave_size = 2;  }
 
-
     std::string params = std::string ()
-            + " -DINDEX_TYPE=" + OclTypeTraits<T>::type
             //not used in this kernel but required by program conversion_utils
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
-            + " -DSIZE_TYPE=" + OclTypeTraits<SizeType>::type
             + " -DWG_SIZE=" + std::to_string(group_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
+
+    if (control->addressBits == GPUADDRESS64WORD)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -171,9 +184,9 @@ offsets_to_indices(clsparse::vector<T>& indices,
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
-    cl_uint predicted = subwave_size * num_rows;
+    SizeType predicted = subwave_size * num_rows;
 
-    cl_uint global_work_size =
+    SizeType global_work_size =
             group_size* ((predicted + group_size - 1 ) / group_size);
 
     cl::NDRange local(group_size);
@@ -232,15 +245,27 @@ transform_csr_2_dense(/*csr matrix*/
     if (elements_per_row < 16) {  subwave_size = 8;  }
     if (elements_per_row < 8)  {  subwave_size = 4;  }
     if (elements_per_row < 4)  {  subwave_size = 2;  }
-
-
-    const std::string params = std::string ()
+    
+     std::string params = std::string ()
             + " -DVALUE_TYPE=" + OclTypeTraits<V>::type
-            + " -DINDEX_TYPE=" + OclTypeTraits<I>::type
-            + " -DSIZE_TYPE=" + OclTypeTraits<SizeType>::type
             + " -DWG_SIZE=" + std::to_string(group_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
+
+    if (control->addressBits == GPUADDRESS64WORD)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     cl::Kernel kernel = KernelCache::get(control->queue, "conversion_utils",
                                          "transform_csr_to_dense", params);
@@ -256,9 +281,9 @@ transform_csr_2_dense(/*csr matrix*/
 
     // subwave takes care of each row in matrix;
     // predicted number of subwaves to be executed;
-    cl_uint predicted = subwave_size * num_rows;
+    SizeType predicted = subwave_size * num_rows;
 
-    cl_uint global_work_size =
+    SizeType global_work_size =
             group_size* ((predicted + group_size - 1 ) / group_size);
 
     cl::NDRange local(group_size);
@@ -303,12 +328,25 @@ calculate_num_nonzeros(/*dense matrix*/
 
     if (dense_size < workgroup_size) global_work_size = workgroup_size;
 
-    const std::string params = std::string()
-            + " -DINDEX_TYPE=" + OclTypeTraits<I>::type
-            + " -DSIZE_TYPE="  + OclTypeTraits<SizeType>::type
+    std::string params = std::string()
             + " -DVALUE_TYPE=" + OclTypeTraits<V>::type
             + " -DWG_SIZE=" + std::to_string(workgroup_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(2); //required by program;
+
+    if (control->addressBits == GPUADDRESS64WORD)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     //cl::Kernel kernel = KernelCache::get(control->queue,"dense2csr", "process_scaninput", params);
     cl::Kernel kernel = KernelCache::get(control->queue,"conversion_utils", "scan_nonzero_locations", params);
@@ -396,12 +434,26 @@ dense_to_coo(clsparseCooMatrix* coo,
 
     if (dense_size < workgroup_size) global_work_size = workgroup_size;
 
-    const std::string params = std::string()
-            + " -DINDEX_TYPE=" + OclTypeTraits<I>::type
-            + " -DSIZE_TYPE="  + OclTypeTraits<SizeType>::type
+    std::string params = std::string()
             + " -DVALUE_TYPE=" + OclTypeTraits<V>::type
             + " -DWG_SIZE=" + std::to_string(workgroup_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(2); //required by program;
+
+    if (control->addressBits == GPUADDRESS64WORD)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
+
 
     //cl::Kernel kernel = KernelCache::get(control->queue,"dense2csr", "spread_value", params);
     cl::Kernel kernel = KernelCache::get(control->queue,"conversion_utils",

@@ -17,6 +17,23 @@
 #include "clsparse-validate.hpp"
 #include "ocl-type-traits.hpp"
 #include <iostream>
+#include <string>
+
+template< typename T >
+std::string to_string_comma( T num )
+{
+    std::string num_string = std::to_string( num );
+
+    // Signed is important; if length < 3 then we need a negative number
+    int comma_pos = static_cast<int>( num_string.length( ) ) - 3;
+    while( comma_pos > 0 )
+    {
+        num_string.insert( comma_pos, "," );
+        comma_pos -= 3;
+    }
+
+    return num_string;
+}
 
 clsparseStatus
 validateMemObject(clsparseScalarPrivate &scalar, size_t required_size)
@@ -66,8 +83,9 @@ validateMemObject( cl_mem mem, size_t required_size)
         size_t current_size;
         clGetMemObjectInfo(mem, CL_MEM_SIZE,
                             sizeof(current_size), &current_size, NULL);
-        std::cout << "[validateMemObject] Buffer size: " << current_size << " bytes. ";
-        std::cout << "Required size: " << required_size << " bytes." << std::endl;
+
+        std::cout << "[validateMemObject] Buffer size: " << to_string_comma( current_size ) << " bytes. ";
+        std::cout << "Required size: " << to_string_comma( required_size ) << " bytes." << std::endl;
         if (current_size < required_size)
             return clsparseInvalidSize;
     }

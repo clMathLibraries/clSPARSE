@@ -21,9 +21,9 @@ CSREnvironment::sMatrixType CSREnvironment::ublasSCsr = CSREnvironment::sMatrixT
 CSREnvironment::dMatrixType CSREnvironment::ublasDCsr = CSREnvironment::dMatrixType();
 
 
-cl_int CSREnvironment::n_rows = 0;
-cl_int CSREnvironment::n_cols = 0;
-cl_int CSREnvironment::n_vals = 0;
+clsparseIdx_t CSREnvironment::n_rows = 0;
+clsparseIdx_t CSREnvironment::n_cols = 0;
+clsparseIdx_t CSREnvironment::n_vals = 0;
 
 clsparseCsrMatrix CSREnvironment::csrSMatrix = clsparseCsrMatrix();
 clsparseCsrMatrix CSREnvironment::csrDMatrix = clsparseCsrMatrix();

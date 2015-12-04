@@ -60,10 +60,22 @@ elementwise_transform(cldenseVectorPrivate* r,
     cl_uint wg_size = 256;
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ElementWiseOperatorTrait<OP>::operation;
+
+    if (control->addressBits == GPUADDRESS64WORD)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -84,7 +96,7 @@ elementwise_transform(cldenseVectorPrivate* r,
 
     kWrapper << size << r->values << x->values << y->values;
 
-    int blocks = (size + wg_size - 1) / wg_size;
+    clsparseIdx_t blocks = (size + wg_size - 1) / wg_size;
 
     cl::NDRange local(wg_size);
     cl::NDRange global(blocks * wg_size);
@@ -127,10 +139,22 @@ elementwise_transform(clsparse::array_base<T>& r,
     cl_uint wg_size = 256;
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ElementWiseOperatorTrait<OP>::operation;
+
+    if (control->addressBits == GPUADDRESS64WORD)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     cl::Kernel kernel = KernelCache::get(control->queue, "elementwise_transform",
                                          "transform", params);
@@ -139,7 +163,7 @@ elementwise_transform(clsparse::array_base<T>& r,
 
     kWrapper << size << r.data() << x.data() << y.data();
 
-    int blocks = (size + wg_size - 1) / wg_size;
+    clsparseIdx_t blocks = (size + wg_size - 1) / wg_size;
 
     cl::NDRange local(wg_size);
     cl::NDRange global(blocks * wg_size);

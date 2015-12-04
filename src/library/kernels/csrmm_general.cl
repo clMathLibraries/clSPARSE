@@ -75,23 +75,23 @@ csrmv( const INDEX_TYPE num_rows,
         )
 {
     //const int vectors_per_block = WG_SIZE/SUBWAVE_SIZE;
-    const int global_id = get_global_id( 0 );         // global workitem id
-    const int local_id = get_local_id( 0 );          // local workitem id
-    const int thread_lane = local_id & ( SUBWAVE_SIZE - 1 );
-    const int vector_id = global_id / SUBWAVE_SIZE; // global vector id
+    const INDEX_TYPE global_id = get_global_id( 0 );         // global workitem id
+    const INDEX_TYPE local_id = get_local_id( 0 );          // local workitem id
+    const INDEX_TYPE thread_lane = local_id & ( SUBWAVE_SIZE - 1 );
+    const INDEX_TYPE vector_id = global_id / SUBWAVE_SIZE; // global vector id
     //const int vector_lane = local_id / SUBWAVE_SIZE;  // vector id within the workgroup
-    const int num_vectors = get_global_size( 0 ) / SUBWAVE_SIZE;
+    const INDEX_TYPE num_vectors = get_global_size( 0 ) / SUBWAVE_SIZE;
 
     const VALUE_TYPE _alpha = alpha[ off_alpha ];
     const VALUE_TYPE _beta = beta[ off_beta ];
 
     for( INDEX_TYPE row = vector_id; row < num_rows; row += num_vectors )
     {
-        const int row_start = row_offset[ row ];
-        const int row_end = row_offset[ row + 1 ];
+        const INDEX_TYPE row_start = row_offset[ row ];
+        const INDEX_TYPE row_end = row_offset[ row + 1 ];
         VALUE_TYPE sum = (VALUE_TYPE)0;
 
-        for( int j = row_start + thread_lane; j < row_end; j += SUBWAVE_SIZE )
+        for( INDEX_TYPE j = row_start + thread_lane; j < row_end; j += SUBWAVE_SIZE )
         {
             if( _alpha == 1 )
                 sum = fma( val[ j ], x[ off_x + ( col[ j ] * ldx ) ], sum );

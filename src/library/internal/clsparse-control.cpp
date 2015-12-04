@@ -81,6 +81,8 @@ clsparseStatus collectEnvParams(clsparseControl control)
     control->max_compute_units =
             device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>();
 
+    control->addressBits = device.getInfo<CL_DEVICE_ADDRESS_BITS>();
+
 #ifdef CL_DEVICE_DOUBLE_FP_CONFIG
     if ( device.getInfo<CL_DEVICE_EXTENSIONS>( ).find("cl_khr_fp64") != std::string::npos ||
          device.getInfo<CL_DEVICE_EXTENSIONS>( ).find("cl_amd_fp64") != std::string::npos )
@@ -89,6 +91,8 @@ clsparseStatus collectEnvParams(clsparseControl control)
             control->dpfp_support = true;
     }
 #endif
+
+    return clsparseSuccess;
 }
 
 clsparseControl
@@ -114,6 +118,7 @@ clsparseCreateControl( cl_command_queue queue, clsparseStatus *status )
     control->async = false;
     control->extended_precision = false;
     control->dpfp_support = false;
+    control->addressBits = 64; // default 64 bits
 
     collectEnvParams( control );
 
@@ -207,7 +212,7 @@ cl_event *event_wait_list )
 
     control->event_wait_list.clear( );
     control->event_wait_list.resize( num_events_in_wait_list );
-    for( int i = 0; i < num_events_in_wait_list; i++ )
+    for( cl_uint i = 0; i < num_events_in_wait_list; i++ )
     {
         control->event_wait_list[ i ] = event_wait_list[ i ];
     }

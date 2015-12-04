@@ -27,8 +27,8 @@ class xDense2Csr: public clsparseFunc
 public:
     xDense2Csr( PFCLSPARSETIMER sparseGetTimer, size_t profileCount, cl_device_type devType, cl_bool keep_explicit_zeroes = true ): clsparseFunc( devType, CL_QUEUE_PROFILING_ENABLE ), gpuTimer( nullptr ), cpuTimer( nullptr )
     {
-		gpuTimer = nullptr;
-		cpuTimer = nullptr;
+        gpuTimer = nullptr;
+        cpuTimer = nullptr;
 
         //      Create and initialize our timer class, if the external timer shared library loaded
         if( sparseGetTimer )
@@ -83,7 +83,7 @@ public:
     double bandwidth( )
     {
 #if 0
-		//  Assuming that accesses to the vector always hit in the cache after the first access
+        //  Assuming that accesses to the vector always hit in the cache after the first access
         //  There are NNZ integers in the cols[ ] array
         //  You access each integer value in row_delimiters[ ] once.
         //  There are NNZ float_types in the vals[ ] array
@@ -91,14 +91,14 @@ public:
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
         return ( sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows ) ) / time_in_ns( );
 #endif
-		// Number of Elements converted in unit time
-		return (csrMtx.num_cols * csrMtx.num_rows / time_in_ns());
+        // Number of Elements converted in unit time
+        return (csrMtx.num_cols * csrMtx.num_rows / time_in_ns());
     }
 
     std::string bandwidth_formula( )
     {
         //return "GiB/s";
-		return "GiElements/s";
+        return "GiElements/s";
     }
 
 
@@ -107,9 +107,9 @@ public:
         sparseFile = path;
 
         // Read sparse data from file and construct a COO matrix from it
-		int nnz;
-		int row;
-		int col;
+        clsparseIdx_t nnz;
+        clsparseIdx_t row;
+        clsparseIdx_t col;
         clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, sparseFile.c_str( ) );
         if( fileError != clsparseSuccess )
              throw clsparse::io_exception( "Could not read matrix market header from disk: " + sparseFile );
@@ -120,7 +120,7 @@ public:
         csrMtx.num_rows     = row;
         csrMtx.num_cols     = col;
 
-		//clsparseCsrMetaSize( &csrMtx, control );
+        //clsparseCsrMetaSize( &csrMtx, control );
 
         cl_int status;
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
@@ -128,11 +128,11 @@ public:
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
+            csrMtx.num_nonzeros * sizeof(size_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
+            (csrMtx.num_rows + 1) * sizeof(size_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         if(typeid(T) == typeid(float))
@@ -176,11 +176,11 @@ public:
 		CLSPARSE_V(status, "::clCreateBuffer csrMatx.values");
 
         csrMatx.colIndices = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,
-                                           csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
+                                           csrMtx.num_nonzeros * sizeof( size_t ), NULL, &status );
 		CLSPARSE_V(status, "::clCreateBuffer csrMatx.colIndices");
 
         csrMatx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,
-                                           (csrMtx.num_rows + 1) * sizeof( cl_int ), NULL, &status );
+                                           (csrMtx.num_rows + 1) * sizeof( size_t ), NULL, &status );
 		CLSPARSE_V(status, "::clCreateBuffer csrMatx.rowOffsets");
     }// End of function
 
@@ -194,14 +194,14 @@ public:
 
     void reset_gpu_write_buffer( )
     {
-		int scalar_i = 0;
+		size_t scalar_i = 0;
 		T scalar_f   = 0;
 
-		CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.rowOffsets, &scalar_i, sizeof(int), 0,
-			sizeof(int) * (csrMatx.num_rows + 1), 0, NULL, NULL), "::clEnqueueFillBuffer row");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.rowOffsets, &scalar_i, sizeof(size_t), 0,
+            sizeof(size_t) * (csrMatx.num_rows + 1), 0, NULL, NULL), "::clEnqueueFillBuffer row");
 
-		CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.colIndices, &scalar_i, sizeof(int), 0,
-			sizeof(int) * csrMatx.num_nonzeros, 0, NULL, NULL), "::clEnqueueFillBuffer col");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.colIndices, &scalar_i, sizeof(size_t), 0,
+            sizeof(size_t) * csrMatx.num_nonzeros, 0, NULL, NULL), "::clEnqueueFillBuffer col");
 
 		CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.values, &scalar_f, sizeof(T), 0,
 			sizeof(T) * csrMatx.num_nonzeros, 0, NULL, NULL), "::clEnqueueFillBuffer values");
@@ -247,7 +247,7 @@ public:
         CLSPARSE_V( ::clReleaseMemObject( csrMatx.colIndices ), "clReleaseMemObject csrMatx.colIndices" );
         CLSPARSE_V( ::clReleaseMemObject( csrMatx.rowOffsets ), "clReleaseMemObject csrMatx.rowOffsets" );
 
-		CLSPARSE_V( ::clReleaseMemObject( A.values ), "clReleaseMemObject A.values" );
+        CLSPARSE_V( ::clReleaseMemObject( A.values ), "clReleaseMemObject A.values" );
     }// End of function
 
 private:
@@ -279,7 +279,7 @@ xDense2Csr<float>::xDense2Csr_Function( bool flush )
       //call dense2csr
     clsparseSdense2csr(&A, &csrMatx, control);
 
-	if( flush )
+    if( flush )
         clFinish( queue );
 }// end
 
