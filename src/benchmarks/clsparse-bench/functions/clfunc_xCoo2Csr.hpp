@@ -109,9 +109,9 @@ public:
         cooMatx.values     = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                                cooMatx.num_nonzeros * sizeof(T), NULL, &status );
         cooMatx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.num_nonzeros * sizeof( size_t ), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &status );
         cooMatx.rowIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-                                               cooMatx.num_nonzeros * sizeof( size_t ), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &status );
 
         if (typeid(T) == typeid(float))
            fileError = clsparseSCooMatrixfromFile( &cooMatx, path.c_str(), control, explicit_zeroes );
@@ -131,9 +131,9 @@ public:
                                            cooMatx.num_nonzeros * sizeof( T ), NULL, &status );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
-                                               cooMatx.num_nonzeros * sizeof( size_t ), NULL, &status );
+                                               cooMatx.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &status );
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
-                                              ( cooMatx.num_rows + 1 ) * sizeof( size_t ), NULL, &status );
+                                              ( cooMatx.num_rows + 1 ) * sizeof( clsparseIdx_t ), NULL, &status );
 
     }
 
@@ -149,12 +149,12 @@ public:
     void reset_gpu_write_buffer( )
     {
 
-		size_t scalar_i = 0;
+        clsparseIdx_t scalar_i = 0;
 		T scalar_f = 0;
-		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.rowOffsets, &scalar_i, sizeof( size_t ), 0,
-                              sizeof( size_t ) * (csrMtx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" );
-		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.colIndices, &scalar_i, sizeof( size_t ), 0,
-                              sizeof( size_t ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMtx.rowOffsets, &scalar_i, sizeof(clsparseIdx_t), 0,
+                              sizeof( clsparseIdx_t ) * (csrMtx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" );
+		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.colIndices, &scalar_i, sizeof( clsparseIdx_t ), 0,
+                              sizeof( clsparseIdx_t ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
 		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.values, &scalar_f, sizeof( T ), 0,
                               sizeof( T ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
     }
@@ -168,7 +168,7 @@ public:
         if( gpuTimer && cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-          size_t sparseElements = n_vals;
+          clsparseIdx_t sparseElements = n_vals;
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseElements, "GiElements/s" );
           cpuTimer->Reset( );

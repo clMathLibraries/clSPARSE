@@ -29,7 +29,7 @@ clsparseSdense2csr(const cldenseMatrix* A, clsparseCsrMatrix* csr,
 {
     typedef cl_float ValueType;
     typedef clsparseIdx_t IndexType;
-    typedef cl_ulong SizeType;
+    typedef clsparseIdx_t SizeType;
 
     if (!clsparseInitialized)
     {
@@ -100,7 +100,7 @@ clsparseDdense2csr(const cldenseMatrix* A,
 {
     typedef cl_double ValueType;
     typedef clsparseIdx_t IndexType;
-    typedef cl_ulong SizeType;
+    typedef clsparseIdx_t SizeType;
 
     if (!clsparseInitialized)
     {

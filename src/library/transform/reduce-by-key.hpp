@@ -93,7 +93,7 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
                 + " -DWG_SIZE=" + std::to_string(kernel_WgSize);
 
-        if (control->addressBits == GPUADDRESS64WORD)
+        if (sizeof(clsparseIdx_t) == 8)
         {
             std::string options = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -163,7 +163,7 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
                 + " -DWG_SIZE=" + std::to_string(kernel_WgSize);
 
-        if (control->addressBits == GPUADDRESS64WORD)
+        if (sizeof(clsparseIdx_t) == 8)
         {
             std::string options = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -226,7 +226,7 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
                 + " -DWG_SIZE=" + std::to_string(kernel_WgSize);
 
-        if (control->addressBits == GPUADDRESS64WORD)
+        if (sizeof(clsparseIdx_t) == 8)
         {
             std::string options = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -288,7 +288,7 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
                 + " -DWG_SIZE=" + std::to_string(kernel_WgSize);
 
-        if (control->addressBits == GPUADDRESS64WORD)
+        if (sizeof(clsparseIdx_t) == 8)
         {
             std::string options = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -347,7 +347,7 @@ reduce_by_key( KeyVector& keys_output, ValueVector& values_output,
                 + " -DKEY_TYPE=" + OclTypeTraits<KeyType>::type
                 + " -DWG_SIZE=" + std::to_string(kernel_WgSize);
 
-        if (control->addressBits == GPUADDRESS64WORD)
+        if (sizeof(clsparseIdx_t) == 8)
         {
             std::string options = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;

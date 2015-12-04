@@ -164,7 +164,7 @@ public:
         offValue = 0;
     }
 
-    cl_ulong offset () const
+    clsparseIdx_t offset() const
     {
         return offValue;
     }
@@ -180,7 +180,7 @@ public:
         offValues = 0;
     }
 
-    cl_ulong offset () const
+    clsparseIdx_t offset() const
     {
         return offValues;
     }
@@ -201,22 +201,22 @@ public:
         return num_nonzeros / num_rows;
     }
 
-    cl_ulong valOffset () const
+    clsparseIdx_t valOffset() const
     {
         return offValues;
     }
 
-    cl_ulong colIndOffset () const
+    clsparseIdx_t colIndOffset() const
     {
         return offColInd;
     }
 
-    cl_ulong rowOffOffset () const
+    clsparseIdx_t rowOffOffset() const
     {
         return offRowOff;
     }
 
-    cl_ulong rowBlocksOffset( ) const
+    clsparseIdx_t rowBlocksOffset() const
     {
         return offRowBlocks;
     }
@@ -238,17 +238,17 @@ public:
         return num_nonzeros / num_rows;
     }
 
-    cl_ulong valOffset( ) const
+    clsparseIdx_t valOffset() const
     {
         return offValues;
     }
 
-    cl_ulong colIndOffset( ) const
+    clsparseIdx_t colIndOffset() const
     {
         return offColInd;
     }
 
-    cl_ulong rowOffOffset( ) const
+    clsparseIdx_t rowOffOffset() const
     {
         return offRowInd;
     }
@@ -265,7 +265,7 @@ public:
         values = nullptr;
     }
 
-    cl_ulong offset( ) const
+    clsparseIdx_t offset() const
     {
         return offValues;
     }

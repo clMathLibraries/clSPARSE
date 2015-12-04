@@ -37,7 +37,7 @@ template<typename T, ReduceOperator OP = RO_DUMMY>
 clsparseStatus
 atomic_reduce(clsparseScalarPrivate* pR,
               const cldenseVectorPrivate* pX,
-              const cl_ulong wg_size,
+              const clsparseIdx_t wg_size,
               const clsparseControl control)
 {
     assert(wg_size == pX->num_values);
@@ -47,7 +47,7 @@ atomic_reduce(clsparseScalarPrivate* pR,
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ReduceOperatorTrait<OP>::operation;
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -113,7 +113,7 @@ template<typename T, ReduceOperator OP = RO_DUMMY>
 clsparseStatus
 atomic_reduce(clsparse::array_base<T>& pR,
               const clsparse::array_base<T>& pX,
-              const cl_ulong wg_size,
+              const clsparseIdx_t wg_size,
               const clsparseControl control)
 {
     assert(wg_size == pX.size());
@@ -123,7 +123,7 @@ atomic_reduce(clsparse::array_base<T>& pR,
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ReduceOperatorTrait<OP>::operation;
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;

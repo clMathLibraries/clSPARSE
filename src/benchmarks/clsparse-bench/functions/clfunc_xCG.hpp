@@ -122,11 +122,11 @@ public:
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.num_nonzeros * sizeof(size_t), NULL, &status);
+            csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            (csrMtx.num_rows + 1) * sizeof(size_t), NULL, &status);
+            (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         if(typeid(T) == typeid(float))
@@ -203,7 +203,7 @@ public:
         if(/* gpuTimer && */cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-          size_t sparseBytes = sizeof(size_t)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows);
+          clsparseIdx_t sparseBytes = sizeof(clsparseIdx_t)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows);
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
           cpuTimer->Reset( );

@@ -87,7 +87,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( size_t )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows ) ) / time_in_ns( );
+        return (sizeof(clsparseIdx_t)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows)) / time_in_ns();
     }
 
     std::string bandwidth_formula( )
@@ -119,10 +119,10 @@ public:
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
-        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof( size_t ), NULL, &status );
+        csrMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
 
-        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY, ( csrMtx.num_rows + 1 ) * sizeof( size_t ), NULL, &status );
+        csrMtx.rowOffsets = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
@@ -204,7 +204,7 @@ public:
         if( gpuTimer && cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-          size_t sparseBytes = sizeof( size_t )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows );
+          clsparseIdx_t sparseBytes = sizeof(clsparseIdx_t)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows);
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
           cpuTimer->Reset( );

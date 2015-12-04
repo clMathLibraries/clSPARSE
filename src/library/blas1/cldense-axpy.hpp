@@ -41,7 +41,7 @@ axpy(clsparse::array_base<T>& pR,
             + " -DWG_SIZE=" + std::to_string( group_size )
             + " -D" + ElementWiseOperatorTrait<OP>::operation;
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -71,8 +71,8 @@ axpy(clsparse::array_base<T>& pR,
 
     KernelWrap kWrapper(kernel);
 
-    cl_ulong size = pR.size();
-    cl_ulong offset = 0;
+    clsparseIdx_t size = pR.size();
+    clsparseIdx_t offset = 0;
 
     kWrapper << size
              << pR.data()

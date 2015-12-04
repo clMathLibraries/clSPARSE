@@ -124,10 +124,10 @@ public:
         csrMtx.values = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(T), NULL, &status);
         CLSPARSE_V(status, "::clCreateBuffer csrMtx.values");
 
-        csrMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(size_t), NULL, &status);
+        csrMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V(status, "::clCreateBuffer csrMtx.colIndices");
 
-        csrMtx.rowOffsets = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(size_t), NULL, &status);
+        csrMtx.rowOffsets = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V(status, "::clCreateBuffer csrMtx.rowOffsets");
 
 		if (typeid(T) == typeid(float))
@@ -199,7 +199,7 @@ public:
             gpuTimer->Reset();
 #endif
 			// Calculate Number of Elements transformed per unit time
-			size_t sparseElements = csrMtx.num_nonzeros;
+            clsparseIdx_t sparseElements = csrMtx.num_nonzeros;
 			cpuTimer->pruneOutliers(3.0);
 			cpuTimer->Print(sparseElements, "GiElements/s");
 			cpuTimer->Reset();
