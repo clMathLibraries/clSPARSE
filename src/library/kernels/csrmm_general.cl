@@ -145,14 +145,14 @@ void csrmv_batched( const INDEX_TYPE num_rows,
             global const INDEX_TYPE * const restrict col,
             global const VALUE_TYPE * const restrict val,
             global const VALUE_TYPE * const restrict denseB,
-            const SIZE_TYPE ldB,
+            const INDEX_TYPE ldB,
             const SIZE_TYPE off_B,
             global const VALUE_TYPE * const beta,
             const SIZE_TYPE off_beta,
             global VALUE_TYPE * restrict denseC,
-            const SIZE_TYPE num_rows_C,
-            const SIZE_TYPE num_cols_C,
-            const SIZE_TYPE ldC,
+            const INDEX_TYPE num_rows_C,
+            const INDEX_TYPE num_cols_C,
+            const INDEX_TYPE ldC,
             const SIZE_TYPE off_C )
 {
     local VALUE_TYPE sdata[ WG_SIZE + SUBWAVE_SIZE / 2 ];

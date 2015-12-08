@@ -108,8 +108,7 @@ const clsparseControl control )
     if( nnz_per_row < 4 )  { subwave_size = 2; }
 
     std::string params = std::string( ) +
-        + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
-        + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
+        + " -DVALUE_TYPE=" + OclTypeTraits<T>::type        
         + " -DWG_SIZE=" + std::to_string( group_size )
         + " -DWAVE_SIZE=" + std::to_string( wave_size )
         + " -DSUBWAVE_SIZE=" + std::to_string( subwave_size );
@@ -117,13 +116,15 @@ const clsparseControl control )
     if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
-            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type;
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
         params.append(options);
     }
     else
     {
         std::string options = std::string()
-            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type;
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
         params.append(options);
     }
 
