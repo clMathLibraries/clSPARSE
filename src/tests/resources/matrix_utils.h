@@ -32,15 +32,15 @@ public:
         data.clear( );
     }
 
-    matrix( size_t rows, size_t cols, size_t ld ): num_rows( rows ), num_cols( cols ), leading_dim( ld )
+    matrix(clsparseIdx_t rows, clsparseIdx_t cols, clsparseIdx_t ld) : num_rows(rows), num_cols(cols), leading_dim(ld)
     {
         data.resize( num_rows * leading_dim );
     }
 
     std::vector< T > data;
-    size_t num_rows;
-    size_t num_cols;
-    size_t leading_dim;
+    clsparseIdx_t num_rows;
+    clsparseIdx_t num_cols;
+    clsparseIdx_t leading_dim;
 };
 
 // convert row indices vector to csr row_offsets vector
@@ -74,7 +74,7 @@ void indicesToOffsets(const std::vector<INDEX_TYPE>& row_indices,
 // lenght of offsets == n_rows+1;
 template<typename INDEX_TYPE>
 void offsetsToIndices(const std::vector<INDEX_TYPE>& row_offsets,
-                      const size_t n_rows,
+                      const clsparseIdx_t n_rows,
                       std::vector<INDEX_TYPE>& row_indices)
 {
     INDEX_TYPE nnz = row_offsets[n_rows];
@@ -82,7 +82,7 @@ void offsetsToIndices(const std::vector<INDEX_TYPE>& row_offsets,
     if(row_indices.size() != nnz)
         row_indices.resize(nnz);
 
-    for( size_t i = 0; i < n_rows; i++ )
+    for (clsparseIdx_t i = 0; i < n_rows; i++)
         for (clsparseIdx_t j = row_offsets[i]; j < row_offsets[i+1]; j++)
             row_indices[j] = i;
 
@@ -98,7 +98,7 @@ void sortByRowCol(std::vector<INDEX_TYPE>& rows,
 {
     typedef std::tuple<INDEX_TYPE, INDEX_TYPE, VALUE_TYPE> Element;
 
-    size_t size = vals.size( );
+    clsparseIdx_t size = vals.size();
 
     std::vector<Element> matrix;//(size);
 
