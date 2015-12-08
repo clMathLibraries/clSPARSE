@@ -71,7 +71,8 @@ when commits are merged into /master.  Active development and pull-requests shou
 be made to the **develop** branch.
 
 ## License
-The source for clSPARSE is licensed under the [Apache License, Version 2.0][]
+The source for clFFT is licensed under the [Apache License, Version
+2.0][]
 
 ## Samples
 clSPARSE contains a directory of simple [OpenCL samples](./samples) that demonstrate the use
