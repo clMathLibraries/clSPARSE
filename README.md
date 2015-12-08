@@ -72,7 +72,7 @@ be made to the **develop** branch.
 
 ## License
 The source for clFFT is licensed under the [Apache License, Version
-2.0][]
+2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 ## Samples
 clSPARSE contains a directory of simple [OpenCL samples](./samples) that demonstrate the use
