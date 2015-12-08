@@ -60,7 +60,7 @@ breaking changes to the API that might require early users to recompile, or rewr
 portions of their code as we iterate on the design.
 
 ## clSPARSE Wiki
-The [project wiki][clmath@googlegroups.com] contains helpful documentation, including a [build primer clmath-developers@googlegroups.com]
+The [project wiki](https://github.com/clMathLibraries/clSPARSE/wiki) contains helpful documentation, including a [build primer](https://github.com/clMathLibraries/clSPARSE/wiki/Build)
 
 
 ### Contributing code
