@@ -40,7 +40,7 @@ scale( clsparse::array_base<T>& pResult,
             + " -DVALUE_TYPE="+ OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(group_size);
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -70,8 +70,8 @@ scale( clsparse::array_base<T>& pResult,
                                          params);
     KernelWrap kWrapper(kernel);
 
-    cl_ulong size = pResult.size();
-    cl_ulong offset = 0;
+    clsparseIdx_t size = pResult.size();
+    clsparseIdx_t offset = 0;
 
     kWrapper << size
              << pResult.data()

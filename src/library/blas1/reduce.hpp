@@ -48,7 +48,7 @@ global_reduce (cldenseVectorPrivate* partial,
             + " -DN_THREADS=" + std::to_string(nthreads)
             + " -D" + ReduceOperatorTrait<OP>::operation;
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -78,7 +78,7 @@ global_reduce (cldenseVectorPrivate* partial,
 
     KernelWrap kWrapper(kernel);
 
-    kWrapper << (cl_ulong)pX->num_values
+    kWrapper << pX->num_values
              << pX->values
              << partial->values;
 
@@ -188,7 +188,7 @@ global_reduce (clsparse::array_base<T>& partial,
             + " -DN_THREADS=" + std::to_string(nthreads)
             + " -D" + ReduceOperatorTrait<OP>::operation;
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;

@@ -147,7 +147,7 @@ offsets_to_indices(clsparse::vector<T>& indices,
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
@@ -252,7 +252,7 @@ transform_csr_2_dense(/*csr matrix*/
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
-    if (control->addressBits == GPUADDRESS64WORD)
+     if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
@@ -333,7 +333,7 @@ calculate_num_nonzeros(/*dense matrix*/
             + " -DWG_SIZE=" + std::to_string(workgroup_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(2); //required by program;
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
@@ -439,7 +439,7 @@ dense_to_coo(clsparseCooMatrix* coo,
             + " -DWG_SIZE=" + std::to_string(workgroup_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(2); //required by program;
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type

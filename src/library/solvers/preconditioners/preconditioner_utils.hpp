@@ -74,7 +74,7 @@ extract_diagonal(cldenseVectorPrivate* pDiag,
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
@@ -183,7 +183,7 @@ extract_diagonal(clsparse::vector<T>& pDiag,
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
 
-    if (control->addressBits == GPUADDRESS64WORD)
+    if (sizeof(clsparseIdx_t) == 8)
     {
         std::string options = std::string()
             + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type

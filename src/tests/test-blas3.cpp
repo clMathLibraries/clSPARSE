@@ -356,8 +356,8 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
     std::vector<float> tmpArray;
     tmpArray.resize(SPER::csrSMatrix.num_nonzeros);
 
-    objFillVals.fillMtxTwoPowers(tmpArray.data(), tmpArray.size());
-    //objFillVals.fillMtxOnes(tmpArray.data(), tmpArray.size());
+    //objFillVals.fillMtxTwoPowers(tmpArray.data(), tmpArray.size());
+    objFillVals.fillMtxOnes(tmpArray.data(), tmpArray.size());
 
     // Fill ublas scr with the same matrix values
     for (size_t i = 0; i < tmpArray.size(); i++)

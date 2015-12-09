@@ -105,7 +105,7 @@ scan(VectorType& output, const VectorType& input,
                 + " -DWG_SIZE="    + std::to_string(kernel0_WgSize)
                 + " -D" + ElementWiseOperatorTrait<OP>::operation;
 
-        if (control->addressBits == GPUADDRESS64WORD)
+        if (sizeof(clsparseIdx_t) == 8)
         {
             std::string options = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -170,7 +170,7 @@ scan(VectorType& output, const VectorType& input,
                 + " -DWG_SIZE="    + std::to_string(kernel1_WgSize)
                 + " -D" + ElementWiseOperatorTrait<OP>::operation;
 
-        if (control->addressBits == GPUADDRESS64WORD)
+        if (sizeof(clsparseIdx_t) == 8)
         {
             std::string options = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
@@ -228,7 +228,7 @@ scan(VectorType& output, const VectorType& input,
                 + " -DWG_SIZE="    + std::to_string(kernel1_WgSize)
                 + " -D" + ElementWiseOperatorTrait<OP>::operation;
 
-        if (control->addressBits == GPUADDRESS64WORD)
+        if (sizeof(clsparseIdx_t) == 8)
         {
             std::string options = std::string()
                 + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
