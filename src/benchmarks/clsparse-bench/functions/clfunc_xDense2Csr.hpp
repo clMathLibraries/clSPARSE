@@ -128,11 +128,11 @@ public:
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
         csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.num_nonzeros * sizeof(size_t), NULL, &status);
+            csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
 
         csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            (csrMtx.num_rows + 1) * sizeof(size_t), NULL, &status);
+            (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
 
         if(typeid(T) == typeid(float))
@@ -176,11 +176,11 @@ public:
 		CLSPARSE_V(status, "::clCreateBuffer csrMatx.values");
 
         csrMatx.colIndices = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,
-                                           csrMtx.num_nonzeros * sizeof( size_t ), NULL, &status );
+            csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer csrMatx.colIndices");
 
         csrMatx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,
-                                           (csrMtx.num_rows + 1) * sizeof( size_t ), NULL, &status );
+                                           (csrMtx.num_rows + 1) * sizeof( clsparseIdx_t ), NULL, &status );
 		CLSPARSE_V(status, "::clCreateBuffer csrMatx.rowOffsets");
     }// End of function
 
@@ -194,14 +194,14 @@ public:
 
     void reset_gpu_write_buffer( )
     {
-		size_t scalar_i = 0;
+        clsparseIdx_t scalar_i = 0;
 		T scalar_f   = 0;
 
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.rowOffsets, &scalar_i, sizeof(size_t), 0,
-            sizeof(size_t) * (csrMatx.num_rows + 1), 0, NULL, NULL), "::clEnqueueFillBuffer row");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.rowOffsets, &scalar_i, sizeof(clsparseIdx_t), 0,
+            sizeof(clsparseIdx_t) * (csrMatx.num_rows + 1), 0, NULL, NULL), "::clEnqueueFillBuffer row");
 
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.colIndices, &scalar_i, sizeof(size_t), 0,
-            sizeof(size_t) * csrMatx.num_nonzeros, 0, NULL, NULL), "::clEnqueueFillBuffer col");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.colIndices, &scalar_i, sizeof(clsparseIdx_t), 0,
+            sizeof(clsparseIdx_t) * csrMatx.num_nonzeros, 0, NULL, NULL), "::clEnqueueFillBuffer col");
 
 		CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.values, &scalar_f, sizeof(T), 0,
 			sizeof(T) * csrMatx.num_nonzeros, 0, NULL, NULL), "::clEnqueueFillBuffer values");
@@ -227,7 +227,7 @@ public:
           gpuTimer->Reset( );
 #endif
 		  // Calculate Number of Elements transformed per unit time
-		  size_t sparseElements = A.num_cols * A.num_rows;
+          clsparseIdx_t sparseElements = A.num_cols * A.num_rows;
 		  cpuTimer->pruneOutliers(3.0);
 		  cpuTimer->Print(sparseElements, "GiElements/s");
 		  cpuTimer->Reset();

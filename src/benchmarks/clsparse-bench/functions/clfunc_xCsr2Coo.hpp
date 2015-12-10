@@ -125,10 +125,10 @@ public:
 		csrMtx.values = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(T), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer csrMtx.values");
 
-        csrMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(size_t), NULL, &status);
+        csrMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer csrMtx.colIndices");
 
-        csrMtx.rowOffsets = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(size_t), NULL, &status);
+        csrMtx.rowOffsets = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer csrMtx.rowOffsets");
 
 		if (typeid(T) == typeid(float))
@@ -159,11 +159,11 @@ public:
 		CLSPARSE_V(status, "::clCreateBuffer cooMtx.values");
 
 		cooMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_WRITE_ONLY,
-            cooMtx.num_nonzeros * sizeof(size_t), NULL, &status);
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer cooMtx.colIndices");
 
 		cooMtx.rowIndices = ::clCreateBuffer(ctx, CL_MEM_WRITE_ONLY,
-            cooMtx.num_nonzeros * sizeof(size_t), NULL, &status);
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer cooMtx.rowIndices");
 
 	}// end
@@ -178,13 +178,13 @@ public:
 		CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.values, &scalarZero, sizeof(T), 0,
 			cooMtx.num_nonzeros * sizeof(T), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.values");
 
-        size_t scalarIntZero = 0;
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.rowIndices, &scalarIntZero, sizeof(size_t), 0,
-            cooMtx.num_nonzeros * sizeof(size_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.rowIndices");
+        clsparseIdx_t scalarIntZero = 0;
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.rowIndices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.rowIndices");
 
 
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.colIndices, &scalarIntZero, sizeof(size_t), 0,
-            cooMtx.num_nonzeros * sizeof(size_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.colIndices");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.colIndices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.colIndices");
 
 	}// end
 
@@ -194,13 +194,13 @@ public:
 		CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.values, &scalar, sizeof(T), 0,
 			cooMtx.num_nonzeros * sizeof(T), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.values");
 
-        size_t scalarIntZero = 0;
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.rowIndices, &scalarIntZero, sizeof(size_t), 0,
-            cooMtx.num_nonzeros * sizeof(size_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.rowIndices");
+        clsparseIdx_t scalarIntZero = 0;
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.rowIndices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.rowIndices");
 
 
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.colIndices, &scalarIntZero, sizeof(size_t), 0,
-            cooMtx.num_nonzeros * sizeof(size_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.colIndices");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.colIndices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.colIndices");
 	}// end
 
 	void read_gpu_buffer()
@@ -228,7 +228,7 @@ public:
 			gpuTimer->Reset();
 #endif
 			// Calculate Number of Elements transformed per unit time
-			size_t sparseElements = csrMtx.num_nonzeros;
+            clsparseIdx_t sparseElements = csrMtx.num_nonzeros;
 			cpuTimer->pruneOutliers(3.0);
 			cpuTimer->Print(sparseElements, "GiElements/s");
 			cpuTimer->Reset();
