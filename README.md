@@ -36,6 +36,10 @@ compared to the older clMath libraries.  OpenCL state is not explicitly passed
 through the API, which enables the library to be forward compatible when users are
 ready to switch from OpenCL 1.2 to OpenCL 2.0 <sup>[1](#opencl-2)</sup>
 
+### clSPARSE library documentation
+**API documentation** is now available http://clmathlibraries.github.io/clSPARSE/ . The included samples will give an excellent
+starting point to basic library operations.
+
 ### Google Groups
 Two mailing lists have been created for the clMath projects:
 
@@ -55,15 +59,9 @@ comment.  This comes with the expectation that with feedback, we may incorporate
 breaking changes to the API that might require early users to recompile, or rewrite
 portions of their code as we iterate on the design.
 
-## Samples
-clSPARSE contains a directory of simple [OpenCL samples](./samples) that demonstrate the use
-of the API in both C and C++.  The [superbuild](http://www.kitware.com/media/html/BuildingExternalProjectsWithCMake2.8.html)
-script for clSPARSE also builds the samples as an external project, to demonstrate
-how an application would find and link to clSPARSE with cmake.
+## clSPARSE Wiki
+The [project wiki](https://github.com/clMathLibraries/clSPARSE/wiki) contains helpful documentation, including a [build primer](https://github.com/clMathLibraries/clSPARSE/wiki/Build)
 
-### clSPARSE library documentation
-**API documentation** is now available http://clmathlibraries.github.io/clSPARSE/ . The included samples will give an excellent
-starting point to basic library operations.
 
 ### Contributing code
 Please refer to and read the [Contributing](CONTRIBUTING.md) document for guidelines on
@@ -71,6 +69,16 @@ how to contribute code to this open source project. Code in the
 /master branch is considered to be stable and new library releases are made
 when commits are merged into /master.  Active development and pull-requests should
 be made to the **develop** branch.
+
+## License
+The source for clFFT is licensed under the [Apache License, Version
+2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+## Samples
+clSPARSE contains a directory of simple [OpenCL samples](./samples) that demonstrate the use
+of the API in both C and C++.  The [superbuild](http://www.kitware.com/media/html/BuildingExternalProjectsWithCMake2.8.html)
+script for clSPARSE also builds the samples as an external project, to demonstrate
+how an application would find and link to clSPARSE with cmake.
 
 ## Build
 clSPARSE is primarily written with C++ using C++11 core features.  It does export
