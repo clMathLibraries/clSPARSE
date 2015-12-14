@@ -411,17 +411,12 @@ int MatrixMarketReader<FloatType>::MMReadMtxCrdSize( FILE *infile )
     } while( line[ 0 ] == '%' );
 
     /* line[] is either blank or has M,N, nz */
-    //#if defined( _WIN32 ) || defined(_WIN64)
-   // if( sscanf( line, "%Iu %Iu %Iu", &nRows, &nCols, &nNZ ) == 3 ) // Not working I don't know why?
     std::stringstream s(line);
     nRows = 0;
     nCols = 0;
     nNZ   = 0;    
     s >> nRows >> nCols >> nNZ;
-    if (nRows && nCols && nNZ )
-      //#else
-      //if( sscanf( line, "%zu %zu %zu", &nRows, &nCols, &nNZ ) == 3 )
-      //#endif    
+    if (nRows && nCols && nNZ)
         return 0;
     else
         do
