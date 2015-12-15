@@ -106,7 +106,7 @@ public:
                                                    result.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for(int i = 0; i < ublas_dense.data().size(); i++)
+            for (clsparseIdx_t i = 0; i < ublas_dense.data().size(); i++)
             {
                 // there should be exactly the same data
                 ASSERT_NEAR(ublas_dense.data()[i], result[i], 1e-7);
@@ -131,7 +131,7 @@ public:
                                                    result.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for(int i = 0; i < ublas_dense.data().size(); i++)
+            for (clsparseIdx_t i = 0; i < ublas_dense.data().size(); i++)
             {
                 // there should be exactly the same data
                 ASSERT_NEAR(ublas_dense.data()[i], result[i], 1e-14);
@@ -164,11 +164,11 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             csrMatx.rowOffsets = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                                   CSRE::ublasSCsr.index1_data().size() * sizeof( cl_int ), NULL, &cl_status );
+                                                   CSRE::ublasSCsr.index1_data().size() * sizeof( clsparseIdx_t ), NULL, &cl_status );
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             csrMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                                   CSRE::ublasSCsr.index2_data().size() * sizeof( cl_int ), NULL, &cl_status );
+                                                   CSRE::ublasSCsr.index2_data().size() * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -180,8 +180,8 @@ public:
             //Compare
 
             // Download GPU data
-            std::vector<cl_int> row_offsets(CSRE::ublasSCsr.index1_data().size());
-            std::vector<cl_int> col_indices(CSRE::ublasSCsr.index2_data().size());
+            std::vector<clsparseIdx_t> row_offsets(CSRE::ublasSCsr.index1_data().size());
+            std::vector<clsparseIdx_t> col_indices(CSRE::ublasSCsr.index2_data().size());
             std::vector<T> values(CSRE::ublasSCsr.value_data().size());
 
 
@@ -190,27 +190,27 @@ public:
                                               values.size() * sizeof(T), values.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for (int i = 0; i < values.size(); i++)
+            for (clsparseIdx_t i = 0; i < values.size(); i++)
                 ASSERT_NEAR(CSRE::ublasSCsr.value_data()[i], values[i], 1e-7);
 
 
             // Compare row_offsets
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.rowOffsets, CL_TRUE, 0,
-                                              row_offsets.size() * sizeof(cl_int), row_offsets.data(), 0, nullptr, nullptr);
+                                              row_offsets.size() * sizeof(clsparseIdx_t), row_offsets.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
 
-            for (int i = 0; i < row_offsets.size(); i++)
+            for (clsparseIdx_t i = 0; i < row_offsets.size(); i++)
                 ASSERT_EQ(CSRE::ublasSCsr.index1_data()[i], row_offsets[i]);
 
 
             // Compare col indices
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.colIndices, CL_TRUE, 0,
-                                              col_indices.size() * sizeof(cl_int), col_indices.data(), 0, nullptr, nullptr);
+                                              col_indices.size() * sizeof(clsparseIdx_t), col_indices.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
 
-            for (int i = 0; i < col_indices.size(); i++)
+            for (clsparseIdx_t i = 0; i < col_indices.size(); i++)
                 ASSERT_EQ(CSRE::ublasSCsr.index2_data()[i], col_indices[i]);
 
             // Release csrMatrix data
@@ -243,11 +243,11 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             csrMatx.rowOffsets = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                                   ( CSRE::csrDMatrix.num_rows + 1 ) * sizeof( cl_int ), NULL, &cl_status );
+                                                   ( CSRE::csrDMatrix.num_rows + 1 ) * sizeof( clsparseIdx_t ), NULL, &cl_status );
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             csrMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
-                                                   CSRE::csrDMatrix.num_nonzeros * sizeof( cl_int ), NULL, &cl_status );
+                                                   CSRE::csrDMatrix.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -259,8 +259,8 @@ public:
             //Compare
 
             // Download GPU data
-            std::vector<cl_int> row_offsets(CSRE::csrDMatrix.num_rows + 1);
-            std::vector<cl_int> col_indices(CSRE::csrDMatrix.num_nonzeros);
+            std::vector<clsparseIdx_t> row_offsets(CSRE::csrDMatrix.num_rows + 1);
+            std::vector<clsparseIdx_t> col_indices(CSRE::csrDMatrix.num_nonzeros);
             std::vector<T> values (CSRE::csrDMatrix.num_nonzeros);
 
             // Compare values
@@ -268,29 +268,29 @@ public:
                                               values.size() * sizeof(T), values.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            for (int i = 0; i < values.size(); i++)
-{
+            for (clsparseIdx_t i = 0; i < values.size(); i++)
+            {
                 EXPECT_DOUBLE_EQ(CSRE::ublasDCsr.value_data()[i], values[i]);
-}
+            }
 
 
             // Compare row_offsets
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.rowOffsets, CL_TRUE, 0,
-                                              row_offsets.size() * sizeof(cl_int), row_offsets.data(), 0, nullptr, nullptr);
+                                              row_offsets.size() * sizeof(clsparseIdx_t), row_offsets.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
 
-            for (int i = 0; i < row_offsets.size(); i++)
+            for (clsparseIdx_t i = 0; i < row_offsets.size(); i++)
                 ASSERT_EQ(CSRE::ublasDCsr.index1_data()[i], row_offsets[i]);
 
 
             // Compare col indices
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.colIndices, CL_TRUE, 0,
-                                              col_indices.size() * sizeof(cl_int), col_indices.data(), 0, nullptr, nullptr);
+                                              col_indices.size() * sizeof(clsparseIdx_t), col_indices.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
 
-            for (int i = 0; i < col_indices.size(); i++)
+            for (clsparseIdx_t i = 0; i < col_indices.size(); i++)
                 ASSERT_EQ(CSRE::ublasDCsr.index2_data()[i], col_indices[i]);
 
             // Release csrMatrix data
@@ -323,13 +323,13 @@ public:
 
         cooMatrix.colIndices =
                 ::clCreateBuffer(CLSE::context, CL_MEM_READ_ONLY,
-                                 cooMatrix.num_nonzeros * sizeof(cl_int),
+                                 cooMatrix.num_nonzeros * sizeof(clsparseIdx_t),
                                  NULL, &cl_status);
         ASSERT_EQ(CL_SUCCESS, cl_status);
 
         cooMatrix.rowIndices =
                 ::clCreateBuffer(CLSE::context, CL_MEM_READ_ONLY,
-                                 cooMatrix.num_nonzeros * sizeof(cl_int),
+                                 cooMatrix.num_nonzeros * sizeof(clsparseIdx_t),
                                  NULL, &cl_status);
         ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -357,8 +357,8 @@ public:
             ASSERT_EQ(clsparseSuccess, status);
 
             // Compare newly generated results with the uBLAS matrix from CSRE
-            std::vector<cl_int> row_offsets(CSRE::csrSMatrix.num_rows + 1);
-            std::vector<cl_int> col_indices(CSRE::csrSMatrix.num_nonzeros);
+            std::vector<clsparseIdx_t> row_offsets(CSRE::csrSMatrix.num_rows + 1);
+            std::vector<clsparseIdx_t> col_indices(CSRE::csrSMatrix.num_nonzeros);
             std::vector<T> values (CSRE::csrSMatrix.num_nonzeros);
 
             //Download GPU data to vectors;
@@ -372,7 +372,7 @@ public:
                 EXPECT_FLOAT_EQ(values[i], CSRE::ublasSCsr.value_data()[i]);
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.colIndices,
-                                              CL_TRUE, 0, col_indices.size() * sizeof(cl_int),
+                                              CL_TRUE, 0, col_indices.size() * sizeof(clsparseIdx_t),
                                               col_indices.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -382,7 +382,7 @@ public:
 
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.rowOffsets,
-                                              CL_TRUE, 0, row_offsets.size() * sizeof(cl_int),
+                                              CL_TRUE, 0, row_offsets.size() * sizeof(clsparseIdx_t),
                                               row_offsets.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -412,8 +412,8 @@ public:
             ASSERT_EQ(clsparseSuccess, status);
 
             // Compare newly generated results with the uBLAS matrix from CSRE
-            std::vector<cl_int> row_offsets(CSRE::csrDMatrix.num_rows + 1);
-            std::vector<cl_int> col_indices(CSRE::csrDMatrix.num_nonzeros);
+            std::vector<clsparseIdx_t> row_offsets(CSRE::csrDMatrix.num_rows + 1);
+            std::vector<clsparseIdx_t> col_indices(CSRE::csrDMatrix.num_nonzeros);
             std::vector<T> values (CSRE::csrDMatrix.num_nonzeros);
 
             //Download GPU data to vectors;
@@ -423,27 +423,27 @@ public:
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             // Compare values;
-            for (int i = 0; i < values.size(); i++)
+            for (clsparseIdx_t i = 0; i < values.size(); i++)
                 EXPECT_DOUBLE_EQ(values[i], CSRE::ublasDCsr.value_data()[i]);
 
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrDMatrix.colIndices,
-                                              CL_TRUE, 0, col_indices.size() * sizeof(cl_int),
+                                              CL_TRUE, 0, col_indices.size() * sizeof(clsparseIdx_t),
                                               col_indices.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             // Compare column indices
-            for (int i = 0; i < col_indices.size(); i++)
+            for (clsparseIdx_t i = 0; i < col_indices.size(); i++)
                 ASSERT_EQ(col_indices[i], CSRE::ublasDCsr.index2_data()[i]);
 
 
             cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrDMatrix.rowOffsets,
-                                              CL_TRUE, 0, row_offsets.size() * sizeof(cl_int),
+                                              CL_TRUE, 0, row_offsets.size() * sizeof(clsparseIdx_t),
                                               row_offsets.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
             // Compare row offsets
-            for (int i = 0; i < row_offsets.size(); i++)
+            for (clsparseIdx_t i = 0; i < row_offsets.size(); i++)
                 ASSERT_EQ(row_offsets[i], CSRE::ublasDCsr.index1_data()[i]);
         }
 
@@ -471,13 +471,13 @@ public:
 
         cooMatrix.colIndices =
                 ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
-                                 CSRE::csrSMatrix.num_nonzeros * sizeof(cl_int),
+                                 CSRE::csrSMatrix.num_nonzeros * sizeof(clsparseIdx_t),
                                  nullptr, &cl_status);
         ASSERT_EQ(CL_SUCCESS, cl_status);
 
         cooMatrix.rowIndices =
                 ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
-                                 CSRE::csrSMatrix.num_nonzeros * sizeof(cl_int),
+                                 CSRE::csrSMatrix.num_nonzeros * sizeof(clsparseIdx_t),
                                  nullptr, &cl_status);
 
         ASSERT_EQ(CL_SUCCESS, cl_status);

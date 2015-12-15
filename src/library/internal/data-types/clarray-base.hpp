@@ -46,7 +46,7 @@ class array_base
 public:
 
     typedef T value_type;
-    typedef cl_ulong size_type;
+    typedef clsparseIdx_t size_type;
     //typedef typename clContainer<T>::type BUFF_TYPE;
     typedef typename clContainer::type BUFF_TYPE;
 

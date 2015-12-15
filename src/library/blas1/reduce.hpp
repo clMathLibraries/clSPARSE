@@ -218,7 +218,7 @@ global_reduce (clsparse::array_base<T>& partial,
 
     KernelWrap kWrapper(kernel);
 
-    cl_ulong size = pX.size();
+    clsparseIdx_t size = pX.size();
 
     kWrapper << size
              << pX.data()
