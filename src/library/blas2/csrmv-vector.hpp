@@ -50,7 +50,7 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
 
     std::string params = std::string() +
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<clsparseIdx_t>::type
             + " -DWG_SIZE=" + std::to_string(group_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
@@ -190,7 +190,7 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
                                          params);
     KernelWrap kWrapper(kernel);
 
-    cl_ulong offset  = 0;
+    clsparseIdx_t offset = 0;
 
     kWrapper << pMatx->num_rows
              << pAlpha.data() << offset

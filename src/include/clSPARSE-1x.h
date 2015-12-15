@@ -35,7 +35,7 @@ typedef struct clsparseScalar_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, this offset is added to
      * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
      */
-    cl_ulong offValue;
+    clsparseIdx_t offValue;
 } clsparseScalar;
 
 /*! \brief Structure to encapsulate dense vector data to clSPARSE API
@@ -49,7 +49,7 @@ typedef struct cldenseVector_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, this offset is added to
      * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
      */
-    cl_ulong offValues;
+    clsparseIdx_t offValues;
 } cldenseVector;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in CSR
@@ -79,10 +79,10 @@ typedef struct clsparseCsrMatrix_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, these offsets are added to
      * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
      */
-    cl_ulong offValues;
-    cl_ulong offColInd;
-    cl_ulong offRowOff;
-    cl_ulong offRowBlocks;
+    clsparseIdx_t offValues;
+    clsparseIdx_t offColInd;
+    clsparseIdx_t offRowOff;
+    clsparseIdx_t offRowBlocks;
     /**@}*/
 
     size_t rowBlockSize;  /*!< Size of array used by the rowBlocks handle */
@@ -114,9 +114,9 @@ typedef struct clsparseCooMatrix_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, these offsets are added to
     * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
     */
-    cl_ulong offValues;
-    cl_ulong offColInd;
-    cl_ulong offRowInd;
+    clsparseIdx_t offValues;
+    clsparseIdx_t offColInd;
+    clsparseIdx_t offRowInd;
     /**@}*/
 } clsparseCooMatrix;
 
@@ -138,7 +138,7 @@ typedef struct cldenseMatrix_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, these offsets are added to
     * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
     */
-    cl_ulong offValues;
+    clsparseIdx_t offValues;
 } cldenseMatrix;
 
 #endif
