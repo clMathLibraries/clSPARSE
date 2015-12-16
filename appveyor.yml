@@ -49,6 +49,7 @@ install:
   # The cmake build files expect a directory called inc
   - ps: mkdir inc/CL
   - ps: wget $opencl_registry/api/1.2/ | select -ExpandProperty links | where {$_.href -like "*.h*"} | select -ExpandProperty outerText | foreach{ wget $opencl_registry/api/1.2/$_ -OutFile inc/CL/$_ }
+  - ps: wget $opencl_registry/api/2.1/cl.hpp -OutFile inc/CL/cl.hpp
   # - ps: dir; if( $lastexitcode -eq 0 ){ dir include/CL } else { Write-Output boom }
   # Create the static import lib in a directory called lib, so findopencl() will find it
   - ps: mkdir lib
@@ -58,7 +59,6 @@ install:
   - ps: popd
   # Rename the inc directory to include, so FindOpencl() will find it
   - ps: ren inc include
-  - ps: popd
   - ps: popd
 
 # before_build is used to run configure steps
@@ -81,6 +81,7 @@ after_build:
   - echo after_build step
   - ps: ls $env:CLSPARSE_ROOT\clSPARSE-build
   - ps: mv $env:CLSPARSE_ROOT\clSPARSE-build\*.zip $env:APPVEYOR_BUILD_FOLDER
+  - ps: popd
 
 # Appyeyor will save a copy of the package in it's personal storage
 artifacts:

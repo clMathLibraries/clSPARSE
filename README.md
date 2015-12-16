@@ -46,14 +46,18 @@ Two mailing lists have been created for the clMath projects:
     developers interested in contributing to the library code itself
 
 ### API semantic versioning
-Good software is typically the result of the loop of feedback and iteration;
-software interfaces no less so.  clSPARSE follows the
+Good software is typically the result of iteration and feedback.  clSPARSE follows the
 [semantic versioning](http://semver.org/) guidelines, and while the major version
 number remains '0', the public API should not be considered stable.  We release
 clSPARSE as beta software (0.y.z) early to the community to elicit feedback and
 comment.  This comes with the expectation that with feedback, we may incorporate
 breaking changes to the API that might require early users to recompile, or rewrite
 portions of their code as we iterate on the design.
+
+## clSPARSE Wiki
+The [project wiki](https://github.com/clMathLibraries/clSPARSE/wiki) contains helpful documentation.  
+A [build primer](https://github.com/clMathLibraries/clSPARSE/wiki/Build) is available,
+which describes how to use cmake to generate platforms specific build files
 
 ## Samples
 clSPARSE contains a directory of simple [OpenCL samples](./samples) that demonstrate the use
@@ -62,7 +66,7 @@ script for clSPARSE also builds the samples as an external project, to demonstra
 how an application would find and link to clSPARSE with cmake.
 
 ### clSPARSE library documentation
-**API documentation** is now available http://clmathlibraries.github.io/clSPARSE/ . The included samples will give an excellent
+**API documentation** is available at http://clmathlibraries.github.io/clSPARSE/. The samples give an excellent
 starting point to basic library operations.
 
 ### Contributing code
@@ -72,14 +76,8 @@ how to contribute code to this open source project. Code in the
 when commits are merged into /master.  Active development and pull-requests should
 be made to the **develop** branch.
 
-## Build
-clSPARSE is primarily written with C++ using C++11 core features.  It does export
-a 'C' interface for compatibility with other languages.
-
-### How to build clSPARSE for your platform
-A [Build primer](https://github.com/clMathLibraries/clSPARSE/wiki/Build) is available on
-the wiki, which describes how to use cmake to generate platforms specific build
-files
+## License
+clSPARSE is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 ### Compiling for Windows
 -  Windows&reg; 7/8
