@@ -124,7 +124,7 @@ const clsparseControl control )
     {
         std::string options = std::string()
             + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
         params.append(options);
     }
 
