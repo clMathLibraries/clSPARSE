@@ -56,6 +56,7 @@ class MatrixConversion : public ::testing::Test
 public:
     void SetUp()
     {
+#if 0
         // by default it is row_major;
         cldenseInitMatrix(&A);
 
@@ -69,15 +70,17 @@ public:
         A.num_cols = CSRE::n_cols;
         A.num_rows = CSRE::n_rows;
         A.lead_dim = std::min(A.num_cols, A.num_rows);
+#endif
 
     }
 
     void TearDown()
     {
-
+#if 0
         ::clReleaseMemObject(A.values);
 
         cldenseInitMatrix(&A);
+#endif
     }
 
     // uBLAS dense matrix format type
@@ -89,6 +92,23 @@ public:
 
     void test_csr_to_dense()
     {
+        
+#if 1
+        // by default it is row_major;
+        cldenseInitMatrix(&A);
+
+        cl_int status;
+
+        A.values = ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
+            CSRE::n_cols * CSRE::n_rows * sizeof(T),
+            nullptr, &status);
+        ASSERT_EQ(CL_SUCCESS, status);
+
+        A.num_cols = CSRE::n_cols;
+        A.num_rows = CSRE::n_rows;
+        A.lead_dim = std::min(A.num_cols, A.num_rows);
+#endif
+        
         if (typeid(T) == typeid(cl_float))
         {
             uBLASDenseM ublas_dense(CSRE::ublasSCsr);
@@ -137,11 +157,33 @@ public:
                 ASSERT_NEAR(ublas_dense.data()[i], result[i], 1e-14);
             }
         }
+
+#if 1
+        ::clReleaseMemObject(A.values);
+
+        cldenseInitMatrix(&A);
+#endif
     }
 
 
     void test_dense_to_csr()
     {
+#if 1
+        // by default it is row_major;
+        cldenseInitMatrix(&A);
+
+        cl_int status;
+
+        A.values = ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
+            CSRE::n_cols * CSRE::n_rows * sizeof(T),
+            nullptr, &status);
+        ASSERT_EQ(CL_SUCCESS, status);
+
+        A.num_cols = CSRE::n_cols;
+        A.num_rows = CSRE::n_rows;
+        A.lead_dim = std::min(A.num_cols, A.num_rows);
+#endif
+
         if (typeid(T) == typeid(cl_float))
         {
             //Create dense matrix;
@@ -299,6 +341,13 @@ public:
             cl_status = ::clReleaseMemObject(csrMatx.rowOffsets);
 
         }
+
+#if 0
+        ::clReleaseMemObject(A.values);
+
+        cldenseInitMatrix(&A);
+#endif
+
     }
 
     void test_coo_to_csr()
