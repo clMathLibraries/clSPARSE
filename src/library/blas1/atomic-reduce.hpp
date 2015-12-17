@@ -70,7 +70,7 @@ atomic_reduce(clsparseScalarPrivate* pR,
         std::string options = std::string() + " -DATOMIC_DOUBLE";
         params.append(options);
     }
-    else if (typeid(cl_int) == typeid(T))
+    else if (typeid(cl_int) == typeid(T) || typeid(clsparseIdx_t) == typeid(T))
     {
         std::string options = std::string() + " -DATOMIC_INT";
         params.append(options);
