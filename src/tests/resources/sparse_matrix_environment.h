@@ -73,7 +73,6 @@ public:
         if (fileError != clsparseSuccess)
             throw std::runtime_error("Could not read matrix market data from disk");
 
-        clsparseCsrMetaSize(&csrSMatrix, CLSE::control);
         clsparseCsrMetaCompute( &csrSMatrix, CLSE::control );
 
         //  Download sparse matrix data to host
@@ -183,7 +182,8 @@ public:
        csrSMatrixA.num_nonzeros = nnzA;
        csrSMatrixA.num_rows = m;
        csrSMatrixA.num_cols = k;
-       clsparseCsrMetaSize(&csrSMatrixA, CLSE::control);
+       size_t metaSize;
+       clsparseCsrMetaSize(&csrSMatrixA, CLSE::control, &metaSize );
 
        //  Load single precision data from file; this API loads straight into GPU memory
        csrSMatrixA.values = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
@@ -216,7 +216,7 @@ public:
         csrSMatrixB.num_nonzeros = nnzB;
         csrSMatrixB.num_rows = k;
         csrSMatrixB.num_cols = n;
-        clsparseCsrMetaSize(&csrSMatrixB, CLSE::control);
+        clsparseCsrMetaSize(&csrSMatrixB, CLSE::control, &metaSize );
 
         //  Load single precision data from file; this API loads straight into GPU memory
         csrSMatrixB.values = ::clCreateBuffer(context, CL_MEM_READ_ONLY,

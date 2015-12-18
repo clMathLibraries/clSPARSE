@@ -111,7 +111,7 @@ public:
         if( fileError != clsparseSuccess )
              throw clsparse::io_exception( "Could not read matrix market header from disk: " + sparseFile );
 
-        // Now initialise a CSR matrix from the COO matrix
+        // Now initialize a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );
         csrMtx.num_nonzeros = nnz;
         csrMtx.num_rows = row;
@@ -140,10 +140,6 @@ public:
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk: " + sparseFile );
 
-        clsparseCsrMetaSize( &csrMtx, control );
-        csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
-                csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
         clsparseCsrMetaCompute( &csrMtx, control );
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
@@ -216,10 +212,10 @@ public:
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
+        clsparseCsrMetaDelete( &csrMtx );
         CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
         CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
         CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowBlocks ), "clReleaseMemObject csrMtx.rowBlocks" );
 
         CLSPARSE_V( ::clReleaseMemObject( x.values ), "clReleaseMemObject x.values" );
         CLSPARSE_V( ::clReleaseMemObject( y.values ), "clReleaseMemObject y.values" );

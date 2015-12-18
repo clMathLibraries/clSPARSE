@@ -109,17 +109,17 @@ public:
     }
 
     // Knuth's Two-Sum algorithm, which allows us to add together two floating
-    // point numbers and exactly tranform the answer into a sum and a
+    // point numbers and exactly transform the answer into a sum and a
     // rounding error.
-    // Inputs: x and y, the two inputs to be aded together.
+    // Inputs: x and y, the two inputs to be added together.
     // In/Out: *sumk_err, which is incremented (by reference) -- holds the
     //         error value as a result of the 2sum calculation.
     // Returns: The non-corrected sum of inputs x and y.
     T two_sum(T x, T y, T *sumk_err)
     {
         // We use this 2Sum algorithm to perform a compensated summation,
-        // which can reduce the cummulative rounding errors in our SpMV
-        // summation. Our compensated sumation is based on the SumK algorithm
+        // which can reduce the cumulative rounding errors in our SpMV
+        // summation. Our compensated summation is based on the SumK algorithm
         // (with K==2) from Ogita, Rump, and Oishi, "Accurate Sum and Dot
         // Product" in SIAM J. on Scientific Computing 26(6) pp 1955-1988,
         // Jun. 2005.
@@ -359,10 +359,11 @@ TYPED_TEST(Blas2, csrmv_vector)
     // later use.
 
     clsparseStatus status;
-    status = clsparseCsrMetaSize( &CSRE::csrSMatrix, CLSE::control );
+    size_t metaSize;
+    status = clsparseCsrMetaSize( &CSRE::csrSMatrix, CLSE::control, &metaSize );
     ASSERT_EQ(clsparseSuccess, status);
 
-    status = clsparseCsrMetaSize( &CSRE::csrDMatrix, CLSE::control );
+    status = clsparseCsrMetaSize( &CSRE::csrDMatrix, CLSE::control, &metaSize );
     ASSERT_EQ(clsparseSuccess, status);
 
     status = clsparseCsrMetaCompute(&CSRE::csrSMatrix, CLSE::control );

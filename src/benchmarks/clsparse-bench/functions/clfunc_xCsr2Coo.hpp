@@ -141,12 +141,7 @@ public:
 		if (fileError != clsparseSuccess)
             throw std::runtime_error("Could not read matrix market data from disk: " + sparseFile);
 
-#if 0 // Not needed
-		clsparseCsrMetaSize(&csrMtx, control);
-		csrMtx.rowBlocks = ::clCreateBuffer(ctx, CL_MEM_READ_WRITE, csrMtx.rowBlockSize * sizeof(cl_ulong), NULL, &status );
-		CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
 		clsparseCsrMetaCompute(&csrMtx, control);
-#endif
 
 		// Initialize the output coo matrix
 		clsparseInitCooMatrix(&cooMtx);
@@ -240,10 +235,10 @@ public:
 
 		//this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
 		//need to do this before we eventually hit the destructor
-		CLSPARSE_V(::clReleaseMemObject(csrMtx.values), "clReleaseMemObject csrMtx.values");
+        clsparseCsrMetaDelete( &csrMtx );
+        CLSPARSE_V(::clReleaseMemObject(csrMtx.values), "clReleaseMemObject csrMtx.values");
 		CLSPARSE_V(::clReleaseMemObject(csrMtx.colIndices), "clReleaseMemObject csrMtx.colIndices");
 		CLSPARSE_V(::clReleaseMemObject(csrMtx.rowOffsets), "clReleaseMemObject csrMtx.rowOffsets");
-		//CLSPARSE_V(::clReleaseMemObject(csrMtx.rowBlocks), "clReleaseMemObject csrMtx.rowBlocks");
 
 		CLSPARSE_V(::clReleaseMemObject(cooMtx.values), "clReleaseMemObject cooMtx.values");
 		CLSPARSE_V(::clReleaseMemObject(cooMtx.colIndices), "clReleaseMemObject cooMtx.colIndices");

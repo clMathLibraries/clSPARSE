@@ -122,16 +122,14 @@ public:
         csrSMatrix.num_cols = csrDMatrix.num_cols;
         csrSMatrix.num_rows = csrDMatrix.num_rows;
 
-        // Don't use adaptive kernel in double precision yet.
-        //csrSMatrix.meta = csrDMatrix.meta;
-        //::clRetainMemObject( csrSMatrix.rowBlocks );
-        clsparseCsrMetaCompute( &csrSMatrix, CLSE::control );
-
         csrSMatrix.colIndices = csrDMatrix.colIndices;
         ::clRetainMemObject( csrSMatrix.colIndices );
 
         csrSMatrix.rowOffsets = csrDMatrix.rowOffsets;
         ::clRetainMemObject( csrSMatrix.rowOffsets );
+
+        // Don't use adaptive kernel in double precision yet.
+        clsparseCsrMetaCompute( &csrSMatrix, CLSE::control );
 
         csrSMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrSMatrix.num_nonzeros * sizeof( cl_float ), NULL, &status );

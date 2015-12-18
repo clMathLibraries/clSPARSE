@@ -21,14 +21,20 @@
 #include "internal/clsparse-control.hpp"
 
 clsparseStatus
-clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control )
+clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control, size_t* metaSize )
 {
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
-    matrix_meta* meta_ptr = static_cast< matrix_meta* >( pCsrMatx->meta );
+
+    if( csrMatx->meta )
+    {
+        *metaSize = static_cast< matrix_meta* >( pCsrMatx->meta )->rowBlockSize;
+
+        return clsparseSuccess;
+    }
 
     clMemRAII< clsparseIdx_t > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
     clsparseIdx_t* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
-    meta_ptr->rowBlockSize = ComputeRowBlocksSize( rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
+    *metaSize = ComputeRowBlocksSize( rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
 
     return clsparseSuccess;
 }
@@ -37,7 +43,6 @@ clsparseStatus
 clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control )
 {
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
-    matrix_meta* meta_ptr = static_cast< matrix_meta* >( pCsrMatx->meta );
 
     // Check to ensure nRows can fit in 32 bits
     if( static_cast<cl_ulong>( pCsrMatx->num_rows ) > static_cast<cl_ulong>( pow( 2, ( 64 - ROW_BITS ) ) ) )
@@ -46,16 +51,21 @@ clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control )
         return clsparseOutOfResources;
     }
 
-    if( meta_ptr == nullptr )
+    clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+    cl_int* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
+
+    matrix_meta* meta_ptr = nullptr;
+    if( pCsrMatx->meta == nullptr )
     {
-        pCsrMatx->meta = new matrix_meta;
-        clsparseCsrMetaSize( csrMatx, control );
+        meta_ptr = new matrix_meta;
+        meta_ptr->rowBlockSize = ComputeRowBlocksSize( rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
     }
+    else
+        meta_ptr = static_cast< matrix_meta* >( pCsrMatx->meta );
 
     if( pCsrMatx->meta )
     {
-        clMemRAII< clsparseIdx_t > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
-        clsparseIdx_t* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
+        meta_ptr->rowBlocks = ::cl::Buffer( control->getContext( ), CL_MEM_READ_WRITE, meta_ptr->rowBlockSize * sizeof( cl_ulong ) );
 
         cl_ulong* ulCsrRowBlocks = static_cast< cl_ulong* >( control->queue.enqueueMapBuffer( meta_ptr->rowBlocks, CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, meta_ptr->offRowBlocks, meta_ptr->rowBlockSize ) );
 
