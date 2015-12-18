@@ -630,6 +630,18 @@ extern "C" {
      */
     CLSPARSE_EXPORT clsparseStatus
         clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control );
+
+    /*!
+    * \brief Delete meta data associated with a CSR encoded matrix
+    * \details Meta data for a sparse matrix may occupy device memory, and this informs the library to release it
+    * \param[in,out] csrMatx  The CSR sparse structure that represents the matrix in device memory
+    * \note This function assumes that the memory for rowBlocks has already been allocated by client program
+    *
+    * \ingroup FILE
+    */
+    CLSPARSE_EXPORT clsparseStatus
+        clsparseCsrMetaDelete( clsparseCsrMatrix* csrMatx );
+
     /**@}*/
 
     /*!

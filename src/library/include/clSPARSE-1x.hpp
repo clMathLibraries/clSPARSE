@@ -41,6 +41,31 @@
 //    return buf;
 //}
 
+// Structure to encapsulate the meta data for a sparse matrix
+struct matrix_meta
+{
+    matrix_meta( ) : rowBlockSize( 0 ), offRowBlocks( 0 )
+    {
+    }
+
+    ~matrix_meta( )
+    {
+        std::cout << "matrix_meta destructor" << std::endl;
+    }
+
+    void clear( )
+    {
+        offRowBlocks = rowBlockSize = 0;
+        rowBlocks = ::cl::Buffer( );
+    }
+
+    ::cl::Buffer rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
+
+    clsparseIdx_t rowBlockSize;  /*!< Size of array used by the rowBlocks handle */
+
+    clsparseIdx_t offRowBlocks;
+};
+
 template< typename pType >
 class clMemRAII
 {
@@ -192,8 +217,8 @@ public:
     void clear( )
     {
         num_rows = num_cols = num_nonzeros = 0;
-        values = colIndices = rowOffsets = rowBlocks = nullptr;
-        offValues = offColInd = offRowOff = offRowBlocks = rowBlockSize = 0;
+        values = colIndices = rowOffsets = nullptr;
+        offValues = offColInd = offRowOff = 0;
     }
 
     clsparseIdx_t nnz_per_row() const
@@ -215,12 +240,6 @@ public:
     {
         return offRowOff;
     }
-
-    clsparseIdx_t rowBlocksOffset() const
-    {
-        return offRowBlocks;
-    }
-
 };
 
 class clsparseCooMatrixPrivate: public clsparseCooMatrix

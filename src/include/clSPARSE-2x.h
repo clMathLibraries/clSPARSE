@@ -60,10 +60,12 @@ typedef struct clsparseCsrMatrix_
     void* values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
     void* colIndices;  /*!< column index for corresponding value of size num_nonzeros */
     void* rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
-    void* rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
     /**@}*/
 
-    size_t rowBlockSize;  /*!< Size of array used by the rowBlocks pointer */
+    /*! Pointer to a private structure that contains meta-information the library keeps on a
+    csr-encoded sparse matrix
+    */
+    void* meta;
 } clsparseCsrMatrix;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in COO

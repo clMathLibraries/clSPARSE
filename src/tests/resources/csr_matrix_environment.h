@@ -77,9 +77,6 @@ public:
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk: " + file_name );
 
-        clsparseCsrMetaSize( &csrDMatrix, CLSE::control );
-        csrDMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
-                                                 csrDMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
         clsparseCsrMetaCompute( &csrDMatrix, CLSE::control );
 
 
@@ -124,11 +121,11 @@ public:
         csrSMatrix.num_nonzeros = csrDMatrix.num_nonzeros;
         csrSMatrix.num_cols = csrDMatrix.num_cols;
         csrSMatrix.num_rows = csrDMatrix.num_rows;
-        csrSMatrix.rowBlockSize = csrDMatrix.rowBlockSize;
 
         // Don't use adaptive kernel in double precision yet.
-        csrSMatrix.rowBlocks = csrDMatrix.rowBlocks;
-        ::clRetainMemObject( csrSMatrix.rowBlocks );
+        //csrSMatrix.meta = csrDMatrix.meta;
+        //::clRetainMemObject( csrSMatrix.rowBlocks );
+        clsparseCsrMetaCompute( &csrSMatrix, CLSE::control );
 
         csrSMatrix.colIndices = csrDMatrix.colIndices;
         ::clRetainMemObject( csrSMatrix.colIndices );
@@ -139,8 +136,8 @@ public:
         csrSMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrSMatrix.num_nonzeros * sizeof( cl_float ), NULL, &status );
 
-        cl_int cl_status;
-        cl_double* dvals = (cl_double*) ::clEnqueueMapBuffer(queue, csrDMatrix.values, CL_TRUE, CL_MAP_READ, 0, csrDMatrix.num_nonzeros * sizeof(cl_double), 0, nullptr, nullptr, &cl_status);
+        //cl_int cl_status;
+        //cl_double* dvals = (cl_double*) ::clEnqueueMapBuffer(queue, csrDMatrix.values, CL_TRUE, CL_MAP_READ, 0, csrDMatrix.num_nonzeros * sizeof(cl_double), 0, nullptr, nullptr, &cl_status);
 
         // copy the double-precision values over into the single-precision array.
         for (clsparseIdx_t i = 0; i < ublasDCsr.value_data().size(); i++)
@@ -194,11 +191,9 @@ public:
         ::clReleaseMemObject( csrSMatrix.values );
         ::clReleaseMemObject( csrSMatrix.colIndices );
         ::clReleaseMemObject( csrSMatrix.rowOffsets );
-        ::clReleaseMemObject( csrSMatrix.rowBlocks );
         ::clReleaseMemObject( csrDMatrix.values );
         ::clReleaseMemObject( csrDMatrix.colIndices );
         ::clReleaseMemObject( csrDMatrix.rowOffsets );
-        ::clReleaseMemObject( csrDMatrix.rowBlocks );
 
         //bring csrSMatrix csrDMatrix to its initial state
         clsparseInitCsrMatrix( &csrSMatrix );

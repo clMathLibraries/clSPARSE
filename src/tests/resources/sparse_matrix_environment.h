@@ -74,8 +74,6 @@ public:
             throw std::runtime_error("Could not read matrix market data from disk");
 
         clsparseCsrMetaSize(&csrSMatrix, CLSE::control);
-        csrSMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
-            csrSMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
         clsparseCsrMetaCompute( &csrSMatrix, CLSE::control );
 
         //  Download sparse matrix data to host
@@ -277,7 +275,6 @@ public:
         ::clReleaseMemObject(csrSMatrix.values);
         ::clReleaseMemObject(csrSMatrix.colIndices);
         ::clReleaseMemObject(csrSMatrix.rowOffsets);
-        ::clReleaseMemObject(csrSMatrix.rowBlocks);
 
         //bring csrSMatrix  to its initial state
         clsparseInitCsrMatrix(&csrSMatrix);

@@ -71,7 +71,6 @@ typedef struct clsparseCsrMatrix_
     cl_mem values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
     cl_mem colIndices;  /*!< column index for corresponding value of size num_nonzeros */
     cl_mem rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
-    cl_mem rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
     /**@}*/
 
     /** @name Buffer offsets */
@@ -82,10 +81,12 @@ typedef struct clsparseCsrMatrix_
     clsparseIdx_t offValues;
     clsparseIdx_t offColInd;
     clsparseIdx_t offRowOff;
-    clsparseIdx_t offRowBlocks;
     /**@}*/
 
-    size_t rowBlockSize;  /*!< Size of array used by the rowBlocks handle */
+    /*! Pointer to a private structure that contains meta-information the library keeps on a 
+    csr-encoded sparse matrix
+    */
+    void* meta;
 } clsparseCsrMatrix;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in COO

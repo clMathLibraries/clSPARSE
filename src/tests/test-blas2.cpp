@@ -350,17 +350,8 @@ TYPED_TEST(Blas2, csrmv_vector)
     // To call csrmv vector we need to artificially get rid of the rowBlocks data
     using CSRE = CSREnvironment;
 
-    cl_int cl_status;
-    cl_status = clReleaseMemObject(CSRE::csrSMatrix.rowBlocks);
-    ASSERT_EQ(CL_SUCCESS, cl_status);
-    CSRE::csrSMatrix.rowBlocks = nullptr;
-
-    cl_status = clReleaseMemObject(CSRE::csrDMatrix.rowBlocks);
-    ASSERT_EQ(CL_SUCCESS, cl_status);
-    CSRE::csrDMatrix.rowBlocks = nullptr;
-
-    CSRE::csrSMatrix.rowBlockSize = 0;
-    CSRE::csrDMatrix.rowBlockSize = 0;
+    clsparseCsrMetaDelete( &CSRE::csrSMatrix );
+    clsparseCsrMetaDelete( &CSRE::csrDMatrix );
 
     this->test_csrmv();
 
@@ -373,16 +364,6 @@ TYPED_TEST(Blas2, csrmv_vector)
 
     status = clsparseCsrMetaSize( &CSRE::csrDMatrix, CLSE::control );
     ASSERT_EQ(clsparseSuccess, status);
-
-    CSRE::csrSMatrix.rowBlocks =
-            ::clCreateBuffer( CLSE::context, CL_MEM_READ_WRITE,
-                              CSRE::csrSMatrix.rowBlockSize * sizeof( cl_ulong ),
-                              NULL, &cl_status );
-
-    ASSERT_EQ(CL_SUCCESS, cl_status);
-
-    CSRE::csrDMatrix.rowBlocks = CSRE::csrSMatrix.rowBlocks;
-    ::clRetainMemObject( CSRE::csrDMatrix.rowBlocks );
 
     status = clsparseCsrMetaCompute(&CSRE::csrSMatrix, CLSE::control );
     ASSERT_EQ (clsparseSuccess, status);
