@@ -629,7 +629,7 @@ extern "C" {
      * \ingroup FILE
      */
     CLSPARSE_EXPORT clsparseStatus
-        clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control );
+        clsparseCsrMetaCreate( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
     /*!
     * \brief Delete meta data associated with a CSR encoded matrix

@@ -140,7 +140,7 @@ public:
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk: " + sparseFile );
 
-        clsparseCsrMetaCompute( &csrMtx, control );
+        clsparseCsrMetaCreate( &csrMtx, control );
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );

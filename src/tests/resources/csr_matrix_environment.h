@@ -77,7 +77,7 @@ public:
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk: " + file_name );
 
-        clsparseCsrMetaCompute( &csrDMatrix, CLSE::control );
+        clsparseCsrMetaCreate( &csrDMatrix, CLSE::control );
 
 
         //reassign the new matrix dimensions calculated clsparseCCsrMatrixFromFile to global variables
@@ -129,7 +129,7 @@ public:
         ::clRetainMemObject( csrSMatrix.rowOffsets );
 
         // Don't use adaptive kernel in double precision yet.
-        clsparseCsrMetaCompute( &csrSMatrix, CLSE::control );
+        clsparseCsrMetaCreate( &csrSMatrix, CLSE::control );
 
         csrSMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrSMatrix.num_nonzeros * sizeof( cl_float ), NULL, &status );

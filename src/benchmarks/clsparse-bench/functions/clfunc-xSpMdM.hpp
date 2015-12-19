@@ -129,7 +129,7 @@ public:
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk: " + sparseFile);
 
-        clsparseCsrMetaCompute( &csrMtx, control );
+        clsparseCsrMetaCreate( &csrMtx, control );
 
         // Initialize the dense B & C matrices that we multiply against the sparse matrix
         // We are shaping B, such that no matter what shape A is, C will result in a square matrix

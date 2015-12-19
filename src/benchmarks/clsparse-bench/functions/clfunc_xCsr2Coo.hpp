@@ -141,7 +141,7 @@ public:
 		if (fileError != clsparseSuccess)
             throw std::runtime_error("Could not read matrix market data from disk: " + sparseFile);
 
-		clsparseCsrMetaCompute(&csrMtx, control);
+		clsparseCsrMetaCreate(&csrMtx, control);
 
 		// Initialize the output coo matrix
 		clsparseInitCooMatrix(&cooMtx);

@@ -73,7 +73,7 @@ public:
         if (fileError != clsparseSuccess)
             throw std::runtime_error("Could not read matrix market data from disk");
 
-        clsparseCsrMetaCompute( &csrSMatrix, CLSE::control );
+        clsparseCsrMetaCreate( &csrSMatrix, CLSE::control );
 
         //  Download sparse matrix data to host
         //  First, create space on host to hold the data

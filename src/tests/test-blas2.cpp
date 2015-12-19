@@ -366,9 +366,9 @@ TYPED_TEST(Blas2, csrmv_vector)
     status = clsparseCsrMetaSize( &CSRE::csrDMatrix, CLSE::control, &metaSize );
     ASSERT_EQ(clsparseSuccess, status);
 
-    status = clsparseCsrMetaCompute(&CSRE::csrSMatrix, CLSE::control );
+    status = clsparseCsrMetaCreate(&CSRE::csrSMatrix, CLSE::control );
     ASSERT_EQ (clsparseSuccess, status);
-    status = clsparseCsrMetaCompute(&CSRE::csrDMatrix, CLSE::control );
+    status = clsparseCsrMetaCreate(&CSRE::csrDMatrix, CLSE::control );
     ASSERT_EQ (clsparseSuccess, status);
 }
 

@@ -40,7 +40,7 @@ clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control, size_t
 }
 
 clsparseStatus
-clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control )
+clsparseCsrMetaCreate( clsparseCsrMatrix* csrMatx, clsparseControl control )
 {
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
 
