@@ -111,7 +111,7 @@ std::vector< fs::path > enumMatrices( const std::string& root_dir )
 int main( int argc, char *argv[ ] )
 {
     cl_double alpha, beta;
-    size_t rows, columns;
+    clsparseIdx_t rows, columns;
     size_t profileCount;
     std::string function;
     std::string precision;
@@ -123,8 +123,8 @@ int main( int argc, char *argv[ ] )
         ( "dirpath,d", po::value( &root_dir ), "Matrix directory" )
         ( "alpha,a", po::value<cl_double>( &alpha )->default_value( 1.0f ), "specifies the scalar alpha" )
         ( "beta,b", po::value<cl_double>( &beta )->default_value( 0.0f ), "specifies the scalar beta" )
-        ( "rows", po::value<size_t>( &rows )->default_value( 16 ), "specifies the number of rows for matrix data" )
-        ( "columns", po::value<size_t>( &columns )->default_value( 16 ), "specifies the number of columns for matrix data" )
+        ( "rows", po::value<clsparseIdx_t>( &rows )->default_value( 16 ), "specifies the number of rows for matrix data" )
+        ( "columns", po::value<clsparseIdx_t>( &columns )->default_value( 16 ), "specifies the number of columns for matrix data" )
         ( "function,f", po::value<std::string>( &function )->default_value( "SpMdV" ), "Sparse functions to test. Options: "
                     "SpMdV, SpMdM, SpMSpM, CG, BiCGStab, Csr2Dense, Dense2Csr, Csr2Coo, Coo2Csr" )
         ( "precision,r", po::value<std::string>( &precision )->default_value( "s" ), "Options: s,d,c,z" )

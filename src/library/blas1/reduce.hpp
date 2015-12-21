@@ -42,12 +42,24 @@ global_reduce (cldenseVectorPrivate* partial,
     cl_ulong nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DN_THREADS=" + std::to_string(nthreads)
             + " -D" + ReduceOperatorTrait<OP>::operation;
+
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -66,7 +78,7 @@ global_reduce (cldenseVectorPrivate* partial,
 
     KernelWrap kWrapper(kernel);
 
-    kWrapper << (cl_ulong)pX->num_values
+    kWrapper << pX->num_values
              << pX->values
              << partial->values;
 
@@ -170,12 +182,24 @@ global_reduce (clsparse::array_base<T>& partial,
     cl_ulong nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DN_THREADS=" + std::to_string(nthreads)
             + " -D" + ReduceOperatorTrait<OP>::operation;
+
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -194,7 +218,7 @@ global_reduce (clsparse::array_base<T>& partial,
 
     KernelWrap kWrapper(kernel);
 
-    cl_ulong size = pX.size();
+    clsparseIdx_t size = pX.size();
 
     kWrapper << size
              << pX.data()

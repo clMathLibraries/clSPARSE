@@ -60,7 +60,7 @@ static inline rowBlockType numThreadsForReduction(const rowBlockType num_rows)
     return (256 >> (8*sizeof(int)-__builtin_clz(num_rows-1)));
 #elif defined(_MSC_VER) && (_MSC_VER >= 1400)
     unsigned long bit_returned;
-    _BitScanReverse(&bit_returned, (num_rows-1));
+    _BitScanReverse( &bit_returned, (num_rows-1) );
     return 256 >> (bit_returned+1);
 #else
     return flp2(256/num_rows);
@@ -91,11 +91,11 @@ static inline rowBlockType numThreadsForReduction(const rowBlockType num_rows)
 
 //  rowBlockType is currently instantiated as ulong
 template< typename rowBlockType >
-void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int* rowDelimiters,
-                       const int nRows, const int blkSize, const int blkMultiplier, const int rows_for_vector, const bool allocate_row_blocks = true )
+void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const clsparseIdx_t* rowDelimiters,
+                       const clsparseIdx_t nRows, const int blkSize, const int blkMultiplier, const int rows_for_vector, const bool allocate_row_blocks = true )
 {
     rowBlockType* rowBlocksBase;
-    int total_row_blocks = 1; // Start at one because of rowBlock[0]
+    clsparseIdx_t total_row_blocks = 1; // Start at one because of rowBlock[0]
 
     if (allocate_row_blocks)
     {
@@ -113,10 +113,10 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
         return;
     }
 
-    int consecutive_long_rows = 0;
+    clsparseIdx_t consecutive_long_rows = 0;
     for( i = 1; i <= nRows; i++ )
     {
-        int row_length = ( rowDelimiters[ i ] - rowDelimiters[ i - 1 ] );
+        clsparseIdx_t row_length = ( rowDelimiters[ i ] - rowDelimiters[ i - 1 ] );
         sum += row_length;
 
         // The following section of code calculates whether you're moving between
@@ -260,7 +260,7 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const int*
         rowBlockSize = 2 * total_row_blocks;
 }
 
-inline size_t ComputeRowBlocksSize( const int* rowDelimiters, const int nRows, const unsigned int blkSize,
+inline size_t ComputeRowBlocksSize( const clsparseIdx_t* rowDelimiters, const clsparseIdx_t nRows, const unsigned int blkSize,
                                     const unsigned int blkMultiplier, const unsigned int rows_for_vector )
 {
     size_t rowBlockSize;

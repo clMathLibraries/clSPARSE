@@ -69,7 +69,7 @@ void axpy(const SIZE_TYPE size,
           const SIZE_TYPE pZOffset)
 {
 
-    const int index = get_global_id(0);
+    const SIZE_TYPE index = get_global_id(0);
 
     if (index >= size) return;
 
@@ -95,7 +95,7 @@ void axpby(const SIZE_TYPE size,
           const SIZE_TYPE pZOffset)
 {
 
-    const int index = get_global_id(0);
+    const SIZE_TYPE index = get_global_id(0);
 
     if (index >= size) return;
 
@@ -117,7 +117,7 @@ void scale (const SIZE_TYPE pRSize,
              __global const VALUE_TYPE* pAlpha,
             const SIZE_TYPE pAlphaOffset)
 {
-    const int i = get_global_id(0);
+    const SIZE_TYPE i = get_global_id(0);
 
     if (i >= pRSize) return;
 

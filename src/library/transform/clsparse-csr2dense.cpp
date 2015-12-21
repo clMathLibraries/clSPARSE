@@ -42,7 +42,7 @@ clsparseScsr2dense(const clsparseCsrMatrix* csr,
     clsparseStatus status;
 
     //BUG: For big matrices we might have overflow here;
-    cl_int dense_size = csr->num_cols * csr->num_rows;
+    size_t dense_size = csr->num_cols * csr->num_rows;
 
     status = validateMemObject(A->values, dense_size * sizeof(cl_float));
 
@@ -50,8 +50,8 @@ clsparseScsr2dense(const clsparseCsrMatrix* csr,
         return status;
 
 
-    clsparse::vector<cl_int>   offsets (control, csr->rowOffsets, csr->num_rows + 1);
-    clsparse::vector<cl_int>   indices (control, csr->colIndices, csr->num_nonzeros);
+    clsparse::vector<clsparseIdx_t>   offsets (control, csr->rowOffsets, csr->num_rows + 1);
+    clsparse::vector<clsparseIdx_t>   indices (control, csr->colIndices, csr->num_nonzeros);
     clsparse::vector<cl_float> values  (control, csr->values,     csr->num_nonzeros);
 
     clsparse::vector<cl_float> Avalues (control, A->values, dense_size);
@@ -86,7 +86,7 @@ cldenseMatrix* A,
     clsparseStatus status;
 
     //BUG: For big matrices we might have overflow here;
-    cl_int dense_size = csr->num_cols * csr->num_rows;
+    size_t dense_size = csr->num_cols * csr->num_rows;
 
     status = validateMemObject(A->values, dense_size * sizeof(cl_double));
 
@@ -94,8 +94,8 @@ cldenseMatrix* A,
         return status;
 
 
-    clsparse::vector<cl_int>   offsets (control, csr->rowOffsets, csr->num_rows + 1);
-    clsparse::vector<cl_int>   indices (control, csr->colIndices, csr->num_nonzeros);
+    clsparse::vector<clsparseIdx_t>   offsets (control, csr->rowOffsets, csr->num_rows + 1);
+    clsparse::vector<clsparseIdx_t>   indices (control, csr->colIndices, csr->num_nonzeros);
     clsparse::vector<cl_double> values  (control, csr->values,     csr->num_nonzeros);
 
     clsparse::vector<cl_double> Avalues (control, A->values, dense_size);

@@ -37,16 +37,28 @@ template<typename T, ReduceOperator OP = RO_DUMMY>
 clsparseStatus
 atomic_reduce(clsparseScalarPrivate* pR,
               const cldenseVectorPrivate* pX,
-              const cl_ulong wg_size,
+              const clsparseIdx_t wg_size,
               const clsparseControl control)
 {
     assert(wg_size == pX->num_values);
-
+        
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ReduceOperatorTrait<OP>::operation;
+
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if (typeid(cl_float) == typeid(T))
     {
@@ -58,7 +70,7 @@ atomic_reduce(clsparseScalarPrivate* pR,
         std::string options = std::string() + " -DATOMIC_DOUBLE";
         params.append(options);
     }
-    else if (typeid(cl_int) == typeid(T))
+    else if (typeid(cl_int) == typeid(T) || typeid(clsparseIdx_t) == typeid(T))
     {
         std::string options = std::string() + " -DATOMIC_INT";
         params.append(options);
@@ -77,8 +89,8 @@ atomic_reduce(clsparseScalarPrivate* pR,
     kWrapper << pR->value;
     kWrapper << pX->values;
 
-    int blocksNum = (pX->num_values + wg_size - 1) / wg_size;
-    int globalSize = blocksNum * wg_size;
+    clsparseIdx_t blocksNum = (pX->num_values + wg_size - 1) / wg_size;
+    clsparseIdx_t globalSize = blocksNum * wg_size;
 
     cl::NDRange local(wg_size);
     cl::NDRange global(globalSize);
@@ -101,17 +113,29 @@ template<typename T, ReduceOperator OP = RO_DUMMY>
 clsparseStatus
 atomic_reduce(clsparse::array_base<T>& pR,
               const clsparse::array_base<T>& pX,
-              const cl_ulong wg_size,
+              const clsparseIdx_t wg_size,
               const clsparseControl control)
 {
     assert(wg_size == pX.size());
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -D" + ReduceOperatorTrait<OP>::operation;
 
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
+    
     if (typeid(cl_float) == typeid(T))
     {
         std::string options = std::string() + " -DATOMIC_FLOAT";
@@ -122,7 +146,7 @@ atomic_reduce(clsparse::array_base<T>& pR,
         std::string options = std::string() + " -DATOMIC_DOUBLE";
         params.append(options);
     }
-    else if (typeid(cl_int) == typeid(T))
+    else if (typeid(cl_int) == typeid(T) || typeid(clsparseIdx_t) == typeid(T))
     {
         std::string options = std::string() + " -DATOMIC_INT";
         params.append(options);
@@ -141,8 +165,8 @@ atomic_reduce(clsparse::array_base<T>& pR,
     kWrapper << pR.data();
     kWrapper << pX.data();
 
-    int blocksNum = (pX.size() + wg_size - 1) / wg_size;
-    int globalSize = blocksNum * wg_size;
+    clsparseIdx_t blocksNum = (pX.size() + wg_size - 1) / wg_size;
+    clsparseIdx_t globalSize = blocksNum * wg_size;
 
     cl::NDRange local(wg_size);
     cl::NDRange global(globalSize);

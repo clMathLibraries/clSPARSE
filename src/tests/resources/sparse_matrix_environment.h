@@ -40,7 +40,7 @@ namespace uBLAS = boost::numeric::ublas;
 // Currently only single precision is considered
 class CSRSparseEnvironment : public ::testing::Environment {
 public:
-    using sMatrixType = uBLAS::compressed_matrix<float,  uBLAS::row_major, 0, uBLAS::unbounded_array<int> >;
+    using sMatrixType = uBLAS::compressed_matrix<float, uBLAS::row_major, 0, uBLAS::unbounded_array<clsparseIdx_t> >;
     //using dMatrixType = uBLAS::compressed_matrix<double, uBLAS::row_major, 0, uBLAS::unbounded_array<size_t> >;
 
     explicit CSRSparseEnvironment(const std::string& path, cl_command_queue queue, cl_context context, cl_bool explicit_zeroes = true)
@@ -288,9 +288,9 @@ public:
     //static sMatrixType ublasCsrB;
     //static sMatrixType ublasCsrC;    
 
-    static cl_int n_rows;
-    static cl_int n_cols;
-    static cl_int n_vals;
+    static clsparseIdx_t n_rows;
+    static clsparseIdx_t n_cols;
+    static clsparseIdx_t n_vals;
 
     //cl buffers ;
     static clsparseCsrMatrix csrSMatrix; // input 1

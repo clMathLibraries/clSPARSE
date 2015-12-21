@@ -144,17 +144,17 @@ public:
             ASSERT_EQ(clsparseSuccess, status);
 
             float* vals = (float*)&CSRE::ublasSCsr.value_data()[0];
-            int* rows = &CSRE::ublasSCsr.index1_data()[0];
-            int* cols = &CSRE::ublasSCsr.index2_data()[0];
-            for (int row = 0; row < CSRE::n_rows; row++)
+            clsparseIdx_t* rows = &CSRE::ublasSCsr.index1_data()[0];
+            clsparseIdx_t* cols = &CSRE::ublasSCsr.index2_data()[0];
+            for ( clsparseIdx_t row = 0; row < CSRE::n_rows; row++)
             {
                 // Summation done at a higher precision to decrease
                 // summation errors from rounding.
                 hY[row] *= hBeta;
-                int row_end = rows[row+1];
+                clsparseIdx_t row_end = rows[row + 1];
                 double temp_sum;
                 temp_sum = hY[row];
-                for (int i = rows[row]; i < rows[row+1]; i++)
+                for ( clsparseIdx_t i = rows[row]; i < rows[row + 1]; i++)
                 {
                     // Perform: hY[row] += hAlpha * vals[i] * hX[cols[i]];
                     temp_sum += hAlpha * vals[i] * hX[cols[i]];
@@ -171,7 +171,7 @@ public:
             uint64_t max_ulps = 0;
             uint64_t min_ulps = UINT64_MAX;
             uint64_t total_ulps = 0;
-            for (int i = 0; i < hY.size(); i++)
+            for (size_t i = 0; i < hY.size(); i++)
             {
                 long long int intDiff = (long long int)boost::math::float_distance(hY[i], host_result[i]);
                 intDiff = llabs(intDiff);
@@ -196,7 +196,7 @@ public:
             }
 #endif
 
-            for (int i = 0; i < hY.size(); i++)
+            for (size_t i = 0; i < hY.size(); i++)
             {
                 double compare_val = 0.;
                 if (extended_precision)
@@ -229,9 +229,9 @@ public:
             ASSERT_EQ(clsparseSuccess, status);
 
             double* vals = (double*)&CSRE::ublasDCsr.value_data()[0];
-            int* rows = &CSRE::ublasDCsr.index1_data()[0];
-            int* cols = &CSRE::ublasDCsr.index2_data()[0];
-            for (int row = 0; row < CSRE::n_rows; row++)
+            clsparseIdx_t* rows = &CSRE::ublasDCsr.index1_data()[0];
+            clsparseIdx_t* cols = &CSRE::ublasDCsr.index2_data()[0];
+            for ( clsparseIdx_t row = 0; row < CSRE::n_rows; row++)
             {
                 // Summation done using a compensated summation to decrease
                 // summation errors from rounding. This allows us to get
@@ -239,11 +239,11 @@ public:
                 // This method is like performing summation at quad precision and
                 // casting down to double in the end.
                 hY[row] *= hBeta;
-                int row_end = rows[row+1];
+                clsparseIdx_t row_end = rows[row + 1];
                 double temp_sum;
                 temp_sum = hY[row];
                 T sumk_err = 0.;
-                for (int i = rows[row]; i < rows[row+1]; i++)
+                for ( clsparseIdx_t i = rows[row]; i < rows[row + 1]; i++)
                 {
                     // Perform: hY[row] += hAlpha * vals[i] * hX[cols[i]];
                     temp_sum = two_sum(temp_sum, hAlpha*vals[i]*hX[cols[i]], &sumk_err);
@@ -260,7 +260,7 @@ public:
             uint64_t max_ulps = 0;
             uint64_t min_ulps = ULLONG_MAX;
             uint64_t total_ulps = 0;
-            for (int i = 0; i < hY.size(); i++)
+            for (size_t i = 0; i < hY.size(); i++)
             {
                 long long int intDiff = (long long int)boost::math::float_distance(hY[i], host_result[i]);
                 intDiff = llabs(intDiff);
@@ -284,7 +284,7 @@ public:
                 std::cout << "Double Average ulps: " << (double)total_ulps/(double)hY.size() <<  " (Size: " << hY.size() << ")" << std::endl;
 #endif
 
-                for (int i = 0; i < hY.size(); i++)
+                for (size_t i = 0; i < hY.size(); i++)
                 {
                     double compare_val = fabs(hY[i]*1e-14);
                     if (compare_val < 10*DBL_EPSILON)
@@ -294,7 +294,7 @@ public:
             }
             else
             {
-                for (int i = 0; i < hY.size(); i++)
+                for (size_t i = 0; i < hY.size(); i++)
                 {
                     double compare_val = 0.;
                     if (boost::math::isnormal(hY[i]))

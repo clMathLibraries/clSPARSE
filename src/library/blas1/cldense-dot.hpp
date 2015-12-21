@@ -31,20 +31,32 @@ clsparseStatus
 inner_product (cldenseVectorPrivate* partial,
      const cldenseVectorPrivate* pX,
      const cldenseVectorPrivate* pY,
-     const cl_ulong size,
-     const cl_ulong REDUCE_BLOCKS_NUMBER,
-     const cl_ulong REDUCE_BLOCK_SIZE,
+     const clsparseIdx_t size,
+     const clsparseIdx_t REDUCE_BLOCKS_NUMBER,
+     const clsparseIdx_t REDUCE_BLOCK_SIZE,
      const clsparseControl control)
 {
 
-    cl_ulong nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
+    clsparseIdx_t nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DN_THREADS=" + std::to_string(nthreads);
+
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -95,21 +107,21 @@ clsparseStatus dot(clsparseScalarPrivate* pR,
 
     // with REDUCE_BLOCKS_NUMBER = 256 final reduction can be performed
     // within one block;
-    const cl_ulong REDUCE_BLOCKS_NUMBER = 256;
+    const clsparseIdx_t REDUCE_BLOCKS_NUMBER = 256;
 
     /* For future optimisation
     //workgroups per compute units;
     const cl_uint  WG_PER_CU = 64;
     const cl_ulong REDUCE_BLOCKS_NUMBER = control->max_compute_units * WG_PER_CU;
     */
-    const cl_ulong REDUCE_BLOCK_SIZE = 256;
+    const clsparseIdx_t REDUCE_BLOCK_SIZE = 256;
 
-    cl_ulong xSize = pX->num_values - pX->offset();
-    cl_ulong ySize = pY->num_values - pY->offset();
+    clsparseIdx_t xSize = pX->num_values - pX->offset();
+    clsparseIdx_t ySize = pY->num_values - pY->offset();
 
     assert (xSize == ySize);
 
-    cl_ulong size = xSize;
+    clsparseIdx_t size = xSize;
 
 
     if (size > 0)
@@ -151,20 +163,32 @@ clsparseStatus
 inner_product (clsparse::array_base<T>& partial,
      const clsparse::array_base<T>& pX,
      const clsparse::array_base<T>& pY,
-     const cl_ulong size,
-     const cl_ulong REDUCE_BLOCKS_NUMBER,
-     const cl_ulong REDUCE_BLOCK_SIZE,
+     const clsparseIdx_t size,
+     const clsparseIdx_t REDUCE_BLOCKS_NUMBER,
+     const clsparseIdx_t REDUCE_BLOCK_SIZE,
      const clsparseControl control)
 {
 
-    cl_ulong nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
+    clsparseIdx_t nthreads = REDUCE_BLOCK_SIZE * REDUCE_BLOCKS_NUMBER;
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DREDUCE_BLOCK_SIZE=" + std::to_string(REDUCE_BLOCK_SIZE)
             + " -DN_THREADS=" + std::to_string(nthreads);
+
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -216,21 +240,21 @@ clsparseStatus dot(clsparse::array_base<T>& pR,
 
     // with REDUCE_BLOCKS_NUMBER = 256 final reduction can be performed
     // within one block;
-    const cl_ulong REDUCE_BLOCKS_NUMBER = 256;
+    const clsparseIdx_t REDUCE_BLOCKS_NUMBER = 256;
 
     /* For future optimisation
     //workgroups per compute units;
     const cl_uint  WG_PER_CU = 64;
     const cl_ulong REDUCE_BLOCKS_NUMBER = control->max_compute_units * WG_PER_CU;
     */
-    const cl_ulong REDUCE_BLOCK_SIZE = 256;
+    const clsparseIdx_t REDUCE_BLOCK_SIZE = 256;
 
-    cl_ulong xSize = pX.size();
-    cl_ulong ySize = pY.size();
+    clsparseIdx_t xSize = pX.size();
+    clsparseIdx_t ySize = pY.size();
 
     assert (xSize == ySize);
 
-    cl_ulong size = xSize;
+    clsparseIdx_t size = xSize;
 
     if (size > 0)
     {

@@ -48,12 +48,12 @@ extract_diagonal(cldenseVectorPrivate* pDiag,
 
     assert (pDiag->num_values == std::min(pA->num_rows, pA->num_cols));
 
-    cl_ulong wg_size = 256;
-    cl_ulong size = pA->num_rows;
+    clsparseIdx_t wg_size = 256;
+    clsparseIdx_t size = pA->num_rows;
 
-    cl_ulong nnz_per_row = pA->nnz_per_row();
-    cl_ulong wave_size = control->wavefront_size;
-    cl_ulong subwave_size = wave_size;
+    clsparseIdx_t nnz_per_row = pA->nnz_per_row();
+    clsparseIdx_t wave_size = control->wavefront_size;
+    clsparseIdx_t subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
     // each wavefron will be assigned to the row of the csr matrix
@@ -69,12 +69,25 @@ extract_diagonal(cldenseVectorPrivate* pDiag,
 
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
+
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if (inverse)
         params.append(" -DOP_DIAG_INVERSE");
@@ -102,9 +115,9 @@ extract_diagonal(cldenseVectorPrivate* pDiag,
              << pA->colIndices
              << pA->values;
 
-    cl_uint predicted = subwave_size * size;
+    clsparseIdx_t predicted = subwave_size * size;
 
-    cl_uint global_work_size =
+    clsparseIdx_t global_work_size =
             wg_size * ((predicted + wg_size - 1 ) / wg_size);
     cl::NDRange local(wg_size);
     //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
@@ -144,12 +157,12 @@ extract_diagonal(clsparse::vector<T>& pDiag,
 
     assert( pDiag.size( ) == std::min( pA->num_cols, pA->num_rows ) );
 
-    cl_ulong wg_size = 256;
-    cl_ulong size = pA->num_rows;
+    clsparseIdx_t wg_size = 256;
+    clsparseIdx_t size = pA->num_rows;
 
-    cl_ulong nnz_per_row = pA->nnz_per_row();
-    cl_ulong wave_size = control->wavefront_size;
-    cl_ulong subwave_size = wave_size;
+    clsparseIdx_t nnz_per_row = pA->nnz_per_row();
+    clsparseIdx_t wave_size = control->wavefront_size;
+    clsparseIdx_t subwave_size = wave_size;
 
     // adjust subwave_size according to nnz_per_row;
     // each wavefron will be assigned to the row of the csr matrix
@@ -165,12 +178,25 @@ extract_diagonal(clsparse::vector<T>& pDiag,
 
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
-            + " -DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(wg_size)
             + " -DWAVE_SIZE=" + std::to_string(wave_size)
             + " -DSUBWAVE_SIZE=" + std::to_string(subwave_size);
+
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if (inverse)
         params.append(" -DOP_DIAG_INVERSE");
@@ -198,9 +224,9 @@ extract_diagonal(clsparse::vector<T>& pDiag,
              << pA->colIndices
              << pA->values;
 
-    cl_uint predicted = subwave_size * size;
+    clsparseIdx_t predicted = subwave_size * size;
 
-    cl_uint global_work_size =
+    clsparseIdx_t global_work_size =
             wg_size * ((predicted + wg_size - 1 ) / wg_size);
     cl::NDRange local(wg_size);
     //cl::NDRange global(predicted > local[0] ? predicted : local[0]);
