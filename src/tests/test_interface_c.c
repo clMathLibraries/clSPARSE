@@ -55,13 +55,13 @@ int main( int argc, char* argv[ ] )
     // Library init code starts here
     clsparseSetup( );
 
-    clsparseControl control = clsparseCreateControl( queue, NULL );
+    clsparseCreateResult createResult = clsparseCreateControl( queue );
 
     clsparseCooMatrix myCooMatx;
     clsparseInitCooMatrix( &myCooMatx );
 
     // Library termination
-    clsparseReleaseControl( control );
+    clsparseReleaseControl( createResult.control );
     clsparseTeardown( );
 
     // OpenCL termination

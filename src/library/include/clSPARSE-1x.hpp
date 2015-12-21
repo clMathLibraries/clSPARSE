@@ -24,7 +24,7 @@
 #include "clSPARSE-1x.h"
 #include "clSPARSE-error.h"
 
-// C++ wrapper classes that inherit from the extenrally visible C classes,
+// C++ wrapper classes that inherit from the externally visible C classes,
 // for the purpose of providing convenience methods to abstract away the
 // differences between cl1.2 and cl2.0
 // Users are responsible for creating and destroying the OpenCL objects
@@ -46,11 +46,6 @@ struct matrix_meta
 {
     matrix_meta( ) : rowBlockSize( 0 ), offRowBlocks( 0 )
     {
-    }
-
-    ~matrix_meta( )
-    {
-        std::cout << "matrix_meta destructor" << std::endl;
     }
 
     void clear( )
@@ -214,6 +209,7 @@ public:
         num_rows = num_cols = num_nonzeros = 0;
         values = colIndices = rowOffsets = nullptr;
         offValues = offColInd = offRowOff = 0;
+        meta = nullptr;
     }
 
     clsparseIdx_t nnz_per_row() const

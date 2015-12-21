@@ -50,8 +50,9 @@ public:
         clsparseEnableAsync( control, false );
         explicit_zeroes = keep_explicit_zeroes;
 
-        solverControl = clsparseCreateSolverControl(DIAGONAL, 1000, 1e-6, 0);
-        clsparseSolverPrintMode(solverControl, VERBOSE);
+        clsparseCreateSolverResult solverResult = clsparseCreateSolverControl(DIAGONAL, 1000, 1e-6, 0);
+        solverControl = solverResult.control;
+        clsparseSolverPrintMode( solverControl, VERBOSE);
     }
 
     ~xBiCGStab( )

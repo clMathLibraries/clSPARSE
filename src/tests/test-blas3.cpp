@@ -227,7 +227,6 @@ TYPED_TEST(TestCSRSpGeMM, square)
     using CLSE = ClSparseEnvironment;
     typedef typename uBLAS::compressed_matrix<float, uBLAS::row_major, 0, uBLAS::unbounded_array<clsparseIdx_t> > uBlasCSRM;
  
-    cl::Event event;
     clsparseEnableAsync(CLSE::control, true);
 
 #ifdef TEST_LONG
@@ -238,8 +237,9 @@ TYPED_TEST(TestCSRSpGeMM, square)
 
     EXPECT_EQ(clsparseSuccess, status);
 
-    status = clsparseGetEvent(CLSE::control, &event());
-    EXPECT_EQ(clsparseSuccess, status);
+    clsparseEventResult sparseEvent = clsparseGetEvent( CLSE::control );
+    EXPECT_EQ(clsparseSuccess, sparseEvent.status );
+    cl::Event event = sparseEvent.event;
     event.wait();
 
     //std::cout << "nrows =" << (this->csrMatrixC).num_rows << std::endl;
@@ -348,7 +348,6 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
     using CLSE = ClSparseEnvironment;
     typedef typename uBLAS::compressed_matrix<float, uBLAS::row_major, 0, uBLAS::unbounded_array<clsparseIdx_t> > uBlasCSRM;
 
-    cl::Event event;
     clsparseEnableAsync(CLSE::control, true);
 
     clsparse_matrix_fill<float> objFillVals(42, -14, 14);
@@ -375,9 +374,10 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
 
     EXPECT_EQ(clsparseSuccess, status);
 
-    status = clsparseGetEvent(CLSE::control, &event());
-    EXPECT_EQ(clsparseSuccess, status);
-    event.wait();
+    clsparseEventResult sparseEvent = clsparseGetEvent( CLSE::control );
+    EXPECT_EQ( clsparseSuccess, sparseEvent.status );
+    cl::Event event = sparseEvent.event;
+    event.wait( );
 
 
     std::vector<clsparseIdx_t> resultRowPtr((this->csrMatrixC).num_rows + 1); // Get row ptr of Output CSR matrix
@@ -585,7 +585,6 @@ TYPED_TEST(TestCSRMM, multiply)
     using CSRE = CSREnvironment;
     using CLSE = ClSparseEnvironment;
 
-    cl::Event event;
     clsparseEnableAsync(CLSE::control, true);
 
     //control object is global and it is updated here;
@@ -595,9 +594,10 @@ TYPED_TEST(TestCSRMM, multiply)
 
     EXPECT_EQ(clsparseSuccess, status);
 
-    status = clsparseGetEvent(CLSE::control, &event());
-    EXPECT_EQ(clsparseSuccess, status);
-    event.wait();
+    clsparseEventResult sparseEvent = clsparseGetEvent( CLSE::control );
+    EXPECT_EQ( clsparseSuccess, sparseEvent.status );
+    cl::Event event = sparseEvent.event;
+    event.wait( );
 
     std::vector<TypeParam> result(this->C.data().size());
 

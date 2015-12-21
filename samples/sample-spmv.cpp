@@ -28,7 +28,8 @@
 #include <CL/cl.hpp>
 #endif
 
-#include <clSPARSE.h>
+#include "clSPARSE.h"
+#include "clSPARSE-error.h"
 
 /**
  * \brief Sample Sparse Matrix dense Vector multiplication (SPMV C++)
@@ -188,16 +189,11 @@ int main (int argc, char* argv[])
 
 
     // Create clsparseControl object
-    clsparseControl control = clsparseCreateControl(queue(), &status);
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Problem with creating clSPARSE control object"
-                  <<" error [" << status << "]" << std::endl;
-        return -4;
-    }
+    clsparseCreateResult createResult = clsparseCreateControl( queue( ) );
+    CLSPARSE_V( createResult.status, "Failed to create clsparse control" );
 
 
-    // Read matrix from file. Calculates the rowBlocks strucutres as well.
+    // Read matrix from file. Calculates the rowBlocks structures as well.
     clsparseIdx_t nnz, row, col;
     // read MM header to get the size of the matrix;
     clsparseStatus fileError
@@ -223,20 +219,14 @@ int main (int argc, char* argv[])
     A.rowOffsets = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                      ( A.num_rows + 1 ) * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
-    A.rowBlocks = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
-                                    A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );
-
 
     // Read matrix market file with explicit zero values included.
-    fileError = clsparseSCsrMatrixfromFile( &A, matrix_path.c_str( ), control, true );
+    fileError = clsparseSCsrMatrixfromFile( &A, matrix_path.c_str( ), createResult.control, true );
 
     // This function allocates memory for rowBlocks structure. If not called
     // the structure will not be calculated and clSPARSE will run the vectorized
     // version of SpMV instead of adaptive;
-    clsparseCsrMetaSize( &A, control );
-    A.rowBlocks = ::clCreateBuffer( context(), CL_MEM_READ_WRITE,
-            A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );
-    clsparseCsrMetaCompute( &A, control );
+    clsparseCsrMetaCreate( &A, createResult.control );
 
     if (fileError != clsparseSuccess)
     {
@@ -283,7 +273,7 @@ int main (int argc, char* argv[])
 
 
     /**Step 4. Call the spmv algorithm */
-    status = clsparseScsrmv(&alpha, &A, &x, &beta, &y, control);
+    status = clsparseScsrmv(&alpha, &A, &x, &beta, &y, createResult.control );
 
     if (status != clsparseSuccess)
     {
@@ -293,7 +283,7 @@ int main (int argc, char* argv[])
 
 
     /** Step 5. Close & release resources */
-    status = clsparseReleaseControl(control);
+    status = clsparseReleaseControl( createResult.control );
     if (status != clsparseSuccess)
     {
         std::cout << "Problem with releasing control object."
@@ -310,10 +300,10 @@ int main (int argc, char* argv[])
 
 
     //release mem;
+    clsparseCsrMetaDelete( &A );
     clReleaseMemObject ( A.values );
     clReleaseMemObject ( A.colIndices );
     clReleaseMemObject ( A.rowOffsets );
-    clReleaseMemObject ( A.rowBlocks );
 
     clReleaseMemObject ( x.values );
     clReleaseMemObject ( y.values );

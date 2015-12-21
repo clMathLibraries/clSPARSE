@@ -48,7 +48,8 @@ public:
         clsparseEnableAsync( control, false );
         explicit_zeroes = keep_explicit_zeroes;
 
-        solverControl = clsparseCreateSolverControl(NOPRECOND, 10000, 1e-4, 1e-8);
+        clsparseCreateSolverResult solverResult = clsparseCreateSolverControl( NOPRECOND, 10000, 1e-4, 1e-8 );
+        solverControl = solverResult.control;
         clsparseSolverPrintMode(solverControl, NORMAL);
     }
 

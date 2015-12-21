@@ -81,7 +81,8 @@ public:
             CLSPARSE_V( ::clReleaseContext( ctx ), "releasing context" );
         }
 
-        control = clsparseCreateControl( queue, NULL );
+        clsparseCreateResult createResult = clsparseCreateControl( queue );
+        control = ( createResult.status == clsparseSuccess ) ? createResult.control : nullptr;
 
     }
 

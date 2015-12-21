@@ -55,15 +55,18 @@ clsparseCsrMetaCreate( clsparseCsrMatrix* csrMatx, clsparseControl control )
     cl_int* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
 
     matrix_meta* meta_ptr = nullptr;
-    if( pCsrMatx->meta == nullptr )
-    {
-        meta_ptr = new matrix_meta;
-        meta_ptr->rowBlockSize = ComputeRowBlocksSize( rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
-    }
-    else
-        meta_ptr = static_cast< matrix_meta* >( pCsrMatx->meta );
-
     if( pCsrMatx->meta )
+    {
+        meta_ptr = static_cast< matrix_meta* >( pCsrMatx->meta );
+        delete meta_ptr;
+        meta_ptr = nullptr;
+        pCsrMatx->meta = nullptr;
+    }
+
+    meta_ptr = new matrix_meta;
+    meta_ptr->rowBlockSize = ComputeRowBlocksSize( rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
+
+    if( meta_ptr )
     {
         meta_ptr->rowBlocks = ::cl::Buffer( control->getContext( ), CL_MEM_READ_WRITE, meta_ptr->rowBlockSize * sizeof( cl_ulong ) );
 
@@ -72,6 +75,8 @@ clsparseCsrMetaCreate( clsparseCsrMatrix* csrMatx, clsparseControl control )
         ComputeRowBlocks( ulCsrRowBlocks, meta_ptr->rowBlockSize, rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
         control->queue.enqueueUnmapMemObject( meta_ptr->rowBlocks, ulCsrRowBlocks );
     }
+
+    pCsrMatx->meta = meta_ptr;
     return clsparseSuccess;
 }
 

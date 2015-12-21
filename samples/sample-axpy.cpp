@@ -28,7 +28,8 @@
 #include <CL/cl.hpp>
 #endif
 
-#include <clSPARSE.h>
+#include "clSPARSE.h"
+#include "clSPARSE-error.h"
 
 /*!
  * \brief Sample AXPY (C++)
@@ -174,15 +175,11 @@ int main(int argc, char* argv[])
 
 
     // Create clsparseControl object
-    clsparseControl control = clsparseCreateControl(queue(), &status);
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Problem with creating clSPARSE control object"
-                  <<" error [" << status << "]" << std::endl;
-    }
+    clsparseCreateResult createResult = clsparseCreateControl( queue( ) );
+    CLSPARSE_V( createResult.status, "Failed to create clsparse control" );
     /** Step 4. Execute AXPY algorithm **/
 
-    status = cldenseSaxpy(&gpuY, &gpuAlpha, &gpuX, &gpuY, control);
+    status = cldenseSaxpy(&gpuY, &gpuAlpha, &gpuX, &gpuY, createResult.control );
 
     if (status != clsparseSuccess)
     {
@@ -191,7 +188,7 @@ int main(int argc, char* argv[])
     }
 
     /** Step 5. Shutdown clSPARSE library & OpenCL **/
-    status = clsparseReleaseControl(control);
+    status = clsparseReleaseControl( createResult.control );
 
 	status = clsparseTeardown();
     if (status != clsparseSuccess)
