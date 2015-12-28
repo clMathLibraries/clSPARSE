@@ -20,6 +20,7 @@
 #include "cufunc_common.hpp"
 #include "include/mm_reader.hpp"
 #include "include/io-exception.hpp"
+#include "include/cufunc_sparse-xx.h"
 
 template <typename T>
 class xSpMdV : public cusparseFunc
@@ -69,7 +70,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( int )*( n_vals + n_rows ) + sizeof( T ) * ( n_vals + n_cols + n_rows ) ) / time_in_ns( );
+        return ( sizeof( clsparseIdx_t )*( n_vals + n_rows ) + sizeof( T ) * ( n_vals + n_cols + n_rows ) ) / time_in_ns( );
     }
 
     std::string bandwidth_formula( )
@@ -91,10 +92,10 @@ public:
             throw clsparse::io_exception( "Could not read matrix market from disk: " + path);
         }
 
-        cudaError_t err = cudaMalloc( (void**) &device_row_offsets, row_offsets.size( ) * sizeof( int ) );
+        cudaError_t err = cudaMalloc( (void**) &device_row_offsets, row_offsets.size( ) * sizeof( clsparseIdx_t ) );
         CUDA_V_THROW( err, "cudaMalloc device_row_offsets" );
 
-        err = cudaMalloc( (void**) &device_col_indices, col_indices.size( ) * sizeof( int ) );
+        err = cudaMalloc( (void**) &device_col_indices, col_indices.size( ) * sizeof( clsparseIdx_t ) );
         CUDA_V_THROW( err, "cudaMalloc device_col_indices" );
 
         err = cudaMalloc( (void**) &device_values, values.size( ) * sizeof( T ) );
@@ -115,10 +116,10 @@ public:
 
     void initialize_gpu_buffer( )
     {
-        cudaError_t err = cudaMemcpy( device_row_offsets, &row_offsets[ 0 ], row_offsets.size( ) * sizeof( int ), cudaMemcpyHostToDevice );
+        cudaError_t err = cudaMemcpy( device_row_offsets, &row_offsets[ 0 ], row_offsets.size( ) * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice );
         CUDA_V_THROW( err, "cudaMalloc device_row_offsets" );
 
-        err = cudaMemcpy( device_col_indices, &col_indices[ 0 ], col_indices.size( ) * sizeof( int ), cudaMemcpyHostToDevice );
+        err = cudaMemcpy( device_col_indices, &col_indices[ 0 ], col_indices.size( ) * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice );
         CUDA_V_THROW( err, "cudaMalloc device_row_offsets" );
 
         err = cudaMemcpy( device_values, &values[ 0 ], values.size( ) * sizeof( T ), cudaMemcpyHostToDevice );
@@ -168,13 +169,13 @@ private:
     void xSpMdV_Function( bool flush );
 
     //host matrix definition
-    std::vector< int > row_offsets;
-    std::vector< int > col_indices;
+    std::vector< clsparseIdx_t > row_offsets;
+    std::vector< clsparseIdx_t > col_indices;
     std::vector< T > values;
     std::vector< T > x;
-    int n_rows;
-    int n_cols;
-    int n_vals;
+    clsparseIdx_t n_rows;
+    clsparseIdx_t n_cols;
+    clsparseIdx_t n_vals;
 
     bool explicit_zeroes;
 
@@ -184,8 +185,8 @@ private:
     cusparseMatDescr_t descrA;
 
     // device CUDA pointers
-    int* device_row_offsets;
-    int* device_col_indices;
+    clsparseIdx_t* device_row_offsets;
+    clsparseIdx_t* device_col_indices;
     T* device_values;
     T* device_x;
     T* device_y;

@@ -37,6 +37,7 @@ to copyright protection within the United States.
 #include <string>
 #include <cstring>
 #include <fstream>
+#include <sstream>
 #include <cstdio>
 #include <iostream>
 #include <typeinfo>
@@ -44,13 +45,14 @@ to copyright protection within the United States.
 #include <algorithm>
 
 #include "include/external/mmio.h"
+#include "include/cufunc_sparse-xx.h"
 
 // Class declarations
 template<typename FloatType>
 struct Coordinate
 {
-    int x;
-    int y;
+    clsparseIdx_t x;
+    clsparseIdx_t y;
     FloatType val;
 };
 
@@ -58,9 +60,9 @@ template <typename FloatType>
 class MatrixMarketReader
 {
     char Typecode[ 4 ];
-    int nNZ;
-    int nRows;
-    int nCols;
+    clsparseIdx_t nNZ;
+    clsparseIdx_t nRows;
+    clsparseIdx_t nCols;
     int isSymmetric;
     int isDoubleMem;
     Coordinate<FloatType> *unsym_coords;
@@ -81,17 +83,17 @@ public:
     int MMReadMtxCrdSize( FILE* infile );
     void MMGenerateCOOFromFile( FILE* infile, bool explicit_zeroes );
 
-    int GetNumRows( )
+    clsparseIdx_t GetNumRows( )
     {
         return nRows;
     }
 
-    int GetNumCols( )
+    clsparseIdx_t GetNumCols( )
     {
         return nCols;
     }
 
-    int GetNumNonZeroes( )
+    clsparseIdx_t GetNumNonZeroes( )
     {
         return nNZ;
     }
@@ -210,9 +212,9 @@ bool MatrixMarketReader<FloatType>::MMReadFormat( const std::string &filename, b
 template<typename FloatType>
 void FillCoordData( char Typecode[ ],
                     Coordinate<FloatType> *unsym_coords,
-                    int &unsym_actual_nnz,
-                    int ir,
-                    int ic,
+                    clsparseIdx_t &unsym_actual_nnz,
+                    clsparseIdx_t ir,
+                    clsparseIdx_t ic,
                     FloatType val )
 {
     if( mm_is_symmetric( Typecode ) )
@@ -240,23 +242,27 @@ void FillCoordData( char Typecode[ ],
 template<typename FloatType>
 void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool explicit_zeroes )
 {
-    int unsym_actual_nnz = 0;
+    clsparseIdx_t unsym_actual_nnz = 0;
     FloatType val;
-    int ir, ic;
+    clsparseIdx_t ir, ic;
 
     const int exp_zeroes = explicit_zeroes;
 
     //silence warnings from fscanf (-Wunused-result)
-    int rv = 0;
+    clsparseIdx_t rv = 0;
 
-    for( int i = 0; i < nNZ; i++ )
+    for ( clsparseIdx_t i = 0; i < nNZ; i++)
     {
         if( mm_is_real( Typecode ) )
         {
-            if( typeid( FloatType ) == typeid( float ) )
-              rv = fscanf( infile, "%d %d %f\n", &ir, &ic, &val );
+            fscanf(infile, "%" SIZET "u", &ir);
+            fscanf(infile, "%" SIZET "u", &ic);
+
+            if (typeid(FloatType) == typeid(float))
+                rv = fscanf(infile, "%f\n", (float*)(&val));
+
             else if( typeid( FloatType ) == typeid( double ) )
-              rv = fscanf( infile, "%d %d %lf\n", &ir, &ic, &val );
+              rv = fscanf( infile, "%lf\n", (double*)( &val ) );
 
             if( exp_zeroes == 0 && val == 0 )
                 continue;
@@ -265,10 +271,13 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool ex
         }
         else if( mm_is_integer( Typecode ) )
         {
-            if( typeid( FloatType ) == typeid( float ) )
-              rv = fscanf(infile, "%d %d %f\n", &ir, &ic, &val);
-            else if( typeid( FloatType ) == typeid( double ) )
-              rv = fscanf(infile, "%d %d %lf\n", &ir, &ic, &val);
+            fscanf(infile, "%" SIZET "u", &ir);
+            fscanf(infile, "%" SIZET "u", &ic);
+
+            if(typeid(FloatType) == typeid(float))
+               rv = fscanf(infile, "%f\n", (float*)( &val ) );
+            else if(typeid(FloatType) == typeid(double))
+               rv = fscanf(infile, "%lf\n", (double*)( &val ) );
 
             if( exp_zeroes == 0 && val == 0 )
                 continue;
@@ -278,7 +287,9 @@ void MatrixMarketReader<FloatType>::MMGenerateCOOFromFile( FILE *infile, bool ex
         }
         else if( mm_is_pattern( Typecode ) )
         {
-            rv = fscanf( infile, "%d %d", &ir, &ic );
+            rv = fscanf(infile, "%" SIZET "u", &ir);
+            rv = fscanf(infile, "%" SIZET "u", &ic);
+
             val = static_cast<FloatType>( MAX_RAND_VAL * ( rand( ) / ( RAND_MAX + 1.0 ) ) );
 
             if( exp_zeroes == 0 && val == 0 )
@@ -385,12 +396,22 @@ int MatrixMarketReader<FloatType>::MMReadMtxCrdSize( FILE *infile )
     } while( line[ 0 ] == '%' );
 
     /* line[] is either blank or has M,N, nz */
-    if( sscanf( line, "%d %d %d", &nRows, &nCols, &nNZ ) == 3 )
+    std::stringstream s(line);
+    nRows = 0;
+    nCols = 0;
+    nNZ   = 0;    
+    s >> nRows >> nCols >> nNZ;
+    if (nRows && nCols && nNZ)
         return 0;
     else
         do
         {
-            num_items_read = fscanf( infile, "%d %d %d", &nRows, &nCols, &nNZ );
+            num_items_read = 0; 
+            num_items_read += fscanf( infile, "%" SIZET "u", &nRows );
+            if (num_items_read == EOF) return MM_PREMATURE_EOF;
+            num_items_read += fscanf(infile,  "%" SIZET "u", &nCols);
+            if (num_items_read == EOF) return MM_PREMATURE_EOF;
+            num_items_read += fscanf(infile,  "%" SIZET "u", &nNZ);
             if( num_items_read == EOF ) return MM_PREMATURE_EOF;
         } while( num_items_read != 3 );
 
@@ -409,7 +430,7 @@ bool CoordinateCompare( const Coordinate<FloatType> &c1, const Coordinate<FloatT
 // This function reads the file at the given filepath, and returns the sparse
 // matrix in the COO struct.
 template< typename T > int
-cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indices,
+cooMatrixfromFile( std::vector< clsparseIdx_t >& row_indices, std::vector< clsparseIdx_t >& col_indices,
     std::vector< T >& values, const char* filePath, bool read_explicit_zeroes )
 {
     // Check that the file format is matrix market; the only format we can read right now
@@ -429,9 +450,9 @@ cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indi
     if( mm_reader.MMReadFormat( filePath, read_explicit_zeroes ) )
         return 2;
 
-    int m = mm_reader.GetNumRows( );
-    int n = mm_reader.GetNumCols( );
-    int nnz = mm_reader.GetNumNonZeroes( );
+    clsparseIdx_t m = mm_reader.GetNumRows( );
+    clsparseIdx_t n = mm_reader.GetNumCols( );
+    clsparseIdx_t nnz = mm_reader.GetNumNonZeroes( );
 
     row_indices.clear( );
     col_indices.clear( );
@@ -441,7 +462,7 @@ cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indi
     values.reserve( nnz );
 
     Coordinate< T >* coords = mm_reader.GetUnsymCoordinates( );
-    for( int c = 0; c < nnz; ++c )
+    for( clsparseIdx_t c = 0; c < nnz; ++c )
     {
         row_indices.push_back( coords[ c ].x );
         col_indices.push_back( coords[ c ].y );
@@ -452,15 +473,15 @@ cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indi
 }
 
 // Explicit template instantiations for float, double
-template int cooMatrixfromFile<>( std::vector< int >& row_indices, std::vector< int >& col_indices,
+template int cooMatrixfromFile<>( std::vector< clsparseIdx_t >& row_indices, std::vector< clsparseIdx_t >& col_indices,
                                   std::vector< float >& values, const char* filePath, bool read_explicit_zeroes );
-template int cooMatrixfromFile<>( std::vector< int >& row_indices, std::vector< int >& col_indices,
+template int cooMatrixfromFile<>( std::vector< clsparseIdx_t >& row_indices, std::vector< clsparseIdx_t >& col_indices,
                                   std::vector< double >& values, const char* filePath, bool read_explicit_zeroes );
 
 // This function reads the file at the given filepath, and returns the sparse
 // matrix in the CSR struct.
 template< typename T > int
-csrMatrixfromFile( std::vector< int >& row_offsets, std::vector< int >& col_indices,
+csrMatrixfromFile( std::vector< clsparseIdx_t >& row_offsets, std::vector< clsparseIdx_t >& col_indices,
 std::vector< T >& values, const char* filePath, bool read_explicit_zeroes )
 {
     // Check that the file format is matrix market; the only format we can read right now
@@ -480,9 +501,9 @@ std::vector< T >& values, const char* filePath, bool read_explicit_zeroes )
     if( mm_reader.MMReadFormat( filePath, read_explicit_zeroes ) )
         return 2;
 
-    int m = mm_reader.GetNumRows( );
-    int n = mm_reader.GetNumCols( );
-    int nnz = mm_reader.GetNumNonZeroes( );
+    clsparseIdx_t m = mm_reader.GetNumRows( );
+    clsparseIdx_t n = mm_reader.GetNumCols( );
+    clsparseIdx_t nnz = mm_reader.GetNumNonZeroes( );
 
     row_offsets.clear( );
     col_indices.clear( );
@@ -495,9 +516,9 @@ std::vector< T >& values, const char* filePath, bool read_explicit_zeroes )
 
     std::sort( coords, coords + nnz, CoordinateCompare< T > );
 
-    int current_row = 1;
+    clsparseIdx_t current_row = 1;
     row_offsets.push_back( 0 );
-    for( int i = 0; i < nnz; i++ )
+    for( clsparseIdx_t i = 0; i < nnz; i++ )
     {
         col_indices.push_back( coords[ i ].y );
         values.push_back( coords[ i ].val );
@@ -514,14 +535,14 @@ std::vector< T >& values, const char* filePath, bool read_explicit_zeroes )
 }// end
 
 // Explicit template instantiations for float, double
-template int csrMatrixfromFile<>( std::vector< int >& row_offsets, std::vector< int >& col_indices,
+template int csrMatrixfromFile<>( std::vector< clsparseIdx_t >& row_offsets, std::vector< clsparseIdx_t >& col_indices,
                                   std::vector< float >& values, const char* filePath, bool read_explicit_zeroes );
-template int csrMatrixfromFile<>( std::vector< int >& row_offsets, std::vector< int >& col_indices,
+template int csrMatrixfromFile<>( std::vector< clsparseIdx_t >& row_offsets, std::vector< clsparseIdx_t >& col_indices,
                                   std::vector< double >& values, const char* filePath, bool read_explicit_zeroes );
 
 // This function reads the file header at the given filepath, and gets the
 // matrix dimensions
-int sparseHeaderfromFile(int* nnz, int* rows, int* cols, const char* filePath)
+int sparseHeaderfromFile(clsparseIdx_t* nnz, clsparseIdx_t* rows, clsparseIdx_t* cols, const char* filePath)
 {
     std::string strPath(filePath);
     if (strPath.find_last_of(".") != std::string::npos)
