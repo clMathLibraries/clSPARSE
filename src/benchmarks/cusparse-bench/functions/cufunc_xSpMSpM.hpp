@@ -18,8 +18,10 @@
 #define CUSPARSE_BENCHMARK_xSpMSpM_HXX__
 
 #include "cufunc_common.hpp"
+#include "include/cufunc_sparse-xx.h"
 #include "include/mm_reader.hpp"
 #include "include/io-exception.hpp"
+
 
 // C = alpha * A * A
 template<typename T>
@@ -124,10 +126,10 @@ public:
             throw clsparse::io_exception("Could not read matrix market header from disk");
         }
 
-        cudaError_t err = cudaMalloc((void**)&dev_csrRowPtrA, row_offsets.size() * sizeof(int));
+        cudaError_t err = cudaMalloc((void**)&dev_csrRowPtrA, row_offsets.size() * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMalloc device_row_offsets");
 
-        err = cudaMalloc((void**)&dev_csrColIndA, col_indices.size() * sizeof(int));
+        err = cudaMalloc((void**)&dev_csrColIndA, col_indices.size() * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMalloc device_col_indices");
 
         err = cudaMalloc((void**)&dev_csrValA, values.size() * sizeof(T));
@@ -144,10 +146,10 @@ public:
 
     void initialize_gpu_buffer()
     {
-        cudaError_t err = cudaMemcpy(dev_csrRowPtrA, &row_offsets[0], row_offsets.size() * sizeof(int), cudaMemcpyHostToDevice);
+        cudaError_t err = cudaMemcpy(dev_csrRowPtrA, &row_offsets[0], row_offsets.size() * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice);
         CUDA_V_THROW(err, "cudaMalloc device_row_offsets");
 
-        err = cudaMemcpy(dev_csrColIndA, &col_indices[0], col_indices.size() * sizeof(int), cudaMemcpyHostToDevice);
+        err = cudaMemcpy(dev_csrColIndA, &col_indices[0], col_indices.size() * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice);
         CUDA_V_THROW(err, "cudaMalloc device_row_offsets");
 
         err = cudaMemcpy(dev_csrValA, &values[0], values.size() * sizeof(T), cudaMemcpyHostToDevice);
@@ -225,16 +227,16 @@ private:
     void createBuffersNNZ_C(void);
     void xSpMSpM_Function(bool flush);
 
-    size_t xSpMSpM_Getflopcount(void)
+    clsparseIdx_t xSpMSpM_Getflopcount(void)
     {
         // C = A * B
         // But here C = A* A, the A & B matrices are same
-        int nnzA = col_indices.size();
+        clsparseIdx_t nnzA = col_indices.size();
 
-        size_t flop = 0;
-        for (int i = 0; i < nnzA; i++)
+        clsparseIdx_t flop = 0;
+        for (clsparseIdx_t i = 0; i < nnzA; i++)
         {
-            int colIdx = col_indices[i]; // Get colIdx of A
+            clsparseIdx_t colIdx = col_indices[i]; // Get colIdx of A
             flop += row_offsets[colIdx + 1] - row_offsets[colIdx]; // nnz in 'colIdx'th row of B
         }
 
@@ -244,16 +246,16 @@ private:
     }// end of function
 
     //Input host matrix in csr format : A
-    std::vector< int > row_offsets;
-    std::vector< int > col_indices;
+    std::vector< clsparseIdx_t > row_offsets;
+    std::vector< clsparseIdx_t > col_indices;
     std::vector< T > values;
 
     T alpha;
     T beta;
-    size_t flopCnt; // Indicates total number of floating point operations
-    int n_rows;
-    int n_cols;
-    int n_vals; 
+    clsparseIdx_t flopCnt; // Indicates total number of floating point operations
+    clsparseIdx_t n_rows;
+    clsparseIdx_t n_cols;
+    clsparseIdx_t n_vals; 
 
     bool explicit_zeroes;
 
@@ -264,16 +266,16 @@ private:
 
     // device CUDA pointers
     T*   dev_csrValA;
-    int* dev_csrRowPtrA;
-    int* dev_csrColIndA;
+    clsparseIdx_t* dev_csrRowPtrA;
+    clsparseIdx_t* dev_csrColIndA;
 
     T*   dev_csrValC;
-    int* dev_csrRowPtrC;
-    int* dev_csrColIndC;
+    clsparseIdx_t* dev_csrRowPtrC;
+    clsparseIdx_t* dev_csrColIndC;
 
-    int* nnzTotalDevHostPtr; // Points to host memory
-    int baseC;
-    int nnzC;
+    clsparseIdx_t* nnzTotalDevHostPtr; // Points to host memory
+    clsparseIdx_t baseC;
+    clsparseIdx_t nnzC;
     void* buffer;
     size_t bufferSize;
 };
@@ -283,7 +285,7 @@ template<> void
 xSpMSpM<float> ::createBuffersNNZ_C(void)
 {
     double betaT = 0.0;
-    size_t nnzA = values.size();
+    clsparseIdx_t nnzA = values.size();
 
     // Step 2: allocate buffer for csrgemm2Nnzand csrgemm2
     cuSparseStatus =  cusparseScsrgemm2_bufferSizeExt(handle, n_rows, n_cols, n_cols, &alpha,
@@ -299,7 +301,7 @@ xSpMSpM<float> ::createBuffersNNZ_C(void)
     CUDA_V_THROW(err, "cudaMalloc buffer in createBuffersNNZ_C");
 
     // step 3: compute dev_csrRowPtrC
-    err = cudaMalloc((void**)&dev_csrRowPtrC, sizeof(int) * (n_rows + 1));
+    err = cudaMalloc((void**)&dev_csrRowPtrC, sizeof( clsparseIdx_t ) * (n_rows + 1));
     CUDA_V_THROW(err, "cudaMalloc dev_csrRowPtrC failed in createBuffersNNZ_C");
 
     cuSparseStatus = cusparseXcsrgemm2Nnz(handle, n_rows, n_cols, n_cols,
@@ -318,12 +320,12 @@ xSpMSpM<float> ::createBuffersNNZ_C(void)
     }
     else
     { 
-        cudaMemcpy(&nnzC,  dev_csrRowPtrC + n_rows, sizeof(int), cudaMemcpyDeviceToHost); 
-        cudaMemcpy(&baseC, dev_csrRowPtrC, sizeof(int), cudaMemcpyDeviceToHost); 
+        cudaMemcpy(&nnzC, dev_csrRowPtrC + n_rows, sizeof( clsparseIdx_t ), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&baseC, dev_csrRowPtrC, sizeof( clsparseIdx_t ), cudaMemcpyDeviceToHost); 
         nnzC -= baseC; 
     }
     
-   err = cudaMalloc((void**)&dev_csrColIndC, sizeof(int)*nnzC);
+   err = cudaMalloc((void**)&dev_csrColIndC, sizeof( clsparseIdx_t )*nnzC);
    CUDA_V_THROW(err, "cudaMalloc dev_csrRowPtrC failed in createBuffersNNZ_C");
 
    err = cudaMalloc((void**)&dev_csrValC, sizeof(float)*nnzC);
@@ -335,7 +337,7 @@ xSpMSpM<float> ::createBuffersNNZ_C(void)
 template<> void
 xSpMSpM<double> ::createBuffersNNZ_C(void)
 {
-    size_t nnzA = values.size();
+    clsparseIdx_t nnzA = values.size();
 
     // Step 2: allocate buffer for csrgemm2Nnzand csrgemm2
     cuSparseStatus = cusparseDcsrgemm2_bufferSizeExt(handle, n_rows, n_cols, n_cols, &alpha,
@@ -351,7 +353,7 @@ xSpMSpM<double> ::createBuffersNNZ_C(void)
     CUDA_V_THROW(err, "cudaMalloc buffer in createBuffersNNZ_C");
 
     // step 3: compute dev_csrRowPtrC
-    err = cudaMalloc((void**)&dev_csrRowPtrC, sizeof(int) * (n_rows + 1));
+    err = cudaMalloc((void**)&dev_csrRowPtrC, sizeof( clsparseIdx_t ) * (n_rows + 1));
     CUDA_V_THROW(err, "cudaMalloc dev_csrRowPtrC failed in createBuffersNNZ_C");
 
     cuSparseStatus = cusparseXcsrgemm2Nnz(handle, n_rows, n_cols, n_cols,
@@ -370,12 +372,12 @@ xSpMSpM<double> ::createBuffersNNZ_C(void)
     }
     else
     {
-        cudaMemcpy(&nnzC, dev_csrRowPtrC + n_rows, sizeof(int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(&baseC, dev_csrRowPtrC, sizeof(int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&nnzC, dev_csrRowPtrC + n_rows, sizeof( clsparseIdx_t ), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&baseC, dev_csrRowPtrC, sizeof( clsparseIdx_t ), cudaMemcpyDeviceToHost);
         nnzC -= baseC;
     }
 
-    err = cudaMalloc((void**)&dev_csrColIndC, sizeof(int)*nnzC);
+    err = cudaMalloc((void**)&dev_csrColIndC, sizeof( clsparseIdx_t )*nnzC);
     CUDA_V_THROW(err, "cudaMalloc dev_csrRowPtrC failed in createBuffersNNZ_C");
 
     err = cudaMalloc((void**)&dev_csrValC, sizeof(double)*nnzC);
@@ -396,7 +398,7 @@ xSpMSpM<float> ::xSpMSpM_Function(bool flush)
     // step 2: allocate buffer for csrgemm2Nnz and csrgemm2
     createBuffersNNZ_C();
 
-    size_t nnzA = values.size();
+    clsparseIdx_t nnzA = values.size();
     // step 4: finish sparsity pattern and value of C 
     // Remark: set csrValC to null if only sparsity pattern is required. 
     cuSparseStatus = cusparseScsrgemm2(handle, n_rows, n_cols, n_cols, &alpha,
@@ -424,7 +426,7 @@ xSpMSpM<double> ::xSpMSpM_Function(bool flush)
     // step 2: allocate buffer for csrgemm2Nnz and csrgemm2
     createBuffersNNZ_C();
 
-    size_t nnzA = values.size();
+    clsparseIdx_t nnzA = values.size();
     // step 4: finish sparsity pattern and value of C 
     // Remark: set csrValC to null if only sparsity pattern is required. 
     cuSparseStatus = cusparseDcsrgemm2(handle, n_rows, n_cols, n_cols, &alpha,

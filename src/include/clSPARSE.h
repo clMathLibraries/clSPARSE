@@ -36,6 +36,7 @@ extern "C" {
 #if( BUILD_CLVERSION < 200 )
 #include "clSPARSE-1x.h"
 #else
+#error clSPARSE does not yet implement OpenCL 2.0 interfaces
 #include "clSPARSE-2x.h"
 #endif
 
@@ -496,7 +497,7 @@ extern "C" {
     * \ingroup FILE
     */
     CLSPARSE_EXPORT clsparseStatus
-        clsparseHeaderfromFile( cl_int* nnz, cl_int* row, cl_int* col, const char* filePath );
+        clsparseHeaderfromFile( clsparseIdx_t* nnz, clsparseIdx_t* row, clsparseIdx_t* col, const char* filePath);
 
     /*!
     * \brief Read sparse matrix data from file in single precision COO format

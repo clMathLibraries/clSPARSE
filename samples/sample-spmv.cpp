@@ -198,7 +198,7 @@ int main (int argc, char* argv[])
 
 
     // Read matrix from file. Calculates the rowBlocks strucutres as well.
-    int nnz, row, col;
+    clsparseIdx_t nnz, row, col;
     // read MM header to get the size of the matrix;
     clsparseStatus fileError
             = clsparseHeaderfromFile( &nnz, &row, &col, matrix_path.c_str( ) );
@@ -218,10 +218,10 @@ int main (int argc, char* argv[])
                                  A.num_nonzeros * sizeof( float ), NULL, &cl_status );
 
     A.colIndices = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
-                                     A.num_nonzeros * sizeof( cl_int ), NULL, &cl_status );
+                                     A.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
     A.rowOffsets = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
-                                     ( A.num_rows + 1 ) * sizeof( cl_int ), NULL, &cl_status );
+                                     ( A.num_rows + 1 ) * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
     A.rowBlocks = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                     A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );

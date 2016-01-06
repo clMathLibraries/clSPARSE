@@ -22,9 +22,9 @@ CSRSparseEnvironment::sMatrixType CSRSparseEnvironment::ublasSCsrA = CSRSparseEn
 CSRSparseEnvironment::sMatrixType CSRSparseEnvironment::ublasSCsrB = CSRSparseEnvironment::sMatrixType();
 #endif
 
-cl_int CSRSparseEnvironment::n_rows = 0;
-cl_int CSRSparseEnvironment::n_cols = 0;
-cl_int CSRSparseEnvironment::n_vals = 0;
+clsparseIdx_t CSRSparseEnvironment::n_rows = 0;
+clsparseIdx_t CSRSparseEnvironment::n_cols = 0;
+clsparseIdx_t CSRSparseEnvironment::n_vals = 0;
 
 clsparseCsrMatrix CSRSparseEnvironment::csrSMatrix = clsparseCsrMatrix();
 

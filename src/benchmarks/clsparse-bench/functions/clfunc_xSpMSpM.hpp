@@ -99,7 +99,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return (sizeof(cl_int)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows)) / time_in_ns();
+        return (sizeof(clsparseIdx_t)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows)) / time_in_ns();
     } // end of function
 
     std::string bandwidth_formula()
@@ -115,12 +115,12 @@ public:
         beta = static_cast<T>(pBeta);
 
         // Read sparse data from file and construct a COO matrix from it
-        int nnz, row, col;
+        clsparseIdx_t nnz, row, col;
         clsparseStatus fileError = clsparseHeaderfromFile(&nnz, &row, &col, sparseFile.c_str());
         if (fileError != clsparseSuccess)
             throw clsparse::io_exception("Could not read matrix market header from disk");
 
-        // Now initialise a CSR matrix from the COO matrix
+        // Now initialize a CSR matrix from the COO matrix
         clsparseInitCsrMatrix(&csrMtx);
         csrMtx.num_nonzeros = nnz;
         csrMtx.num_rows = row;
@@ -133,11 +133,11 @@ public:
         CLSPARSE_V(status, "::clCreateBuffer csrMtx.values");
 
         csrMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY,
-            csrMtx.num_nonzeros * sizeof(cl_int), NULL, &status);
+            csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V(status, "::clCreateBuffer csrMtx.colIndices");
 
         csrMtx.rowOffsets = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY,
-            (csrMtx.num_rows + 1) * sizeof(cl_int), NULL, &status);
+            (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
         CLSPARSE_V(status, "::clCreateBuffer csrMtx.rowOffsets");
 #if 0
         csrMtx.rowBlocks = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY,
@@ -241,22 +241,22 @@ public:
 
 private:
     void xSpMSpM_Function(bool flush);
-    size_t xSpMSpM_Getflopcount(void)
+    clsparseIdx_t xSpMSpM_Getflopcount(void)
     {
         // C = A * B
         // But here C = A* A, the A & B matrices are same
-        int nnzA = csrMtx.num_nonzeros;
-        int Browptrlen = csrMtx.num_rows + 1; // Number of row offsets
+        clsparseIdx_t nnzA = csrMtx.num_nonzeros;
+        clsparseIdx_t Browptrlen = csrMtx.num_rows + 1; // Number of row offsets
 
-        std::vector<int> colIdxA(nnzA, 0);
-        std::vector<int> rowptrB (Browptrlen, 0);
+        std::vector<clsparseIdx_t> colIdxA(nnzA, 0);
+        std::vector<clsparseIdx_t> rowptrB(Browptrlen, 0);
 
         cl_int run_status = 0;
 
         run_status = clEnqueueReadBuffer(queue, 
                                           csrMtx.colIndices, 
                                           CL_TRUE, 0, 
-                                          nnzA*sizeof(cl_int), 
+                                          nnzA*sizeof(clsparseIdx_t),
                                           colIdxA.data(), 0, nullptr, nullptr);
         CLSPARSE_V(run_status, "Reading colIndices from GPU failed");
 
@@ -265,15 +265,15 @@ private:
         run_status = clEnqueueReadBuffer(queue,
                                             csrMtx.rowOffsets,
                                             CL_TRUE, 0,
-                                            Browptrlen*sizeof(cl_int),
+                                            Browptrlen*sizeof(clsparseIdx_t),
                                             rowptrB.data(), 0, nullptr, nullptr);
 
         CLSPARSE_V(run_status, "Reading row offsets from GPU failed");
 
-        size_t flop = 0;
-        for (int i = 0; i < nnzA; i++)
+        clsparseIdx_t flop = 0;
+        for (clsparseIdx_t i = 0; i < nnzA; i++)
         {
-            int colIdx = colIdxA[i]; // Get colIdx of A
+            clsparseIdx_t colIdx = colIdxA[i]; // Get colIdx of A
             flop += rowptrB[colIdx + 1] - rowptrB[colIdx]; // nnz in 'colIdx'th row of B
         }
 
@@ -299,7 +299,7 @@ private:
     // host values
     T alpha;
     T beta;
-    size_t flopCnt; // Indicates total number of floating point operations
+    clsparseIdx_t flopCnt; // Indicates total number of floating point operations
     cl_bool explicit_zeroes;
     //  OpenCL state
     //cl_command_queue_properties cqProp;

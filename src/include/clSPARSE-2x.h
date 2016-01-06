@@ -36,7 +36,7 @@ typedef struct clsparseScalar_
 */
 typedef struct cldenseVector_
 {
-    cl_int num_values;  /*!< Length of dense vector */
+    clsparseIdx_t num_values;  /*!< Length of dense vector */
 
     void* values;  /**< OpenCL 2.0 memory pointer */
 } cldenseVector;
@@ -50,9 +50,9 @@ typedef struct clsparseCsrMatrix_
 {
     /** @name CSR matrix data */
     /**@{*/
-    cl_int num_rows;  /*!< Number of rows this matrix has if viewed as dense */
-    cl_int num_cols;  /*!< Number of columns this matrix has if viewed as dense */
-    cl_int num_nonzeros;  /*!< Number of values in matrix that are non-zero */
+    clsparseIdx_t num_rows;  /*!< Number of rows this matrix has if viewed as dense */
+    clsparseIdx_t num_cols;  /*!< Number of columns this matrix has if viewed as dense */
+    clsparseIdx_t num_nonzeros;  /*!< Number of values in matrix that are non-zero */
     /**@}*/
 
     /** @name OpenCL state */
@@ -75,9 +75,9 @@ typedef struct clsparseCooMatrix_
 {
     /** @name COO matrix data */
     /**@{*/
-    cl_int num_rows;  /*!< Number of rows this matrix has if viewed as dense */
-    cl_int num_cols;  /*!< Number of columns this matrix has if viewed as dense */
-    cl_int num_nonzeros;  /*!< Number of values in matrix that are non-zero */
+    clsparseIdx_t num_rows;  /*!< Number of rows this matrix has if viewed as dense */
+    clsparseIdx_t num_cols;  /*!< Number of columns this matrix has if viewed as dense */
+    clsparseIdx_t num_nonzeros;  /*!< Number of values in matrix that are non-zero */
     /**@}*/
 
     /** @name OpenCL state */
@@ -95,9 +95,9 @@ typedef struct cldenseMatrix_
 {
     /** @name Dense matrix data */
     /**@{*/
-    size_t num_rows;  /*!< Number of rows */
-    size_t num_cols;  /*!< Number of columns */
-    size_t lead_dim;  /*! Stride to the next row or column, in units of elements */
+    clsparseIdx_t num_rows;  /*!< Number of rows */
+    clsparseIdx_t num_cols;  /*!< Number of columns */
+    clsparseIdx_t lead_dim;  /*! Stride to the next row or column, in units of elements */
     cldenseMajor major;  /*! Memory layout for dense matrix */
     /**@}*/
 

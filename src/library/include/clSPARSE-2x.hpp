@@ -182,7 +182,7 @@ public:
         rowBlockSize = 0;
     }
 
-    cl_uint nnz_per_row() const
+    clsparseIdx_t nnz_per_row() const
     {
         return num_nonzeros / num_rows;
     }
@@ -217,7 +217,7 @@ public:
         values = colIndices = rowIndices = nullptr;
     }
 
-    cl_uint nnz_per_row( ) const
+    clsparseIdx_t nnz_per_row( ) const
     {
         return num_nonzeros / num_rows;
     }

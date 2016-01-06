@@ -38,4 +38,12 @@ typedef enum _cldenseMajor
     columnMajor
 } cldenseMajor;
 
+
+#if( CLSPARSE_INDEX_SIZEOF == 8 )
+#error clSPARSE does not yet implement 64-bit indices 
+    typedef cl_ulong clsparseIdx_t;
+#else
+    typedef cl_uint clsparseIdx_t;
+#endif
+
 #endif

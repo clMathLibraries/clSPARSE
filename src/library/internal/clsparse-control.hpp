@@ -63,6 +63,9 @@ struct _clsparseControl
     // current device max compute units;
     cl_uint max_compute_units;
 
+    // current device ADDRESS Bits
+    cl_uint addressBits;
+
     //clSPARSE async execution; if true user is responsible to call for WaitForEvent;
     //otherwise after every kernel call we are syncing internally;
     cl_bool async;

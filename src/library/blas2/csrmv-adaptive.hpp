@@ -39,7 +39,6 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
     const cl_uint group_size = 256;
 
     std::string params = std::string( )
-    + " -DINDEX_TYPE=uint"
     + " -DROWBITS=" + std::to_string( ROW_BITS )
     + " -DWGBITS=" + std::to_string( WG_BITS )
     + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
@@ -47,6 +46,19 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
     + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
     + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR );
+
+    if( sizeof( clsparseIdx_t ) == 8 )
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     std::string options;
     if(typeid(T) == typeid(cl_double))
@@ -89,7 +101,7 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
     // Setting global work size to half the row block size because we are only
     // using half the row blocks buffer for actual work.
     // The other half is used for the extended precision reduction.
-    cl_uint global_work_size = ( (pCsrMatx->rowBlockSize/2) - 1 ) * group_size;
+    clsparseIdx_t global_work_size = ((pCsrMatx->rowBlockSize / 2) - 1) * group_size;
     cl::NDRange local( group_size );
     cl::NDRange global( global_work_size > local[ 0 ] ? global_work_size : local[ 0 ] );
 
@@ -121,7 +133,6 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
     const cl_uint group_size = 256;
 
     std::string params = std::string( )
-    + " -DINDEX_TYPE=uint"
     + " -DROWBITS=" + std::to_string( ROW_BITS )
     + " -DWGBITS=" + std::to_string( WG_BITS )
     + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
@@ -129,6 +140,19 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
     + " -DBLOCKSIZE=" + std::to_string( BLKSIZE )
     + " -DBLOCK_MULTIPLIER=" + std::to_string( BLOCK_MULTIPLIER )
     + " -DROWS_FOR_VECTOR=" + std::to_string( ROWS_FOR_VECTOR );
+
+    if( sizeof( clsparseIdx_t ) == 8 )
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DINDEX_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     std::string options;
     if(typeid(T) == typeid(cl_double))
@@ -171,7 +195,7 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
     // Setting global work size to half the row block size because we are only
     // using half the row blocks buffer for actual work.
     // The other half is used for the extended precision reduction.
-    cl_uint global_work_size = ( (pCsrMatx->rowBlockSize/2) - 1 ) * group_size;
+    clsparseIdx_t global_work_size = ((pCsrMatx->rowBlockSize / 2) - 1) * group_size;
     cl::NDRange local( group_size );
     cl::NDRange global( global_work_size > local[ 0 ] ? global_work_size : local[ 0 ] );
 

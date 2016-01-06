@@ -19,6 +19,7 @@
 
 #include "cufunc_common.hpp"
 #include "include/io-exception.hpp"
+#include "include/cufunc_sparse-xx.h"
 
 template <typename T>
 class xCsr2Coo : public cusparseFunc
@@ -65,7 +66,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return (sizeof(int)*(n_vals + n_rows) + sizeof(T) * (n_vals + n_cols + n_rows)) / time_in_ns();
+        return (sizeof( clsparseIdx_t )*(n_vals + n_rows) + sizeof(T) * (n_vals + n_cols + n_rows)) / time_in_ns();
 #endif
 		// Number of Elements converted in unit time
 		return (n_vals / time_in_ns());
@@ -95,11 +96,11 @@ public:
         n_vals = values.size();
         */
         // Input: CSR
-        cudaError_t err = cudaMalloc((void**)&deviceCSRRowOffsets, (n_rows+1) * sizeof(int));
+        cudaError_t err = cudaMalloc((void**)&deviceCSRRowOffsets, (n_rows + 1) * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMalloc deviceCSRRowOffsets");
 
         // Output: COO Row Indices
-        err = cudaMalloc((void**)&deviceCooRowInd, n_vals * sizeof(int));
+        err = cudaMalloc((void**)&deviceCooRowInd, n_vals * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMalloc deviceCooRowInd");
     }// End of function
 
@@ -109,17 +110,17 @@ public:
 
     void initialize_gpu_buffer()
     {
-        cudaError_t err = cudaMemcpy(deviceCSRRowOffsets, &row_offsets[0], row_offsets.size() * sizeof(int), cudaMemcpyHostToDevice);
+        cudaError_t err = cudaMemcpy(deviceCSRRowOffsets, &row_offsets[0], row_offsets.size() * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice);
         CUDA_V_THROW(err, "cudaMalloc deviceCSRRowOffsets");
 
-        err = cudaMemset(deviceCooRowInd, 0x0, n_vals * sizeof(int));
+        err = cudaMemset(deviceCooRowInd, 0x0, n_vals * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMemset deviceCooRowInd");
 
     }// end of function
 
     void reset_gpu_write_buffer()
     {
-        err = cudaMemset(deviceCooRowInd, 0x0, n_vals * sizeof(int));
+        err = cudaMemset(deviceCooRowInd, 0x0, n_vals * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMemset deviceCooRowInd");
     }// end of function
 
@@ -148,20 +149,20 @@ private:
   //  std::string sparseFile;
 
     //host matrix definition corresponding to CSR Format
-    std::vector< int > row_offsets;
-    std::vector< int > col_indices;
+    std::vector< clsparseIdx_t > row_offsets;
+    std::vector< clsparseIdx_t > col_indices;
     std::vector< T > values; // matrix values
 
-    int  n_rows; // number of rows
-    int  n_cols; // number of cols
-    int  n_vals; // number of Non-Zero Values (nnz)
-    int* colIndices;
+    clsparseIdx_t  n_rows; // number of rows
+    clsparseIdx_t  n_cols; // number of cols
+    clsparseIdx_t  n_vals; // number of Non-Zero Values (nnz)
+    clsparseIdx_t* colIndices;
 
     bool explicit_zeroes;
 
     // device CUDA pointers
-    int* deviceCSRRowOffsets; // Input: CSR Row Offsets
-    int* deviceCooRowInd; // Output: Coordinate format row indices
+    clsparseIdx_t* deviceCSRRowOffsets; // Input: CSR Row Offsets
+    clsparseIdx_t* deviceCooRowInd; // Output: Coordinate format row indices
 }; // class xCsr2Coo
 
 template<>

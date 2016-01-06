@@ -37,9 +37,21 @@ scale( clsparse::array_base<T>& pResult,
     //const int group_size = control->max_wg_size;
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE="+ OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string(group_size);
+
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
 
     if(typeid(T) == typeid(cl_double))
     {
@@ -58,8 +70,8 @@ scale( clsparse::array_base<T>& pResult,
                                          params);
     KernelWrap kWrapper(kernel);
 
-    cl_ulong size = pResult.size();
-    cl_ulong offset = 0;
+    clsparseIdx_t size = pResult.size();
+    clsparseIdx_t offset = 0;
 
     kWrapper << size
              << pResult.data()
@@ -69,8 +81,8 @@ scale( clsparse::array_base<T>& pResult,
              << pAlpha.data()
              << offset;
 
-    int blocksNum = (size + group_size - 1) / group_size;
-    int globalSize = blocksNum * group_size;
+    clsparseIdx_t blocksNum = (size + group_size - 1) / group_size;
+    clsparseIdx_t globalSize = blocksNum * group_size;
 
     cl::NDRange local(group_size);
     cl::NDRange global (globalSize);

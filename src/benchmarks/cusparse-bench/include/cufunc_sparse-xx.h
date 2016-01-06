@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2015 Vratis, Ltd.
+ * Copyright 2015 Advanced Micro Devices, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ************************************************************************ */
+/*! \file
+ *  \brief cufunc_sparse-xx.h defines generic type for 32/64 bit indices
+ */
 
-#include "csr_matrix_environment.h"
+#pragma once
+#ifndef _CU_SPARSE_xx_H_
+#define _CU_SPARSE_xx_H_
 
-CSREnvironment::sMatrixType CSREnvironment::ublasSCsr = CSREnvironment::sMatrixType();
+#if( CLSPARSE_INDEX_SIZEOF == 8 )
+#error Wait till clSPARSE implements 64-bit indices
+   typedef unsigned long long clsparseIdx_t;
+#else
+   typedef int clsparseIdx_t;
+#endif
 
-CSREnvironment::dMatrixType CSREnvironment::ublasDCsr = CSREnvironment::dMatrixType();
+#if( CLSPARSE_INDEX_SIZEOF == 8 )
+#define SIZET "l"
+#else
+#define SIZET ""
+#endif
 
 
-clsparseIdx_t CSREnvironment::n_rows = 0;
-clsparseIdx_t CSREnvironment::n_cols = 0;
-clsparseIdx_t CSREnvironment::n_vals = 0;
-
-clsparseCsrMatrix CSREnvironment::csrSMatrix = clsparseCsrMatrix();
-clsparseCsrMatrix CSREnvironment::csrDMatrix = clsparseCsrMatrix();
-
-
-cl_double CSREnvironment::alpha = 1.0;
-cl_double CSREnvironment::beta = 0.0;
-
-std::string CSREnvironment::file_name = std::string();
+#endif // ifndef  _CU_SPARSE_xx_H_
