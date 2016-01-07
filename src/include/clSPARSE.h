@@ -626,7 +626,7 @@ extern "C" {
      * \ingroup FILE
     */
     CLSPARSE_EXPORT clsparseStatus
-        clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control, size_t* metaSize );
+        clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control, clsparseIdx_t* metaSize );
 
     /*!
      * \brief Calculate the meta-data for csr-adaptive SpM-dV algorithm

@@ -21,7 +21,7 @@
 #include "internal/clsparse-control.hpp"
 
 clsparseStatus
-clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control, size_t* metaSize )
+clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control, clsparseIdx_t* metaSize )
 {
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
 
@@ -51,8 +51,8 @@ clsparseCsrMetaCreate( clsparseCsrMatrix* csrMatx, clsparseControl control )
         return clsparseOutOfResources;
     }
 
-    clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
-    cl_int* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
+    clMemRAII< clsparseIdx_t > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+    clsparseIdx_t* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
 
     matrix_meta* meta_ptr = nullptr;
     if( pCsrMatx->meta )
@@ -70,10 +70,10 @@ clsparseCsrMetaCreate( clsparseCsrMatrix* csrMatx, clsparseControl control )
     {
         meta_ptr->rowBlocks = ::cl::Buffer( control->getContext( ), CL_MEM_READ_WRITE, meta_ptr->rowBlockSize * sizeof( cl_ulong ) );
 
-        cl_ulong* ulCsrRowBlocks = static_cast< cl_ulong* >( control->queue.enqueueMapBuffer( meta_ptr->rowBlocks, CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, meta_ptr->offRowBlocks, meta_ptr->rowBlockSize ) );
+        clMemRAII< cl_ulong > rRowBlocks( control->queue( ), meta_ptr->rowBlocks( ) );
+        cl_ulong* ulCsrRowBlocks = rRowBlocks.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, meta_ptr->offRowBlocks, meta_ptr->rowBlockSize );
 
         ComputeRowBlocks( ulCsrRowBlocks, meta_ptr->rowBlockSize, rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR, true );
-        control->queue.enqueueUnmapMemObject( meta_ptr->rowBlocks, ulCsrRowBlocks );
     }
 
     pCsrMatx->meta = meta_ptr;

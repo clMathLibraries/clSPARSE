@@ -24,7 +24,7 @@ include( ExternalProject )
 # ExternalProject
 
 # Change this one line to upgrade to newer versions of boost
-set( ext.Boost_VERSION "1.59.0" CACHE STRING "Boost version to download/use" )
+set( ext.Boost_VERSION "1.60.0" CACHE STRING "Boost version to download/use" )
 mark_as_advanced( ext.Boost_VERSION )
 string( REPLACE "." "_" ext.Boost_Version_Underscore ${ext.Boost_VERSION} )
 
@@ -105,7 +105,7 @@ elseif( DEFINED ENV{CC} )
   list( APPEND Boost.Command toolset=${gccToolset} )
 endif( )
 
-if( WIN32 )
+if( WIN32 AND (ext.Boost_VERSION VERSION_LESS "1.60.0") )
   list( APPEND Boost.Command define=BOOST_LOG_USE_WINNT6_API )
 endif( )
 
@@ -151,16 +151,16 @@ if( WIN32 )
 
   if( CMAKE_VERSION VERSION_LESS "3.1.0" )
     # .zip file
-    set( ext.MD5_HASH "08d29a2d85db3ebc8c6fdfa3a1f2b83c" )
+    set( ext.MD5_HASH "0cc5b9cf9ccdf26945b225c7338b4288" )
   else( )
     # .7z file
-    set( ext.MD5_HASH "0a2e512844f3e30a6240f8139ee983f3" )
+    set( ext.MD5_HASH "7ce7f5a4e396484da8da6b60d4ed7661" )
   endif( )
 else( )
   set( Boost.Bootstrap "./bootstrap.sh" )
 
   # .tar.bz2
-  set( ext.MD5_HASH "6aa9a5c6a4ca1016edd0ed1178e3cb87" )
+  set( ext.MD5_HASH "65a840e1a0b13a558ff19eeb2c4f0cbe" )
 
   if( XCODE_VERSION )
     list( APPEND Boost.Bootstrap --with-toolset=clang )

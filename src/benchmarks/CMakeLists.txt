@@ -27,7 +27,7 @@ endif( )
 # set( Boost_DEBUG ON )
 set( Boost_USE_MULTITHREADED ON )
 set( Boost_DETAILED_FAILURE_MSG ON )
-set( Boost_ADDITIONAL_VERSIONS 1.59.0 1.59 1.58.0 1.58 1.57.0 1.57 )
+set( Boost_ADDITIONAL_VERSIONS 1.60.0 1.60 1.59.0 1.59 1.58.0 1.58 1.57.0 1.57 )
 
 # On windows, Boost prefers to link statically unless the user defines BOOST_ALL_DYN_LINK
 # Therefore, we prefer linking  static libs first to avoid extra #defines

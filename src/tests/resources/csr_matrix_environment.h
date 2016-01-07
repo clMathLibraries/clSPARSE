@@ -192,6 +192,8 @@ public:
         ::clReleaseMemObject( csrDMatrix.values );
         ::clReleaseMemObject( csrDMatrix.colIndices );
         ::clReleaseMemObject( csrDMatrix.rowOffsets );
+        clsparseCsrMetaDelete( &csrSMatrix );
+        clsparseCsrMetaDelete( &csrDMatrix );
 
         //bring csrSMatrix csrDMatrix to its initial state
         clsparseInitCsrMatrix( &csrSMatrix );

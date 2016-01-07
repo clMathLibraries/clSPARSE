@@ -359,7 +359,7 @@ TYPED_TEST(Blas2, csrmv_vector)
     // later use.
 
     clsparseStatus status;
-    size_t metaSize;
+    clsparseIdx_t metaSize;
     status = clsparseCsrMetaSize( &CSRE::csrSMatrix, CLSE::control, &metaSize );
     ASSERT_EQ(clsparseSuccess, status);
 

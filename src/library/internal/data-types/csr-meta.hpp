@@ -91,7 +91,7 @@ static inline rowBlockType numThreadsForReduction(const rowBlockType num_rows)
 
 //  rowBlockType is currently instantiated as ulong
 template< typename rowBlockType >
-void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const clsparseIdx_t* rowDelimiters,
+void ComputeRowBlocks( rowBlockType* rowBlocks, clsparseIdx_t& rowBlockSize, const clsparseIdx_t* rowDelimiters,
                        const clsparseIdx_t nRows, const int blkSize, const int blkMultiplier, const int rows_for_vector, const bool allocate_row_blocks = true )
 {
     rowBlockType* rowBlocksBase;
@@ -263,7 +263,7 @@ void ComputeRowBlocks( rowBlockType* rowBlocks, size_t& rowBlockSize, const clsp
 inline size_t ComputeRowBlocksSize( const clsparseIdx_t* rowDelimiters, const clsparseIdx_t nRows, const unsigned int blkSize,
                                     const unsigned int blkMultiplier, const unsigned int rows_for_vector )
 {
-    size_t rowBlockSize;
+    clsparseIdx_t rowBlockSize;
     ComputeRowBlocks( (cl_ulong*)NULL, rowBlockSize, rowDelimiters, nRows, blkSize, blkMultiplier, rows_for_vector, false );
     return rowBlockSize;
 }
