@@ -67,10 +67,10 @@ public:
         csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrDMatrix.num_nonzeros * sizeof( cl_double ), NULL, &status );
 
-        csrDMatrix.colIndices = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+        csrDMatrix.col_indices = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
             csrDMatrix.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &status);
 
-        csrDMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+        csrDMatrix.row_pointer = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
             (csrDMatrix.num_rows + 1) * sizeof( clsparseIdx_t ), NULL, &status);
 
         clsparseStatus fileError = clsparseDCsrMatrixfromFile( &csrDMatrix, file_name.c_str( ), CLSE::control, read_explicit_zeroes );
@@ -100,12 +100,12 @@ public:
                                            ublasDCsr.value_data().begin( ),
                                            0, NULL, NULL );
 
-        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.rowOffsets, CL_TRUE, 0,
+        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.row_pointer, CL_TRUE, 0,
                                             ( csrDMatrix.num_rows + 1 ) * sizeof( clsparseIdx_t ),
                                             ublasDCsr.index1_data().begin(),
                                             0, NULL, NULL );
 
-        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.colIndices, CL_TRUE, 0,
+        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.col_indices, CL_TRUE, 0,
                                             csrDMatrix.num_nonzeros * sizeof( clsparseIdx_t ),
                                             ublasDCsr.index2_data().begin(),
                                             0, NULL, NULL );
@@ -122,11 +122,11 @@ public:
         csrSMatrix.num_cols = csrDMatrix.num_cols;
         csrSMatrix.num_rows = csrDMatrix.num_rows;
 
-        csrSMatrix.colIndices = csrDMatrix.colIndices;
-        ::clRetainMemObject( csrSMatrix.colIndices );
+        csrSMatrix.col_indices = csrDMatrix.col_indices;
+        ::clRetainMemObject( csrSMatrix.col_indices );
 
-        csrSMatrix.rowOffsets = csrDMatrix.rowOffsets;
-        ::clRetainMemObject( csrSMatrix.rowOffsets );
+        csrSMatrix.row_pointer = csrDMatrix.row_pointer;
+        ::clRetainMemObject( csrSMatrix.row_pointer );
 
         // Don't use adaptive kernel in double precision yet.
         clsparseCsrMetaCreate( &csrSMatrix, CLSE::control );
@@ -187,11 +187,11 @@ public:
     {
         //release buffers;
         ::clReleaseMemObject( csrSMatrix.values );
-        ::clReleaseMemObject( csrSMatrix.colIndices );
-        ::clReleaseMemObject( csrSMatrix.rowOffsets );
+        ::clReleaseMemObject( csrSMatrix.col_indices );
+        ::clReleaseMemObject( csrSMatrix.row_pointer );
         ::clReleaseMemObject( csrDMatrix.values );
-        ::clReleaseMemObject( csrDMatrix.colIndices );
-        ::clReleaseMemObject( csrDMatrix.rowOffsets );
+        ::clReleaseMemObject( csrDMatrix.col_indices );
+        ::clReleaseMemObject( csrDMatrix.row_pointer );
         clsparseCsrMetaDelete( &csrSMatrix );
         clsparseCsrMetaDelete( &csrDMatrix );
 

@@ -40,12 +40,12 @@ clsparseScoo2csr (const clsparseCooMatrix* coo,
     csr->num_nonzeros = coo->num_nonzeros;
 
     // how to obtain proper type of the matrix indices? int assumed
-    clsparse::vector<clsparseIdx_t> csr_row_offsets (control, csr->rowOffsets, csr->num_rows + 1);
-    clsparse::vector<clsparseIdx_t> csr_col_indices (control, csr->colIndices, csr->num_nonzeros);
+    clsparse::vector<clsparseIdx_t> csr_row_offsets (control, csr->row_pointer, csr->num_rows + 1);
+    clsparse::vector<clsparseIdx_t> csr_col_indices (control, csr->col_indices, csr->num_nonzeros);
     clsparse::vector<cl_float> csr_values (control, csr->values, csr->num_nonzeros);
 
-    clsparse::vector<clsparseIdx_t> coo_row_indices (control, coo->rowIndices, coo->num_nonzeros);
-    clsparse::vector<clsparseIdx_t> coo_col_indices (control, coo->colIndices, coo->num_nonzeros);
+    clsparse::vector<clsparseIdx_t> coo_row_indices (control, coo->row_indices, coo->num_nonzeros);
+    clsparse::vector<clsparseIdx_t> coo_col_indices (control, coo->col_indices, coo->num_nonzeros);
     clsparse::vector<cl_float> coo_values (control, coo->values, coo->num_nonzeros);
 
     csr_col_indices = coo_col_indices;
@@ -80,12 +80,12 @@ clsparseDcoo2csr ( const clsparseCooMatrix* coo,
     csr->num_nonzeros = coo->num_nonzeros;
 
     // how to obtain proper type of the matrix indices? int assumed
-    clsparse::vector<clsparseIdx_t> csr_row_offsets (control, csr->rowOffsets, csr->num_rows + 1);
-    clsparse::vector<clsparseIdx_t> csr_col_indices (control, csr->colIndices, csr->num_nonzeros);
+    clsparse::vector<clsparseIdx_t> csr_row_offsets (control, csr->row_pointer, csr->num_rows + 1);
+    clsparse::vector<clsparseIdx_t> csr_col_indices (control, csr->col_indices, csr->num_nonzeros);
     clsparse::vector<cl_double> csr_values (control, csr->values, csr->num_nonzeros);
 
-    clsparse::vector<clsparseIdx_t> coo_row_indices (control, coo->rowIndices, coo->num_nonzeros);
-    clsparse::vector<clsparseIdx_t> coo_col_indices (control, coo->colIndices, coo->num_nonzeros);
+    clsparse::vector<clsparseIdx_t> coo_row_indices (control, coo->row_indices, coo->num_nonzeros);
+    clsparse::vector<clsparseIdx_t> coo_col_indices (control, coo->col_indices, coo->num_nonzeros);
     clsparse::vector<cl_double> coo_values (control, coo->values, coo->num_nonzeros);
 
     csr_col_indices = coo_col_indices;

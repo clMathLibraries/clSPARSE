@@ -108,9 +108,9 @@ public:
 
         cooMatx.values     = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                                cooMatx.num_nonzeros * sizeof(T), NULL, &status );
-        cooMatx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        cooMatx.col_indices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                                cooMatx.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &status );
-        cooMatx.rowIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        cooMatx.row_indices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
                                                cooMatx.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &status );
 
         if (typeid(T) == typeid(float))
@@ -130,9 +130,9 @@ public:
         csrMtx.values = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                            cooMatx.num_nonzeros * sizeof( T ), NULL, &status );
 
-        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
+        csrMtx.col_indices = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                                cooMatx.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &status );
-        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
+        csrMtx.row_pointer = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
                                               ( cooMatx.num_rows + 1 ) * sizeof( clsparseIdx_t ), NULL, &status );
 
     }
@@ -151,9 +151,9 @@ public:
 
         clsparseIdx_t scalar_i = 0;
 		T scalar_f = 0;
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMtx.rowOffsets, &scalar_i, sizeof(clsparseIdx_t), 0,
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMtx.row_pointer, &scalar_i, sizeof(clsparseIdx_t), 0,
                               sizeof( clsparseIdx_t ) * (csrMtx.num_rows + 1), 0, NULL, NULL ), "::clEnqueueFillBuffer row" );
-		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.colIndices, &scalar_i, sizeof( clsparseIdx_t ), 0,
+		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.col_indices, &scalar_i, sizeof( clsparseIdx_t ), 0,
                               sizeof( clsparseIdx_t ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer col" );
 		CLSPARSE_V( ::clEnqueueFillBuffer( queue, csrMtx.values, &scalar_f, sizeof( T ), 0,
                               sizeof( T ) * csrMtx.num_nonzeros, 0, NULL, NULL ), "::clEnqueueFillBuffer values" );
@@ -181,12 +181,12 @@ public:
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
         CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.col_indices ), "clReleaseMemObject csrMtx.col_indices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.row_pointer ), "clReleaseMemObject csrMtx.row_pointer" );
 
         CLSPARSE_V( ::clReleaseMemObject( cooMatx.values ), "clReleaseMemObject cooMtx.values" );
-        CLSPARSE_V( ::clReleaseMemObject( cooMatx.colIndices ), "clReleaseMemObject cooMtx.colIndices" );
-        CLSPARSE_V( ::clReleaseMemObject( cooMatx.rowIndices ), "clReleaseMemObject cooMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( cooMatx.col_indices ), "clReleaseMemObject cooMtx.col_indices" );
+        CLSPARSE_V( ::clReleaseMemObject( cooMatx.row_indices ), "clReleaseMemObject cooMtx.row_pointer" );
     }
 
 private:

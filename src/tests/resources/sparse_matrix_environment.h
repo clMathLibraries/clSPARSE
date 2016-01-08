@@ -63,10 +63,10 @@ public:
         csrSMatrix.values = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             csrSMatrix.num_nonzeros * sizeof(cl_float), NULL, &status);
 
-        csrSMatrix.colIndices = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
+        csrSMatrix.col_indices = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             csrSMatrix.num_nonzeros * sizeof(cl_int), NULL, &status);
 
-        csrSMatrix.rowOffsets = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
+        csrSMatrix.row_pointer = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             (csrSMatrix.num_rows + 1) * sizeof(cl_int), NULL, &status);
 
         clsparseStatus fileError = clsparseSCsrMatrixfromFile(&csrSMatrix, file_name.c_str(), CLSE::control, explicit_zeroes);
@@ -90,12 +90,12 @@ public:
             ublasSCsr.value_data().begin(),
             0, NULL, NULL);
 
-        copy_status = clEnqueueReadBuffer(queue, csrSMatrix.rowOffsets, CL_TRUE, 0,
+        copy_status = clEnqueueReadBuffer(queue, csrSMatrix.row_pointer, CL_TRUE, 0,
             (csrSMatrix.num_rows + 1) * sizeof(cl_int),
             ublasSCsr.index1_data().begin(),
             0, NULL, NULL);
 
-        copy_status = clEnqueueReadBuffer(queue, csrSMatrix.colIndices, CL_TRUE, 0,
+        copy_status = clEnqueueReadBuffer(queue, csrSMatrix.col_indices, CL_TRUE, 0,
             csrSMatrix.num_nonzeros * sizeof(cl_int),
             ublasSCsr.index2_data().begin(),
             0, NULL, NULL);
@@ -121,12 +121,12 @@ public:
             ublasSCsr.value_data().begin(),
             0, NULL, NULL);
 
-        copy_status = clEnqueueWriteBuffer(queue, csrSMatrix.rowOffsets, CL_TRUE, 0,
+        copy_status = clEnqueueWriteBuffer(queue, csrSMatrix.row_pointer, CL_TRUE, 0,
             (csrSMatrix.num_rows + 1) * sizeof(cl_int),
             ublasSCsr.index1_data().begin(),
             0, NULL, NULL);
 
-        copy_status = clEnqueueWriteBuffer(queue, csrSMatrix.colIndices, CL_TRUE, 0,
+        copy_status = clEnqueueWriteBuffer(queue, csrSMatrix.col_indices, CL_TRUE, 0,
             csrSMatrix.num_nonzeros * sizeof(cl_int),
             ublasSCsr.index2_data().begin(),
             0, NULL, NULL);
@@ -189,10 +189,10 @@ public:
        csrSMatrixA.values = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             csrSMatrixA.num_nonzeros * sizeof(cl_float), NULL, &status);
 
-       csrSMatrixA.colIndices = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
+       csrSMatrixA.col_indices = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             csrSMatrixA.num_nonzeros * sizeof(cl_int), NULL, &status);
 
-       csrSMatrixA.rowOffsets = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
+       csrSMatrixA.row_pointer = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             (csrSMatrixA.num_rows + 1) * sizeof(cl_int), NULL, &status);
 
        //load data to device
@@ -201,12 +201,12 @@ public:
             ublasSCsrA.value_data().begin(),
             0, NULL, NULL);
 
-       copy_status = clEnqueueWriteBuffer(queue, csrSMatrixA.rowOffsets, CL_TRUE, 0,
+       copy_status = clEnqueueWriteBuffer(queue, csrSMatrixA.row_pointer, CL_TRUE, 0,
             (csrSMatrixA.num_rows + 1) * sizeof(cl_int),
             ublasSCsrA.index1_data().begin(),
             0, NULL, NULL);
 
-       copy_status = clEnqueueWriteBuffer(queue, csrSMatrixA.colIndices, CL_TRUE, 0,
+       copy_status = clEnqueueWriteBuffer(queue, csrSMatrixA.col_indices, CL_TRUE, 0,
             csrSMatrixA.num_nonzeros * sizeof(cl_int),
             ublasSCsrA.index2_data().begin(),
             0, NULL, NULL);
@@ -222,10 +222,10 @@ public:
         csrSMatrixB.values = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             csrSMatrixB.num_nonzeros * sizeof(cl_float), NULL, &status);
 
-        csrSMatrixB.colIndices = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
+        csrSMatrixB.col_indices = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             csrSMatrixB.num_nonzeros * sizeof(cl_int), NULL, &status);
 
-        csrSMatrixB.rowOffsets = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
+        csrSMatrixB.row_pointer = ::clCreateBuffer(context, CL_MEM_READ_ONLY,
             (csrSMatrixB.num_rows + 1) * sizeof(cl_int), NULL, &status);
 
        //load data to device
@@ -234,12 +234,12 @@ public:
             ublasSCsrB.value_data().begin(),
             0, NULL, NULL);
 
-       copy_status = clEnqueueWriteBuffer(queue, csrSMatrixB.rowOffsets, CL_TRUE, 0,
+       copy_status = clEnqueueWriteBuffer(queue, csrSMatrixB.row_pointer, CL_TRUE, 0,
             (csrSMatrixB.num_rows + 1) * sizeof(cl_int),
             ublasSCsrB.index1_data().begin(),
             0, NULL, NULL);
 
-       copy_status = clEnqueueWriteBuffer(queue, csrSMatrixB.colIndices, CL_TRUE, 0,
+       copy_status = clEnqueueWriteBuffer(queue, csrSMatrixB.col_indices, CL_TRUE, 0,
             csrSMatrixB.num_nonzeros * sizeof(cl_int),
             ublasSCsrB.index2_data().begin(),
             0, NULL, NULL);
@@ -273,8 +273,8 @@ public:
     {
         //release buffers;
         ::clReleaseMemObject(csrSMatrix.values);
-        ::clReleaseMemObject(csrSMatrix.colIndices);
-        ::clReleaseMemObject(csrSMatrix.rowOffsets);
+        ::clReleaseMemObject(csrSMatrix.col_indices);
+        ::clReleaseMemObject(csrSMatrix.row_pointer);
 
         //bring csrSMatrix  to its initial state
         clsparseInitCsrMatrix(&csrSMatrix);

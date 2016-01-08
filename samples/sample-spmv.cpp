@@ -213,10 +213,10 @@ int main (int argc, char* argv[])
     A.values = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                  A.num_nonzeros * sizeof( float ), NULL, &cl_status );
 
-    A.colIndices = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
+    A.col_indices = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                      A.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
-    A.rowOffsets = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
+    A.row_pointer = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                      ( A.num_rows + 1 ) * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
 
@@ -302,8 +302,8 @@ int main (int argc, char* argv[])
     //release mem;
     clsparseCsrMetaDelete( &A );
     clReleaseMemObject ( A.values );
-    clReleaseMemObject ( A.colIndices );
-    clReleaseMemObject ( A.rowOffsets );
+    clReleaseMemObject ( A.col_indices );
+    clReleaseMemObject ( A.row_pointer );
 
     clReleaseMemObject ( x.values );
     clReleaseMemObject ( y.values );

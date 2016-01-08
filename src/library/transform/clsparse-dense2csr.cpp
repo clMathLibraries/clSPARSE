@@ -86,8 +86,8 @@ clsparseSdense2csr(const cldenseMatrix* A, clsparseCsrMatrix* csr,
 
 
     clReleaseMemObject(coo.values);
-    clReleaseMemObject(coo.colIndices);
-    clReleaseMemObject(coo.rowIndices);
+    clReleaseMemObject(coo.col_indices);
+    clReleaseMemObject(coo.row_indices);
 
     return status;
 }
@@ -157,8 +157,8 @@ clsparseDdense2csr(const cldenseMatrix* A,
 
 
     clReleaseMemObject(coo.values);
-    clReleaseMemObject(coo.colIndices);
-    clReleaseMemObject(coo.rowIndices);
+    clReleaseMemObject(coo.col_indices);
+    clReleaseMemObject(coo.row_indices);
 
     return status;
 

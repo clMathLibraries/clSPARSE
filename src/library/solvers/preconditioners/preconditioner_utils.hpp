@@ -111,8 +111,8 @@ extract_diagonal(cldenseVectorPrivate* pDiag,
 
     kWrapper << size
              << pDiag->values
-             << pA->rowOffsets
-             << pA->colIndices
+             << pA->row_pointer
+             << pA->col_indices
              << pA->values;
 
     clsparseIdx_t predicted = subwave_size * size;
@@ -220,8 +220,8 @@ extract_diagonal(clsparse::vector<T>& pDiag,
 
     kWrapper << size
              << pDiag.data()
-             << pA->rowOffsets
-             << pA->colIndices
+             << pA->row_pointer
+             << pA->col_indices
              << pA->values;
 
     clsparseIdx_t predicted = subwave_size * size;

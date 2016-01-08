@@ -178,7 +178,7 @@ public:
     void clear( )
     {
         num_rows = num_cols = num_nonzeros = 0;
-        values = colIndices = rowOffsets = rowBlocks = nullptr;
+        values = col_indices = row_pointer = rowBlocks = nullptr;
         rowBlockSize = 0;
     }
 
@@ -214,7 +214,7 @@ public:
     void clear( )
     {
         num_rows = num_cols = num_nonzeros = 0;
-        values = colIndices = rowIndices = nullptr;
+        values = col_indices = row_indices = nullptr;
     }
 
     clsparseIdx_t nnz_per_row( ) const

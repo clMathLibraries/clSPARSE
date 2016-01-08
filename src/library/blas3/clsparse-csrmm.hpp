@@ -59,7 +59,7 @@
 //
 //  KernelWrap kWrapper( kernel );
 //
-//  kWrapper << pSparseCsrA.values << pSparseCsrA.colIndices << pSparseCsrA.rowOffsets << pSparseCsrA.rowBlocks
+//  kWrapper << pSparseCsrA.values << pSparseCsrA.col_indices << pSparseCsrA.row_pointer << pSparseCsrA.rowBlocks
 //      << pDenseB.values << pDenseB.lead_dim
 //      << pDenseC.values << pDenseC.num_rows << pDenseC.num_cols << pDenseC.lead_dim
 //      << pAlpha.value << pBeta.value;
@@ -148,7 +148,7 @@ const clsparseControl control )
 
     kWrapper << pSparseCsrA.num_rows
         << pAlpha.value << pAlpha.offset( )
-        << pSparseCsrA.rowOffsets << pSparseCsrA.colIndices << pSparseCsrA.values
+        << pSparseCsrA.row_pointer << pSparseCsrA.col_indices << pSparseCsrA.values
         << pDenseB.values << pDenseB.lead_dim << pDenseB.offset( )
         << pBeta.value << pBeta.offset( )
         << pDenseC.values << pDenseC.num_rows << pDenseC.num_cols << pDenseC.lead_dim << pDenseC.offset( );

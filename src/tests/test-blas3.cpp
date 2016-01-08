@@ -113,13 +113,13 @@ public:
     void TearDown()
     {
         ::clReleaseMemObject(csrMatrixC.values);
-        ::clReleaseMemObject(csrMatrixC.colIndices);
-        ::clReleaseMemObject(csrMatrixC.rowOffsets);
+        ::clReleaseMemObject(csrMatrixC.col_indices);
+        ::clReleaseMemObject(csrMatrixC.row_pointer);
 
         clsparseInitCsrMatrix(&csrMatrixC);
     }// end
     
-    void checkRowOffsets(std::vector<clsparseIdx_t>& amdRowPtr)
+    void checkrow_pointer(std::vector<clsparseIdx_t>& amdRowPtr)
     {
         for (clsparseIdx_t i = 0; i < amdRowPtr.size(); i++)
         {
@@ -127,13 +127,13 @@ public:
             //EXPECT_EQ(amdRowPtr[i], this->C.index1_data()[i]);
             if (amdRowPtr[i] != this->C.index1_data()[i])
             {
-                this->browOffsetsMisFlag = true;
+                this->brow_pointerMisFlag = true;
                 break;
             }
         }
     }// end
 
-    void checkInDense(std::vector<clsparseIdx_t>& amdRowPtr, std::vector<clsparseIdx_t>& amdColIndices, std::vector<T>& amdVals)
+    void checkInDense(std::vector<clsparseIdx_t>& amdRowPtr, std::vector<clsparseIdx_t>& amdcol_indices, std::vector<T>& amdVals)
     {
         uBLAS::mapped_matrix<T> sparseDense(csrMatrixC.num_rows, csrMatrixC.num_cols, 0);
         uBLAS::mapped_matrix<T> boostDense(csrMatrixC.num_rows, csrMatrixC.num_cols, 0);
@@ -147,7 +147,7 @@ public:
         {
             // i corresponds to row index
             for (clsparseIdx_t j = amdRowPtr[i]; j < amdRowPtr[i + 1]; j++)
-                sparseDense(i, amdColIndices[j]) = amdVals[j];
+                sparseDense(i, amdcol_indices[j]) = amdVals[j];
         }
 
         for (clsparseIdx_t i = 0; i < this->C.index1_data().size() - 1; i++)
@@ -212,7 +212,7 @@ public:
     typedef typename uBLAS::compressed_matrix<T, uBLAS::row_major, 0, uBLAS::unbounded_array<size_t> > uBlasCSRM;
 
     uBlasCSRM C;
-    bool browOffsetsMisFlag;
+    bool brow_pointerMisFlag;
     clsparseCsrMatrix csrMatrixC;
 }; // End of class TestCSRSpGeMM
 
@@ -246,7 +246,7 @@ TYPED_TEST(TestCSRSpGeMM, square)
     //std::cout << "nnz =" << (this->csrMatrixC).num_nonzeros << std::endl;
 
     std::vector<clsparseIdx_t> resultRowPtr((this->csrMatrixC).num_rows + 1); // Get row ptr of Output CSR matrix
-    std::vector<clsparseIdx_t> resultColIndices((this->csrMatrixC).num_nonzeros); // Col Indices
+    std::vector<clsparseIdx_t> resultcol_indices((this->csrMatrixC).num_nonzeros); // Col Indices
     std::vector<TypeParam> resultVals((this->csrMatrixC).num_nonzeros); // Values
 
     this->C = uBlasCSRM((this->csrMatrixC).num_rows, (this->csrMatrixC).num_cols, (this->csrMatrixC).num_nonzeros);
@@ -261,14 +261,14 @@ TYPED_TEST(TestCSRSpGeMM, square)
 
     
     cl_status = clEnqueueReadBuffer(CLSE::queue,
-        this->csrMatrixC.colIndices, CL_TRUE, 0,
-        (this->csrMatrixC).num_nonzeros * sizeof(clsparseIdx_t), resultColIndices.data(), 0, NULL, NULL);
+        this->csrMatrixC.col_indices, CL_TRUE, 0,
+        (this->csrMatrixC).num_nonzeros * sizeof(clsparseIdx_t), resultcol_indices.data(), 0, NULL, NULL);
     
     EXPECT_EQ(CL_SUCCESS, cl_status);
 
     
     cl_status = clEnqueueReadBuffer(CLSE::queue,
-        this->csrMatrixC.rowOffsets, CL_TRUE, 0,
+        this->csrMatrixC.row_pointer, CL_TRUE, 0,
         ((this->csrMatrixC).num_rows + 1)  * sizeof(clsparseIdx_t), resultRowPtr.data(), 0, NULL, NULL);
 
     EXPECT_EQ(CL_SUCCESS, cl_status);
@@ -300,20 +300,20 @@ TYPED_TEST(TestCSRSpGeMM, square)
     {
         ASSERT_EQ(resultRowPtr[i], this->C.index1_data()[i]);
     }*/
-    this->browOffsetsMisFlag = false;
-   this->checkRowOffsets(resultRowPtr);
+    this->brow_pointerMisFlag = false;
+   this->checkrow_pointer(resultRowPtr);
    //if (::testing::Test::HasFailure())
-   if (this->browOffsetsMisFlag == true)
+   if (this->brow_pointerMisFlag == true)
     {
         // Check the values in Dense format
-        this->checkInDense(resultRowPtr, resultColIndices, resultVals);
+        this->checkInDense(resultRowPtr, resultcol_indices, resultVals);
     }
     else
     {
         /* Check Col Indices */
-        for (clsparseIdx_t i = 0; i < resultColIndices.size(); i++)
+        for (clsparseIdx_t i = 0; i < resultcol_indices.size(); i++)
         {
-            ASSERT_EQ(resultColIndices[i], this->C.index2_data()[i]);
+            ASSERT_EQ(resultcol_indices[i], this->C.index2_data()[i]);
         }
 
         /* Check Values */
@@ -326,7 +326,7 @@ TYPED_TEST(TestCSRSpGeMM, square)
         ASSERT_EQ(resultRowPtr.size(), this->C.index1_data().size());
 
         //Rest of the col_indices should be zero
-        for (size_t i = resultColIndices.size(); i < this->C.index2_data().size(); i++)
+        for (size_t i = resultcol_indices.size(); i < this->C.index2_data().size(); i++)
         {
             ASSERT_EQ(0, this->C.index2_data()[i]);
         }
@@ -381,7 +381,7 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
 
 
     std::vector<clsparseIdx_t> resultRowPtr((this->csrMatrixC).num_rows + 1); // Get row ptr of Output CSR matrix
-    std::vector<clsparseIdx_t> resultColIndices((this->csrMatrixC).num_nonzeros); // Col Indices
+    std::vector<clsparseIdx_t> resultcol_indices((this->csrMatrixC).num_nonzeros); // Col Indices
     std::vector<TypeParam> resultVals((this->csrMatrixC).num_nonzeros); // Values
 
     this->C = uBlasCSRM((this->csrMatrixC).num_rows, (this->csrMatrixC).num_cols, (this->csrMatrixC).num_nonzeros);
@@ -396,14 +396,14 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
 
 
     cl_status = clEnqueueReadBuffer(CLSE::queue,
-        this->csrMatrixC.colIndices, CL_TRUE, 0,
-        (this->csrMatrixC).num_nonzeros * sizeof(clsparseIdx_t), resultColIndices.data(), 0, NULL, NULL);
+        this->csrMatrixC.col_indices, CL_TRUE, 0,
+        (this->csrMatrixC).num_nonzeros * sizeof(clsparseIdx_t), resultcol_indices.data(), 0, NULL, NULL);
 
     EXPECT_EQ(CL_SUCCESS, cl_status);
 
 
     cl_status = clEnqueueReadBuffer(CLSE::queue,
-        this->csrMatrixC.rowOffsets, CL_TRUE, 0,
+        this->csrMatrixC.row_pointer, CL_TRUE, 0,
         ((this->csrMatrixC).num_rows + 1)  * sizeof(clsparseIdx_t), resultRowPtr.data(), 0, NULL, NULL);
 
     EXPECT_EQ(CL_SUCCESS, cl_status);
@@ -415,20 +415,20 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
         this->C = uBLAS::sparse_prod(SPER::ublasSCsr, SPER::ublasSCsr, this->C);
     }
 
-    this->browOffsetsMisFlag = false;
-    this->checkRowOffsets(resultRowPtr);
+    this->brow_pointerMisFlag = false;
+    this->checkrow_pointer(resultRowPtr);
     //if (::testing::Test::HasFailure())
-    if (this->browOffsetsMisFlag == true)
+    if (this->brow_pointerMisFlag == true)
     {
         // Check the values in Dense format
-        this->checkInDense(resultRowPtr, resultColIndices, resultVals);
+        this->checkInDense(resultRowPtr, resultcol_indices, resultVals);
     }
     else
     {
         /* Check Col Indices */
-        for (clsparseIdx_t i = 0; i < resultColIndices.size(); i++)
+        for (clsparseIdx_t i = 0; i < resultcol_indices.size(); i++)
         {
-            ASSERT_EQ(resultColIndices[i], this->C.index2_data()[i]);
+            ASSERT_EQ(resultcol_indices[i], this->C.index2_data()[i]);
         }
 
         /* Check Values */
@@ -441,7 +441,7 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
         ASSERT_EQ(resultRowPtr.size(), this->C.index1_data().size());
 
         //Rest of the col_indices should be zero
-        for (clsparseIdx_t i = resultColIndices.size(); i < this->C.index2_data().size(); i++)
+        for (clsparseIdx_t i = resultcol_indices.size(); i < this->C.index2_data().size(); i++)
         {
             ASSERT_EQ(0, this->C.index2_data()[i]);
         }

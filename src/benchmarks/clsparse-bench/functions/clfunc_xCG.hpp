@@ -122,13 +122,13 @@ public:
             csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
-        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        csrMtx.col_indices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.col_indices" );
 
-        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        csrMtx.row_pointer = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.row_pointer" );
 
         if(typeid(T) == typeid(float))
             fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
@@ -214,8 +214,8 @@ public:
         //need to do this before we eventually hit the destructor
         clsparseCsrMetaDelete( &csrMtx );
         CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.col_indices ), "clReleaseMemObject csrMtx.col_indices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.row_pointer ), "clReleaseMemObject csrMtx.row_pointer" );
 
         CLSPARSE_V( ::clReleaseMemObject( x.values ), "clReleaseMemObject x.values" );
         CLSPARSE_V( ::clReleaseMemObject( y.values ), "clReleaseMemObject y.values" );

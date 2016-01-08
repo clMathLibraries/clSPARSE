@@ -86,7 +86,7 @@ public:
 	{
 #if 0
 		//Check VK
-		//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
+		//Host to GPU: CSR-> [row_pointer(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
 		//GPU to Host: Coo - > row_indices + Col_indices + Values- > [sizeof(T) * num_nonzero] + sizeof(int)
 		size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) +
 			sizeof(T) * (cooMtx.num_nonzeros) + sizeof(cl_int) * (cooMtx.num_nonzeros * 2);
@@ -125,11 +125,11 @@ public:
 		csrMtx.values = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(T), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer csrMtx.values");
 
-        csrMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
-		CLSPARSE_V(status, "::clCreateBuffer csrMtx.colIndices");
+        csrMtx.col_indices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
+		CLSPARSE_V(status, "::clCreateBuffer csrMtx.col_indices");
 
-        csrMtx.rowOffsets = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
-		CLSPARSE_V(status, "::clCreateBuffer csrMtx.rowOffsets");
+        csrMtx.row_pointer = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
+		CLSPARSE_V(status, "::clCreateBuffer csrMtx.row_pointer");
 
 		if (typeid(T) == typeid(float))
 			fileError = clsparseSCsrMatrixfromFile(&csrMtx, sparseFile.c_str(), control, explicit_zeroes);
@@ -153,13 +153,13 @@ public:
 			cooMtx.num_nonzeros * sizeof(T), NULL, &status);
 		CLSPARSE_V(status, "::clCreateBuffer cooMtx.values");
 
-		cooMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_WRITE_ONLY,
+		cooMtx.col_indices = ::clCreateBuffer(ctx, CL_MEM_WRITE_ONLY,
             cooMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
-		CLSPARSE_V(status, "::clCreateBuffer cooMtx.colIndices");
+		CLSPARSE_V(status, "::clCreateBuffer cooMtx.col_indices");
 
-		cooMtx.rowIndices = ::clCreateBuffer(ctx, CL_MEM_WRITE_ONLY,
+		cooMtx.row_indices = ::clCreateBuffer(ctx, CL_MEM_WRITE_ONLY,
             cooMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
-		CLSPARSE_V(status, "::clCreateBuffer cooMtx.rowIndices");
+		CLSPARSE_V(status, "::clCreateBuffer cooMtx.row_indices");
 
 	}// end
 
@@ -174,12 +174,12 @@ public:
 			cooMtx.num_nonzeros * sizeof(T), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.values");
 
         clsparseIdx_t scalarIntZero = 0;
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.rowIndices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
-            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.rowIndices");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.row_indices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.row_indices");
 
 
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.colIndices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
-            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.colIndices");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.col_indices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.col_indices");
 
 	}// end
 
@@ -190,12 +190,12 @@ public:
 			cooMtx.num_nonzeros * sizeof(T), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.values");
 
         clsparseIdx_t scalarIntZero = 0;
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.rowIndices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
-            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.rowIndices");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.row_indices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.row_indices");
 
 
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.colIndices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
-            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.colIndices");
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, cooMtx.col_indices, &scalarIntZero, sizeof(clsparseIdx_t), 0,
+            cooMtx.num_nonzeros * sizeof(clsparseIdx_t), 0, NULL, NULL), "::clEnqueueFillBuffer cooMtx.col_indices");
 	}// end
 
 	void read_gpu_buffer()
@@ -210,7 +210,7 @@ public:
 #if 0
 			// Need to verify this calculation VK
 			//size_t sparseBytes = sizeof(cl_int) * (csrMtx.nnz + csrMtx.m) + sizeof(T) * (csrMtx.nnz + csrMtx.n + csrMtx.m);
-			//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
+			//Host to GPU: CSR-> [row_pointer(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
 			//GPU to Host: Coo - > row_indices + Col_indices + Values- > [sizeof(T) * num_nonzero] + sizeof(int)
 			size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) +
 				          sizeof(T) * (cooMtx.num_nonzeros) + sizeof(cl_int) * (cooMtx.num_nonzeros * 2);
@@ -237,12 +237,12 @@ public:
 		//need to do this before we eventually hit the destructor
         clsparseCsrMetaDelete( &csrMtx );
         CLSPARSE_V(::clReleaseMemObject(csrMtx.values), "clReleaseMemObject csrMtx.values");
-		CLSPARSE_V(::clReleaseMemObject(csrMtx.colIndices), "clReleaseMemObject csrMtx.colIndices");
-		CLSPARSE_V(::clReleaseMemObject(csrMtx.rowOffsets), "clReleaseMemObject csrMtx.rowOffsets");
+		CLSPARSE_V(::clReleaseMemObject(csrMtx.col_indices), "clReleaseMemObject csrMtx.col_indices");
+		CLSPARSE_V(::clReleaseMemObject(csrMtx.row_pointer), "clReleaseMemObject csrMtx.row_pointer");
 
 		CLSPARSE_V(::clReleaseMemObject(cooMtx.values), "clReleaseMemObject cooMtx.values");
-		CLSPARSE_V(::clReleaseMemObject(cooMtx.colIndices), "clReleaseMemObject cooMtx.colIndices");
-		CLSPARSE_V(::clReleaseMemObject(cooMtx.rowIndices), "clReleaseMemObject cooMtx.rowIndices");
+		CLSPARSE_V(::clReleaseMemObject(cooMtx.col_indices), "clReleaseMemObject cooMtx.col_indices");
+		CLSPARSE_V(::clReleaseMemObject(cooMtx.row_indices), "clReleaseMemObject cooMtx.row_indices");
 	}
 
 private:

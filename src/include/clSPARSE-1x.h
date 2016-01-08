@@ -35,7 +35,7 @@ typedef struct clsparseScalar_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, this offset is added to
      * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
      */
-    clsparseIdx_t offValue;
+    clsparseIdx_t off_value;
 } clsparseScalar;
 
 /*! \brief Structure to encapsulate dense vector data to clSPARSE API
@@ -49,7 +49,7 @@ typedef struct cldenseVector_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, this offset is added to
      * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
      */
-    clsparseIdx_t offValues;
+    clsparseIdx_t off_values;
 } cldenseVector;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in CSR
@@ -69,8 +69,8 @@ typedef struct clsparseCsrMatrix_
     /** @name OpenCL state */
     /**@{*/
     cl_mem values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
-    cl_mem colIndices;  /*!< column index for corresponding value of size num_nonzeros */
-    cl_mem rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
+    cl_mem col_indices;  /*!< column index for corresponding value of size num_nonzeros */
+    cl_mem row_pointer;  /*!< Invariant: row_pointer[i+1]-row_pointer[i] = number of values in row i */
     /**@}*/
 
     /** @name Buffer offsets */
@@ -78,9 +78,9 @@ typedef struct clsparseCsrMatrix_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, these offsets are added to
      * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
      */
-    clsparseIdx_t offValues;
-    clsparseIdx_t offColInd;
-    clsparseIdx_t offRowOff;
+    clsparseIdx_t off_values;
+    clsparseIdx_t off_col_indices;
+    clsparseIdx_t off_row_pointer;
     /**@}*/
 
     /*! Pointer to a private structure that contains meta-information the library keeps on a 
@@ -106,8 +106,8 @@ typedef struct clsparseCooMatrix_
     /** @name OpenCL state */
     /**@{*/
     cl_mem values;  /*!< CSR non-zero values of size num_nonzeros */
-    cl_mem colIndices;  /*!< column index for corresponding element; array size num_nonzeros */
-    cl_mem rowIndices;  /*!< row index for corresponding element; array size num_nonzeros */
+    cl_mem col_indices;  /*!< column index for corresponding element; array size num_nonzeros */
+    cl_mem row_indices;  /*!< row index for corresponding element; array size num_nonzeros */
     /**@}*/
 
     /** @name Buffer offsets */
@@ -115,9 +115,9 @@ typedef struct clsparseCooMatrix_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, these offsets are added to
     * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
     */
-    clsparseIdx_t offValues;
-    clsparseIdx_t offColInd;
-    clsparseIdx_t offRowInd;
+    clsparseIdx_t off_values;
+    clsparseIdx_t off_col_indices;
+    clsparseIdx_t off_row_indices;
     /**@}*/
 } clsparseCooMatrix;
 
@@ -139,7 +139,7 @@ typedef struct cldenseMatrix_
     /*! Given that cl_mem objects are opaque without pointer arithmetic, these offsets are added to
     * the cl_mem locations on device to define beginning of the data in the cl_mem buffers
     */
-    clsparseIdx_t offValues;
+    clsparseIdx_t off_values;
 } cldenseMatrix;
 
 #endif

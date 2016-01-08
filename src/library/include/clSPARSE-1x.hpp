@@ -176,12 +176,12 @@ public:
     void clear( )
     {
         value = nullptr;
-        offValue = 0;
+        off_value = 0;
     }
 
     clsparseIdx_t offset() const
     {
-        return offValue;
+        return off_value;
     }
 };
 
@@ -192,12 +192,12 @@ public:
     {
         num_values = 0;
         values = nullptr;
-        offValues = 0;
+        off_values = 0;
     }
 
     clsparseIdx_t offset() const
     {
-        return offValues;
+        return off_values;
     }
 };
 
@@ -207,8 +207,8 @@ public:
     void clear( )
     {
         num_rows = num_cols = num_nonzeros = 0;
-        values = colIndices = rowOffsets = nullptr;
-        offValues = offColInd = offRowOff = 0;
+        values = col_indices = row_pointer = nullptr;
+        off_values = off_col_indices = off_row_pointer = 0;
         meta = nullptr;
     }
 
@@ -219,17 +219,17 @@ public:
 
     clsparseIdx_t valOffset() const
     {
-        return offValues;
+        return off_values;
     }
 
     clsparseIdx_t colIndOffset() const
     {
-        return offColInd;
+        return off_col_indices;
     }
 
     clsparseIdx_t rowOffOffset() const
     {
-        return offRowOff;
+        return off_row_pointer;
     }
 };
 
@@ -239,8 +239,8 @@ public:
     void clear( )
     {
         num_rows = num_cols = num_nonzeros = 0;
-        values = colIndices = rowIndices = nullptr;
-        offValues = offColInd = offRowInd = 0;
+        values = col_indices = row_indices = nullptr;
+        off_values = off_col_indices = off_row_indices = 0;
     }
 
     clsparseIdx_t nnz_per_row( ) const
@@ -250,17 +250,17 @@ public:
 
     clsparseIdx_t valOffset() const
     {
-        return offValues;
+        return off_values;
     }
 
     clsparseIdx_t colIndOffset() const
     {
-        return offColInd;
+        return off_col_indices;
     }
 
     clsparseIdx_t rowOffOffset() const
     {
-        return offRowInd;
+        return off_row_indices;
     }
 };
 
@@ -270,14 +270,14 @@ public:
     void clear( )
     {
         num_rows = num_cols = lead_dim = 0;
-        offValues = 0;
+        off_values = 0;
         major = rowMajor;
         values = nullptr;
     }
 
     clsparseIdx_t offset() const
     {
-        return offValues;
+        return off_values;
     }
 
 };

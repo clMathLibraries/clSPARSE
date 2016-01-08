@@ -91,7 +91,7 @@ csrmv_adaptive( const clsparseScalarPrivate* pAlpha,
     const matrix_meta* meta_ptr = static_cast< const matrix_meta* >( pCsrMatx->meta );
 
     kWrapper << pCsrMatx->values
-        << pCsrMatx->colIndices << pCsrMatx->rowOffsets
+        << pCsrMatx->col_indices << pCsrMatx->row_pointer
         << pX->values << pY->values
         << meta_ptr->rowBlocks
         << pAlpha->value << pBeta->value;
@@ -187,7 +187,7 @@ csrmv_adaptive( const clsparse::array_base<T>& pAlpha,
     const matrix_meta* meta_ptr = static_cast< const matrix_meta* >( pCsrMatx->meta );
 
     kWrapper << pCsrMatx->values
-        << pCsrMatx->colIndices << pCsrMatx->rowOffsets
+        << pCsrMatx->col_indices << pCsrMatx->row_pointer
         << pX.data() << pY.data()
         << meta_ptr->rowBlocks
         << pAlpha.data() << pBeta.data();

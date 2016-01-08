@@ -741,21 +741,21 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
         return clsparseInvalidKernelExecution;
     }  
     
-    cl_mem csrRowPtrA = matA->rowOffsets;
-    cl_mem csrColIndA = matA->colIndices;
+    cl_mem csrRowPtrA = matA->row_pointer;
+    cl_mem csrColIndA = matA->col_indices;
     cl_mem csrValA    = matA->values;
-    cl_mem csrRowPtrB = matB->rowOffsets;
-    cl_mem csrColIndB = matB->colIndices;
+    cl_mem csrRowPtrB = matB->row_pointer;
+    cl_mem csrColIndB = matB->col_indices;
     cl_mem csrValB    = matB->values;
     
     cl::Context cxt = control->getContext();
     
-    matC->rowOffsets = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, (m + 1) * sizeof( cl_int ), NULL, &run_status );
+    matC->row_pointer = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, (m + 1) * sizeof( cl_int ), NULL, &run_status );
     
     int pattern = 0;
-    clEnqueueFillBuffer(control->queue(), matC->rowOffsets, &pattern, sizeof(cl_int), 0, (m + 1)*sizeof(cl_int), 0, NULL, NULL);
+    clEnqueueFillBuffer(control->queue(), matC->row_pointer, &pattern, sizeof(cl_int), 0, (m + 1)*sizeof(cl_int), 0, NULL, NULL);
                         
-    cl_mem csrRowPtrC = matC->rowOffsets;
+    cl_mem csrRowPtrC = matC->row_pointer;
 
     std::vector<int> csrRowPtrC_h(m + 1, 0);
 
@@ -835,10 +835,10 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     int nnzC = csrRowPtrC_h[m];
     //std::cout << "nnzC = " << nnzC << std::endl;
     
-    matC->colIndices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_int ), NULL, &run_status );
+    matC->col_indices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_int ), NULL, &run_status );
     matC->values =     ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_float ), NULL, &run_status );
     
-    cl_mem csrColIndC = matC->colIndices;
+    cl_mem csrColIndC = matC->col_indices;
     cl_mem csrValC    = matC->values;
 
     run_status = clEnqueueWriteBuffer(control->queue(),
