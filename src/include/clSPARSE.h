@@ -613,6 +613,16 @@ extern "C" {
     CLSPARSE_EXPORT clsparseStatus
         clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control, cl_bool read_explicit_zeroes );
 
+    /*! \brief A structure returned by value from the clsparseCsrMetaSize
+    * function.  This serves as a result/status pair for the size of the 
+    * meta data associated with a sparse matrix.
+    */
+    typedef struct _clsparseMetaSizeResult
+    {
+        clsparseIdx_t metaSize;
+        clsparseStatus status;
+    } clsparseMetaSizeResult;
+
     /*!
      * \brief Calculate the amount of device memory required to hold meta-data for csr-adaptive SpM-dV algorithm
      * \details CSR-adaptive is a high performance sparse matrix times dense vector algorithm.  It requires a pre-processing
@@ -625,8 +635,8 @@ extern "C" {
      *
      * \ingroup FILE
     */
-    CLSPARSE_EXPORT clsparseStatus
-        clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control, clsparseIdx_t* metaSize );
+    CLSPARSE_EXPORT clsparseMetaSizeResult
+        clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
     /*!
      * \brief Calculate the meta-data for csr-adaptive SpM-dV algorithm

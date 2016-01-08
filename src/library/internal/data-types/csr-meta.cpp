@@ -20,23 +20,25 @@
 #include "include/clSPARSE-private.hpp"
 #include "internal/clsparse-control.hpp"
 
-clsparseStatus
-clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control, clsparseIdx_t* metaSize )
+clsparseMetaSizeResult
+clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control )
 {
+    clsparseMetaSizeResult sizeResult;
+    sizeResult.status = clsparseSuccess;
     clsparseCsrMatrixPrivate* pCsrMatx = static_cast<clsparseCsrMatrixPrivate*>( csrMatx );
 
     if( csrMatx->meta )
     {
-        *metaSize = static_cast< matrix_meta* >( pCsrMatx->meta )->rowBlockSize;
+        sizeResult.metaSize = static_cast< matrix_meta* >( pCsrMatx->meta )->rowBlockSize;
 
-        return clsparseSuccess;
+        return sizeResult;
     }
 
     clMemRAII< clsparseIdx_t > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
     clsparseIdx_t* rowDelimiters = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_READ, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
-    *metaSize = ComputeRowBlocksSize( rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
+    sizeResult.metaSize = ComputeRowBlocksSize( rowDelimiters, pCsrMatx->num_rows, BLKSIZE, BLOCK_MULTIPLIER, ROWS_FOR_VECTOR );
 
-    return clsparseSuccess;
+    return sizeResult;
 }
 
 clsparseStatus
