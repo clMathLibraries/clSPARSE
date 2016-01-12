@@ -227,8 +227,8 @@ extern "C" {
     */
     typedef struct _clsparseCreateResult
     {
-        clsparseControl control;
         clsparseStatus status;
+        clsparseControl control;
     } clsparseCreateResult;
 
     /*!
@@ -276,8 +276,8 @@ extern "C" {
     */
     typedef struct _clsparseEventResult
     {
-        cl_event event;
         clsparseStatus status;
+        cl_event event;
     } clsparseEventResult;
 
     /*!
@@ -352,8 +352,8 @@ extern "C" {
     */
     typedef struct _clsparseCreateSolverResult
     {
-        clSParseSolverControl control;
         clsparseStatus status;
+        clSParseSolverControl control;
     } clsparseCreateSolverResult;
 
     /*!
@@ -619,8 +619,8 @@ extern "C" {
     */
     typedef struct _clsparseMetaSizeResult
     {
-        clsparseIdx_t metaSize;
         clsparseStatus status;
+        clsparseIdx_t metaSize;
     } clsparseMetaSizeResult;
 
     /*!
