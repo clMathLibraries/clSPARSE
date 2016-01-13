@@ -127,13 +127,13 @@ public:
             csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
-        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        csrMtx.col_indices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.col_indices" );
 
-        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        csrMtx.row_pointer = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.row_pointer" );
 
         if(typeid(T) == typeid(float))
             fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
@@ -175,13 +175,13 @@ public:
                                            csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
 		CLSPARSE_V(status, "::clCreateBuffer csrMatx.values");
 
-        csrMatx.colIndices = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,
+        csrMatx.col_indices = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,
             csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
-		CLSPARSE_V(status, "::clCreateBuffer csrMatx.colIndices");
+		CLSPARSE_V(status, "::clCreateBuffer csrMatx.col_indices");
 
-        csrMatx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,
+        csrMatx.row_pointer = ::clCreateBuffer( ctx, CL_MEM_WRITE_ONLY,
                                            (csrMtx.num_rows + 1) * sizeof( clsparseIdx_t ), NULL, &status );
-		CLSPARSE_V(status, "::clCreateBuffer csrMatx.rowOffsets");
+		CLSPARSE_V(status, "::clCreateBuffer csrMatx.row_pointer");
     }// End of function
 
     void initialize_cpu_buffer( )
@@ -197,10 +197,10 @@ public:
         clsparseIdx_t scalar_i = 0;
 		T scalar_f   = 0;
 
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.rowOffsets, &scalar_i, sizeof(clsparseIdx_t), 0,
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.row_pointer, &scalar_i, sizeof(clsparseIdx_t), 0,
             sizeof(clsparseIdx_t) * (csrMatx.num_rows + 1), 0, NULL, NULL), "::clEnqueueFillBuffer row");
 
-        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.colIndices, &scalar_i, sizeof(clsparseIdx_t), 0,
+        CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.col_indices, &scalar_i, sizeof(clsparseIdx_t), 0,
             sizeof(clsparseIdx_t) * csrMatx.num_nonzeros, 0, NULL, NULL), "::clEnqueueFillBuffer col");
 
 		CLSPARSE_V(::clEnqueueFillBuffer(queue, csrMatx.values, &scalar_f, sizeof(T), 0,
@@ -240,12 +240,12 @@ public:
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
         CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.col_indices ), "clReleaseMemObject csrMtx.col_indices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.row_pointer ), "clReleaseMemObject csrMtx.row_pointer" );
 
         CLSPARSE_V( ::clReleaseMemObject( csrMatx.values ), "clReleaseMemObject csrMatx.values" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMatx.colIndices ), "clReleaseMemObject csrMatx.colIndices" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMatx.rowOffsets ), "clReleaseMemObject csrMatx.rowOffsets" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMatx.col_indices ), "clReleaseMemObject csrMatx.col_indices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMatx.row_pointer ), "clReleaseMemObject csrMatx.row_pointer" );
 
         CLSPARSE_V( ::clReleaseMemObject( A.values ), "clReleaseMemObject A.values" );
     }// End of function

@@ -414,11 +414,11 @@ dense_to_coo(clsparseCooMatrix* coo,
                                   coo->num_nonzeros * sizeof(V), NULL, &cl_status );
     CLSPARSE_V(cl_status, "Create coo values buffer");
 
-    coo->colIndices = clCreateBuffer( control->getContext()(), CL_MEM_READ_WRITE,
+    coo->col_indices = clCreateBuffer( control->getContext()(), CL_MEM_READ_WRITE,
                                       coo->num_nonzeros * sizeof(I), NULL, &cl_status );
     CLSPARSE_V(cl_status, "Create coo col indices buffer");
 
-    coo->rowIndices = clCreateBuffer(control->getContext()(), CL_MEM_READ_WRITE,
+    coo->row_indices = clCreateBuffer(control->getContext()(), CL_MEM_READ_WRITE,
                                      coo->num_nonzeros * sizeof(I), NULL, &cl_status );
     CLSPARSE_V(cl_status, "Create coo row indices buffer");
 
@@ -467,8 +467,8 @@ dense_to_coo(clsparseCooMatrix* coo,
              << A.data()
              << nnz_locations.data()
              << coo_indexes.data()
-             << coo->rowIndices
-             << coo->colIndices
+             << coo->row_indices
+             << coo->col_indices
              << coo->values;
 
     cl::NDRange local(workgroup_size);

@@ -58,12 +58,14 @@ typedef struct clsparseCsrMatrix_
     /** @name OpenCL state */
     /**@{*/
     void* values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
-    void* colIndices;  /*!< column index for corresponding value of size num_nonzeros */
-    void* rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
-    void* rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
+    void* col_indices;  /*!< column index for corresponding value of size num_nonzeros */
+    void* row_pointer;  /*!< Invariant: row_pointer[i+1]-row_pointer[i] = number of values in row i */
     /**@}*/
 
-    size_t rowBlockSize;  /*!< Size of array used by the rowBlocks pointer */
+    /*! Pointer to a private structure that contains meta-information the library keeps on a
+    csr-encoded sparse matrix
+    */
+    void* meta;
 } clsparseCsrMatrix;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in COO
@@ -83,8 +85,8 @@ typedef struct clsparseCooMatrix_
     /** @name OpenCL state */
     /**@{*/
     void* values;  /*!< CSR non-zero values of size num_nonzeros */
-    void* colIndices;  /*!< column index for corresponding element; array size num_nonzeros */
-    void* rowIndices;  /*!< row index for corresponding element; array size num_nonzeros */
+    void* col_indices;  /*!< column index for corresponding element; array size num_nonzeros */
+    void* row_indices;  /*!< row index for corresponding element; array size num_nonzeros */
     /**@}*/
 } clsparseCooMatrix;
 

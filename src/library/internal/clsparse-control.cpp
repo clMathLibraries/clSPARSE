@@ -95,32 +95,29 @@ clsparseStatus collectEnvParams(clsparseControl control)
     return clsparseSuccess;
 }
 
-clsparseControl
-clsparseCreateControl( cl_command_queue queue, clsparseStatus *status )
+clsparseCreateResult
+clsparseCreateControl( cl_command_queue queue )
 {
-    clsparseControl control = new _clsparseControl( queue );
+    clsparseCreateResult cPair;
+    cPair.status = clsparseSuccess;
+    cPair.control = new _clsparseControl( queue );
 
-    clsparseStatus err = clsparseSuccess;
-    if( !control )
+    if( !cPair.control )
     {
-        control = nullptr;
-        err = clsparseOutOfHostMemory;
+        cPair.control = nullptr;
+        cPair.status = clsparseOutOfHostMemory;
+        return cPair;
     }
 
-    control->event = nullptr;
-//    control->off_alpha = 0;
-//    control->off_beta = 0;
-//    control->off_x = 0;
-//    control->off_y = 0;
+    cPair.control->event = nullptr;
+    cPair.control->wavefront_size = 0;
+    cPair.control->max_wg_size = 0;
+    cPair.control->async = false;
+    cPair.control->extended_precision = false;
+    cPair.control->dpfp_support = false;
+	cPair.control->addressBits = 64; // default 64 bits
 
-    control->wavefront_size = 0;
-    control->max_wg_size = 0;
-    control->async = false;
-    control->extended_precision = false;
-    control->dpfp_support = false;
-    control->addressBits = 64; // default 64 bits
-
-    collectEnvParams( control );
+    collectEnvParams( cPair.control );
 
     //	Discover and load the timer module if present
     void* timerLibHandle = LoadSharedLibrary( "lib", "clsparseTimer", false );
@@ -135,16 +132,11 @@ clsparseCreateControl( cl_command_queue queue, clsparseStatus *status )
         //	Create and initialize our timer class, if the external timer shared library loaded
         if( pfclsparseTimer )
         {
-            control->pDeviceTimer = static_cast<clsparseDeviceTimer*> ( pfclsparseTimer( CLSPARSE_GPU ) );
+            cPair.control->pDeviceTimer = static_cast<clsparseDeviceTimer*> ( pfclsparseTimer( CLSPARSE_GPU ) );
         }
     }
 
-    if( status != NULL )
-    {
-        *status = err;
-    }
-
-    return control;
+    return cPair;
 }
 
 clsparseStatus
@@ -221,21 +213,25 @@ cl_event *event_wait_list )
     return clsparseSuccess;
 }
 
-clsparseStatus
-clsparseGetEvent( clsparseControl control, cl_event *event )
+clsparseEventResult
+clsparseGetEvent( clsparseControl control )
 {
+    clsparseEventResult resPair;
+    resPair.status = clsparseSuccess;
+    resPair.event = nullptr;
+
     if( control == NULL )
     {
-        return clsparseInvalidControlObject;
+        resPair.status = clsparseInvalidControlObject;
+        return resPair;
     }
 
     //keeps the event valid on the user side
     ::clRetainEvent( control->event( ) );
 
-    *event = control->event( );
+    resPair.event = control->event( );
 
-    return clsparseSuccess;
-
+    return resPair;
 }
 
 //clsparseStatus

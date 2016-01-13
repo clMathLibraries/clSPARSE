@@ -67,20 +67,17 @@ public:
         csrDMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrDMatrix.num_nonzeros * sizeof( cl_double ), NULL, &status );
 
-        csrDMatrix.colIndices = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+        csrDMatrix.col_indices = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
             csrDMatrix.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &status);
 
-        csrDMatrix.rowOffsets = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
+        csrDMatrix.row_pointer = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
             (csrDMatrix.num_rows + 1) * sizeof( clsparseIdx_t ), NULL, &status);
 
         clsparseStatus fileError = clsparseDCsrMatrixfromFile( &csrDMatrix, file_name.c_str( ), CLSE::control, read_explicit_zeroes );
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk: " + file_name );
 
-        clsparseCsrMetaSize( &csrDMatrix, CLSE::control );
-        csrDMatrix.rowBlocks = ::clCreateBuffer( context, CL_MEM_READ_WRITE,
-                                                 csrDMatrix.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-        clsparseCsrMetaCompute( &csrDMatrix, CLSE::control );
+        clsparseCsrMetaCreate( &csrDMatrix, CLSE::control );
 
 
         //reassign the new matrix dimensions calculated clsparseCCsrMatrixFromFile to global variables
@@ -103,12 +100,12 @@ public:
                                            ublasDCsr.value_data().begin( ),
                                            0, NULL, NULL );
 
-        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.rowOffsets, CL_TRUE, 0,
+        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.row_pointer, CL_TRUE, 0,
                                             ( csrDMatrix.num_rows + 1 ) * sizeof( clsparseIdx_t ),
                                             ublasDCsr.index1_data().begin(),
                                             0, NULL, NULL );
 
-        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.colIndices, CL_TRUE, 0,
+        copy_status = clEnqueueReadBuffer( queue, csrDMatrix.col_indices, CL_TRUE, 0,
                                             csrDMatrix.num_nonzeros * sizeof( clsparseIdx_t ),
                                             ublasDCsr.index2_data().begin(),
                                             0, NULL, NULL );
@@ -124,23 +121,21 @@ public:
         csrSMatrix.num_nonzeros = csrDMatrix.num_nonzeros;
         csrSMatrix.num_cols = csrDMatrix.num_cols;
         csrSMatrix.num_rows = csrDMatrix.num_rows;
-        csrSMatrix.rowBlockSize = csrDMatrix.rowBlockSize;
+
+        csrSMatrix.col_indices = csrDMatrix.col_indices;
+        ::clRetainMemObject( csrSMatrix.col_indices );
+
+        csrSMatrix.row_pointer = csrDMatrix.row_pointer;
+        ::clRetainMemObject( csrSMatrix.row_pointer );
 
         // Don't use adaptive kernel in double precision yet.
-        csrSMatrix.rowBlocks = csrDMatrix.rowBlocks;
-        ::clRetainMemObject( csrSMatrix.rowBlocks );
-
-        csrSMatrix.colIndices = csrDMatrix.colIndices;
-        ::clRetainMemObject( csrSMatrix.colIndices );
-
-        csrSMatrix.rowOffsets = csrDMatrix.rowOffsets;
-        ::clRetainMemObject( csrSMatrix.rowOffsets );
+        clsparseCsrMetaCreate( &csrSMatrix, CLSE::control );
 
         csrSMatrix.values = ::clCreateBuffer( context, CL_MEM_READ_ONLY,
                                               csrSMatrix.num_nonzeros * sizeof( cl_float ), NULL, &status );
 
-        cl_int cl_status;
-        cl_double* dvals = (cl_double*) ::clEnqueueMapBuffer(queue, csrDMatrix.values, CL_TRUE, CL_MAP_READ, 0, csrDMatrix.num_nonzeros * sizeof(cl_double), 0, nullptr, nullptr, &cl_status);
+        //cl_int cl_status;
+        //cl_double* dvals = (cl_double*) ::clEnqueueMapBuffer(queue, csrDMatrix.values, CL_TRUE, CL_MAP_READ, 0, csrDMatrix.num_nonzeros * sizeof(cl_double), 0, nullptr, nullptr, &cl_status);
 
         // copy the double-precision values over into the single-precision array.
         for (clsparseIdx_t i = 0; i < ublasDCsr.value_data().size(); i++)
@@ -192,13 +187,13 @@ public:
     {
         //release buffers;
         ::clReleaseMemObject( csrSMatrix.values );
-        ::clReleaseMemObject( csrSMatrix.colIndices );
-        ::clReleaseMemObject( csrSMatrix.rowOffsets );
-        ::clReleaseMemObject( csrSMatrix.rowBlocks );
+        ::clReleaseMemObject( csrSMatrix.col_indices );
+        ::clReleaseMemObject( csrSMatrix.row_pointer );
         ::clReleaseMemObject( csrDMatrix.values );
-        ::clReleaseMemObject( csrDMatrix.colIndices );
-        ::clReleaseMemObject( csrDMatrix.rowOffsets );
-        ::clReleaseMemObject( csrDMatrix.rowBlocks );
+        ::clReleaseMemObject( csrDMatrix.col_indices );
+        ::clReleaseMemObject( csrDMatrix.row_pointer );
+        clsparseCsrMetaDelete( &csrSMatrix );
+        clsparseCsrMetaDelete( &csrDMatrix );
 
         //bring csrSMatrix csrDMatrix to its initial state
         clsparseInitCsrMatrix( &csrSMatrix );

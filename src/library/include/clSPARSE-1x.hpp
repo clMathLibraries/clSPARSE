@@ -24,7 +24,7 @@
 #include "clSPARSE-1x.h"
 #include "clSPARSE-error.h"
 
-// C++ wrapper classes that inherit from the extenrally visible C classes,
+// C++ wrapper classes that inherit from the externally visible C classes,
 // for the purpose of providing convenience methods to abstract away the
 // differences between cl1.2 and cl2.0
 // Users are responsible for creating and destroying the OpenCL objects
@@ -41,6 +41,26 @@
 //    return buf;
 //}
 
+// Structure to encapsulate the meta data for a sparse matrix
+struct matrix_meta
+{
+    matrix_meta( ) : rowBlockSize( 0 ), offRowBlocks( 0 )
+    {
+    }
+
+    void clear( )
+    {
+        offRowBlocks = rowBlockSize = 0;
+        rowBlocks = ::cl::Buffer( );
+    }
+
+    ::cl::Buffer rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
+
+    clsparseIdx_t rowBlockSize;  /*!< Size of array used by the rowBlocks handle */
+
+    clsparseIdx_t offRowBlocks;
+};
+
 template< typename pType >
 class clMemRAII
 {
@@ -49,12 +69,7 @@ class clMemRAII
     pType* clMem;
 
 public:
-
-//    clMemRAII() : clQueue(nullptr), clBuff(nullptr), clMem(nullptr)
-//    {
-
-//    }
-
+ 
     clMemRAII( const cl_command_queue cl_queue, const cl_mem cl_buff,
                const size_t cl_size = 0, const cl_mem_flags cl_flags = CL_MEM_READ_WRITE) :
         clMem( nullptr )
@@ -161,12 +176,12 @@ public:
     void clear( )
     {
         value = nullptr;
-        offValue = 0;
+        off_value = 0;
     }
 
     clsparseIdx_t offset() const
     {
-        return offValue;
+        return off_value;
     }
 };
 
@@ -177,12 +192,12 @@ public:
     {
         num_values = 0;
         values = nullptr;
-        offValues = 0;
+        off_values = 0;
     }
 
     clsparseIdx_t offset() const
     {
-        return offValues;
+        return off_values;
     }
 };
 
@@ -192,8 +207,9 @@ public:
     void clear( )
     {
         num_rows = num_cols = num_nonzeros = 0;
-        values = colIndices = rowOffsets = rowBlocks = nullptr;
-        offValues = offColInd = offRowOff = offRowBlocks = rowBlockSize = 0;
+        values = col_indices = row_pointer = nullptr;
+        off_values = off_col_indices = off_row_pointer = 0;
+        meta = nullptr;
     }
 
     clsparseIdx_t nnz_per_row() const
@@ -203,24 +219,18 @@ public:
 
     clsparseIdx_t valOffset() const
     {
-        return offValues;
+        return off_values;
     }
 
     clsparseIdx_t colIndOffset() const
     {
-        return offColInd;
+        return off_col_indices;
     }
 
     clsparseIdx_t rowOffOffset() const
     {
-        return offRowOff;
+        return off_row_pointer;
     }
-
-    clsparseIdx_t rowBlocksOffset() const
-    {
-        return offRowBlocks;
-    }
-
 };
 
 class clsparseCooMatrixPrivate: public clsparseCooMatrix
@@ -229,8 +239,8 @@ public:
     void clear( )
     {
         num_rows = num_cols = num_nonzeros = 0;
-        values = colIndices = rowIndices = nullptr;
-        offValues = offColInd = offRowInd = 0;
+        values = col_indices = row_indices = nullptr;
+        off_values = off_col_indices = off_row_indices = 0;
     }
 
     clsparseIdx_t nnz_per_row( ) const
@@ -240,17 +250,17 @@ public:
 
     clsparseIdx_t valOffset() const
     {
-        return offValues;
+        return off_values;
     }
 
     clsparseIdx_t colIndOffset() const
     {
-        return offColInd;
+        return off_col_indices;
     }
 
     clsparseIdx_t rowOffOffset() const
     {
-        return offRowInd;
+        return off_row_indices;
     }
 };
 
@@ -260,14 +270,14 @@ public:
     void clear( )
     {
         num_rows = num_cols = lead_dim = 0;
-        offValues = 0;
+        off_values = 0;
         major = rowMajor;
         values = nullptr;
     }
 
     clsparseIdx_t offset() const
     {
-        return offValues;
+        return off_values;
     }
 
 };

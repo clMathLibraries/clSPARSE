@@ -28,7 +28,8 @@
 #include <CL/cl.hpp>
 #endif
 
-#include <clSPARSE.h>
+#include "clSPARSE.h"
+#include "clSPARSE-error.h"
 
 /*!
  * \brief Sample Conjugate Gradients Solver (CG C++)
@@ -155,17 +156,11 @@ int main (int argc, char* argv[])
     }
 
 
-    // Create clsparseControl object
-    clsparseControl control = clsparseCreateControl(queue(), &status);
-    if (status != CL_SUCCESS)
-    {
-        std::cout << "Problem with creating clSPARSE control object"
-                  <<" error [" << status << "]" << std::endl;
-        return -4;
-    }
+    // Create clSPARSE control object it require queue for kernel execution
+    clsparseCreateResult createResult = clsparseCreateControl( queue( ) );
+    CLSPARSE_V( createResult.status, "Failed to create clsparse control" );
 
-
-    // Read matrix from file. Calculates the rowBlocks strucutres as well.
+    // Read matrix from file. Calculates the rowBlocks structures as well.
     clsparseIdx_t nnz, row, col;
     // read MM header to get the size of the matrix;
     clsparseStatus fileError
@@ -185,26 +180,20 @@ int main (int argc, char* argv[])
     A.values = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                  A.num_nonzeros * sizeof( float ), NULL, &cl_status );
 
-    A.colIndices = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
+    A.col_indices = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                      A.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
-    A.rowOffsets = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
+    A.row_pointer = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
                                      ( A.num_rows + 1 ) * sizeof( clsparseIdx_t ), NULL, &cl_status );
-
-    A.rowBlocks = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,
-                                    A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );
 
 
     // Read matrix market file with explicit zero values included.
-    fileError = clsparseSCsrMatrixfromFile( &A, matrix_path.c_str( ), control, true );
+    fileError = clsparseSCsrMatrixfromFile( &A, matrix_path.c_str( ), createResult.control, true );
 
     // This function allocates memory for rowBlocks structure. If not called
     // the structure will not be calculated and clSPARSE will run the vectorized
     // version of SpMV instead of adaptive;
-    clsparseCsrMetaSize( &A, control );
-    A.rowBlocks = ::clCreateBuffer( context(), CL_MEM_READ_WRITE,
-            A.rowBlockSize * sizeof( cl_ulong ), NULL, &cl_status );
-    clsparseCsrMetaCompute( &A, control );
+    clsparseCsrMetaCreate( &A, createResult.control );
 
     if (fileError != clsparseSuccess)
     {
@@ -249,28 +238,27 @@ int main (int argc, char* argv[])
     // relative tolerance: 1e-2
     // absolute tolerance: 1e-5
     // max iters: 1000
-    clSParseSolverControl solverControl =
-            clsparseCreateSolverControl(DIAGONAL, 1000, 1e-2, 1e-5);
+    clsparseCreateSolverResult solverResult =
+        clsparseCreateSolverControl( DIAGONAL, 1000, 1e-2, 1e-5 );
+    CLSPARSE_V( solverResult.status, "Failed to create clsparse solver control" );
 
     // We can set different print modes of the solver status:
     // QUIET - print no messages (default)
     // NORMAL - print summary
     // VERBOSE - per iteration status;
-    clsparseSolverPrintMode(solverControl, VERBOSE);
+    clsparseSolverPrintMode( solverResult.control, VERBOSE);
 
     /* TODO: provide various solver statuses for different scenarios
-     * Solver reached max numer of iterations is not a failure.
+     * Solver reached max number of iterations is not a failure.
      */
 
-    status = clsparseScsrcg(&x, &A, &b, solverControl, control);
+    status = clsparseScsrcg(&x, &A, &b, solverResult.control, createResult.control );
 
     //release solver control structure after finishing execution;
-    clsparseReleaseSolverControl(solverControl);
-
-
+    clsparseReleaseSolverControl( solverResult.control );
 
     /** Step 5. Close & release resources */
-    status = clsparseReleaseControl(control);
+    status = clsparseReleaseControl( createResult.control );
     if (status != clsparseSuccess)
     {
         std::cout << "Problem with releasing control object."
@@ -285,10 +273,10 @@ int main (int argc, char* argv[])
                   << " Error: " << status << std::endl;
     }
     //release mem;
+    clsparseCsrMetaDelete( &A );
     clReleaseMemObject ( A.values );
-    clReleaseMemObject ( A.colIndices );
-    clReleaseMemObject ( A.rowOffsets );
-    clReleaseMemObject ( A.rowBlocks );
+    clReleaseMemObject ( A.col_indices );
+    clReleaseMemObject ( A.row_pointer );
 
     clReleaseMemObject ( x.values );
     clReleaseMemObject ( b.values );

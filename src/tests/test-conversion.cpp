@@ -205,11 +205,11 @@ public:
                                                CSRE::ublasSCsr.value_data().size() * sizeof( T ), NULL, &cl_status );
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            csrMatx.rowOffsets = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+            csrMatx.row_pointer = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
                                                    CSRE::ublasSCsr.index1_data().size() * sizeof( clsparseIdx_t ), NULL, &cl_status );
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            csrMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+            csrMatx.col_indices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
                                                    CSRE::ublasSCsr.index2_data().size() * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
             ASSERT_EQ(CL_SUCCESS, cl_status);
@@ -237,7 +237,7 @@ public:
 
 
             // Compare row_offsets
-            cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.rowOffsets, CL_TRUE, 0,
+            cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.row_pointer, CL_TRUE, 0,
                                               row_offsets.size() * sizeof(clsparseIdx_t), row_offsets.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -247,7 +247,7 @@ public:
 
 
             // Compare col indices
-            cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.colIndices, CL_TRUE, 0,
+            cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.col_indices, CL_TRUE, 0,
                                               col_indices.size() * sizeof(clsparseIdx_t), col_indices.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -257,8 +257,8 @@ public:
 
             // Release csrMatrix data
             cl_status = ::clReleaseMemObject(csrMatx.values);
-            cl_status = ::clReleaseMemObject(csrMatx.colIndices);
-            cl_status = ::clReleaseMemObject(csrMatx.rowOffsets);
+            cl_status = ::clReleaseMemObject(csrMatx.col_indices);
+            cl_status = ::clReleaseMemObject(csrMatx.row_pointer);
 
         }
 
@@ -284,11 +284,11 @@ public:
                                                CSRE::csrDMatrix.num_nonzeros * sizeof( T ), NULL, &cl_status );
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            csrMatx.rowOffsets = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+            csrMatx.row_pointer = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
                                                    ( CSRE::csrDMatrix.num_rows + 1 ) * sizeof( clsparseIdx_t ), NULL, &cl_status );
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
-            csrMatx.colIndices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
+            csrMatx.col_indices = ::clCreateBuffer( CLSE::context, CL_MEM_READ_ONLY,
                                                    CSRE::csrDMatrix.num_nonzeros * sizeof( clsparseIdx_t ), NULL, &cl_status );
 
             ASSERT_EQ(CL_SUCCESS, cl_status);
@@ -317,7 +317,7 @@ public:
 
 
             // Compare row_offsets
-            cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.rowOffsets, CL_TRUE, 0,
+            cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.row_pointer, CL_TRUE, 0,
                                               row_offsets.size() * sizeof(clsparseIdx_t), row_offsets.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -327,7 +327,7 @@ public:
 
 
             // Compare col indices
-            cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.colIndices, CL_TRUE, 0,
+            cl_status = ::clEnqueueReadBuffer(CLSE::queue, csrMatx.col_indices, CL_TRUE, 0,
                                               col_indices.size() * sizeof(clsparseIdx_t), col_indices.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
 
@@ -337,8 +337,8 @@ public:
 
             // Release csrMatrix data
             cl_status = ::clReleaseMemObject(csrMatx.values);
-            cl_status = ::clReleaseMemObject(csrMatx.colIndices);
-            cl_status = ::clReleaseMemObject(csrMatx.rowOffsets);
+            cl_status = ::clReleaseMemObject(csrMatx.col_indices);
+            cl_status = ::clReleaseMemObject(csrMatx.row_pointer);
 
         }
 
@@ -370,13 +370,13 @@ public:
         cooMatrix.num_cols = num_cols;
         cooMatrix.num_rows = num_rows;
 
-        cooMatrix.colIndices =
+        cooMatrix.col_indices =
                 ::clCreateBuffer(CLSE::context, CL_MEM_READ_ONLY,
                                  cooMatrix.num_nonzeros * sizeof(clsparseIdx_t),
                                  NULL, &cl_status);
         ASSERT_EQ(CL_SUCCESS, cl_status);
 
-        cooMatrix.rowIndices =
+        cooMatrix.row_indices =
                 ::clCreateBuffer(CLSE::context, CL_MEM_READ_ONLY,
                                  cooMatrix.num_nonzeros * sizeof(clsparseIdx_t),
                                  NULL, &cl_status);
@@ -420,7 +420,7 @@ public:
             for (clsparseIdx_t i = 0; i < values.size(); i++)
                 EXPECT_FLOAT_EQ(values[i], CSRE::ublasSCsr.value_data()[i]);
 
-            cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.colIndices,
+            cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.col_indices,
                                               CL_TRUE, 0, col_indices.size() * sizeof(clsparseIdx_t),
                                               col_indices.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
@@ -430,7 +430,7 @@ public:
                 ASSERT_EQ(col_indices[i], CSRE::ublasSCsr.index2_data()[i]);
 
 
-            cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.rowOffsets,
+            cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrSMatrix.row_pointer,
                                               CL_TRUE, 0, row_offsets.size() * sizeof(clsparseIdx_t),
                                               row_offsets.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
@@ -476,7 +476,7 @@ public:
                 EXPECT_DOUBLE_EQ(values[i], CSRE::ublasDCsr.value_data()[i]);
 
 
-            cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrDMatrix.colIndices,
+            cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrDMatrix.col_indices,
                                               CL_TRUE, 0, col_indices.size() * sizeof(clsparseIdx_t),
                                               col_indices.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
@@ -486,7 +486,7 @@ public:
                 ASSERT_EQ(col_indices[i], CSRE::ublasDCsr.index2_data()[i]);
 
 
-            cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrDMatrix.rowOffsets,
+            cl_status = ::clEnqueueReadBuffer(CLSE::queue, CSRE::csrDMatrix.row_pointer,
                                               CL_TRUE, 0, row_offsets.size() * sizeof(clsparseIdx_t),
                                               row_offsets.data(), 0, nullptr, nullptr);
             ASSERT_EQ(CL_SUCCESS, cl_status);
@@ -497,9 +497,9 @@ public:
         }
 
 
-        cl_status = ::clReleaseMemObject(cooMatrix.colIndices);
+        cl_status = ::clReleaseMemObject(cooMatrix.col_indices);
         ASSERT_EQ(CL_SUCCESS, cl_status);
-        cl_status = ::clReleaseMemObject(cooMatrix.rowIndices);
+        cl_status = ::clReleaseMemObject(cooMatrix.row_indices);
         ASSERT_EQ(CL_SUCCESS, cl_status);
         cl_status = ::clReleaseMemObject(cooMatrix.values);
         ASSERT_EQ(CL_SUCCESS, cl_status);
@@ -518,13 +518,13 @@ public:
 
         ASSERT_EQ(clsparseSuccess, status);
 
-        cooMatrix.colIndices =
+        cooMatrix.col_indices =
                 ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
                                  CSRE::csrSMatrix.num_nonzeros * sizeof(clsparseIdx_t),
                                  nullptr, &cl_status);
         ASSERT_EQ(CL_SUCCESS, cl_status);
 
-        cooMatrix.rowIndices =
+        cooMatrix.row_indices =
                 ::clCreateBuffer(CLSE::context, CL_MEM_READ_WRITE,
                                  CSRE::csrSMatrix.num_nonzeros * sizeof(clsparseIdx_t),
                                  nullptr, &cl_status);
@@ -573,7 +573,7 @@ public:
             std::vector<T> values(cooMatrix.num_nonzeros);
 
             // row indices
-            cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.rowIndices,
+            cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.row_indices,
                                             CL_TRUE, 0, row_indices.size() * sizeof( clsparseIdx_t ),
                                             row_indices.data(), 0, nullptr, nullptr);
 
@@ -583,7 +583,7 @@ public:
                 ASSERT_EQ(coo_rows[i], row_indices[i]);
 
             // col indices
-            cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.colIndices,
+            cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.col_indices,
                                             CL_TRUE, 0, col_indices.size() * sizeof( clsparseIdx_t ),
                                             col_indices.data(), 0, nullptr, nullptr);
 
@@ -649,7 +649,7 @@ public:
 
 
             // row indices
-            cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.rowIndices,
+            cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.row_indices,
                                             CL_TRUE, 0, row_indices.size() * sizeof( clsparseIdx_t ),
                                             row_indices.data(), 0, nullptr, nullptr);
 
@@ -659,7 +659,7 @@ public:
                 ASSERT_EQ(coo_rows[i], row_indices[i]);
 
             // col indices
-            cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.colIndices,
+            cl_status = clEnqueueReadBuffer(CLSE::queue, cooMatrix.col_indices,
                                             CL_TRUE, 0, col_indices.size() * sizeof( clsparseIdx_t ),
                                             col_indices.data(), 0, nullptr, nullptr);
 
@@ -683,9 +683,9 @@ public:
             delete[] coo_vals;
         }
 
-        cl_status = ::clReleaseMemObject(cooMatrix.colIndices);
+        cl_status = ::clReleaseMemObject(cooMatrix.col_indices);
         ASSERT_EQ(CL_SUCCESS, cl_status);
-        cl_status = ::clReleaseMemObject(cooMatrix.rowIndices);
+        cl_status = ::clReleaseMemObject(cooMatrix.row_indices);
         ASSERT_EQ(CL_SUCCESS, cl_status);
         cl_status = ::clReleaseMemObject(cooMatrix.values);
         ASSERT_EQ(CL_SUCCESS, cl_status);

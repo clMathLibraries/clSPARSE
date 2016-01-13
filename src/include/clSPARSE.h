@@ -215,10 +215,21 @@ extern "C" {
     */
     /**@{*/
 
-    /*! \brief clsparseControl keeps state relevant for OpenCL operations
-     * like kernel execution, memory allocation and synchronization behavior
+    /*! \brief clsparseControl keeps OpenCL state like kernel execution,
+     * memory allocation and synchronization behavior
+     * \details Struct implementation hidden to clients using C PIMPL idiom 
+     * to make private to library
      */
     typedef struct _clsparseControl*  clsparseControl;
+
+    /*! \brief A structure returned by value from the clsparseCreateControl
+    * function.  This serves as result/status pair for the creation operation
+    */
+    typedef struct _clsparseCreateResult
+    {
+        clsparseStatus status;
+        clsparseControl control;
+    } clsparseCreateResult;
 
     /*!
     * \brief setup the clsparse control object from external OpenCL queue
@@ -230,8 +241,8 @@ extern "C" {
     *
     * \ingroup STATE
     */
-    CLSPARSE_EXPORT clsparseControl
-        clsparseCreateControl( cl_command_queue queue, clsparseStatus *status );
+    CLSPARSE_EXPORT clsparseCreateResult
+        clsparseCreateControl( cl_command_queue queue );
 
     /*!
     * \brief Enable/Disable asynchronous behavior for clSPARSE
@@ -260,22 +271,14 @@ extern "C" {
     CLSPARSE_EXPORT clsparseStatus
         clsparseEnableExtendedPrecision( clsparseControl control, cl_bool extPrecision );
 
-    /*!
-    * \brief Configure the library to use an array of events
-    * \warning NOT WORKING! NDRange throws Failure
-    *
-    * \param[in] control  A valid clsparseControl created with clsparseCreateControl
-    * \param[in] num_events_in_wait_list   Size of the event_wait_list array
-    * \param[out] event_wait_list   An array of OpenCL event objects for client to wait on
-    *
-    * \returns \b clsparseSuccess
-    *
-    * \ingroup STATE
+    /*! \brief A structure returned by value from the clsparseGetEvent
+    * function.  This serves as result/status pair for the creation operation
     */
-    CLSPARSE_EXPORT clsparseStatus
-        clsparseSetupEventWaitList( clsparseControl control,
-                                    cl_uint num_events_in_wait_list,
-                                    cl_event* event_wait_list );
+    typedef struct _clsparseEventResult
+    {
+        clsparseStatus status;
+        cl_event event;
+    } clsparseEventResult;
 
     /*!
     * \brief Return an event from the last kernel execution
@@ -288,8 +291,8 @@ extern "C" {
     *
     * \ingroup STATE
     */
-    CLSPARSE_EXPORT clsparseStatus
-        clsparseGetEvent( clsparseControl control, cl_event* event );
+    CLSPARSE_EXPORT clsparseEventResult
+        clsparseGetEvent( clsparseControl control );
 
     /*!
     * \brief Sets internal control fields to 0 or Null and frees allocated structures
@@ -344,6 +347,15 @@ extern "C" {
      */
     typedef struct _solverControl*  clSParseSolverControl;
 
+    /*! \brief A structure returned by value from the clsparseCreateSolverControl
+    * function.  This serves as result/status pair for the creation operation
+    */
+    typedef struct _clsparseCreateSolverResult
+    {
+        clsparseStatus status;
+        clSParseSolverControl control;
+    } clsparseCreateSolverResult;
+
     /*!
     * \brief Create a clSParseSolverControl object to control clsparse iterative
     * solver operations
@@ -357,7 +369,7 @@ extern "C" {
     *
     * \ingroup SOLVER
     */
-    CLSPARSE_EXPORT clSParseSolverControl
+    CLSPARSE_EXPORT clsparseCreateSolverResult
         clsparseCreateSolverControl( PRECONDITIONER precond, cl_int maxIters,
                                      cl_double relTol, cl_double absTol );
 
@@ -601,6 +613,16 @@ extern "C" {
     CLSPARSE_EXPORT clsparseStatus
         clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control, cl_bool read_explicit_zeroes );
 
+    /*! \brief A structure returned by value from the clsparseCsrMetaSize
+    * function.  This serves as a result/status pair for the size of the 
+    * meta data associated with a sparse matrix.
+    */
+    typedef struct _clsparseMetaSizeResult
+    {
+        clsparseStatus status;
+        clsparseIdx_t metaSize;
+    } clsparseMetaSizeResult;
+
     /*!
      * \brief Calculate the amount of device memory required to hold meta-data for csr-adaptive SpM-dV algorithm
      * \details CSR-adaptive is a high performance sparse matrix times dense vector algorithm.  It requires a pre-processing
@@ -613,7 +635,7 @@ extern "C" {
      *
      * \ingroup FILE
     */
-    CLSPARSE_EXPORT clsparseStatus
+    CLSPARSE_EXPORT clsparseMetaSizeResult
         clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
     /*!
@@ -629,7 +651,19 @@ extern "C" {
      * \ingroup FILE
      */
     CLSPARSE_EXPORT clsparseStatus
-        clsparseCsrMetaCompute( clsparseCsrMatrix* csrMatx, clsparseControl control );
+        clsparseCsrMetaCreate( clsparseCsrMatrix* csrMatx, clsparseControl control );
+
+    /*!
+    * \brief Delete meta data associated with a CSR encoded matrix
+    * \details Meta data for a sparse matrix may occupy device memory, and this informs the library to release it
+    * \param[in,out] csrMatx  The CSR sparse structure that represents the matrix in device memory
+    * \note This function assumes that the memory for rowBlocks has already been allocated by client program
+    *
+    * \ingroup FILE
+    */
+    CLSPARSE_EXPORT clsparseStatus
+        clsparseCsrMetaDelete( clsparseCsrMatrix* csrMatx );
+
     /**@}*/
 
     /*!

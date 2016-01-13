@@ -48,7 +48,8 @@ public:
         clsparseEnableAsync( control, false );
         explicit_zeroes = keep_explicit_zeroes;
 
-        solverControl = clsparseCreateSolverControl(NOPRECOND, 10000, 1e-4, 1e-8);
+        clsparseCreateSolverResult solverResult = clsparseCreateSolverControl( NOPRECOND, 10000, 1e-4, 1e-8 );
+        solverControl = solverResult.control;
         clsparseSolverPrintMode(solverControl, NORMAL);
     }
 
@@ -121,13 +122,13 @@ public:
             csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
-        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        csrMtx.col_indices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.col_indices" );
 
-        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+        csrMtx.row_pointer = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
             (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.row_pointer" );
 
         if(typeid(T) == typeid(float))
             fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
@@ -139,11 +140,7 @@ public:
         if( fileError != clsparseSuccess )
             throw std::runtime_error( "Could not read matrix market data from disk: " + sparseFile );
 
-        clsparseCsrMetaSize( &csrMtx, control );
-        csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
-                csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
-        clsparseCsrMetaCompute( &csrMtx, control );
+        clsparseCsrMetaCreate( &csrMtx, control );
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );
@@ -215,10 +212,10 @@ public:
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
+        clsparseCsrMetaDelete( &csrMtx );
         CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowBlocks ), "clReleaseMemObject csrMtx.rowBlocks" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.col_indices ), "clReleaseMemObject csrMtx.col_indices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.row_pointer ), "clReleaseMemObject csrMtx.row_pointer" );
 
         CLSPARSE_V( ::clReleaseMemObject( x.values ), "clReleaseMemObject x.values" );
         CLSPARSE_V( ::clReleaseMemObject( y.values ), "clReleaseMemObject y.values" );

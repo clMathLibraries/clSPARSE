@@ -23,25 +23,30 @@
 
 #include "solver-control.hpp"
 
-clSParseSolverControl
+clsparseCreateSolverResult
 clsparseCreateSolverControl(PRECONDITIONER precond, cl_int maxIters,
                             cl_double relTol, cl_double absTol)
 {
-    clSParseSolverControl solver_control = new _solverControl();
 
-    if(!solver_control)
+    clsparseCreateSolverResult cPair;
+    cPair.status = clsparseSuccess;
+    cPair.control = new _solverControl( );
+
+    if( !cPair.control )
     {
-        solver_control = nullptr;
+        cPair.control = nullptr;
+        cPair.status = clsparseOutOfHostMemory;
+        return cPair;
     }
 
-    solver_control->absoluteTolerance = absTol;
-    solver_control->relativeTolerance = relTol;
-    solver_control->nIters = 0;
-    solver_control->maxIters = maxIters;
-    solver_control->initialResidual = 0;
-    solver_control->preconditioner = precond;
+    cPair.control->absoluteTolerance = absTol;
+    cPair.control->relativeTolerance = relTol;
+    cPair.control->nIters = 0;
+    cPair.control->maxIters = maxIters;
+    cPair.control->initialResidual = 0;
+    cPair.control->preconditioner = precond;
 
-    return solver_control;
+    return cPair;
 
 }
 

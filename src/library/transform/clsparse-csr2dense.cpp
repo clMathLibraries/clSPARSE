@@ -50,8 +50,8 @@ clsparseScsr2dense(const clsparseCsrMatrix* csr,
         return status;
 
 
-    clsparse::vector<clsparseIdx_t>   offsets (control, csr->rowOffsets, csr->num_rows + 1);
-    clsparse::vector<clsparseIdx_t>   indices (control, csr->colIndices, csr->num_nonzeros);
+    clsparse::vector<clsparseIdx_t>   offsets (control, csr->row_pointer, csr->num_rows + 1);
+    clsparse::vector<clsparseIdx_t>   indices (control, csr->col_indices, csr->num_nonzeros);
     clsparse::vector<cl_float> values  (control, csr->values,     csr->num_nonzeros);
 
     clsparse::vector<cl_float> Avalues (control, A->values, dense_size);
@@ -94,8 +94,8 @@ cldenseMatrix* A,
         return status;
 
 
-    clsparse::vector<clsparseIdx_t>   offsets (control, csr->rowOffsets, csr->num_rows + 1);
-    clsparse::vector<clsparseIdx_t>   indices (control, csr->colIndices, csr->num_nonzeros);
+    clsparse::vector<clsparseIdx_t>   offsets (control, csr->row_pointer, csr->num_rows + 1);
+    clsparse::vector<clsparseIdx_t>   indices (control, csr->col_indices, csr->num_nonzeros);
     clsparse::vector<cl_double> values  (control, csr->values,     csr->num_nonzeros);
 
     clsparse::vector<cl_double> Avalues (control, A->values, dense_size);

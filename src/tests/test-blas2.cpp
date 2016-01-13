@@ -109,17 +109,17 @@ public:
     }
 
     // Knuth's Two-Sum algorithm, which allows us to add together two floating
-    // point numbers and exactly tranform the answer into a sum and a
+    // point numbers and exactly transform the answer into a sum and a
     // rounding error.
-    // Inputs: x and y, the two inputs to be aded together.
+    // Inputs: x and y, the two inputs to be added together.
     // In/Out: *sumk_err, which is incremented (by reference) -- holds the
     //         error value as a result of the 2sum calculation.
     // Returns: The non-corrected sum of inputs x and y.
     T two_sum(T x, T y, T *sumk_err)
     {
         // We use this 2Sum algorithm to perform a compensated summation,
-        // which can reduce the cummulative rounding errors in our SpMV
-        // summation. Our compensated sumation is based on the SumK algorithm
+        // which can reduce the cumulative rounding errors in our SpMV
+        // summation. Our compensated summation is based on the SumK algorithm
         // (with K==2) from Ogita, Rump, and Oishi, "Accurate Sum and Dot
         // Product" in SIAM J. on Scientific Computing 26(6) pp 1955-1988,
         // Jun. 2005.
@@ -350,17 +350,8 @@ TYPED_TEST(Blas2, csrmv_vector)
     // To call csrmv vector we need to artificially get rid of the rowBlocks data
     using CSRE = CSREnvironment;
 
-    cl_int cl_status;
-    cl_status = clReleaseMemObject(CSRE::csrSMatrix.rowBlocks);
-    ASSERT_EQ(CL_SUCCESS, cl_status);
-    CSRE::csrSMatrix.rowBlocks = nullptr;
-
-    cl_status = clReleaseMemObject(CSRE::csrDMatrix.rowBlocks);
-    ASSERT_EQ(CL_SUCCESS, cl_status);
-    CSRE::csrDMatrix.rowBlocks = nullptr;
-
-    CSRE::csrSMatrix.rowBlockSize = 0;
-    CSRE::csrDMatrix.rowBlockSize = 0;
+    clsparseCsrMetaDelete( &CSRE::csrSMatrix );
+    clsparseCsrMetaDelete( &CSRE::csrDMatrix );
 
     this->test_csrmv();
 
@@ -368,25 +359,16 @@ TYPED_TEST(Blas2, csrmv_vector)
     // later use.
 
     clsparseStatus status;
-    status = clsparseCsrMetaSize( &CSRE::csrSMatrix, CLSE::control );
-    ASSERT_EQ(clsparseSuccess, status);
+    clsparseMetaSizeResult sizeResult;
+    sizeResult = clsparseCsrMetaSize( &CSRE::csrSMatrix, CLSE::control );
+    ASSERT_EQ(clsparseSuccess, sizeResult.status );
 
-    status = clsparseCsrMetaSize( &CSRE::csrDMatrix, CLSE::control );
-    ASSERT_EQ(clsparseSuccess, status);
+    sizeResult = clsparseCsrMetaSize( &CSRE::csrDMatrix, CLSE::control );
+    ASSERT_EQ(clsparseSuccess, sizeResult.status );
 
-    CSRE::csrSMatrix.rowBlocks =
-            ::clCreateBuffer( CLSE::context, CL_MEM_READ_WRITE,
-                              CSRE::csrSMatrix.rowBlockSize * sizeof( cl_ulong ),
-                              NULL, &cl_status );
-
-    ASSERT_EQ(CL_SUCCESS, cl_status);
-
-    CSRE::csrDMatrix.rowBlocks = CSRE::csrSMatrix.rowBlocks;
-    ::clRetainMemObject( CSRE::csrDMatrix.rowBlocks );
-
-    status = clsparseCsrMetaCompute(&CSRE::csrSMatrix, CLSE::control );
+    status = clsparseCsrMetaCreate(&CSRE::csrSMatrix, CLSE::control );
     ASSERT_EQ (clsparseSuccess, status);
-    status = clsparseCsrMetaCompute(&CSRE::csrDMatrix, CLSE::control );
+    status = clsparseCsrMetaCreate(&CSRE::csrDMatrix, CLSE::control );
     ASSERT_EQ (clsparseSuccess, status);
 }
 

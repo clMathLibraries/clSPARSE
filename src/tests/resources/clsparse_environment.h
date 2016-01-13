@@ -40,7 +40,8 @@ public:
 
         clsparseSetup();
 
-        control = clsparseCreateControl(queue, NULL);
+        clsparseCreateResult createResult = clsparseCreateControl( queue );
+        control = ( createResult.status == clsparseSuccess ) ? createResult.control : nullptr;
 
         //size of the vector used in blas1 test.
         //this->N = N;

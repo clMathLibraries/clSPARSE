@@ -90,8 +90,8 @@ csrmv_vector(const clsparseScalarPrivate* pAlpha,
 
     kWrapper << pMatx->num_rows
              << pAlpha->value << pAlpha->offset()
-             << pMatx->rowOffsets
-             << pMatx->colIndices
+             << pMatx->row_pointer
+             << pMatx->col_indices
              << pMatx->values
              << pX->values << pX->offset()
              << pBeta->value << pBeta->offset()
@@ -194,8 +194,8 @@ csrmv_vector(const clsparse::array_base<T>& pAlpha,
 
     kWrapper << pMatx->num_rows
              << pAlpha.data() << offset
-             << pMatx->rowOffsets
-             << pMatx->colIndices
+             << pMatx->row_pointer
+             << pMatx->col_indices
              << pMatx->values
              << pX.data() << offset
              << pBeta.data() << offset

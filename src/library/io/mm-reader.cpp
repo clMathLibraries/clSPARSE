@@ -498,12 +498,12 @@ clsparseSCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cl
 
     // Transfers data from CPU buffer to GPU buffers
     clMemRAII< cl_float > rCooValues( control->queue( ), pCooMatx->values );
-    clMemRAII< clsparseIdx_t > rCooColIndices( control->queue( ), pCooMatx->colIndices );
-    clMemRAII< clsparseIdx_t > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
+    clMemRAII< clsparseIdx_t > rCoocol_indices( control->queue( ), pCooMatx->col_indices );
+    clMemRAII< clsparseIdx_t > rCoorow_indices( control->queue( ), pCooMatx->row_indices );
 
     cl_float* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->valOffset( ), pCooMatx->num_nonzeros );
-    clsparseIdx_t* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->colIndOffset( ), pCooMatx->num_nonzeros );
-    clsparseIdx_t* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
+    clsparseIdx_t* iCoocol_indices = rCoocol_indices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->colIndOffset( ), pCooMatx->num_nonzeros );
+    clsparseIdx_t* iCoorow_indices = rCoorow_indices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
 
     Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
     //JPA:: Coo matrix is need to be sorted as well because we need to have matrix
@@ -512,8 +512,8 @@ clsparseSCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cl
 
     for( clsparseIdx_t c = 0; c < pCooMatx->num_nonzeros; ++c )
     {
-        iCooRowIndices[ c ] = coords[ c ].x;
-        iCooColIndices[ c ] = coords[ c ].y;
+        iCoorow_indices[ c ] = coords[ c ].x;
+        iCoocol_indices[ c ] = coords[ c ].y;
         fCooValues[ c ] = coords[ c ].val;
     }
 
@@ -548,12 +548,12 @@ clsparseDCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cl
 
     // Transfers data from CPU buffer to GPU buffers
     clMemRAII< cl_double > rCooValues( control->queue( ), pCooMatx->values );
-    clMemRAII< clsparseIdx_t > rCooColIndices( control->queue( ), pCooMatx->colIndices );
-    clMemRAII< clsparseIdx_t > rCooRowIndices( control->queue( ), pCooMatx->rowIndices );
+    clMemRAII< clsparseIdx_t > rCoocol_indices( control->queue( ), pCooMatx->col_indices );
+    clMemRAII< clsparseIdx_t > rCoorow_indices( control->queue( ), pCooMatx->row_indices );
 
     cl_double* fCooValues = rCooValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->valOffset( ), pCooMatx->num_nonzeros );
-    clsparseIdx_t* iCooColIndices = rCooColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->colIndOffset( ), pCooMatx->num_nonzeros );
-    clsparseIdx_t* iCooRowIndices = rCooRowIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
+    clsparseIdx_t* iCoocol_indices = rCoocol_indices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->colIndOffset( ), pCooMatx->num_nonzeros );
+    clsparseIdx_t* iCoorow_indices = rCoorow_indices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCooMatx->rowOffOffset( ), pCooMatx->num_nonzeros );
 
     Coordinate< cl_double >* coords = mm_reader.GetUnsymCoordinates( );
     //JPA:: Coo matrix is need to be sorted as well because we need to have matrix
@@ -562,8 +562,8 @@ clsparseDCooMatrixfromFile( clsparseCooMatrix* cooMatx, const char* filePath, cl
 
     for( clsparseIdx_t c = 0; c < pCooMatx->num_nonzeros; ++c )
     {
-        iCooRowIndices[ c ] = coords[ c ].x;
-        iCooColIndices[ c ] = coords[ c ].y;
+        iCoorow_indices[ c ] = coords[ c ].x;
+        iCoocol_indices[ c ] = coords[ c ].y;
         fCooValues[ c ] = coords[ c ].val;
     }
 
@@ -604,12 +604,12 @@ clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
         if (validationStatus != clsparseSuccess)
             return validationStatus;
 
-        validationStatus = validateMemObject(pCsrMatx->colIndices,
+        validationStatus = validateMemObject(pCsrMatx->col_indices,
                                              mm_reader.GetNumNonZeroes() * sizeof(clsparseIdx_t));
         if (validationStatus != clsparseSuccess)
             return validationStatus;
 
-        validationStatus = validateMemObject(pCsrMatx->rowOffsets, 
+        validationStatus = validateMemObject(pCsrMatx->row_pointer, 
                                              (mm_reader.GetNumRows() + 1) * sizeof(clsparseIdx_t));
         if (validationStatus != clsparseSuccess)
             return validationStatus;
@@ -625,30 +625,30 @@ clsparseSCsrMatrixfromFile(clsparseCsrMatrix* csrMatx, const char* filePath, cls
 
     // Transfers data from CPU buffer to GPU buffers
     clMemRAII< cl_float > rCsrValues( control->queue( ), pCsrMatx->values );
-    clMemRAII< clsparseIdx_t > rCsrColIndices( control->queue( ), pCsrMatx->colIndices );
-    clMemRAII< clsparseIdx_t > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+    clMemRAII< clsparseIdx_t > rCsrcol_indices( control->queue( ), pCsrMatx->col_indices );
+    clMemRAII< clsparseIdx_t > rCsrrow_pointer( control->queue( ), pCsrMatx->row_pointer );
 
     cl_float* fCsrValues = rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->valOffset( ), pCsrMatx->num_nonzeros );
-    clsparseIdx_t* iCsrColIndices = rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->num_nonzeros );
-    clsparseIdx_t* iCsrRowOffsets = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
+    clsparseIdx_t* iCsrcol_indices = rCsrcol_indices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->num_nonzeros );
+    clsparseIdx_t* iCsrrow_pointer = rCsrrow_pointer.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1 );
 
     //  The following section of code converts the sparse format from COO to CSR
     Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
     std::sort( coords, coords + pCsrMatx->num_nonzeros, CoordinateCompare< cl_float > );
 
     clsparseIdx_t current_row = 1;
-    iCsrRowOffsets[ 0 ] = 0;
+    iCsrrow_pointer[ 0 ] = 0;
     for (clsparseIdx_t i = 0; i < pCsrMatx->num_nonzeros; i++)
     {
-        iCsrColIndices[ i ] = coords[ i ].y;
+        iCsrcol_indices[ i ] = coords[ i ].y;
         fCsrValues[ i ] = coords[ i ].val;
 
         while( coords[ i ].x >= current_row )
-            iCsrRowOffsets[ current_row++ ] = i;
+            iCsrrow_pointer[ current_row++ ] = i;
     }
-    iCsrRowOffsets[ current_row ] = pCsrMatx->num_nonzeros;
+    iCsrrow_pointer[ current_row ] = pCsrMatx->num_nonzeros;
     while( current_row <= pCsrMatx->num_rows )
-        iCsrRowOffsets[ current_row++ ] = pCsrMatx->num_nonzeros;
+        iCsrrow_pointer[ current_row++ ] = pCsrMatx->num_nonzeros;
 
     return clsparseSuccess;
 }
@@ -688,12 +688,12 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
         if (validationStatus != clsparseSuccess)
             return validationStatus;
 
-        validationStatus = validateMemObject(pCsrMatx->colIndices,
+        validationStatus = validateMemObject(pCsrMatx->col_indices,
                                              mm_reader.GetNumNonZeroes() * sizeof(clsparseIdx_t));
         if (validationStatus != clsparseSuccess)
             return validationStatus;
 
-        validationStatus = validateMemObject(pCsrMatx->rowOffsets,
+        validationStatus = validateMemObject(pCsrMatx->row_pointer,
                                              (mm_reader.GetNumRows() + 1) * sizeof(clsparseIdx_t));
         if (validationStatus != clsparseSuccess)
             return validationStatus;
@@ -708,8 +708,8 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     // Transfers data from CPU buffer to GPU buffers
     cl_int mapStatus = 0;
     clMemRAII< cl_double > rCsrValues( control->queue( ), pCsrMatx->values);
-    clMemRAII< clsparseIdx_t > rCsrColIndices( control->queue( ), pCsrMatx->colIndices );
-    clMemRAII< clsparseIdx_t > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+    clMemRAII< clsparseIdx_t > rCsrcol_indices( control->queue( ), pCsrMatx->col_indices );
+    clMemRAII< clsparseIdx_t > rCsrrow_pointer( control->queue( ), pCsrMatx->row_pointer );
 
     cl_double* fCsrValues =
             rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION,
@@ -720,21 +720,21 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
         return clsparseInvalidMemObj;
     }
 
-    clsparseIdx_t* iCsrColIndices =
-            rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION,
+    clsparseIdx_t* iCsrcol_indices =
+            rCsrcol_indices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION,
                                      pCsrMatx->colIndOffset( ), pCsrMatx->num_nonzeros, &mapStatus );
     if (mapStatus != CL_SUCCESS)
     {
-        CLSPARSE_V(mapStatus, "Error: Mapping rCsrColIndices failed");
+        CLSPARSE_V(mapStatus, "Error: Mapping rCsrcol_indices failed");
         return clsparseInvalidMemObj;
     }
 
-    clsparseIdx_t* iCsrRowOffsets =
-            rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION,
+    clsparseIdx_t* iCsrrow_pointer =
+            rCsrrow_pointer.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION,
                                      pCsrMatx->rowOffOffset( ), pCsrMatx->num_rows + 1, &mapStatus );
     if (mapStatus != CL_SUCCESS)
     {
-        CLSPARSE_V(mapStatus, "Error: Mapping rCsrRowOffsets failed");
+        CLSPARSE_V(mapStatus, "Error: Mapping rCsrrow_pointer failed");
         return clsparseInvalidMemObj;
     }
 
@@ -743,18 +743,18 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
     std::sort( coords, coords + pCsrMatx->num_nonzeros, CoordinateCompare< cl_double > );
 
     clsparseIdx_t current_row = 1;
-    iCsrRowOffsets[ 0 ] = 0;
+    iCsrrow_pointer[ 0 ] = 0;
     for (clsparseIdx_t i = 0; i < pCsrMatx->num_nonzeros; i++)
     {
-        iCsrColIndices[ i ] = coords[ i ].y;
+        iCsrcol_indices[ i ] = coords[ i ].y;
         fCsrValues[ i ] = coords[ i ].val;
 
         while( coords[ i ].x >= current_row )
-            iCsrRowOffsets[ current_row++ ] = i;
+            iCsrrow_pointer[ current_row++ ] = i;
     }
-    iCsrRowOffsets[ current_row ] = pCsrMatx->num_nonzeros;
+    iCsrrow_pointer[ current_row ] = pCsrMatx->num_nonzeros;
     while( current_row <= pCsrMatx->num_rows )
-        iCsrRowOffsets[ current_row++ ] = pCsrMatx->num_nonzeros;
+        iCsrrow_pointer[ current_row++ ] = pCsrMatx->num_nonzeros;
 
     return clsparseSuccess;
 }
@@ -791,28 +791,28 @@ clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, cl
 
 //    // Transfers data from CPU buffer to GPU buffers
 //    clMemRAII< cl_float > rCsrValues( control->queue( ), pCsrMatx->values );
-//    clMemRAII< cl_int > rCsrColIndices( control->queue( ), pCsrMatx->colIndices );
-//    clMemRAII< cl_int > rCsrRowOffsets( control->queue( ), pCsrMatx->rowOffsets );
+//    clMemRAII< cl_int > rCsrcol_indices( control->queue( ), pCsrMatx->col_indices );
+//    clMemRAII< cl_int > rCsrrow_pointer( control->queue( ), pCsrMatx->row_pointer );
 
 //    cl_float* fCsrValues = rCsrValues.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->valOffset( ), pCsrMatx->num_nonzeros );
-//    cl_int* iCsrColIndices = rCsrColIndices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->num_nonzeros );
-//    cl_int* iCsrRowOffsets = rCsrRowOffsets.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
+//    cl_int* iCsrcol_indices = rCsrcol_indices.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->colIndOffset( ), pCsrMatx->num_nonzeros );
+//    cl_int* iCsrrow_pointer = rCsrrow_pointer.clMapMem( CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, pCsrMatx->rowOffOffset( ), pCsrMatx->m + 1 );
 
 //    //  The following section of code converts the sparse format from COO to CSR
 //    Coordinate< cl_float >* coords = mm_reader.GetUnsymCoordinates( );
 //    std::sort( coords, coords + pCsrMatx->num_nonzeros, CoordinateCompare< cl_float > );
 
 //    int current_row = 1;
-//    iCsrRowOffsets[ 0 ] = 0;
+//    iCsrrow_pointer[ 0 ] = 0;
 //    for( int i = 0; i < pCsrMatx->num_nonzeros; i++ )
 //    {
-//        iCsrColIndices[ i ] = coords[ i ].y;
+//        iCsrcol_indices[ i ] = coords[ i ].y;
 //        fCsrValues[ i ] = coords[ i ].val;
 
 //        if( coords[ i ].x >= current_row )
-//            iCsrRowOffsets[ current_row++ ] = i;
+//            iCsrrow_pointer[ current_row++ ] = i;
 //    }
-//    iCsrRowOffsets[ current_row ] = pCsrMatx->num_nonzeros;
+//    iCsrrow_pointer[ current_row ] = pCsrMatx->num_nonzeros;
 
 //    return clsparseSuccess;
 //}
