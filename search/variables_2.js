@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['major',['major',['../structcldense_matrix.html#aed86b28f62b8d04ca531986f6b9b1867',1,'cldenseMatrix']]]
+  ['lead_5fdim',['lead_dim',['../structcldense_matrix.html#aec92a50a0b2f65ff64d7bcc1b84a3ec6',1,'cldenseMatrix']]]
 ];

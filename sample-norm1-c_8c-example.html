@@ -31,7 +31,7 @@
   <td id="projectlogo"><img alt="Logo" src="clMath.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">clSPARSE
-   &#160;<span id="projectnumber">v0.8.0.0</span>
+   &#160;<span id="projectnumber">v0.10.0.0</span>
    </div>
    <div id="projectbrief">a software library containing Sparse functions written in OpenCL</div>
   </td>
@@ -109,7 +109,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;stdlib.h&gt;</span></div>
 <div class="line"></div>
-<div class="line"><span class="preprocessor">#include &lt;<a class="code" href="cl_s_p_a_r_s_e_8h.html">clSPARSE.h</a>&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;<a class="code" href="cl_s_p_a_r_s_e_8h.html">clSPARSE.h</a>&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;<a class="code" href="cl_s_p_a_r_s_e-error_8h.html">clSPARSE-error.h</a>&quot;</span></div>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main( <span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[ ] )</div>
 <div class="line">{</div>
@@ -128,7 +129,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (num_platforms == 0)</div>
 <div class="line">    {</div>
-<div class="line">        printf (<span class="stringliteral">&quot;No OpenCL platforms found. Exitting.\n&quot;</span>);</div>
+<div class="line">        printf (<span class="stringliteral">&quot;No OpenCL platforms found. Exiting.\n&quot;</span>);</div>
 <div class="line">        <span class="keywordflow">return</span> 0;</div>
 <div class="line">    }</div>
 <div class="line"></div>
@@ -140,7 +141,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (cl_status != CL_SUCCESS)</div>
 <div class="line">    {</div>
-<div class="line">        printf(<span class="stringliteral">&quot;Poblem with getting platform IDs. Err: %d\n&quot;</span>, cl_status);</div>
+<div class="line">        printf(<span class="stringliteral">&quot;Problem with getting platform IDs. Err: %d\n&quot;</span>, cl_status);</div>
 <div class="line">        free(platforms);</div>
 <div class="line">        <span class="keywordflow">return</span> -1;</div>
 <div class="line">    }</div>
@@ -151,7 +152,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (num_devices == 0)</div>
 <div class="line">    {</div>
-<div class="line">        printf(<span class="stringliteral">&quot;No OpenCL GPU devices found on platform 0. Exitting\n&quot;</span>);</div>
+<div class="line">        printf(<span class="stringliteral">&quot;No OpenCL GPU devices found on platform 0. Exiting\n&quot;</span>);</div>
 <div class="line">        free(platforms);</div>
 <div class="line">        <span class="keywordflow">return</span> -2;</div>
 <div class="line">    }</div>
@@ -164,7 +165,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (cl_status != CL_SUCCESS)</div>
 <div class="line">    {</div>
-<div class="line">        printf(<span class="stringliteral">&quot;Problem with getting device id from platform. Exitting\n&quot;</span>);</div>
+<div class="line">        printf(<span class="stringliteral">&quot;Problem with getting device id from platform. Exiting\n&quot;</span>);</div>
 <div class="line">        free(devices);</div>
 <div class="line">        free(platforms);</div>
 <div class="line">        <span class="keywordflow">return</span> -3;</div>
@@ -182,7 +183,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line">    x.<a name="a4"></a><a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a> = clCreateBuffer(context, CL_MEM_READ_WRITE, N * <span class="keyword">sizeof</span> (<span class="keywordtype">float</span>),</div>
 <div class="line">                              NULL, &amp;cl_status);</div>
-<div class="line">    x.<a name="a5"></a><a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> = N;</div>
+<div class="line">    x.<a name="a5"></a><a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> = N;</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// Fill x buffer with ones;</span></div>
 <div class="line">    <span class="keywordtype">float</span> one = 1.0f;</div>
@@ -204,9 +205,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">    }</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// Create clSPARSE control object it require queue for kernel execution</span></div>
-<div class="line">    <a class="code" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control = <a name="a8"></a><a class="code" href="group___s_t_a_t_e.html#gaf7650a031b44721138ca323cde6d7b6d">clsparseCreateControl</a>(queue, &amp;status);</div>
+<div class="line">    <a name="_a8"></a><a class="code" href="structclsparse_create_result.html">clsparseCreateResult</a> createResult = <a name="a9"></a><a class="code" href="group___s_t_a_t_e.html#ga7595fb1b38328bafed86bddb3bedc435">clsparseCreateControl</a>( queue );</div>
+<div class="line">    <a name="a10"></a><a class="code" href="cl_s_p_a_r_s_e-error_8h.html#acdaeda268fefef4021e9448b42bb52a2">CLSPARSE_V</a>( createResult.<a name="a11"></a><a class="code" href="structclsparse_create_result.html#a9e59fdda2d78e548a3e0eb02de74eaa7">status</a>, <span class="stringliteral">&quot;Failed to create clsparse control&quot;</span> );</div>
 <div class="line"></div>
-<div class="line">    status = <a name="a9"></a><a class="code" href="group___b_l_a_s-1.html#ga2476a2f1a09c3217ea72f803f835510e">cldenseSnrm1</a>(&amp;norm_x, &amp;x, control);</div>
+<div class="line">    status = <a name="a12"></a><a class="code" href="group___b_l_a_s-1.html#ga2476a2f1a09c3217ea72f803f835510e">cldenseSnrm1</a>(&amp;norm_x, &amp;x, createResult.<a name="a13"></a><a class="code" href="structclsparse_create_result.html#acf200821d31fd215ba8b1a47b687a7f7">control</a> );</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// Read  result</span></div>
 <div class="line">    <span class="keywordtype">float</span>* host_norm_x =</div>
@@ -218,9 +220,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">    cl_status = clEnqueueUnmapMemObject(queue, norm_x.<a class="code" href="structclsparse_scalar.html#abbd2019339f9ef4488638bd02c4ef7bd">value</a>, host_norm_x,</div>
 <div class="line">                                        0, NULL, NULL);</div>
 <div class="line"></div>
-<div class="line">    status = <a name="a10"></a><a class="code" href="group___s_t_a_t_e.html#ga40d354858e29b9b608e41daaff46c0c5">clsparseReleaseControl</a>(control);</div>
+<div class="line">    status = <a name="a14"></a><a class="code" href="group___s_t_a_t_e.html#ga40d354858e29b9b608e41daaff46c0c5">clsparseReleaseControl</a>( createResult.<a class="code" href="structclsparse_create_result.html#acf200821d31fd215ba8b1a47b687a7f7">control</a> );</div>
 <div class="line"></div>
-<div class="line">    status = <a name="a11"></a><a class="code" href="group___s_e_t_u_p.html#ga50f8661d3ecd7face9b7277cb70cb721">clsparseTeardown</a>();</div>
+<div class="line">    status = <a name="a15"></a><a class="code" href="group___s_e_t_u_p.html#ga50f8661d3ecd7face9b7277cb70cb721">clsparseTeardown</a>();</div>
 <div class="line">    <span class="keywordflow">if</span> (status != clsparseSuccess)</div>
 <div class="line">    {</div>
 <div class="line">        printf (<span class="stringliteral">&quot;Problem with executing clsparseTeardown()&quot;</span>);</div>

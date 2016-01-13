@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['freesharedlibrary',['FreeSharedLibrary',['../load_dynamic_library_8hpp.html#a8bfee25ce366dce39c31116fbef23fe4',1,'loadDynamicLibrary.hpp']]]
+  ['event',['event',['../structclsparse_event_result.html#aed2e5828e18666c71e731978dfc4f08a',1,'clsparseEventResult']]]
 ];

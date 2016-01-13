@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['getuniqueid',['getUniqueID',['../classclsparse_timer.html#a0a206517e386e2a76e8542c4462da21d',1,'clsparseTimer']]]
+  ['freesharedlibrary',['FreeSharedLibrary',['../load_dynamic_library_8hpp.html#a8bfee25ce366dce39c31116fbef23fe4',1,'loadDynamicLibrary.hpp']]]
 ];

@@ -31,7 +31,7 @@
   <td id="projectlogo"><img alt="Logo" src="clMath.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">clSPARSE
-   &#160;<span id="projectnumber">v0.8.0.0</span>
+   &#160;<span id="projectnumber">v0.10.0.0</span>
    </div>
    <div id="projectbrief">a software library containing Sparse functions written in OpenCL</div>
   </td>
@@ -132,8 +132,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    columnMajor</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;} <a class="code" href="cl_s_p_a_r_s_e-xx_8h.html#ab22df4d563c85898e9c7a52a939de91d">cldenseMajor</a>;</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="preprocessor">#if( CLSPARSE_INDEX_SIZEOF == 8 )</span></div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="preprocessor">#error clSPARSE does not yet implement 64-bit indices</span></div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="keyword">typedef</span> cl_ulong <a class="code" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a>;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="preprocessor">#else</span></div>
+<div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">   49</a></span>&#160;    <span class="keyword">typedef</span> cl_uint <a class="code" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a>;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="cl_s_p_a_r_s_e-xx_8h_html_ab22df4d563c85898e9c7a52a939de91d"><div class="ttname"><a href="cl_s_p_a_r_s_e-xx_8h.html#ab22df4d563c85898e9c7a52a939de91d">cldenseMajor</a></div><div class="ttdeci">cldenseMajor</div><div class="ttdoc">For dense data structures, this enum specifies how multi-dimensional data structures are laid out in ...</div><div class="ttdef"><b>Definition:</b> clSPARSE-xx.h:35</div></div>
+<div class="ttc" id="cl_s_p_a_r_s_e-xx_8h_html_a466d9ecb7b9d828ce914830a24d62cf1"><div class="ttname"><a href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a></div><div class="ttdeci">cl_uint clsparseIdx_t</div><div class="ttdoc">An abstraction for the size of indices supported by the library. Clients should use this index type w...</div><div class="ttdef"><b>Definition:</b> clSPARSE-xx.h:49</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['rowblocks',['rowBlocks',['../structclsparse_csr_matrix.html#a31e90537cbe617f5c7ce37dd521aa016',1,'clsparseCsrMatrix::rowBlocks()'],['../structclsparse_csr_matrix.html#ab043176249280a3238cd2140c4f54e8b',1,'clsparseCsrMatrix::rowBlocks()']]],
-  ['rowblocksize',['rowBlockSize',['../structclsparse_csr_matrix.html#ad0eed5eb112bec60bc94af3d0af91494',1,'clsparseCsrMatrix']]],
-  ['rowindices',['rowIndices',['../structclsparse_coo_matrix.html#ae1556307f0b3df54cda5cb8248c29d90',1,'clsparseCooMatrix::rowIndices()'],['../structclsparse_coo_matrix.html#a3a75b75d8bc2e298073dca175d0f642f',1,'clsparseCooMatrix::rowIndices()']]],
-  ['rowoffsets',['rowOffsets',['../structclsparse_csr_matrix.html#adf170365da4bf03dda6c58dc99e7bfb4',1,'clsparseCsrMatrix::rowOffsets()'],['../structclsparse_csr_matrix.html#a17d2912268dfc937d196fc21f68d1416',1,'clsparseCsrMatrix::rowOffsets()']]]
+  ['off_5fcol_5findices',['off_col_indices',['../structclsparse_csr_matrix.html#aec49ecde4c049dffda1435ab127c4900',1,'clsparseCsrMatrix::off_col_indices()'],['../structclsparse_coo_matrix.html#a59adcd99d515e21ccb59b43e4be08c46',1,'clsparseCooMatrix::off_col_indices()']]],
+  ['off_5frow_5findices',['off_row_indices',['../structclsparse_coo_matrix.html#ace7e5e29efc4dbf84310eab6693b0d77',1,'clsparseCooMatrix']]],
+  ['off_5frow_5fpointer',['off_row_pointer',['../structclsparse_csr_matrix.html#abf84815192194227e55366aa2bb974af',1,'clsparseCsrMatrix']]],
+  ['off_5fvalue',['off_value',['../structclsparse_scalar.html#af474a4223288e9d359e598e556f1d2af',1,'clsparseScalar']]],
+  ['off_5fvalues',['off_values',['../structcldense_vector.html#ab64ee0f9a3169832bf9150d9979d7d7c',1,'cldenseVector::off_values()'],['../structclsparse_csr_matrix.html#a6e47b3596cebe5584e2af24fe5c4357f',1,'clsparseCsrMatrix::off_values()'],['../structclsparse_coo_matrix.html#ab3b9fa536cb534aa7d99a17bcb8f0dc0',1,'clsparseCooMatrix::off_values()'],['../structcldense_matrix.html#a924031006c6afaf6d55a67f837de12ac',1,'cldenseMatrix::off_values()']]]
 ];

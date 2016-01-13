@@ -1,10 +1,8 @@
 var searchData=
 [
-  ['sparse_20l2_20blas_20operations',['Sparse L2 BLAS operations',['../group___b_l_a_s-2.html',1,'']]],
-  ['sparse_20l3_20blas_20operations',['Sparse L3 BLAS operations',['../group___b_l_a_s-3.html',1,'']]],
-  ['support_20functions_20provided_20to_20read_20sparse_20matrices_20from_20file',['Support functions provided to read sparse matrices from file',['../group___f_i_l_e.html',1,'']]],
-  ['setnormalize',['setNormalize',['../classclsparse_timer.html#ad3d80d46d58709efd9e275898d39d895',1,'clsparseTimer']]],
-  ['sparse_20iterative_20solvers',['Sparse iterative solvers',['../group___s_o_l_v_e_r.html',1,'']]],
-  ['start',['Start',['../classclsparse_timer.html#a04dc971a9beb80c18626b36e5fe7d9cf',1,'clsparseTimer']]],
-  ['stop',['Stop',['../classclsparse_timer.html#a5dcd64300bef90d632635ea759801154',1,'clsparseTimer']]]
+  ['routines_20to_20initialize_20a_20clsparse_20object',['Routines to initialize a clsparse object',['../group___i_n_i_t.html',1,'']]],
+  ['reserve',['Reserve',['../classclsparse_timer.html#a8278d3e2446dbea17e62f818a57b0c07',1,'clsparseTimer']]],
+  ['reset',['Reset',['../classclsparse_timer.html#a6ed10ec9e2161f1f57519df4bce19a61',1,'clsparseTimer']]],
+  ['row_5findices',['row_indices',['../structclsparse_coo_matrix.html#a2eb165982877640547480b5c76dcba80',1,'clsparseCooMatrix::row_indices()'],['../structclsparse_coo_matrix.html#a400957bad0a85267d056d667e2c12643',1,'clsparseCooMatrix::row_indices()']]],
+  ['row_5fpointer',['row_pointer',['../structclsparse_csr_matrix.html#a4e5ab26b93ac9e5d55fa9f4151472c27',1,'clsparseCsrMatrix::row_pointer()'],['../structclsparse_csr_matrix.html#a040933a403a95590f34216cadd3aba27',1,'clsparseCsrMatrix::row_pointer()']]]
 ];

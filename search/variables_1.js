@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['lead_5fdim',['lead_dim',['../structcldense_matrix.html#a4eeccb7a638ab51afa8087fc1096759b',1,'cldenseMatrix']]]
+  ['event',['event',['../structclsparse_event_result.html#aed2e5828e18666c71e731978dfc4f08a',1,'clsparseEventResult']]]
 ];

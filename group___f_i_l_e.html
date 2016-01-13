@@ -31,7 +31,7 @@
   <td id="projectlogo"><img alt="Logo" src="clMath.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">clSPARSE
-   &#160;<span id="projectnumber">v0.8.0.0</span>
+   &#160;<span id="projectnumber">v0.10.0.0</span>
    </div>
    <div id="projectbrief">a software library containing Sparse functions written in OpenCL</div>
   </td>
@@ -87,6 +87,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Support functions provided to read sparse matrices from file</div>  </div>
@@ -96,39 +97,48 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>Functions to help read the contents of matrix market files from disk.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structclsparse_meta_size_result.html">clsparseMetaSizeResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A structure returned by value from the clsparseCsrMetaSize function. This serves as a result/status pair for the size of the meta data associated with a sparse matrix.  <a href="structclsparse_meta_size_result.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gab1ef75afdba09e49e9deb57d5219d6b0"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#gab1ef75afdba09e49e9deb57d5219d6b0">clsparseHeaderfromFile</a> (cl_int *nnz, cl_int *row, cl_int *col, const char *filePath)</td></tr>
-<tr class="memdesc:gab1ef75afdba09e49e9deb57d5219d6b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the sparse matrix header from file.  <a href="#gab1ef75afdba09e49e9deb57d5219d6b0">More...</a><br /></td></tr>
-<tr class="separator:gab1ef75afdba09e49e9deb57d5219d6b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga40ca21725283a0040cd4c468ee270fbc"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#ga40ca21725283a0040cd4c468ee270fbc">clsparseSCooMatrixfromFile</a> (<a class="el" href="structclsparse_coo_matrix.html">clsparseCooMatrix</a> *cooMatx, const char *filePath, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control)</td></tr>
-<tr class="memdesc:ga40ca21725283a0040cd4c468ee270fbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sparse matrix data from file in single precision COO format.  <a href="#ga40ca21725283a0040cd4c468ee270fbc">More...</a><br /></td></tr>
-<tr class="separator:ga40ca21725283a0040cd4c468ee270fbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5fe5b7516ff80efa2bd91a8e1bbc2863"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#ga5fe5b7516ff80efa2bd91a8e1bbc2863">clsparseDCooMatrixfromFile</a> (<a class="el" href="structclsparse_coo_matrix.html">clsparseCooMatrix</a> *cooMatx, const char *filePath, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control)</td></tr>
-<tr class="memdesc:ga5fe5b7516ff80efa2bd91a8e1bbc2863"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sparse matrix data from file in double precision COO format.  <a href="#ga5fe5b7516ff80efa2bd91a8e1bbc2863">More...</a><br /></td></tr>
-<tr class="separator:ga5fe5b7516ff80efa2bd91a8e1bbc2863"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga528f1bf691481ce6d6b7ab3a5885ab53"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#ga528f1bf691481ce6d6b7ab3a5885ab53">clsparseSCsrMatrixfromFile</a> (<a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *csrMatx, const char *filePath, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control)</td></tr>
-<tr class="memdesc:ga528f1bf691481ce6d6b7ab3a5885ab53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sparse matrix data from file in single precision CSR format.  <a href="#ga528f1bf691481ce6d6b7ab3a5885ab53">More...</a><br /></td></tr>
-<tr class="separator:ga528f1bf691481ce6d6b7ab3a5885ab53"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga6e7834155e0bbc4f91a3588258d49f23"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#ga6e7834155e0bbc4f91a3588258d49f23">clsparseDCsrMatrixfromFile</a> (<a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *csrMatx, const char *filePath, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control)</td></tr>
-<tr class="memdesc:ga6e7834155e0bbc4f91a3588258d49f23"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sparse matrix data from file in double precision CSR format.  <a href="#ga6e7834155e0bbc4f91a3588258d49f23">More...</a><br /></td></tr>
-<tr class="separator:ga6e7834155e0bbc4f91a3588258d49f23"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae3eded9f0b8b28f0aee86e4e1bbe81ec"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#gae3eded9f0b8b28f0aee86e4e1bbe81ec">clsparseCsrMetaSize</a> (<a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *csrMatx, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control)</td></tr>
-<tr class="memdesc:gae3eded9f0b8b28f0aee86e4e1bbe81ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate the amount of device memory required to hold meta-data for csr-adaptive SpM-dV algorithm.  <a href="#gae3eded9f0b8b28f0aee86e4e1bbe81ec">More...</a><br /></td></tr>
-<tr class="separator:gae3eded9f0b8b28f0aee86e4e1bbe81ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaaaf661ac4fdb6e9a5df0999b1028e115"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#gaaaf661ac4fdb6e9a5df0999b1028e115">clsparseCsrMetaCompute</a> (<a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *csrMatx, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control)</td></tr>
-<tr class="memdesc:gaaaf661ac4fdb6e9a5df0999b1028e115"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate the meta-data for csr-adaptive SpM-dV algorithm.  <a href="#gaaaf661ac4fdb6e9a5df0999b1028e115">More...</a><br /></td></tr>
-<tr class="separator:gaaaf661ac4fdb6e9a5df0999b1028e115"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae1b4f6ab234a7b13ddb0df5f47fd1906"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#gae1b4f6ab234a7b13ddb0df5f47fd1906">clsparseHeaderfromFile</a> (<a class="el" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a> *nnz, <a class="el" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a> *row, <a class="el" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a> *col, const char *filePath)</td></tr>
+<tr class="memdesc:gae1b4f6ab234a7b13ddb0df5f47fd1906"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the sparse matrix header from file.  <a href="#gae1b4f6ab234a7b13ddb0df5f47fd1906">More...</a><br /></td></tr>
+<tr class="separator:gae1b4f6ab234a7b13ddb0df5f47fd1906"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga731ff6da9997a2bb892976af1657398a"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#ga731ff6da9997a2bb892976af1657398a">clsparseSCooMatrixfromFile</a> (<a class="el" href="structclsparse_coo_matrix.html">clsparseCooMatrix</a> *cooMatx, const char *filePath, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control, cl_bool read_explicit_zeroes)</td></tr>
+<tr class="memdesc:ga731ff6da9997a2bb892976af1657398a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sparse matrix data from file in single precision COO format.  <a href="#ga731ff6da9997a2bb892976af1657398a">More...</a><br /></td></tr>
+<tr class="separator:ga731ff6da9997a2bb892976af1657398a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab3111065805eb0acba042307e08311dc"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#gab3111065805eb0acba042307e08311dc">clsparseDCooMatrixfromFile</a> (<a class="el" href="structclsparse_coo_matrix.html">clsparseCooMatrix</a> *cooMatx, const char *filePath, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control, cl_bool read_explicit_zeroes)</td></tr>
+<tr class="memdesc:gab3111065805eb0acba042307e08311dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sparse matrix data from file in double precision COO format.  <a href="#gab3111065805eb0acba042307e08311dc">More...</a><br /></td></tr>
+<tr class="separator:gab3111065805eb0acba042307e08311dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4e5c933651c394335d79211a89695bf4"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#ga4e5c933651c394335d79211a89695bf4">clsparseSCsrMatrixfromFile</a> (<a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *csrMatx, const char *filePath, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control, cl_bool read_explicit_zeroes)</td></tr>
+<tr class="memdesc:ga4e5c933651c394335d79211a89695bf4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sparse matrix data from file in single precision CSR format.  <a href="#ga4e5c933651c394335d79211a89695bf4">More...</a><br /></td></tr>
+<tr class="separator:ga4e5c933651c394335d79211a89695bf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0a4bd67fce9c340647013e55b55e25d6"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#ga0a4bd67fce9c340647013e55b55e25d6">clsparseDCsrMatrixfromFile</a> (<a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *csrMatx, const char *filePath, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control, cl_bool read_explicit_zeroes)</td></tr>
+<tr class="memdesc:ga0a4bd67fce9c340647013e55b55e25d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sparse matrix data from file in double precision CSR format.  <a href="#ga0a4bd67fce9c340647013e55b55e25d6">More...</a><br /></td></tr>
+<tr class="separator:ga0a4bd67fce9c340647013e55b55e25d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac2f50de28f6a4cb961f183fbb7442b28"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="structclsparse_meta_size_result.html">clsparseMetaSizeResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#gac2f50de28f6a4cb961f183fbb7442b28">clsparseCsrMetaSize</a> (<a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *csrMatx, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control)</td></tr>
+<tr class="memdesc:gac2f50de28f6a4cb961f183fbb7442b28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate the amount of device memory required to hold meta-data for csr-adaptive SpM-dV algorithm.  <a href="#gac2f50de28f6a4cb961f183fbb7442b28">More...</a><br /></td></tr>
+<tr class="separator:gac2f50de28f6a4cb961f183fbb7442b28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7dff26221a564cf372dfed20cc486896"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#ga7dff26221a564cf372dfed20cc486896">clsparseCsrMetaCreate</a> (<a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *csrMatx, <a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control)</td></tr>
+<tr class="memdesc:ga7dff26221a564cf372dfed20cc486896"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate memory and calculate the meta-data for csr-adaptive SpM-dV algorithm.  <a href="#ga7dff26221a564cf372dfed20cc486896">More...</a><br /></td></tr>
+<tr class="separator:ga7dff26221a564cf372dfed20cc486896"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga62141a92f2a5fe345cedcc9db63f44c0"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___f_i_l_e.html#ga62141a92f2a5fe345cedcc9db63f44c0">clsparseCsrMetaDelete</a> (<a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *csrMatx)</td></tr>
+<tr class="memdesc:ga62141a92f2a5fe345cedcc9db63f44c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delete meta data associated with a CSR encoded matrix.  <a href="#ga62141a92f2a5fe345cedcc9db63f44c0">More...</a><br /></td></tr>
+<tr class="separator:ga62141a92f2a5fe345cedcc9db63f44c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Functions to help read the contents of matrix market files from disk. </p>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="gaaaf661ac4fdb6e9a5df0999b1028e115"></a>
+<a class="anchor" id="ga7dff26221a564cf372dfed20cc486896"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a> clsparseCsrMetaCompute </td>
+          <td class="memname">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a> clsparseCsrMetaCreate </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *&#160;</td>
           <td class="paramname"><em>csrMatx</em>, </td>
@@ -147,8 +157,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Calculate the meta-data for csr-adaptive SpM-dV algorithm. </p>
-<p>CSR-adaptive is a high performance sparse matrix times dense vector algorithm. It requires a pre-processing step to calculate meta-data on the sparse matrix. This meta-data is stored alongside and carried along with the other matrix data. This function calculates the meta data and stores it into the rowBlocks member of the <a class="el" href="structclsparse_csr_matrix.html" title="Structure to encapsulate sparse matrix data encoded in CSR form to clSPARSE API. ">clsparseCsrMatrix</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Allocate memory and calculate the meta-data for csr-adaptive SpM-dV algorithm. </p>
+<p>CSR-adaptive is a high performance sparse matrix times dense vector algorithm. It requires a pre-processing step to calculate meta-data on the sparse matrix. This meta-data is stored alongside and carried along with the other matrix data. This function allocates memory for the meta-data and initializes it with proper values. It is important to remember to deallocate the meta memory with clsparseCsrMetaDelete </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">csrMatx</td><td>The CSR sparse structure that represents the matrix in device memory </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl </td></tr>
@@ -156,16 +166,41 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section note"><dt>Note</dt><dd>This function assumes that the memory for rowBlocks has already been allocated by client program </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a17">sample-cg.cpp</a>, and <a class="el" href="sample-spmv_8cpp-example.html#a20">sample-spmv.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a18">sample-cg.cpp</a>, and <a class="el" href="sample-spmv_8cpp-example.html#a21">sample-spmv.cpp</a>.</dd>
 </dl>
 </div>
 </div>
-<a class="anchor" id="gae3eded9f0b8b28f0aee86e4e1bbe81ec"></a>
+<a class="anchor" id="ga62141a92f2a5fe345cedcc9db63f44c0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a> clsparseCsrMetaSize </td>
+          <td class="memname">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a> clsparseCsrMetaDelete </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *&#160;</td>
+          <td class="paramname"><em>csrMatx</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Delete meta data associated with a CSR encoded matrix. </p>
+<p>Meta data for a sparse matrix may occupy device memory, and this informs the library to release it </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">csrMatx</td><td>The CSR sparse structure that represents the matrix in device memory </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a30">sample-cg.cpp</a>, and <a class="el" href="sample-spmv_8cpp-example.html#a27">sample-spmv.cpp</a>.</dd>
+</dl>
+</div>
+</div>
+<a class="anchor" id="gac2f50de28f6a4cb961f183fbb7442b28"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">CLSPARSE_EXPORT <a class="el" href="structclsparse_meta_size_result.html">clsparseMetaSizeResult</a> clsparseCsrMetaSize </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structclsparse_csr_matrix.html">clsparseCsrMatrix</a> *&#160;</td>
           <td class="paramname"><em>csrMatx</em>, </td>
@@ -185,18 +220,17 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Calculate the amount of device memory required to hold meta-data for csr-adaptive SpM-dV algorithm. </p>
-<p>CSR-adaptive is a high performance sparse matrix times dense vector algorithm. It requires a pre-processing step to calculate meta-data on the sparse matrix. This meta-data is stored alongside and carried along with the other matrix data. This function initializes the rowBlockSize member variable of the csrMatx variable with the appropriate size. The client program is responsible to allocate device memory in rowBlocks of this size before calling into the library compute routines. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>CSR-adaptive is a high performance sparse matrix times dense vector algorithm. It requires a pre-processing step to calculate meta-data on the sparse matrix. This meta-data is stored alongside and carried along with the other matrix data. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in,out]</td><td class="paramname">csrMatx</td><td>The CSR sparse structure that represents the matrix in device memory </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl </td></tr>
   </table>
   </dd>
 </dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a16">sample-cg.cpp</a>, and <a class="el" href="sample-spmv_8cpp-example.html#a19">sample-spmv.cpp</a>.</dd>
-</dl>
+
 </div>
 </div>
-<a class="anchor" id="ga5fe5b7516ff80efa2bd91a8e1bbc2863"></a>
+<a class="anchor" id="gab3111065805eb0acba042307e08311dc"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -216,7 +250,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a>&#160;</td>
-          <td class="paramname"><em>control</em>&#160;</td>
+          <td class="paramname"><em>control</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">cl_bool&#160;</td>
+          <td class="paramname"><em>read_explicit_zeroes</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -231,19 +271,20 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">cooMatx</td><td>The COO sparse structure that represents the matrix in device memory </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">filePath</td><td>A path in the file-system to the sparse matrix file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">read_explicit_zeroes</td><td>If the file contains values explicitly declared zero, this controls whether they are stored in the COO</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The number of non-zeroes actually read from the file may be less than the number of non-zeroes reported from the file header </dd>
+<dl class="section note"><dt>Note</dt><dd>The number of non-zeroes actually read from the file may be less than the number of non-zeroes reported from the file header. Symmetrix matrices may store up to twice as many non-zero values compared to the number of values in the file. Explicitly declared zeroes may be stored or not depending on the input <code>read_explicit_zeroes</code>. </dd>
 <dd>
 The OpenCL device memory must be allocated before the call to this function. </dd></dl>
-<dl class="section post"><dt>Postcondition</dt><dd>The sparse data is sorted first by row, then by column </dd></dl>
+<dl class="section post"><dt>Postcondition</dt><dd>The sparse data is sorted first by row, then by column. </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd><b>clsparseSuccess</b> </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga6e7834155e0bbc4f91a3588258d49f23"></a>
+<a class="anchor" id="ga0a4bd67fce9c340647013e55b55e25d6"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -263,7 +304,13 @@ The OpenCL device memory must be allocated before the call to this function. </d
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a>&#160;</td>
-          <td class="paramname"><em>control</em>&#160;</td>
+          <td class="paramname"><em>control</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">cl_bool&#160;</td>
+          <td class="paramname"><em>read_explicit_zeroes</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -278,11 +325,12 @@ The OpenCL device memory must be allocated before the call to this function. </d
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">csrMatx</td><td>The CSR sparse structure that represents the matrix in device memory </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">filePath</td><td>A path in the file-system to the sparse matrix file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">read_explicit_zeroes</td><td>If the file contains values explicitly declared zero, this controls whether they are stored in the CSR</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The number of non-zeroes actually read from the file may be less than the number of non-zeroes reported from the file header </dd>
+<dl class="section note"><dt>Note</dt><dd>The number of non-zeroes actually read from the file may be less than the number of non-zeroes reported from the file header. Symmetrix matrices may store up to twice as many non-zero values compared to the number of values in the file. Explicitly declared zeroes may be stored or not depending on the input <code>read_explicit_zeroes</code>. </dd>
 <dd>
 The OpenCL device memory must be allocated before the call to this function. </dd></dl>
 <dl class="section post"><dt>Postcondition</dt><dd>The sparse data is sorted first by row, then by column </dd></dl>
@@ -290,26 +338,26 @@ The OpenCL device memory must be allocated before the call to this function. </d
 
 </div>
 </div>
-<a class="anchor" id="gab1ef75afdba09e49e9deb57d5219d6b0"></a>
+<a class="anchor" id="gae1b4f6ab234a7b13ddb0df5f47fd1906"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a> clsparseHeaderfromFile </td>
           <td>(</td>
-          <td class="paramtype">cl_int *&#160;</td>
+          <td class="paramtype"><a class="el" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a> *&#160;</td>
           <td class="paramname"><em>nnz</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">cl_int *&#160;</td>
+          <td class="paramtype"><a class="el" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a> *&#160;</td>
           <td class="paramname"><em>row</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">cl_int *&#160;</td>
+          <td class="paramtype"><a class="el" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a> *&#160;</td>
           <td class="paramname"><em>col</em>, </td>
         </tr>
         <tr>
@@ -339,11 +387,11 @@ The OpenCL device memory must be allocated before the call to this function. </d
 <dl class="section note"><dt>Note</dt><dd>At this time, only matrix market (.MTX) files are supported </dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>The value returned in nnz is the maximum possible number of non-zeroes from the sparse matrix on disk (can be used to allocate memory). The actual number of non-zeroes may be less, depending if explicit zeroes were stored in file. </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd><b>clsparseSuccess</b> </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a6">sample-cg.cpp</a>, and <a class="el" href="sample-spmv_8cpp-example.html#a9">sample-spmv.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a9">sample-cg.cpp</a>, and <a class="el" href="sample-spmv_8cpp-example.html#a12">sample-spmv.cpp</a>.</dd>
 </dl>
 </div>
 </div>
-<a class="anchor" id="ga40ca21725283a0040cd4c468ee270fbc"></a>
+<a class="anchor" id="ga731ff6da9997a2bb892976af1657398a"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -363,7 +411,13 @@ The OpenCL device memory must be allocated before the call to this function. </d
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a>&#160;</td>
-          <td class="paramname"><em>control</em>&#160;</td>
+          <td class="paramname"><em>control</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">cl_bool&#160;</td>
+          <td class="paramname"><em>read_explicit_zeroes</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -378,19 +432,20 @@ The OpenCL device memory must be allocated before the call to this function. </d
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">cooMatx</td><td>The COO sparse structure that represents the matrix in device memory </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">filePath</td><td>A path in the file-system to the sparse matrix file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">read_explicit_zeroes</td><td>If the file contains values explicitly declared zero, this controls whether they are stored in the COO</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The number of non-zeroes actually read from the file may be less than the number of non-zeroes reported from the file header </dd>
+<dl class="section note"><dt>Note</dt><dd>The number of non-zeroes actually read from the file may be different than the number of non-zeroes reported from the file header. Symmetrix matrices may store up to twice as many non-zero values compared to the number of values in the file. Explicitly declared zeroes may be stored or not depending on the input <code>read_explicit_zeroes</code>. </dd>
 <dd>
 The OpenCL device memory must be allocated before the call to this function. </dd></dl>
-<dl class="section post"><dt>Postcondition</dt><dd>The sparse data is sorted first by row, then by column </dd></dl>
+<dl class="section post"><dt>Postcondition</dt><dd>The sparse data is sorted first by row, then by column. </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd><b>clsparseSuccess</b> </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga528f1bf691481ce6d6b7ab3a5885ab53"></a>
+<a class="anchor" id="ga4e5c933651c394335d79211a89695bf4"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -410,7 +465,13 @@ The OpenCL device memory must be allocated before the call to this function. </d
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a>&#160;</td>
-          <td class="paramname"><em>control</em>&#160;</td>
+          <td class="paramname"><em>control</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">cl_bool&#160;</td>
+          <td class="paramname"><em>read_explicit_zeroes</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -425,16 +486,17 @@ The OpenCL device memory must be allocated before the call to this function. </d
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">csrMatx</td><td>The CSR sparse structure that represents the matrix in device memory </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">filePath</td><td>A path in the file-system to the sparse matrix file </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">control</td><td>A valid clsparseControl created with clsparseCreateControl </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">read_explicit_zeroes</td><td>If the file contains values explicitly declared zero, this controls whether they are stored in the CSR</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The number of non-zeroes actually read from the file may be less than the number of non-zeroes reported from the file header </dd>
+<dl class="section note"><dt>Note</dt><dd>The number of non-zeroes actually read from the file may be less than the number of non-zeroes reported from the file header. Symmetrix matrices may store up to twice as many non-zero values compared to the number of values in the file. Explicitly declared zeroes may be stored or not depending on the input <code>read_explicit_zeroes</code>. </dd>
 <dd>
 The OpenCL device memory must be allocated before the call to this function. </dd></dl>
-<dl class="section post"><dt>Postcondition</dt><dd>The sparse data is sorted first by row, then by column </dd></dl>
+<dl class="section post"><dt>Postcondition</dt><dd>The sparse data is sorted first by row, then by column. </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd><b>clsparseSuccess</b> </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a15">sample-cg.cpp</a>, and <a class="el" href="sample-spmv_8cpp-example.html#a18">sample-spmv.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a16">sample-cg.cpp</a>, and <a class="el" href="sample-spmv_8cpp-example.html#a19">sample-spmv.cpp</a>.</dd>
 </dl>
 </div>
 </div>

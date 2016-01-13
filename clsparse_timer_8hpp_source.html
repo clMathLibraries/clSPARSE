@@ -31,7 +31,7 @@
   <td id="projectlogo"><img alt="Logo" src="clMath.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">clSPARSE
-   &#160;<span id="projectnumber">v0.8.0.0</span>
+   &#160;<span id="projectnumber">v0.10.0.0</span>
    </div>
    <div id="projectbrief">a software library containing Sparse functions written in OpenCL</div>
   </td>
@@ -123,52 +123,53 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#include &lt;functional&gt;</span></div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#if defined(__APPLE__) || defined(__MACOSX)</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#   include &lt;OpenCL/cl.h&gt;</span></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="preprocessor">#   include &lt;CL/cl.h&gt;</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="cl_s_p_a_r_s_e-error_8h.html">clSPARSE-error.h</a>&quot;</span></div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;</div>
-<div class="line"><a name="l00045"></a><span class="lineno"><a class="line" href="classclsparse_timer.html">   45</a></span>&#160;<span class="keyword">class </span><a class="code" href="classclsparse_timer.html">clsparseTimer</a></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;{</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
-<div class="line"><a name="l00052"></a><span class="lineno"><a class="line" href="classclsparse_timer.html#a47b4fa37cfee329d2f3142febcc35aa2">   52</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="classclsparse_timer.html#a47b4fa37cfee329d2f3142febcc35aa2">~clsparseTimer</a>( )</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    {</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    };</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#a04dc971a9beb80c18626b36e5fe7d9cf">Start</a>( <span class="keywordtype">size_t</span> <span class="keywordtype">id</span> ) = 0;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#a5dcd64300bef90d632635ea759801154">Stop</a>( <span class="keywordtype">size_t</span> <span class="keywordtype">id</span> ) = 0;</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#aa1f04e0f0c417ed7b73b790d49125cda">Clear</a>( ) = 0;</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#a6ed10ec9e2161f1f57519df4bce19a61">Reset</a>( ) = 0;</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#a8278d3e2446dbea17e62f818a57b0c07">Reserve</a>( <span class="keywordtype">size_t</span> nEvents, <span class="keywordtype">size_t</span> nSamples ) = 0;</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">size_t</span> <a class="code" href="classclsparse_timer.html#a0a206517e386e2a76e8542c4462da21d">getUniqueID</a>( <span class="keyword">const</span> std::string&amp; label, cl_uint groupID ) = 0;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#ad3d80d46d58709efd9e275898d39d895">setNormalize</a>( <span class="keywordtype">bool</span> norm ) = 0;</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#af8bec8eb76a652e1326c0ddcd590456d">Print</a>( cl_ulong flopCount, std::string unit ) = 0;</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">size_t</span>  <a class="code" href="classclsparse_timer.html#ad78e3663ad5f509aaf38fd164283db90">pruneOutliers</a>( cl_double multiple ) = 0;</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;};</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;<span class="preprocessor">#endif // _STATISTICALTIMER_H_</span></div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#include &lt;stdexcept&gt;</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#if defined(__APPLE__) || defined(__MACOSX)</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="preprocessor">#   include &lt;OpenCL/cl.h&gt;</span></div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="preprocessor">#else</span></div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor">#   include &lt;CL/cl.h&gt;</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="cl_s_p_a_r_s_e-error_8h.html">clSPARSE-error.h</a>&quot;</span></div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="classclsparse_timer.html">   46</a></span>&#160;<span class="keyword">class </span><a class="code" href="classclsparse_timer.html">clsparseTimer</a></div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;{</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;</div>
+<div class="line"><a name="l00053"></a><span class="lineno"><a class="line" href="classclsparse_timer.html#a47b4fa37cfee329d2f3142febcc35aa2">   53</a></span>&#160;    <span class="keyword">virtual</span> <a class="code" href="classclsparse_timer.html#a47b4fa37cfee329d2f3142febcc35aa2">~clsparseTimer</a>( )</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    {</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    };</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#a04dc971a9beb80c18626b36e5fe7d9cf">Start</a>( <span class="keywordtype">size_t</span> <span class="keywordtype">id</span> ) = 0;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#a5dcd64300bef90d632635ea759801154">Stop</a>( <span class="keywordtype">size_t</span> <span class="keywordtype">id</span> ) = 0;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#aa1f04e0f0c417ed7b73b790d49125cda">Clear</a>( ) = 0;</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#a6ed10ec9e2161f1f57519df4bce19a61">Reset</a>( ) = 0;</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#a8278d3e2446dbea17e62f818a57b0c07">Reserve</a>( <span class="keywordtype">size_t</span> nEvents, <span class="keywordtype">size_t</span> nSamples ) = 0;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">size_t</span> <a class="code" href="classclsparse_timer.html#a0a206517e386e2a76e8542c4462da21d">getUniqueID</a>( <span class="keyword">const</span> std::string&amp; label, cl_uint groupID ) = 0;</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#ad3d80d46d58709efd9e275898d39d895">setNormalize</a>( <span class="keywordtype">bool</span> norm ) = 0;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classclsparse_timer.html#af8bec8eb76a652e1326c0ddcd590456d">Print</a>( cl_ulong flopCount, std::string unit ) = 0;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">size_t</span>  <a class="code" href="classclsparse_timer.html#ad78e3663ad5f509aaf38fd164283db90">pruneOutliers</a>( cl_double multiple ) = 0;</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;};</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;<span class="preprocessor">#endif // _STATISTICALTIMER_H_</span></div>
 <div class="ttc" id="classclsparse_timer_html_a0a206517e386e2a76e8542c4462da21d"><div class="ttname"><a href="classclsparse_timer.html#a0a206517e386e2a76e8542c4462da21d">clsparseTimer::getUniqueID</a></div><div class="ttdeci">virtual size_t getUniqueID(const std::string &amp;label, cl_uint groupID)=0</div><div class="ttdoc">Provide a mapping from a &#39;friendly&#39; human readable text string to an index into internal data structu...</div></div>
-<div class="ttc" id="classclsparse_timer_html_a47b4fa37cfee329d2f3142febcc35aa2"><div class="ttname"><a href="classclsparse_timer.html#a47b4fa37cfee329d2f3142febcc35aa2">clsparseTimer::~clsparseTimer</a></div><div class="ttdeci">virtual ~clsparseTimer()</div><div class="ttdoc">Destructor for StatisticalTimer that cleans up the class. </div><div class="ttdef"><b>Definition:</b> clsparseTimer.hpp:52</div></div>
+<div class="ttc" id="classclsparse_timer_html_a47b4fa37cfee329d2f3142febcc35aa2"><div class="ttname"><a href="classclsparse_timer.html#a47b4fa37cfee329d2f3142febcc35aa2">clsparseTimer::~clsparseTimer</a></div><div class="ttdeci">virtual ~clsparseTimer()</div><div class="ttdoc">Destructor for StatisticalTimer that cleans up the class. </div><div class="ttdef"><b>Definition:</b> clsparseTimer.hpp:53</div></div>
 <div class="ttc" id="cl_s_p_a_r_s_e-error_8h_html"><div class="ttname"><a href="cl_s_p_a_r_s_e-error_8h.html">clSPARSE-error.h</a></div><div class="ttdoc">defines &#39;C&#39; compatible macros and inline functions to help pretty print error messages from clSPARSE ...</div></div>
 <div class="ttc" id="classclsparse_timer_html_a8278d3e2446dbea17e62f818a57b0c07"><div class="ttname"><a href="classclsparse_timer.html#a8278d3e2446dbea17e62f818a57b0c07">clsparseTimer::Reserve</a></div><div class="ttdeci">virtual void Reserve(size_t nEvents, size_t nSamples)=0</div><div class="ttdoc">The implementation of the timing class may contains data structures that need to grow as more samples...</div></div>
 <div class="ttc" id="classclsparse_timer_html_af8bec8eb76a652e1326c0ddcd590456d"><div class="ttname"><a href="classclsparse_timer.html#af8bec8eb76a652e1326c0ddcd590456d">clsparseTimer::Print</a></div><div class="ttdeci">virtual void Print(cl_ulong flopCount, std::string unit)=0</div><div class="ttdoc">Print the output of the timing information to the console. This includes information specific to the ...</div></div>
 <div class="ttc" id="classclsparse_timer_html_aa1f04e0f0c417ed7b73b790d49125cda"><div class="ttname"><a href="classclsparse_timer.html#aa1f04e0f0c417ed7b73b790d49125cda">clsparseTimer::Clear</a></div><div class="ttdeci">virtual void Clear()=0</div><div class="ttdoc">Clear all internal data structures, deallocate all memory. </div></div>
 <div class="ttc" id="classclsparse_timer_html_ad78e3663ad5f509aaf38fd164283db90"><div class="ttname"><a href="classclsparse_timer.html#ad78e3663ad5f509aaf38fd164283db90">clsparseTimer::pruneOutliers</a></div><div class="ttdeci">virtual size_t pruneOutliers(cl_double multiple)=0</div><div class="ttdoc">Using the stdDev of the entire population (of an id), eliminate those samples that fall outside some ...</div></div>
-<div class="ttc" id="classclsparse_timer_html"><div class="ttname"><a href="classclsparse_timer.html">clsparseTimer</a></div><div class="ttdoc">Counter that provides a fairly accurate timing mechanism for both windows and linux. This timer is used extensively in all the samples. </div><div class="ttdef"><b>Definition:</b> clsparseTimer.hpp:45</div></div>
+<div class="ttc" id="classclsparse_timer_html"><div class="ttname"><a href="classclsparse_timer.html">clsparseTimer</a></div><div class="ttdoc">Counter that provides a fairly accurate timing mechanism for both windows and linux. This timer is used extensively in all the samples. </div><div class="ttdef"><b>Definition:</b> clsparseTimer.hpp:46</div></div>
 <div class="ttc" id="classclsparse_timer_html_a6ed10ec9e2161f1f57519df4bce19a61"><div class="ttname"><a href="classclsparse_timer.html#a6ed10ec9e2161f1f57519df4bce19a61">clsparseTimer::Reset</a></div><div class="ttdeci">virtual void Reset()=0</div><div class="ttdoc">Clear all internal data structures, freeing all memory, then reallocate the same amount of memory req...</div></div>
 <div class="ttc" id="classclsparse_timer_html_ad3d80d46d58709efd9e275898d39d895"><div class="ttname"><a href="classclsparse_timer.html#ad3d80d46d58709efd9e275898d39d895">clsparseTimer::setNormalize</a></div><div class="ttdeci">virtual void setNormalize(bool norm)=0</div><div class="ttdoc">Request that the timer divides total samples collected by sample frequency, converting tick counts in...</div></div>
 <div class="ttc" id="classclsparse_timer_html_a5dcd64300bef90d632635ea759801154"><div class="ttname"><a href="classclsparse_timer.html#a5dcd64300bef90d632635ea759801154">clsparseTimer::Stop</a></div><div class="ttdeci">virtual void Stop(size_t id)=0</div><div class="ttdoc">Stop a timing sample. </div></div>

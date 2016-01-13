@@ -31,7 +31,7 @@
   <td id="projectlogo"><img alt="Logo" src="clMath.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">clSPARSE
-   &#160;<span id="projectnumber">v0.8.0.0</span>
+   &#160;<span id="projectnumber">v0.10.0.0</span>
    </div>
    <div id="projectbrief">a software library containing Sparse functions written in OpenCL</div>
   </td>
@@ -113,13 +113,32 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </table>
 <h1>clSPARSE</h1>
 <p>an OpenCL&trade; library implementing Sparse linear algebra routines. This project is a result of a collaboration between <a href="http://www.amd.com/">AMD Inc.</a> and <a href="http://www.vratis.com/">Vratis Ltd.</a>.</p>
-<h3>What's new in clSPARSE <b>v0.8</b></h3>
-<ul>
-<li>New single precision SpM-SpM (SpGEMM) function</li>
-<li>Optimizations to the sparse matrix conversion routines</li>
-<li><a href="http://clmathlibraries.github.io/clSPARSE/">API documentation</a> available</li>
-<li>SpM-dV routines now provide <a href="https://github.com/clMathLibraries/clSPARSE/wiki/Precision">higher precision accuracy</a></li>
-<li>Various bug fixes integrated</li>
+<h3>What's new in clSPARSE <b>v0.10</b></h3>
+<p><b>This release introduces breaking API changes from the prior version</b>. clSPARSE is still in a beta phase, and we may need to change the API at times to increase maintainability or fix design issues. A few changes are introduced to more closely follow the recently published <a href="http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines.html">Cpp Core Guidelines</a>, a strong candidate to be the coding guidelines to be used in clSPARSE. Changes are noted below.</p><ul>
+<li>The API to create meta data for a csr encoded sparse matrix has changed. This is an attempt to hide the implementation details of how meta data is stored from the user. This allows the library freedom to change and iterate meta data without breaking clients.<ul>
+<li><code>clsparseCsrMetaCompute()</code> renamed to <code><a class="el" href="group___f_i_l_e.html#ga7dff26221a564cf372dfed20cc486896" title="Allocate memory and calculate the meta-data for csr-adaptive SpM-dV algorithm. ">clsparseCsrMetaCreate()</a></code>, to more intuitively pair with the</li>
+<li>New API <code><a class="el" href="group___f_i_l_e.html#ga62141a92f2a5fe345cedcc9db63f44c0" title="Delete meta data associated with a CSR encoded matrix. ">clsparseCsrMetaDelete()</a></code></li>
+</ul>
+</li>
+<li>A few routines changed pure 'out' parameters to be returned on the stack as structs<sup><a href="#return-tuple">1</a></sup><ul>
+<li><code><a class="el" href="group___s_t_a_t_e.html#ga7595fb1b38328bafed86bddb3bedc435" title="Setup the clsparse control object from external OpenCL queue. ">clsparseCreateControl()</a></code></li>
+<li><code><a class="el" href="group___s_t_a_t_e.html#ga9488deccf26d6f9158d8e4f06af21374" title="Return an event from the last kernel execution. ">clsparseGetEvent()</a></code></li>
+<li><code><a class="el" href="group___s_o_l_v_e_r.html#ga8a377639a2811f20f78c3f471814ff9c" title="Create a clSParseSolverControl object to control clsparse iterative solver operations. ">clsparseCreateSolverControl()</a></code></li>
+<li><code><a class="el" href="group___f_i_l_e.html#gac2f50de28f6a4cb961f183fbb7442b28" title="Calculate the amount of device memory required to hold meta-data for csr-adaptive SpM-dV algorithm...">clsparseCsrMetaSize()</a></code></li>
+</ul>
+</li>
+<li>A new index type has been introduced <code>clsparseIdx_t</code> to abstract the size of an index from the library interface; the only choice currently is 4 bytes. If users use this datatype for indices in their code, changing to 8-byte indices in the future should only be a recompile.</li>
+<li>The names of member variables in our public structs have been renamed for consistency. Before, our member variables was not consistent with camel case and underscore naming. Member variables are now standardized to use underscores, but we keep camel casing for function and struct names<sup><a href="#consistent-naming">2</a></sup><ul>
+<li><code>colIndices</code> to <code>col_indices</code></li>
+<li><code>rowIndices</code> to <code>row_indices</code></li>
+<li><code>rowOffsets</code> to <code>row_pointer</code> (renamed to pointer to remove confusion with buffer offsets for cl1.2)</li>
+<li><code>offValues</code> to <code>off_values</code></li>
+<li><code>offColInd</code> to <code>off_col_indices</code></li>
+<li><code>offRowOff</code> to <code>off_row_pointer</code></li>
+<li><code>offValues</code> to <code>off_values</code></li>
+</ul>
+</li>
+<li>All samples have been changed to compile with the above changes.</li>
 </ul>
 <h2>clSPARSE features</h2>
 <ul>
@@ -132,7 +151,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>COO to CSR conversions (&amp; converse)</li>
 <li>Functions to read matrix market files in COO or CSR format</li>
 </ul>
-<p>True in spirit with the other clMath libraries, clSPARSE exports a “C” interface to allow projects to build wrappers around clSPARSE in any language they need. A great deal of thought and effort went into designing the API’s to make them less ‘cluttered’ compared to the older clMath libraries. OpenCL state is not explicitly passed through the API, which enables the library to be forward compatible when users are ready to switch from OpenCL 1.2 to OpenCL 2.0 <sup><a href="#opencl-2">1</a></sup></p>
+<p>True in spirit with the other clMath libraries, clSPARSE exports a “C” interface to allow projects to build wrappers around clSPARSE in any language they need. A great deal of thought and effort went into designing the API’s to make them less ‘cluttered’ compared to the older clMath libraries. OpenCL state is not explicitly passed through the API, which enables the library to be forward compatible when users are ready to switch from OpenCL 1.2 to OpenCL 2.0 <sup><a href="#opencl-2">3</a></sup></p>
 <h3>Google Groups</h3>
 <p>Two mailing lists have been created for the clMath projects:</p>
 <ul>
@@ -140,17 +159,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li><a href="#" onclick="location.href='mai'+'lto:'+'clm'+'at'+'h-d'+'ev'+'elo'+'pe'+'rs@'+'go'+'ogl'+'eg'+'rou'+'ps'+'.co'+'m'; return false;">clmat<span style="display: none;">.nosp@m.</span>h-de<span style="display: none;">.nosp@m.</span>velop<span style="display: none;">.nosp@m.</span>ers@<span style="display: none;">.nosp@m.</span>googl<span style="display: none;">.nosp@m.</span>egro<span style="display: none;">.nosp@m.</span>ups.c<span style="display: none;">.nosp@m.</span>om</a> - group whose focus is for developers interested in contributing to the library code itself</li>
 </ul>
 <h3>API semantic versioning</h3>
-<p>Good software is typically the result of the loop of feedback and iteration; software interfaces no less so. clSPARSE follows the <a href="http://semver.org/">semantic versioning</a> guidelines, and while the major version number remains '0', the public API should not be considered stable. We release clSPARSE as beta software (0.y.z) early to the community to elicit feedback and comment. This comes with the expectation that with feedback, we may incorporate breaking changes to the API that might require early users to recompile, or rewrite portions of their code as we iterate on the design.</p>
+<p>Good software is typically the result of iteration and feedback. clSPARSE follows the <a href="http://semver.org/">semantic versioning</a> guidelines, and while the major version number remains '0', the public API should not be considered stable. We release clSPARSE as beta software (0.y.z) early to the community to elicit feedback and comment. This comes with the expectation that with feedback, we may incorporate breaking changes to the API that might require early users to recompile, or rewrite portions of their code as we iterate on the design.</p>
+<h2>clSPARSE Wiki</h2>
+<p>The <a href="https://github.com/clMathLibraries/clSPARSE/wiki">project wiki</a> contains helpful documentation. A <a href="https://github.com/clMathLibraries/clSPARSE/wiki/Build">build primer</a> is available, which describes how to use cmake to generate platforms specific build files</p>
 <h2>Samples</h2>
 <p>clSPARSE contains a directory of simple <a href="./samples">OpenCL samples</a> that demonstrate the use of the API in both C and C++. The <a href="http://www.kitware.com/media/html/BuildingExternalProjectsWithCMake2.8.html">superbuild</a> script for clSPARSE also builds the samples as an external project, to demonstrate how an application would find and link to clSPARSE with cmake.</p>
 <h3>clSPARSE library documentation</h3>
-<p><b>API documentation</b> is now available <a href="http://clmathlibraries.github.io/clSPARSE/">http://clmathlibraries.github.io/clSPARSE/</a> . The included samples will give an excellent starting point to basic library operations.</p>
+<p><b>API documentation</b> is available at <a href="http://clmathlibraries.github.io/clSPARSE/">http://clmathlibraries.github.io/clSPARSE/</a>. The samples give an excellent starting point to basic library operations.</p>
 <h3>Contributing code</h3>
 <p>Please refer to and read the Contributing document for guidelines on how to contribute code to this open source project. Code in the /master branch is considered to be stable and new library releases are made when commits are merged into /master. Active development and pull-requests should be made to the <b>develop</b> branch.</p>
-<h2>Build</h2>
-<p>clSPARSE is primarily written with C++ using C++11 core features. It does export a 'C' interface for compatibility with other languages.</p>
-<h3>How to build clSPARSE for your platform</h3>
-<p>A <a href="https://github.com/clMathLibraries/clSPARSE/wiki/Build">Build primer</a> is available on the wiki, which describes how to use cmake to generate platforms specific build files</p>
+<h2>License</h2>
+<p>clSPARSE is licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a></p>
 <h3>Compiling for Windows</h3>
 <ul>
 <li>Windows&reg; 7/8</li>
@@ -187,8 +206,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>Googletest v1.7</li>
 <li>Boost v1.58</li>
 </ul>
-<h2>Clarifications</h2>
-<p><a class="anchor" id="opencl-2"></a>[1]: OpenCL 2.0 support is not yet fully implemented; only the interfaces have been designed </p>
+<h2>Footnotes</h2>
+<p><a class="anchor" id="return-tuple"></a>[1]: Changed to reflect CppCoreGuidelines: <a href="http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines.html#a-namerf-out-multia-f21-to-return-multiple-out-values-prefer-returning-a-tuple-or-struct">F.21</a></p>
+<p><a class="anchor" id="consistent-naming"></a>[2]: Changed to reflect CppCoreGuidelines: <a href="http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines.html#a-namerl-namea-nl8-use-a-consistent-naming-style">NL.8</a></p>
+<p><a class="anchor" id="opencl-2"></a>[3]: OpenCL 2.0 support is not yet fully implemented; only the interfaces have been designed </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

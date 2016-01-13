@@ -31,7 +31,7 @@
   <td id="projectlogo"><img alt="Logo" src="clMath.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">clSPARSE
-   &#160;<span id="projectnumber">v0.8.0.0</span>
+   &#160;<span id="projectnumber">v0.10.0.0</span>
    </div>
    <div id="projectbrief">a software library containing Sparse functions written in OpenCL</div>
   </td>
@@ -115,7 +115,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><span class="preprocessor">#include &lt;CL/cl.hpp&gt;</span></div>
 <div class="line"><span class="preprocessor">#endif</span></div>
 <div class="line"></div>
-<div class="line"><span class="preprocessor">#include &lt;<a class="code" href="cl_s_p_a_r_s_e_8h.html">clSPARSE.h</a>&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;<a class="code" href="cl_s_p_a_r_s_e_8h.html">clSPARSE.h</a>&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;<a class="code" href="cl_s_p_a_r_s_e-error_8h.html">clSPARSE-error.h</a>&quot;</span></div>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main (<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[])</div>
 <div class="line">{</div>
@@ -215,21 +216,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">    }</div>
 <div class="line"></div>
 <div class="line"></div>
-<div class="line">    <span class="comment">// Create clsparseControl object</span></div>
-<div class="line">    <a class="code" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control = <a name="a5"></a><a class="code" href="group___s_t_a_t_e.html#gaf7650a031b44721138ca323cde6d7b6d">clsparseCreateControl</a>(queue(), &amp;status);</div>
-<div class="line">    <span class="keywordflow">if</span> (status != CL_SUCCESS)</div>
-<div class="line">    {</div>
-<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Problem with creating clSPARSE control object&quot;</span></div>
-<div class="line">                  &lt;&lt;<span class="stringliteral">&quot; error [&quot;</span> &lt;&lt; status &lt;&lt; <span class="stringliteral">&quot;]&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line">        <span class="keywordflow">return</span> -4;</div>
-<div class="line">    }</div>
+<div class="line">    <span class="comment">// Create clSPARSE control object it require queue for kernel execution</span></div>
+<div class="line">    <a name="_a5"></a><a class="code" href="structclsparse_create_result.html">clsparseCreateResult</a> createResult = <a name="a6"></a><a class="code" href="group___s_t_a_t_e.html#ga7595fb1b38328bafed86bddb3bedc435">clsparseCreateControl</a>( queue( ) );</div>
+<div class="line">    <a name="a7"></a><a class="code" href="cl_s_p_a_r_s_e-error_8h.html#acdaeda268fefef4021e9448b42bb52a2">CLSPARSE_V</a>( createResult.<a name="a8"></a><a class="code" href="structclsparse_create_result.html#a9e59fdda2d78e548a3e0eb02de74eaa7">status</a>, <span class="stringliteral">&quot;Failed to create clsparse control&quot;</span> );</div>
 <div class="line"></div>
-<div class="line"></div>
-<div class="line">    <span class="comment">// Read matrix from file. Calculates the rowBlocks strucutres as well.</span></div>
-<div class="line">    <span class="keywordtype">int</span> nnz, row, col;</div>
+<div class="line">    <span class="comment">// Read matrix from file. Calculates the rowBlocks structures as well.</span></div>
+<div class="line">    <a class="code" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a> nnz, row, col;</div>
 <div class="line">    <span class="comment">// read MM header to get the size of the matrix;</span></div>
 <div class="line">    <a class="code" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a> fileError</div>
-<div class="line">            = <a name="a6"></a><a class="code" href="group___f_i_l_e.html#gab1ef75afdba09e49e9deb57d5219d6b0">clsparseHeaderfromFile</a>( &amp;nnz, &amp;row, &amp;col, matrix_path.c_str( ) );</div>
+<div class="line">            = <a name="a9"></a><a class="code" href="group___f_i_l_e.html#gae1b4f6ab234a7b13ddb0df5f47fd1906">clsparseHeaderfromFile</a>( &amp;nnz, &amp;row, &amp;col, matrix_path.c_str( ) );</div>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span>( fileError != clsparseSuccess )</div>
 <div class="line">    {</div>
@@ -237,33 +232,28 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">        <span class="keywordflow">return</span> -5;</div>
 <div class="line">    }</div>
 <div class="line"></div>
-<div class="line">    A.<a name="a7"></a><a class="code" href="structclsparse_csr_matrix.html#ad13f4579d41bcad3f64b8336573a1fa0">num_nonzeros</a> = nnz;</div>
-<div class="line">    A.<a name="a8"></a><a class="code" href="structclsparse_csr_matrix.html#a6040780665170a36a9f8a933780e0c7d">num_rows</a> = row;</div>
-<div class="line">    A.<a name="a9"></a><a class="code" href="structclsparse_csr_matrix.html#ac10cde207a9ec9268713fb85d52b7c03">num_cols</a> = col;</div>
+<div class="line">    A.<a name="a10"></a><a class="code" href="structclsparse_csr_matrix.html#a93efbb830ac8b0a8271807fa16965139">num_nonzeros</a> = nnz;</div>
+<div class="line">    A.<a name="a11"></a><a class="code" href="structclsparse_csr_matrix.html#ad04bcf679ae232a355acf9d2d7cc9aeb">num_rows</a> = row;</div>
+<div class="line">    A.<a name="a12"></a><a class="code" href="structclsparse_csr_matrix.html#a4ac2c684e81e45340eb671371f300af9">num_cols</a> = col;</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// Allocate memory for CSR matrix</span></div>
-<div class="line">    A.<a name="a10"></a><a class="code" href="structclsparse_csr_matrix.html#a51aef7a076f36826fa4dbfff33a81cbd">values</a> = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,</div>
-<div class="line">                                 A.<a class="code" href="structclsparse_csr_matrix.html#ad13f4579d41bcad3f64b8336573a1fa0">num_nonzeros</a> * <span class="keyword">sizeof</span>( <span class="keywordtype">float</span> ), NULL, &amp;cl_status );</div>
+<div class="line">    A.<a name="a13"></a><a class="code" href="structclsparse_csr_matrix.html#a51aef7a076f36826fa4dbfff33a81cbd">values</a> = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,</div>
+<div class="line">                                 A.<a class="code" href="structclsparse_csr_matrix.html#a93efbb830ac8b0a8271807fa16965139">num_nonzeros</a> * <span class="keyword">sizeof</span>( <span class="keywordtype">float</span> ), NULL, &amp;cl_status );</div>
 <div class="line"></div>
-<div class="line">    A.<a name="a11"></a><a class="code" href="structclsparse_csr_matrix.html#acb75743ba8e48b097fd7b3321289776f">colIndices</a> = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,</div>
-<div class="line">                                     A.<a class="code" href="structclsparse_csr_matrix.html#ad13f4579d41bcad3f64b8336573a1fa0">num_nonzeros</a> * <span class="keyword">sizeof</span>( cl_int ), NULL, &amp;cl_status );</div>
+<div class="line">    A.<a name="a14"></a><a class="code" href="structclsparse_csr_matrix.html#a23c8331fb404a8abad039b72ac63b227">col_indices</a> = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,</div>
+<div class="line">                                     A.<a class="code" href="structclsparse_csr_matrix.html#a93efbb830ac8b0a8271807fa16965139">num_nonzeros</a> * <span class="keyword">sizeof</span>( <a class="code" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a> ), NULL, &amp;cl_status );</div>
 <div class="line"></div>
-<div class="line">    A.<a name="a12"></a><a class="code" href="structclsparse_csr_matrix.html#adf170365da4bf03dda6c58dc99e7bfb4">rowOffsets</a> = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,</div>
-<div class="line">                                     ( A.<a class="code" href="structclsparse_csr_matrix.html#a6040780665170a36a9f8a933780e0c7d">num_rows</a> + 1 ) * <span class="keyword">sizeof</span>( cl_int ), NULL, &amp;cl_status );</div>
-<div class="line"></div>
-<div class="line">    A.<a name="a13"></a><a class="code" href="structclsparse_csr_matrix.html#a31e90537cbe617f5c7ce37dd521aa016">rowBlocks</a> = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,</div>
-<div class="line">                                    A.<a name="a14"></a><a class="code" href="structclsparse_csr_matrix.html#ad0eed5eb112bec60bc94af3d0af91494">rowBlockSize</a> * <span class="keyword">sizeof</span>( cl_ulong ), NULL, &amp;cl_status );</div>
+<div class="line">    A.<a name="a15"></a><a class="code" href="structclsparse_csr_matrix.html#a4e5ab26b93ac9e5d55fa9f4151472c27">row_pointer</a> = ::clCreateBuffer( context(), CL_MEM_READ_ONLY,</div>
+<div class="line">                                     ( A.<a class="code" href="structclsparse_csr_matrix.html#ad04bcf679ae232a355acf9d2d7cc9aeb">num_rows</a> + 1 ) * <span class="keyword">sizeof</span>( <a class="code" href="cl_s_p_a_r_s_e-xx_8h.html#a466d9ecb7b9d828ce914830a24d62cf1">clsparseIdx_t</a> ), NULL, &amp;cl_status );</div>
 <div class="line"></div>
 <div class="line"></div>
-<div class="line">    fileError = <a name="a15"></a><a class="code" href="group___f_i_l_e.html#ga528f1bf691481ce6d6b7ab3a5885ab53">clsparseSCsrMatrixfromFile</a>( &amp;A, matrix_path.c_str( ), control );</div>
+<div class="line">    <span class="comment">// Read matrix market file with explicit zero values included.</span></div>
+<div class="line">    fileError = <a name="a16"></a><a class="code" href="group___f_i_l_e.html#ga4e5c933651c394335d79211a89695bf4">clsparseSCsrMatrixfromFile</a>( &amp;A, matrix_path.c_str( ), createResult.<a name="a17"></a><a class="code" href="structclsparse_create_result.html#acf200821d31fd215ba8b1a47b687a7f7">control</a>, true );</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// This function allocates memory for rowBlocks structure. If not called</span></div>
 <div class="line">    <span class="comment">// the structure will not be calculated and clSPARSE will run the vectorized</span></div>
 <div class="line">    <span class="comment">// version of SpMV instead of adaptive;</span></div>
-<div class="line">    <a name="a16"></a><a class="code" href="group___f_i_l_e.html#gae3eded9f0b8b28f0aee86e4e1bbe81ec">clsparseCsrMetaSize</a>( &amp;A, control );</div>
-<div class="line">    A.<a class="code" href="structclsparse_csr_matrix.html#a31e90537cbe617f5c7ce37dd521aa016">rowBlocks</a> = ::clCreateBuffer( context(), CL_MEM_READ_WRITE,</div>
-<div class="line">            A.<a class="code" href="structclsparse_csr_matrix.html#ad0eed5eb112bec60bc94af3d0af91494">rowBlockSize</a> * <span class="keyword">sizeof</span>( cl_ulong ), NULL, &amp;cl_status );</div>
-<div class="line">    <a name="a17"></a><a class="code" href="group___f_i_l_e.html#gaaaf661ac4fdb6e9a5df0999b1028e115">clsparseCsrMetaCompute</a>( &amp;A, control );</div>
+<div class="line">    <a name="a18"></a><a class="code" href="group___f_i_l_e.html#ga7dff26221a564cf372dfed20cc486896">clsparseCsrMetaCreate</a>( &amp;A, createResult.<a class="code" href="structclsparse_create_result.html#acf200821d31fd215ba8b1a47b687a7f7">control</a> );</div>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (fileError != clsparseSuccess)</div>
 <div class="line">    {</div>
@@ -277,21 +267,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line">    <span class="comment">// Allocate memory for vector of unknowns;</span></div>
 <div class="line">    <span class="comment">// We will fill it with zeros as a initial guess</span></div>
-<div class="line">    x.<a name="a18"></a><a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> = A.<a class="code" href="structclsparse_csr_matrix.html#ac10cde207a9ec9268713fb85d52b7c03">num_cols</a>;</div>
-<div class="line">    x.<a name="a19"></a><a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a> = clCreateBuffer(context(), CL_MEM_READ_ONLY, x.<a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>),</div>
+<div class="line">    x.<a name="a19"></a><a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> = A.<a class="code" href="structclsparse_csr_matrix.html#a4ac2c684e81e45340eb671371f300af9">num_cols</a>;</div>
+<div class="line">    x.<a name="a20"></a><a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a> = clCreateBuffer(context(), CL_MEM_READ_ONLY, x.<a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>),</div>
 <div class="line">                              NULL, &amp;cl_status);</div>
 <div class="line"></div>
 <div class="line">    cl_status = clEnqueueFillBuffer(queue(), x.<a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a>, &amp;zero, <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>),</div>
-<div class="line">                                    0, x.<a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), 0, <span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>);</div>
+<div class="line">                                    0, x.<a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), 0, <span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// Allocate memory for rhs vector</span></div>
 <div class="line"></div>
-<div class="line">    b.<a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> = A.<a class="code" href="structclsparse_csr_matrix.html#a6040780665170a36a9f8a933780e0c7d">num_rows</a>;</div>
-<div class="line">    b.<a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a> = clCreateBuffer(context(), CL_MEM_READ_WRITE, b.<a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>),</div>
+<div class="line">    b.<a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> = A.<a class="code" href="structclsparse_csr_matrix.html#ad04bcf679ae232a355acf9d2d7cc9aeb">num_rows</a>;</div>
+<div class="line">    b.<a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a> = clCreateBuffer(context(), CL_MEM_READ_WRITE, b.<a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>),</div>
 <div class="line">                              NULL, &amp;cl_status);</div>
 <div class="line">    <span class="comment">// Fill it with ones.</span></div>
 <div class="line">    cl_status = clEnqueueFillBuffer(queue(), b.<a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a>, &amp;one, <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>),</div>
-<div class="line">                                    0, b.<a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), 0, <span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>);</div>
+<div class="line">                                    0, b.<a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), 0, <span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>);</div>
 <div class="line"></div>
 <div class="line"></div>
 <div class="line"></div>
@@ -306,34 +296,33 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">    <span class="comment">// relative tolerance: 1e-2</span></div>
 <div class="line">    <span class="comment">// absolute tolerance: 1e-5</span></div>
 <div class="line">    <span class="comment">// max iters: 1000</span></div>
-<div class="line">    <a class="code" href="group___s_o_l_v_e_r.html#ga1a154afb71257ab01614260cf763f6c3">clSParseSolverControl</a> solverControl =</div>
-<div class="line">            <a name="a20"></a><a class="code" href="group___s_o_l_v_e_r.html#gad4d1983422bea1aabda62e8486d6639c">clsparseCreateSolverControl</a>(DIAGONAL, 1000, 1e-2, 1e-5);</div>
+<div class="line">    <a name="_a21"></a><a class="code" href="structclsparse_create_solver_result.html">clsparseCreateSolverResult</a> solverResult =</div>
+<div class="line">        <a name="a22"></a><a class="code" href="group___s_o_l_v_e_r.html#ga8a377639a2811f20f78c3f471814ff9c">clsparseCreateSolverControl</a>( DIAGONAL, 1000, 1e-2, 1e-5 );</div>
+<div class="line">    <a class="code" href="cl_s_p_a_r_s_e-error_8h.html#acdaeda268fefef4021e9448b42bb52a2">CLSPARSE_V</a>( solverResult.<a name="a23"></a><a class="code" href="structclsparse_create_solver_result.html#ad273b3f1d665e04516285af35302ed02">status</a>, <span class="stringliteral">&quot;Failed to create clsparse solver control&quot;</span> );</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// We can set different print modes of the solver status:</span></div>
 <div class="line">    <span class="comment">// QUIET - print no messages (default)</span></div>
 <div class="line">    <span class="comment">// NORMAL - print summary</span></div>
 <div class="line">    <span class="comment">// VERBOSE - per iteration status;</span></div>
-<div class="line">    <a name="a21"></a><a class="code" href="group___s_o_l_v_e_r.html#gac4bc85c3fd0aeee2c7b0d375cd04b1dc">clsparseSolverPrintMode</a>(solverControl, VERBOSE);</div>
+<div class="line">    <a name="a24"></a><a class="code" href="group___s_o_l_v_e_r.html#gac4bc85c3fd0aeee2c7b0d375cd04b1dc">clsparseSolverPrintMode</a>( solverResult.<a name="a25"></a><a class="code" href="structclsparse_create_solver_result.html#ad06ce3519d3f5e6fe00675bf6adab14c">control</a>, VERBOSE);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">/* TODO: provide various solver statuses for different scenarios</span></div>
-<div class="line"><span class="comment">     * Solver reached max numer of iterations is not a failure.</span></div>
+<div class="line"><span class="comment">     * Solver reached max number of iterations is not a failure.</span></div>
 <div class="line"><span class="comment">     */</span></div>
 <div class="line"></div>
-<div class="line">    status = <a name="a22"></a><a class="code" href="group___s_o_l_v_e_r.html#gaa29f36a6ba64e5b19d3d169cccf8028a">clsparseScsrcg</a>(&amp;x, &amp;A, &amp;b, solverControl, control);</div>
+<div class="line">    status = <a name="a26"></a><a class="code" href="group___s_o_l_v_e_r.html#gaa29f36a6ba64e5b19d3d169cccf8028a">clsparseScsrcg</a>(&amp;x, &amp;A, &amp;b, solverResult.<a class="code" href="structclsparse_create_solver_result.html#ad06ce3519d3f5e6fe00675bf6adab14c">control</a>, createResult.<a class="code" href="structclsparse_create_result.html#acf200821d31fd215ba8b1a47b687a7f7">control</a> );</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">//release solver control structure after finishing execution;</span></div>
-<div class="line">    <a name="a23"></a><a class="code" href="group___s_o_l_v_e_r.html#gae51031c72f1ea78704cead6e454b9f6b">clsparseReleaseSolverControl</a>(solverControl);</div>
+<div class="line">    <a name="a27"></a><a class="code" href="group___s_o_l_v_e_r.html#gae51031c72f1ea78704cead6e454b9f6b">clsparseReleaseSolverControl</a>( solverResult.<a class="code" href="structclsparse_create_solver_result.html#ad06ce3519d3f5e6fe00675bf6adab14c">control</a> );</div>
 <div class="line"></div>
-<div class="line"></div>
-<div class="line"></div>
-<div class="line">    status = <a name="a24"></a><a class="code" href="group___s_t_a_t_e.html#ga40d354858e29b9b608e41daaff46c0c5">clsparseReleaseControl</a>(control);</div>
+<div class="line">    status = <a name="a28"></a><a class="code" href="group___s_t_a_t_e.html#ga40d354858e29b9b608e41daaff46c0c5">clsparseReleaseControl</a>( createResult.<a class="code" href="structclsparse_create_result.html#acf200821d31fd215ba8b1a47b687a7f7">control</a> );</div>
 <div class="line">    <span class="keywordflow">if</span> (status != clsparseSuccess)</div>
 <div class="line">    {</div>
 <div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Problem with releasing control object.&quot;</span></div>
 <div class="line">                  &lt;&lt; <span class="stringliteral">&quot; Error: &quot;</span> &lt;&lt; status &lt;&lt; std::endl;</div>
 <div class="line">    }</div>
 <div class="line"></div>
-<div class="line">    status = <a name="a25"></a><a class="code" href="group___s_e_t_u_p.html#ga50f8661d3ecd7face9b7277cb70cb721">clsparseTeardown</a>();</div>
+<div class="line">    status = <a name="a29"></a><a class="code" href="group___s_e_t_u_p.html#ga50f8661d3ecd7face9b7277cb70cb721">clsparseTeardown</a>();</div>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (status != clsparseSuccess)</div>
 <div class="line">    {</div>
@@ -341,10 +330,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">                  &lt;&lt; <span class="stringliteral">&quot; Error: &quot;</span> &lt;&lt; status &lt;&lt; std::endl;</div>
 <div class="line">    }</div>
 <div class="line">    <span class="comment">//release mem;</span></div>
+<div class="line">    <a name="a30"></a><a class="code" href="group___f_i_l_e.html#ga62141a92f2a5fe345cedcc9db63f44c0">clsparseCsrMetaDelete</a>( &amp;A );</div>
 <div class="line">    clReleaseMemObject ( A.<a class="code" href="structclsparse_csr_matrix.html#a51aef7a076f36826fa4dbfff33a81cbd">values</a> );</div>
-<div class="line">    clReleaseMemObject ( A.<a class="code" href="structclsparse_csr_matrix.html#acb75743ba8e48b097fd7b3321289776f">colIndices</a> );</div>
-<div class="line">    clReleaseMemObject ( A.<a class="code" href="structclsparse_csr_matrix.html#adf170365da4bf03dda6c58dc99e7bfb4">rowOffsets</a> );</div>
-<div class="line">    clReleaseMemObject ( A.<a class="code" href="structclsparse_csr_matrix.html#a31e90537cbe617f5c7ce37dd521aa016">rowBlocks</a> );</div>
+<div class="line">    clReleaseMemObject ( A.<a class="code" href="structclsparse_csr_matrix.html#a23c8331fb404a8abad039b72ac63b227">col_indices</a> );</div>
+<div class="line">    clReleaseMemObject ( A.<a class="code" href="structclsparse_csr_matrix.html#a4e5ab26b93ac9e5d55fa9f4151472c27">row_pointer</a> );</div>
 <div class="line"></div>
 <div class="line">    clReleaseMemObject ( x.<a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a> );</div>
 <div class="line">    clReleaseMemObject ( b.<a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a> );</div>

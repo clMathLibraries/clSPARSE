@@ -31,7 +31,7 @@
   <td id="projectlogo"><img alt="Logo" src="clMath.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">clSPARSE
-   &#160;<span id="projectnumber">v0.8.0.0</span>
+   &#160;<span id="projectnumber">v0.10.0.0</span>
    </div>
    <div id="projectbrief">a software library containing Sparse functions written in OpenCL</div>
   </td>
@@ -115,7 +115,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><span class="preprocessor">#include &lt;CL/cl.hpp&gt;</span></div>
 <div class="line"><span class="preprocessor">#endif</span></div>
 <div class="line"></div>
-<div class="line"><span class="preprocessor">#include &lt;<a class="code" href="cl_s_p_a_r_s_e_8h.html">clSPARSE.h</a>&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;<a class="code" href="cl_s_p_a_r_s_e_8h.html">clSPARSE.h</a>&quot;</span></div>
+<div class="line"><span class="preprocessor">#include &quot;<a class="code" href="cl_s_p_a_r_s_e-error_8h.html">clSPARSE-error.h</a>&quot;</span></div>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[])</div>
 <div class="line">{</div>
@@ -214,7 +215,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">                                N * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), y.data(), &amp;cl_status);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// set the size of cldenseVector;</span></div>
-<div class="line">    gpuY.<a name="a6"></a><a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> = N;</div>
+<div class="line">    gpuY.<a name="a6"></a><a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> = N;</div>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (cl_status != CL_SUCCESS )</div>
 <div class="line">    {</div>
@@ -224,7 +225,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">   gpuX.<a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a> = ::clCreateBuffer (context(), CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,</div>
 <div class="line">                                N * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), x.data(), &amp;cl_status);</div>
 <div class="line">   <span class="comment">// set the size of cldenseVector;</span></div>
-<div class="line">   gpuX.<a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> = N;</div>
+<div class="line">   gpuX.<a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> = N;</div>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (cl_status != CL_SUCCESS )</div>
 <div class="line">    {</div>
@@ -241,13 +242,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// Create clsparseControl object</span></div>
-<div class="line">    <a class="code" href="group___s_t_a_t_e.html#ga7e0862e87532443d76a8f8d57f1b59bc">clsparseControl</a> control = <a name="a8"></a><a class="code" href="group___s_t_a_t_e.html#gaf7650a031b44721138ca323cde6d7b6d">clsparseCreateControl</a>(queue(), &amp;status);</div>
-<div class="line">    <span class="keywordflow">if</span> (status != CL_SUCCESS)</div>
-<div class="line">    {</div>
-<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Problem with creating clSPARSE control object&quot;</span></div>
-<div class="line">                  &lt;&lt;<span class="stringliteral">&quot; error [&quot;</span> &lt;&lt; status &lt;&lt; <span class="stringliteral">&quot;]&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line">    }</div>
-<div class="line">    status = <a name="a9"></a><a class="code" href="group___b_l_a_s-1.html#ga5050f309f60b514cece48c9197884a27">cldenseSaxpy</a>(&amp;gpuY, &amp;gpuAlpha, &amp;gpuX, &amp;gpuY, control);</div>
+<div class="line">    <a name="_a8"></a><a class="code" href="structclsparse_create_result.html">clsparseCreateResult</a> createResult = <a name="a9"></a><a class="code" href="group___s_t_a_t_e.html#ga7595fb1b38328bafed86bddb3bedc435">clsparseCreateControl</a>( queue( ) );</div>
+<div class="line">    <a name="a10"></a><a class="code" href="cl_s_p_a_r_s_e-error_8h.html#acdaeda268fefef4021e9448b42bb52a2">CLSPARSE_V</a>( createResult.<a name="a11"></a><a class="code" href="structclsparse_create_result.html#a9e59fdda2d78e548a3e0eb02de74eaa7">status</a>, <span class="stringliteral">&quot;Failed to create clsparse control&quot;</span> );</div>
+<div class="line">    status = <a name="a12"></a><a class="code" href="group___b_l_a_s-1.html#ga5050f309f60b514cece48c9197884a27">cldenseSaxpy</a>(&amp;gpuY, &amp;gpuAlpha, &amp;gpuX, &amp;gpuY, createResult.<a name="a13"></a><a class="code" href="structclsparse_create_result.html#acf200821d31fd215ba8b1a47b687a7f7">control</a> );</div>
 <div class="line"></div>
 <div class="line">    <span class="keywordflow">if</span> (status != clsparseSuccess)</div>
 <div class="line">    {</div>
@@ -255,9 +252,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">                  &lt;&lt; <span class="stringliteral">&quot; error: [&quot;</span> &lt;&lt; status &lt;&lt; <span class="stringliteral">&quot;]&quot;</span> &lt;&lt; std::endl;</div>
 <div class="line">    }</div>
 <div class="line"></div>
-<div class="line">    status = <a name="a10"></a><a class="code" href="group___s_t_a_t_e.html#ga40d354858e29b9b608e41daaff46c0c5">clsparseReleaseControl</a>(control);</div>
+<div class="line">    status = <a name="a14"></a><a class="code" href="group___s_t_a_t_e.html#ga40d354858e29b9b608e41daaff46c0c5">clsparseReleaseControl</a>( createResult.<a class="code" href="structclsparse_create_result.html#acf200821d31fd215ba8b1a47b687a7f7">control</a> );</div>
 <div class="line"></div>
-<div class="line">    status = <a name="a11"></a><a class="code" href="group___s_e_t_u_p.html#ga50f8661d3ecd7face9b7277cb70cb721">clsparseTeardown</a>();</div>
+<div class="line">    status = <a name="a15"></a><a class="code" href="group___s_e_t_u_p.html#ga50f8661d3ecd7face9b7277cb70cb721">clsparseTeardown</a>();</div>
 <div class="line">    <span class="keywordflow">if</span> (status != clsparseSuccess)</div>
 <div class="line">    {</div>
 <div class="line">        std::cerr &lt;&lt; <span class="stringliteral">&quot;Problem with executing clsparseTeardown()&quot;</span> &lt;&lt; std::endl;</div>
@@ -277,9 +274,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line">    ::clReleaseMemObject(gpuAlpha.<a class="code" href="structclsparse_scalar.html#abbd2019339f9ef4488638bd02c4ef7bd">value</a>);</div>
 <div class="line">    ::clReleaseMemObject(gpuY.<a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a>);</div>
-<div class="line">    gpuY.<a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> = 0;</div>
+<div class="line">    gpuY.<a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> = 0;</div>
 <div class="line">    ::clReleaseMemObject(gpuX.<a class="code" href="structcldense_vector.html#a38eaa2fb162fe875100e54d26792e293">values</a>);</div>
-<div class="line">    gpuX.<a class="code" href="structcldense_vector.html#af241e7b259ab5a686c8ffda35defd24a">num_values</a> = 0;</div>
+<div class="line">    gpuX.<a class="code" href="structcldense_vector.html#abfddc4fb1e6cce6d4f6f5e0871f5fe10">num_values</a> = 0;</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">//OpenCL Wrapper automatically release allocated resources</span></div>
 <div class="line"></div>

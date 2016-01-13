@@ -31,7 +31,7 @@
   <td id="projectlogo"><img alt="Logo" src="clMath.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">clSPARSE
-   &#160;<span id="projectnumber">v0.8.0.0</span>
+   &#160;<span id="projectnumber">v0.10.0.0</span>
    </div>
    <div id="projectbrief">a software library containing Sparse functions written in OpenCL</div>
   </td>
@@ -116,9 +116,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 typedef struct _solverControl *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_o_l_v_e_r.html#ga1a154afb71257ab01614260cf763f6c3">clSParseSolverControl</a></td></tr>
 <tr class="memdesc:ga1a154afb71257ab01614260cf763f6c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">clSParseSolverControl keeps state relevant for OpenCL operations like kernel execution, memory allocation and synchronization behavior, specifically for sparse iterative solvers <br /></td></tr>
 <tr class="separator:ga1a154afb71257ab01614260cf763f6c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad4d1983422bea1aabda62e8486d6639c"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="group___s_o_l_v_e_r.html#ga1a154afb71257ab01614260cf763f6c3">clSParseSolverControl</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_o_l_v_e_r.html#gad4d1983422bea1aabda62e8486d6639c">clsparseCreateSolverControl</a> (<a class="el" href="group___s_o_l_v_e_r.html#ga3cb68a881b02c16c9251855dcf866a3d">PRECONDITIONER</a> precond, cl_int maxIters, cl_double relTol, cl_double absTol)</td></tr>
-<tr class="memdesc:gad4d1983422bea1aabda62e8486d6639c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a clSParseSolverControl object to control clsparse iterative solver operations.  <a href="#gad4d1983422bea1aabda62e8486d6639c">More...</a><br /></td></tr>
-<tr class="separator:gad4d1983422bea1aabda62e8486d6639c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8a377639a2811f20f78c3f471814ff9c"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="structclsparse_create_solver_result.html">clsparseCreateSolverResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_o_l_v_e_r.html#ga8a377639a2811f20f78c3f471814ff9c">clsparseCreateSolverControl</a> (<a class="el" href="group___s_o_l_v_e_r.html#ga3cb68a881b02c16c9251855dcf866a3d">PRECONDITIONER</a> precond, cl_int maxIters, cl_double relTol, cl_double absTol)</td></tr>
+<tr class="memdesc:ga8a377639a2811f20f78c3f471814ff9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a clSParseSolverControl object to control clsparse iterative solver operations.  <a href="#ga8a377639a2811f20f78c3f471814ff9c">More...</a><br /></td></tr>
+<tr class="separator:ga8a377639a2811f20f78c3f471814ff9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae51031c72f1ea78704cead6e454b9f6b"><td class="memItemLeft" align="right" valign="top">CLSPARSE_EXPORT <a class="el" href="cl_s_p_a_r_s_e_8h.html#a2050dfad29f8a683df5bf1b1b00c5eaf">clsparseStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_o_l_v_e_r.html#gae51031c72f1ea78704cead6e454b9f6b">clsparseReleaseSolverControl</a> (<a class="el" href="group___s_o_l_v_e_r.html#ga1a154afb71257ab01614260cf763f6c3">clSParseSolverControl</a> solverControl)</td></tr>
 <tr class="memdesc:gae51031c72f1ea78704cead6e454b9f6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release a clSParseSolverControl object created with clsparseCreateSolverControl.  <a href="#gae51031c72f1ea78704cead6e454b9f6b">More...</a><br /></td></tr>
 <tr class="separator:gae51031c72f1ea78704cead6e454b9f6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -144,12 +144,12 @@ typedef struct _solverControl *&#160;</td><td class="memItemRight" valign="botto
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Functions to setup or execute sparse iterative solvers. </p>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="gad4d1983422bea1aabda62e8486d6639c"></a>
+<a class="anchor" id="ga8a377639a2811f20f78c3f471814ff9c"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">CLSPARSE_EXPORT <a class="el" href="group___s_o_l_v_e_r.html#ga1a154afb71257ab01614260cf763f6c3">clSParseSolverControl</a> clsparseCreateSolverControl </td>
+          <td class="memname">CLSPARSE_EXPORT <a class="el" href="structclsparse_create_solver_result.html">clsparseCreateSolverResult</a> clsparseCreateSolverControl </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group___s_o_l_v_e_r.html#ga3cb68a881b02c16c9251855dcf866a3d">PRECONDITIONER</a>&#160;</td>
           <td class="paramname"><em>precond</em>, </td>
@@ -191,7 +191,7 @@ typedef struct _solverControl *&#160;</td><td class="memItemRight" valign="botto
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><b>clsparseSuccess</b> </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a20">sample-cg.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a22">sample-cg.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -331,7 +331,7 @@ typedef struct _solverControl *&#160;</td><td class="memItemRight" valign="botto
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><b>clsparseSuccess</b> </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a23">sample-cg.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a27">sample-cg.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -446,7 +446,7 @@ typedef struct _solverControl *&#160;</td><td class="memItemRight" valign="botto
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><b>clsparseSuccess</b> </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a22">sample-cg.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a26">sample-cg.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -540,7 +540,7 @@ typedef struct _solverControl *&#160;</td><td class="memItemRight" valign="botto
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><b>clsparseSuccess</b> </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a21">sample-cg.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="sample-cg_8cpp-example.html#a24">sample-cg.cpp</a>.</dd>
 </dl>
 </div>
 </div>
