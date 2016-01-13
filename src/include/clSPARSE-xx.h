@@ -39,8 +39,11 @@ typedef enum _cldenseMajor
 } cldenseMajor;
 
 
+/*! \brief An abstraction for the size of indices supported by the library.  Clients should use this
+ * index type when declaring their own indices and using the library.
+*/
 #if( CLSPARSE_INDEX_SIZEOF == 8 )
-#error clSPARSE does not yet implement 64-bit indices 
+#error clSPARSE does not yet implement 64-bit indices
     typedef cl_ulong clsparseIdx_t;
 #else
     typedef cl_uint clsparseIdx_t;

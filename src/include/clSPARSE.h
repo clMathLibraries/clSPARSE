@@ -217,7 +217,7 @@ extern "C" {
 
     /*! \brief clsparseControl keeps OpenCL state like kernel execution,
      * memory allocation and synchronization behavior
-     * \details Struct implementation hidden to clients using C PIMPL idiom 
+     * \details Struct implementation hidden to clients using C PIMPL idiom
      * to make private to library
      */
     typedef struct _clsparseControl*  clsparseControl;
@@ -227,17 +227,16 @@ extern "C" {
     */
     typedef struct _clsparseCreateResult
     {
-        clsparseStatus status;
-        clsparseControl control;
+        clsparseStatus status;      /*!< Returned error code */
+        clsparseControl control;    /*!< Returned control object that abstracts clsparse state */
     } clsparseCreateResult;
 
     /*!
-    * \brief setup the clsparse control object from external OpenCL queue
+    * \brief Setup the clsparse control object from external OpenCL queue
     *
     * \param[in] queue   cl_command_queue created
-    * \param[out] status   clsparse error return value from function
     *
-    * \returns \b On successful completion, a valid clsparseControl object
+    * \returns \b A clsparseCreateResult which contains a return code and result handle
     *
     * \ingroup STATE
     */
@@ -276,18 +275,16 @@ extern "C" {
     */
     typedef struct _clsparseEventResult
     {
-        clsparseStatus status;
-        cl_event event;
+        clsparseStatus status;      /*!< Returned error code */
+        cl_event event;             /*!< Returned event object client can synchronize with */
     } clsparseEventResult;
 
     /*!
     * \brief Return an event from the last kernel execution
     *
     * \param[in] control  A valid clsparseControl created with clsparseCreateControl
-    * \param[out] event  The returned event for the last kernel queued into the cl_command_queue inside the
-    * clsparseControl object
     *
-    * \returns \b clsparseSuccess
+    * \returns \b A clsparseEventResult which contains a return code and result handle
     *
     * \ingroup STATE
     */
@@ -352,8 +349,8 @@ extern "C" {
     */
     typedef struct _clsparseCreateSolverResult
     {
-        clsparseStatus status;
-        clSParseSolverControl control;
+        clsparseStatus status;              /*!< Returned error code */
+        clSParseSolverControl control;      /*!< Returned control object that abstracts clsparse state */
     } clsparseCreateSolverResult;
 
     /*!
@@ -614,22 +611,20 @@ extern "C" {
         clsparseDCsrMatrixfromFile( clsparseCsrMatrix* csrMatx, const char* filePath, clsparseControl control, cl_bool read_explicit_zeroes );
 
     /*! \brief A structure returned by value from the clsparseCsrMetaSize
-    * function.  This serves as a result/status pair for the size of the 
+    * function.  This serves as a result/status pair for the size of the
     * meta data associated with a sparse matrix.
     */
     typedef struct _clsparseMetaSizeResult
     {
-        clsparseStatus status;
-        clsparseIdx_t metaSize;
+        clsparseStatus status;      /*!< Returned error code */
+        clsparseIdx_t metaSize;     /*!< Returned size of the memory needed to store meta data */
     } clsparseMetaSizeResult;
 
     /*!
      * \brief Calculate the amount of device memory required to hold meta-data for csr-adaptive SpM-dV algorithm
      * \details CSR-adaptive is a high performance sparse matrix times dense vector algorithm.  It requires a pre-processing
      * step to calculate meta-data on the sparse matrix.  This meta-data is stored alongside and carried along
-     * with the other matrix data.  This function initializes the rowBlockSize member variable of the csrMatx
-     * variable with the appropriate size.  The client program is responsible to allocate device memory in rowBlocks
-     * of this size before calling into the library compute routines.
+     * with the other matrix data.
      * \param[in,out] csrMatx  The CSR sparse structure that represents the matrix in device memory
      * \param[in] control A valid clsparseControl created with clsparseCreateControl
      *
@@ -639,11 +634,11 @@ extern "C" {
         clsparseCsrMetaSize( clsparseCsrMatrix* csrMatx, clsparseControl control );
 
     /*!
-     * \brief Calculate the meta-data for csr-adaptive SpM-dV algorithm
+     * \brief Allocate memory and calculate the meta-data for csr-adaptive SpM-dV algorithm
      * \details CSR-adaptive is a high performance sparse matrix times dense vector algorithm.  It requires a pre-processing
      * step to calculate meta-data on the sparse matrix.  This meta-data is stored alongside and carried along
-     * with the other matrix data.  This function calculates the meta data and stores it into the rowBlocks member of
-     * the clsparseCsrMatrix.
+     * with the other matrix data.  This function allocates memory for the meta-data and initializes it with proper values.
+     * It is important to remember to deallocate the meta memory with clsparseCsrMetaDelete
      * \param[in,out] csrMatx  The CSR sparse structure that represents the matrix in device memory
      * \param[in] control  A valid clsparseControl created with clsparseCreateControl
      * \note This function assumes that the memory for rowBlocks has already been allocated by client program
@@ -657,7 +652,6 @@ extern "C" {
     * \brief Delete meta data associated with a CSR encoded matrix
     * \details Meta data for a sparse matrix may occupy device memory, and this informs the library to release it
     * \param[in,out] csrMatx  The CSR sparse structure that represents the matrix in device memory
-    * \note This function assumes that the memory for rowBlocks has already been allocated by client program
     *
     * \ingroup FILE
     */
