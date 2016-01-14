@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
       return false;
   }
 
-  cl_bool explicit_zeroes = true;
+  bool explicit_zeroes = true;
   if (vm["no_zeroes"].as<bool>())
     explicit_zeroes = false;
 

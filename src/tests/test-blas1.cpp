@@ -640,6 +640,11 @@ int main (int argc, char* argv[])
 
     try {
         po::store(parsed, vm);
+        if (vm.count("help"))
+        {
+            std::cout << desc << std::endl;
+            return 0;
+        }
         po::notify(vm);
     }
     catch (po::error& error)

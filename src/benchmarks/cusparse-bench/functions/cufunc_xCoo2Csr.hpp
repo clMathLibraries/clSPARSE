@@ -19,7 +19,7 @@
 
 #include "cufunc_common.hpp"
 #include "include/io-exception.hpp"
-
+#include "include/cufunc_sparse-xx.h"
 template <typename T>
 class xCoo2Csr: public cusparseFunc
 {
@@ -81,11 +81,11 @@ public:
         }
 
         // Input: COO Row Indices
-        err = cudaMalloc( (void**)&deviceCooRowInd, n_vals * sizeof( int ) );
+        err = cudaMalloc( (void**)&deviceCooRowInd, n_vals * sizeof( clsparseIdx_t ) );
         CUDA_V_THROW( err, "cudaMalloc deviceCooRowInd" );
 
         // Output: CSR
-        cudaError_t err = cudaMalloc( (void**)&deviceCSRRowOffsets, ( n_rows + 1 ) * sizeof( int ) );
+        cudaError_t err = cudaMalloc( (void**)&deviceCSRRowOffsets, ( n_rows + 1 ) * sizeof( clsparseIdx_t ) );
         CUDA_V_THROW( err, "cudaMalloc deviceCSRRowOffsets" );
 
     }// End of function
@@ -96,17 +96,17 @@ public:
 
     void initialize_gpu_buffer( )
     {
-        cudaError_t err = cudaMemcpy( deviceCooRowInd, &row_indices[ 0 ], row_indices.size( ) * sizeof( int ), cudaMemcpyHostToDevice );
+        cudaError_t err = cudaMemcpy( deviceCooRowInd, &row_indices[ 0 ], row_indices.size( ) * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice );
         CUDA_V_THROW( err, "cudaMalloc deviceCSRRowOffsets" );
 
-        err = cudaMemset( deviceCSRRowOffsets, 0x0, ( n_rows + 1 ) * sizeof( int ) );
+        err = cudaMemset(deviceCSRRowOffsets, 0x0, (n_rows + 1) * sizeof( clsparseIdx_t ));
         CUDA_V_THROW( err, "cudaMemset deviceCSRRowOffsets" );
 
     }// end of function
 
     void reset_gpu_write_buffer( )
     {
-        err = cudaMemset( deviceCSRRowOffsets, 0x0, ( n_rows + 1 ) * sizeof( int ) );
+        err = cudaMemset(deviceCSRRowOffsets, 0x0, (n_rows + 1) * sizeof( clsparseIdx_t ));
         CUDA_V_THROW( err, "cudaMemset deviceCSRRowOffsets" );
 
         cudaDeviceSynchronize( );
@@ -135,20 +135,20 @@ private:
     void xCoo2Csr_Function( bool flush );
 
     //host matrix definition corresponding to CSR Format
-    std::vector< int > row_indices;
-    std::vector< int > col_indices;
+    std::vector< clsparseIdx_t > row_indices;
+    std::vector< clsparseIdx_t > col_indices;
     std::vector< T > values; // matrix values
 
-    int  n_rows; // number of rows
-    int  n_cols; // number of cols
-    int  n_vals; // number of Non-Zero Values (nnz)
-    int* colIndices;
+    clsparseIdx_t  n_rows; // number of rows
+    clsparseIdx_t  n_cols; // number of cols
+    clsparseIdx_t  n_vals; // number of Non-Zero Values (nnz)
+    clsparseIdx_t* colIndices;
 
     bool explicit_zeroes;
 
     // device CUDA pointers
-    int* deviceCSRRowOffsets; // Input: CSR Row Offsets
-    int* deviceCooRowInd; // Output: Coordinate format row indices
+    clsparseIdx_t* deviceCSRRowOffsets; // Input: CSR Row Offsets
+    clsparseIdx_t* deviceCooRowInd; // Output: Coordinate format row indices
 }; // class xCoo2Csr
 
 template<>

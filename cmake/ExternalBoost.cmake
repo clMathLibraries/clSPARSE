@@ -24,7 +24,7 @@ include( ExternalProject )
 # ExternalProject
 
 # Change this one line to upgrade to newer versions of boost
-set( ext.Boost_VERSION "1.58.0" CACHE STRING "Boost version to download/use" )
+set( ext.Boost_VERSION "1.60.0" CACHE STRING "Boost version to download/use" )
 mark_as_advanced( ext.Boost_VERSION )
 string( REPLACE "." "_" ext.Boost_Version_Underscore ${ext.Boost_VERSION} )
 
@@ -41,7 +41,11 @@ else( )
   set( Boost_Ext "tar.bz2" )
 endif( )
 
-set( Boost.Command ./b2 --prefix=<INSTALL_DIR>/package )
+if( WIN32 )
+  set( Boost.Command b2 --prefix=<INSTALL_DIR>/package )
+else( )
+  set( Boost.Command ./b2 --prefix=<INSTALL_DIR>/package )
+endif( )
 
 if( CMAKE_COMPILER_IS_GNUCXX )
   list( APPEND Boost.Command cxxflags=-fPIC -std=c++11 )
@@ -67,6 +71,8 @@ else( )
 endif( )
 
 message( STATUS "ExternalBoost using ( " ${Cores} " ) cores to build with" )
+message( STATUS "ExternalBoost building [ program_options, serialization, filesystem, system, regex ] components" )
+
 list( APPEND Boost.Command -j ${Cores} --with-program_options --with-serialization --with-filesystem --with-system --with-regex )
 
 if( BUILD64 )
@@ -99,7 +105,7 @@ elseif( DEFINED ENV{CC} )
   list( APPEND Boost.Command toolset=${gccToolset} )
 endif( )
 
-if( WIN32 )
+if( WIN32 AND (ext.Boost_VERSION VERSION_LESS "1.60.0") )
   list( APPEND Boost.Command define=BOOST_LOG_USE_WINNT6_API )
 endif( )
 
@@ -141,20 +147,20 @@ mark_as_advanced( ext.Boost_URL )
 set( Boost.Bootstrap "" )
 set( ext.MD5_HASH "" )
 if( WIN32 )
-  set( Boost.Bootstrap ".\\bootstrap.bat" )
+  set( Boost.Bootstrap "bootstrap.bat" )
 
   if( CMAKE_VERSION VERSION_LESS "3.1.0" )
     # .zip file
-    set( ext.MD5_HASH "b0605a9323f1e960f7434dbbd95a7a5c" )
+    set( ext.MD5_HASH "0cc5b9cf9ccdf26945b225c7338b4288" )
   else( )
     # .7z file
-    set( ext.MD5_HASH "f7255aeb692c1c38fe761c32fb0d3ecd" )
+    set( ext.MD5_HASH "7ce7f5a4e396484da8da6b60d4ed7661" )
   endif( )
 else( )
   set( Boost.Bootstrap "./bootstrap.sh" )
 
   # .tar.bz2
-  set( ext.MD5_HASH "b8839650e61e9c1c0a89f371dd475546" )
+  set( ext.MD5_HASH "65a840e1a0b13a558ff19eeb2c4f0cbe" )
 
   if( XCODE_VERSION )
     list( APPEND Boost.Bootstrap --with-toolset=clang )

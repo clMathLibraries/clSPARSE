@@ -73,14 +73,14 @@ public:
     void SetUp()
     {
         // Setup solver control
-        clsparseStatus status;
-        solverControl = clsparseCreateSolverControl(precond,
+        clsparseCreateSolverResult solverResult = clsparseCreateSolverControl(precond,
                                                     maxIterations,
                                                     relativeTolerance,
                                                     absoluteTolerance);
+        solverControl = solverResult.control;
         ASSERT_NE(nullptr, solverControl);
 
-        status = clsparseSolverPrintMode(solverControl, printMode);
+        clsparseStatus status = clsparseSolverPrintMode(solverControl, printMode);
         ASSERT_EQ(clsparseSuccess, status);
 
         // Setup rhs and vector of unknowns
@@ -288,6 +288,11 @@ int main (int argc, char* argv[])
 
     try {
         po::store(parsed, vm);
+        if (vm.count("help"))
+        {
+            std::cout << desc << std::endl;
+            return 0;
+        }
         po::notify(vm);
     }
     catch (po::error& error)

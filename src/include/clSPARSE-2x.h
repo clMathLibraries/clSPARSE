@@ -36,7 +36,7 @@ typedef struct clsparseScalar_
 */
 typedef struct cldenseVector_
 {
-    cl_int num_values;  /*!< Length of dense vector */
+    clsparseIdx_t num_values;  /*!< Length of dense vector */
 
     void* values;  /**< OpenCL 2.0 memory pointer */
 } cldenseVector;
@@ -50,20 +50,22 @@ typedef struct clsparseCsrMatrix_
 {
     /** @name CSR matrix data */
     /**@{*/
-    cl_int num_rows;  /*!< Number of rows this matrix has if viewed as dense */
-    cl_int num_cols;  /*!< Number of columns this matrix has if viewed as dense */
-    cl_int num_nonzeros;  /*!< Number of values in matrix that are non-zero */
+    clsparseIdx_t num_rows;  /*!< Number of rows this matrix has if viewed as dense */
+    clsparseIdx_t num_cols;  /*!< Number of columns this matrix has if viewed as dense */
+    clsparseIdx_t num_nonzeros;  /*!< Number of values in matrix that are non-zero */
     /**@}*/
 
     /** @name OpenCL state */
     /**@{*/
     void* values;  /*!< non-zero values in sparse matrix of size num_nonzeros */
-    void* colIndices;  /*!< column index for corresponding value of size num_nonzeros */
-    void* rowOffsets;  /*!< Invariant: rowOffsets[i+1]-rowOffsets[i] = number of values in row i */
-    void* rowBlocks;  /*!< Meta-data used for csr-adaptive algorithm; can be NULL */
+    void* col_indices;  /*!< column index for corresponding value of size num_nonzeros */
+    void* row_pointer;  /*!< Invariant: row_pointer[i+1]-row_pointer[i] = number of values in row i */
     /**@}*/
 
-    size_t rowBlockSize;  /*!< Size of array used by the rowBlocks pointer */
+    /*! Pointer to a private structure that contains meta-information the library keeps on a
+    csr-encoded sparse matrix
+    */
+    void* meta;
 } clsparseCsrMatrix;
 
 /*! \brief Structure to encapsulate sparse matrix data encoded in COO
@@ -75,16 +77,16 @@ typedef struct clsparseCooMatrix_
 {
     /** @name COO matrix data */
     /**@{*/
-    cl_int num_rows;  /*!< Number of rows this matrix has if viewed as dense */
-    cl_int num_cols;  /*!< Number of columns this matrix has if viewed as dense */
-    cl_int num_nonzeros;  /*!< Number of values in matrix that are non-zero */
+    clsparseIdx_t num_rows;  /*!< Number of rows this matrix has if viewed as dense */
+    clsparseIdx_t num_cols;  /*!< Number of columns this matrix has if viewed as dense */
+    clsparseIdx_t num_nonzeros;  /*!< Number of values in matrix that are non-zero */
     /**@}*/
 
     /** @name OpenCL state */
     /**@{*/
     void* values;  /*!< CSR non-zero values of size num_nonzeros */
-    void* colIndices;  /*!< column index for corresponding element; array size num_nonzeros */
-    void* rowIndices;  /*!< row index for corresponding element; array size num_nonzeros */
+    void* col_indices;  /*!< column index for corresponding element; array size num_nonzeros */
+    void* row_indices;  /*!< row index for corresponding element; array size num_nonzeros */
     /**@}*/
 } clsparseCooMatrix;
 
@@ -95,9 +97,9 @@ typedef struct cldenseMatrix_
 {
     /** @name Dense matrix data */
     /**@{*/
-    size_t num_rows;  /*!< Number of rows */
-    size_t num_cols;  /*!< Number of columns */
-    size_t lead_dim;  /*! Stride to the next row or column, in units of elements */
+    clsparseIdx_t num_rows;  /*!< Number of rows */
+    clsparseIdx_t num_cols;  /*!< Number of columns */
+    clsparseIdx_t lead_dim;  /*! Stride to the next row or column, in units of elements */
     cldenseMajor major;  /*! Memory layout for dense matrix */
     /**@}*/
 

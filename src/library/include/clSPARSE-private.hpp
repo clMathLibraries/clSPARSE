@@ -38,6 +38,12 @@
 #include "include/clSPARSE-2x.hpp"
 #endif
 
+#if( CLSPARSE_INDEX_SIZEOF == 8 )
+#define SIZET  "l"
+#else
+#define SIZET ""
+#endif
+
 // Constants used to help generate kernels for the CSR adaptive algorithm; used between coo2csr and csrmv_adaptive
 const cl_uint WG_BITS = 24;
 const cl_uint ROW_BITS = 32;
@@ -45,4 +51,6 @@ const cl_uint BLKSIZE = 1024;
 const cl_uint BLOCK_MULTIPLIER = 3;
 const cl_uint ROWS_FOR_VECTOR = 1;
 
+const size_t GPUADDRESS32WORD = 32;
+const size_t GPUADDRESS64WORD = 64;
 #endif

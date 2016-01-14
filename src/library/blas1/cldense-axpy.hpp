@@ -37,11 +37,23 @@ axpy(clsparse::array_base<T>& pR,
     const int group_size = 256; // this or higher? control->max_wg_size?
 
     std::string params = std::string()
-            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<T>::type
             + " -DWG_SIZE=" + std::to_string( group_size )
             + " -D" + ElementWiseOperatorTrait<OP>::operation;
 
+    if (sizeof(clsparseIdx_t) == 8)
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_ulong>::type;
+        params.append(options);
+    }
+    else
+    {
+        std::string options = std::string()
+            + " -DSIZE_TYPE=" + OclTypeTraits<cl_uint>::type;
+        params.append(options);
+    }
+    
     if(typeid(T) == typeid(cl_double))
     {
         params.append(" -DDOUBLE");
@@ -59,8 +71,8 @@ axpy(clsparse::array_base<T>& pR,
 
     KernelWrap kWrapper(kernel);
 
-    cl_ulong size = pR.size();
-    cl_ulong offset = 0;
+    clsparseIdx_t size = pR.size();
+    clsparseIdx_t offset = 0;
 
     kWrapper << size
              << pR.data()
@@ -72,8 +84,8 @@ axpy(clsparse::array_base<T>& pR,
              << pY.data()
              << offset;
 
-    int blocksNum = (size + group_size - 1) / group_size;
-    int globalSize = blocksNum * group_size;
+    clsparseIdx_t blocksNum = (size + group_size - 1) / group_size;
+    clsparseIdx_t globalSize = blocksNum * group_size;
 
     cl::NDRange local(group_size);
     cl::NDRange global (globalSize);

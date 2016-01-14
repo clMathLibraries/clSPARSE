@@ -88,7 +88,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows ) ) / time_in_ns( );
+        return (sizeof(clsparseIdx_t)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows)) / time_in_ns();
     }
 
     std::string bandwidth_formula( )
@@ -105,12 +105,12 @@ public:
         beta = static_cast< T >( pBeta );
 
         // Read sparse data from file and construct a COO matrix from it
-        int nnz, row, col;
+        clsparseIdx_t nnz, row, col;
         clsparseStatus fileError = clsparseHeaderfromFile( &nnz, &row, &col, sparseFile.c_str( ) );
         if( fileError != clsparseSuccess )
             throw clsparse::io_exception( "Could not read matrix market header from disk: " + sparseFile );
 
-        // Now initialise a CSR matrix from the COO matrix
+        // Now initialize a CSR matrix from the COO matrix
         clsparseInitCsrMatrix( &csrMtx );
         csrMtx.num_nonzeros = nnz;
         csrMtx.num_rows = row;
@@ -121,13 +121,13 @@ public:
             csrMtx.num_nonzeros * sizeof( T ), NULL, &status );
         CLSPARSE_V( status, "::clCreateBuffer csrMtx.values" );
 
-        csrMtx.colIndices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            csrMtx.num_nonzeros * sizeof( cl_int ), NULL, &status );
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.colIndices" );
+        csrMtx.col_indices = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+            csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.col_indices" );
 
-        csrMtx.rowOffsets = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
-            ( csrMtx.num_rows + 1 ) * sizeof( cl_int ), NULL, &status );
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowOffsets" );
+        csrMtx.row_pointer = ::clCreateBuffer( ctx, CL_MEM_READ_ONLY,
+            (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
+        CLSPARSE_V( status, "::clCreateBuffer csrMtx.row_pointer" );
 
         if(typeid(T) == typeid(float))
             fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str( ), control, explicit_zeroes );
@@ -139,11 +139,7 @@ public:
         if( fileError != clsparseSuccess )
             throw clsparse::io_exception( "Could not read matrix market data from disk: " + sparseFile );
 
-        clsparseCsrMetaSize( &csrMtx, control );
-        csrMtx.rowBlocks = ::clCreateBuffer( ctx, CL_MEM_READ_WRITE,
-                csrMtx.rowBlockSize * sizeof( cl_ulong ), NULL, &status );
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
-        clsparseCsrMetaCompute( &csrMtx, control );
+        clsparseCsrMetaCreate( &csrMtx, control );
 
         // Initialize the dense X & Y vectors that we multiply against the sparse matrix
         clsparseInitVector( &x );
@@ -207,8 +203,8 @@ public:
         if( gpuTimer && cpuTimer )
         {
           std::cout << "clSPARSE matrix: " << sparseFile << std::endl;
-          size_t sparseBytes = sizeof( cl_int )*( csrMtx.num_nonzeros + csrMtx.num_rows ) + sizeof( T ) * ( csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows );
-          size_t sparseFlops = 2 * csrMtx.num_nonzeros;
+          clsparseIdx_t sparseBytes = sizeof(clsparseIdx_t)*(csrMtx.num_nonzeros + csrMtx.num_rows) + sizeof(T) * (csrMtx.num_nonzeros + csrMtx.num_cols + csrMtx.num_rows);
+          clsparseIdx_t sparseFlops = 2 * csrMtx.num_nonzeros;
           cpuTimer->pruneOutliers( 3.0 );
           cpuTimer->Print( sparseBytes, "GiB/s" );
           cpuTimer->Print( sparseFlops, "GFLOPs" );
@@ -222,10 +218,10 @@ public:
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
+        clsparseCsrMetaDelete( &csrMtx );
         CLSPARSE_V( ::clReleaseMemObject( csrMtx.values ), "clReleaseMemObject csrMtx.values" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.colIndices ), "clReleaseMemObject csrMtx.colIndices" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowOffsets ), "clReleaseMemObject csrMtx.rowOffsets" );
-        CLSPARSE_V( ::clReleaseMemObject( csrMtx.rowBlocks ), "clReleaseMemObject csrMtx.rowBlocks" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.col_indices ), "clReleaseMemObject csrMtx.col_indices" );
+        CLSPARSE_V( ::clReleaseMemObject( csrMtx.row_pointer ), "clReleaseMemObject csrMtx.row_pointer" );
 
         CLSPARSE_V( ::clReleaseMemObject( x.values ), "clReleaseMemObject x.values" );
         CLSPARSE_V( ::clReleaseMemObject( y.values ), "clReleaseMemObject y.values" );

@@ -87,7 +87,7 @@ public:
     {
 #if 0
         //Check VK
-		//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
+		//Host to GPU: CSR-> [row_pointer(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
 		//GPU to Host: Dense - > [sizeof(T) * denseMtx.num_rows * denseMTx.num_cols]
 		size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) + sizeof(T) * (denseMtx.num_rows * denseMtx.num_cols);
         return (sparseBytes / time_in_ns());
@@ -99,7 +99,7 @@ public:
     std::string bandwidth_formula()
     {
         //return "GiB/s";
-		return "GiElements/s";
+        return "GiElements/s";
     }// end
 
     void setup_buffer(double pAlpha, double pBeta, const std::string& path)
@@ -107,15 +107,14 @@ public:
         sparseFile = path;
 
         // Read sparse data from file and construct a CSR matrix from it
-        int nnz;
-        int row;
-        int col;
+        clsparseIdx_t nnz;
+        clsparseIdx_t row;
+        clsparseIdx_t col;
         clsparseStatus fileError = clsparseHeaderfromFile(&nnz, &row, &col, sparseFile.c_str());
         if (clsparseSuccess != fileError)
              throw clsparse::io_exception( "Could not read matrix market header from disk: " + sparseFile );
 
         // Now initialize a CSR matrix from the CSR matrix
-        // VK we have to handle other cases if input mtx file is not in CSR format
         clsparseInitCsrMatrix(&csrMtx);
         csrMtx.num_nonzeros = nnz;
         csrMtx.num_rows     = row;
@@ -125,11 +124,11 @@ public:
         csrMtx.values = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(T), NULL, &status);
         CLSPARSE_V(status, "::clCreateBuffer csrMtx.values");
 
-        csrMtx.colIndices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(cl_int), NULL, &status);
-        CLSPARSE_V(status, "::clCreateBuffer csrMtx.colIndices");
+        csrMtx.col_indices = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, csrMtx.num_nonzeros * sizeof(clsparseIdx_t), NULL, &status);
+        CLSPARSE_V(status, "::clCreateBuffer csrMtx.col_indices");
 
-        csrMtx.rowOffsets = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(cl_int), NULL, &status);
-        CLSPARSE_V(status, "::clCreateBuffer csrMtx.rowOffsets");
+        csrMtx.row_pointer = ::clCreateBuffer(ctx, CL_MEM_READ_ONLY, (csrMtx.num_rows + 1) * sizeof(clsparseIdx_t), NULL, &status);
+        CLSPARSE_V(status, "::clCreateBuffer csrMtx.row_pointer");
 
 		if (typeid(T) == typeid(float))
 			fileError = clsparseSCsrMatrixfromFile( &csrMtx, sparseFile.c_str(), control, explicit_zeroes );
@@ -141,17 +140,14 @@ public:
         if (fileError != clsparseSuccess)
             throw std::runtime_error("Could not read matrix market data from disk: " + sparseFile);
 
-        clsparseCsrMetaSize(&csrMtx, control);
-        csrMtx.rowBlocks = ::clCreateBuffer(ctx, CL_MEM_READ_WRITE, csrMtx.rowBlockSize * sizeof(cl_ulong), NULL, &status);
-        CLSPARSE_V( status, "::clCreateBuffer csrMtx.rowBlocks" );
-        clsparseCsrMetaCompute(&csrMtx, control);
+        clsparseCsrMetaCreate(&csrMtx, control);
 
         // Initialize the output dense matrix
         cldenseInitMatrix(&denseMtx);
         denseMtx.major    = rowMajor;
         denseMtx.num_rows = row;
         denseMtx.num_cols = col;
-		denseMtx.lead_dim = col;  // To Check!! VK;
+        denseMtx.lead_dim = col;  // To Check!! VK;
         denseMtx.values = ::clCreateBuffer(ctx, CL_MEM_WRITE_ONLY,
                                             denseMtx.num_rows * denseMtx.num_cols * sizeof(T), NULL, &status);
         CLSPARSE_V(status, "::clCreateBuffer denseMtx.values");
@@ -187,7 +183,7 @@ public:
 #if 0
             // Need to verify this calculation VK
             //size_t sparseBytes = sizeof(cl_int) * (csrMtx.nnz + csrMtx.m) + sizeof(T) * (csrMtx.nnz + csrMtx.n + csrMtx.m);
-			//Host to GPU: CSR-> [rowOffsets(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
+			//Host to GPU: CSR-> [row_pointer(num_rows + 1) + Column Indices] * sizeof(int) + sizeof(T) * (num_nonzero)
 			//GPU to Host: Dense - > [sizeof(T) * denseMtx.num_rows * denseMTx.num_cols]
             size_t sparseBytes = sizeof(cl_int) * (csrMtx.num_nonzeros + csrMtx.num_rows + 1) + sizeof(T) * (csrMtx.num_nonzeros) + sizeof(T) * (denseMtx.num_rows * denseMtx.num_cols);
             cpuTimer->pruneOutliers(3.0);
@@ -199,7 +195,7 @@ public:
             gpuTimer->Reset();
 #endif
 			// Calculate Number of Elements transformed per unit time
-			size_t sparseElements = csrMtx.num_nonzeros;
+            clsparseIdx_t sparseElements = csrMtx.num_nonzeros;
 			cpuTimer->pruneOutliers(3.0);
 			cpuTimer->Print(sparseElements, "GiElements/s");
 			cpuTimer->Reset();
@@ -211,10 +207,10 @@ public:
 
         //this is necessary since we are running a iteration of tests and calculate the average time. (in client.cpp)
         //need to do this before we eventually hit the destructor
+        clsparseCsrMetaDelete( &csrMtx );
         CLSPARSE_V(::clReleaseMemObject(csrMtx.values), "clReleaseMemObject csrMtx.values");
-        CLSPARSE_V(::clReleaseMemObject(csrMtx.colIndices), "clReleaseMemObject csrMtx.colIndices");
-        CLSPARSE_V(::clReleaseMemObject(csrMtx.rowOffsets), "clReleaseMemObject csrMtx.rowOffsets");
-        CLSPARSE_V(::clReleaseMemObject(csrMtx.rowBlocks), "clReleaseMemObject csrMtx.rowBlocks");
+        CLSPARSE_V(::clReleaseMemObject(csrMtx.col_indices), "clReleaseMemObject csrMtx.col_indices");
+        CLSPARSE_V(::clReleaseMemObject(csrMtx.row_pointer), "clReleaseMemObject csrMtx.row_pointer");
 
         CLSPARSE_V(::clReleaseMemObject(denseMtx.values), "clReleaseMemObject denseMtx.values");
     }

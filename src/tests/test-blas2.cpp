@@ -109,17 +109,17 @@ public:
     }
 
     // Knuth's Two-Sum algorithm, which allows us to add together two floating
-    // point numbers and exactly tranform the answer into a sum and a
+    // point numbers and exactly transform the answer into a sum and a
     // rounding error.
-    // Inputs: x and y, the two inputs to be aded together.
+    // Inputs: x and y, the two inputs to be added together.
     // In/Out: *sumk_err, which is incremented (by reference) -- holds the
     //         error value as a result of the 2sum calculation.
     // Returns: The non-corrected sum of inputs x and y.
     T two_sum(T x, T y, T *sumk_err)
     {
         // We use this 2Sum algorithm to perform a compensated summation,
-        // which can reduce the cummulative rounding errors in our SpMV
-        // summation. Our compensated sumation is based on the SumK algorithm
+        // which can reduce the cumulative rounding errors in our SpMV
+        // summation. Our compensated summation is based on the SumK algorithm
         // (with K==2) from Ogita, Rump, and Oishi, "Accurate Sum and Dot
         // Product" in SIAM J. on Scientific Computing 26(6) pp 1955-1988,
         // Jun. 2005.
@@ -144,17 +144,17 @@ public:
             ASSERT_EQ(clsparseSuccess, status);
 
             float* vals = (float*)&CSRE::ublasSCsr.value_data()[0];
-            int* rows = &CSRE::ublasSCsr.index1_data()[0];
-            int* cols = &CSRE::ublasSCsr.index2_data()[0];
-            for (int row = 0; row < CSRE::n_rows; row++)
+            clsparseIdx_t* rows = &CSRE::ublasSCsr.index1_data()[0];
+            clsparseIdx_t* cols = &CSRE::ublasSCsr.index2_data()[0];
+            for ( clsparseIdx_t row = 0; row < CSRE::n_rows; row++)
             {
                 // Summation done at a higher precision to decrease
                 // summation errors from rounding.
                 hY[row] *= hBeta;
-                int row_end = rows[row+1];
+                clsparseIdx_t row_end = rows[row + 1];
                 double temp_sum;
                 temp_sum = hY[row];
-                for (int i = rows[row]; i < rows[row+1]; i++)
+                for ( clsparseIdx_t i = rows[row]; i < rows[row + 1]; i++)
                 {
                     // Perform: hY[row] += hAlpha * vals[i] * hX[cols[i]];
                     temp_sum += hAlpha * vals[i] * hX[cols[i]];
@@ -171,7 +171,7 @@ public:
             uint64_t max_ulps = 0;
             uint64_t min_ulps = UINT64_MAX;
             uint64_t total_ulps = 0;
-            for (int i = 0; i < hY.size(); i++)
+            for (size_t i = 0; i < hY.size(); i++)
             {
                 long long int intDiff = (long long int)boost::math::float_distance(hY[i], host_result[i]);
                 intDiff = llabs(intDiff);
@@ -196,7 +196,7 @@ public:
             }
 #endif
 
-            for (int i = 0; i < hY.size(); i++)
+            for (size_t i = 0; i < hY.size(); i++)
             {
                 double compare_val = 0.;
                 if (extended_precision)
@@ -229,9 +229,9 @@ public:
             ASSERT_EQ(clsparseSuccess, status);
 
             double* vals = (double*)&CSRE::ublasDCsr.value_data()[0];
-            int* rows = &CSRE::ublasDCsr.index1_data()[0];
-            int* cols = &CSRE::ublasDCsr.index2_data()[0];
-            for (int row = 0; row < CSRE::n_rows; row++)
+            clsparseIdx_t* rows = &CSRE::ublasDCsr.index1_data()[0];
+            clsparseIdx_t* cols = &CSRE::ublasDCsr.index2_data()[0];
+            for ( clsparseIdx_t row = 0; row < CSRE::n_rows; row++)
             {
                 // Summation done using a compensated summation to decrease
                 // summation errors from rounding. This allows us to get
@@ -239,11 +239,11 @@ public:
                 // This method is like performing summation at quad precision and
                 // casting down to double in the end.
                 hY[row] *= hBeta;
-                int row_end = rows[row+1];
+                clsparseIdx_t row_end = rows[row + 1];
                 double temp_sum;
                 temp_sum = hY[row];
                 T sumk_err = 0.;
-                for (int i = rows[row]; i < rows[row+1]; i++)
+                for ( clsparseIdx_t i = rows[row]; i < rows[row + 1]; i++)
                 {
                     // Perform: hY[row] += hAlpha * vals[i] * hX[cols[i]];
                     temp_sum = two_sum(temp_sum, hAlpha*vals[i]*hX[cols[i]], &sumk_err);
@@ -260,7 +260,7 @@ public:
             uint64_t max_ulps = 0;
             uint64_t min_ulps = ULLONG_MAX;
             uint64_t total_ulps = 0;
-            for (int i = 0; i < hY.size(); i++)
+            for (size_t i = 0; i < hY.size(); i++)
             {
                 long long int intDiff = (long long int)boost::math::float_distance(hY[i], host_result[i]);
                 intDiff = llabs(intDiff);
@@ -284,7 +284,7 @@ public:
                 std::cout << "Double Average ulps: " << (double)total_ulps/(double)hY.size() <<  " (Size: " << hY.size() << ")" << std::endl;
 #endif
 
-                for (int i = 0; i < hY.size(); i++)
+                for (size_t i = 0; i < hY.size(); i++)
                 {
                     double compare_val = fabs(hY[i]*1e-14);
                     if (compare_val < 10*DBL_EPSILON)
@@ -294,7 +294,7 @@ public:
             }
             else
             {
-                for (int i = 0; i < hY.size(); i++)
+                for (size_t i = 0; i < hY.size(); i++)
                 {
                     double compare_val = 0.;
                     if (boost::math::isnormal(hY[i]))
@@ -350,17 +350,8 @@ TYPED_TEST(Blas2, csrmv_vector)
     // To call csrmv vector we need to artificially get rid of the rowBlocks data
     using CSRE = CSREnvironment;
 
-    cl_int cl_status;
-    cl_status = clReleaseMemObject(CSRE::csrSMatrix.rowBlocks);
-    ASSERT_EQ(CL_SUCCESS, cl_status);
-    CSRE::csrSMatrix.rowBlocks = nullptr;
-
-    cl_status = clReleaseMemObject(CSRE::csrDMatrix.rowBlocks);
-    ASSERT_EQ(CL_SUCCESS, cl_status);
-    CSRE::csrDMatrix.rowBlocks = nullptr;
-
-    CSRE::csrSMatrix.rowBlockSize = 0;
-    CSRE::csrDMatrix.rowBlockSize = 0;
+    clsparseCsrMetaDelete( &CSRE::csrSMatrix );
+    clsparseCsrMetaDelete( &CSRE::csrDMatrix );
 
     this->test_csrmv();
 
@@ -368,25 +359,16 @@ TYPED_TEST(Blas2, csrmv_vector)
     // later use.
 
     clsparseStatus status;
-    status = clsparseCsrMetaSize( &CSRE::csrSMatrix, CLSE::control );
-    ASSERT_EQ(clsparseSuccess, status);
+    clsparseMetaSizeResult sizeResult;
+    sizeResult = clsparseCsrMetaSize( &CSRE::csrSMatrix, CLSE::control );
+    ASSERT_EQ(clsparseSuccess, sizeResult.status );
 
-    status = clsparseCsrMetaSize( &CSRE::csrDMatrix, CLSE::control );
-    ASSERT_EQ(clsparseSuccess, status);
+    sizeResult = clsparseCsrMetaSize( &CSRE::csrDMatrix, CLSE::control );
+    ASSERT_EQ(clsparseSuccess, sizeResult.status );
 
-    CSRE::csrSMatrix.rowBlocks =
-            ::clCreateBuffer( CLSE::context, CL_MEM_READ_WRITE,
-                              CSRE::csrSMatrix.rowBlockSize * sizeof( cl_ulong ),
-                              NULL, &cl_status );
-
-    ASSERT_EQ(CL_SUCCESS, cl_status);
-
-    CSRE::csrDMatrix.rowBlocks = CSRE::csrSMatrix.rowBlocks;
-    ::clRetainMemObject( CSRE::csrDMatrix.rowBlocks );
-
-    status = clsparseCsrMetaCompute(&CSRE::csrSMatrix, CLSE::control );
+    status = clsparseCsrMetaCreate(&CSRE::csrSMatrix, CLSE::control );
     ASSERT_EQ (clsparseSuccess, status);
-    status = clsparseCsrMetaCompute(&CSRE::csrDMatrix, CLSE::control );
+    status = clsparseCsrMetaCreate(&CSRE::csrDMatrix, CLSE::control );
     ASSERT_EQ (clsparseSuccess, status);
 }
 
@@ -428,6 +410,11 @@ int main (int argc, char* argv[])
 
     try {
         po::store(parsed, vm);
+        if (vm.count("help"))
+        {
+            std::cout << desc << std::endl;
+            return 0;
+        }
         po::notify(vm);
     }
     catch (po::error& error)

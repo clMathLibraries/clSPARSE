@@ -19,6 +19,7 @@
 
 #include "cufunc_common.hpp"
 #include "include/io-exception.hpp"
+#include "include/cufunc_sparse-xx.h"
 
 template <typename T>
 class xCsr2Dense : public cusparseFunc
@@ -72,7 +73,7 @@ public:
         //  There are NNZ float_types in the vals[ ] array
         //  You read num_cols floats from the vector, afterwards they cache perfectly.
         //  Finally, you write num_rows floats out to DRAM at the end of the kernel.
-        return ( sizeof( int )*( n_vals + n_rows ) + sizeof( T ) * ( n_vals + n_cols + n_rows ) ) / time_in_ns( );
+        return (sizeof(clsparseIdx_t)*(n_vals + n_rows) + sizeof(T) * (n_vals + n_cols + n_rows)) / time_in_ns();
 #endif
 		// Number of Elements converted in unit time
 		return (n_vals / time_in_ns());
@@ -101,10 +102,10 @@ public:
         //n_cols = col_indices.size( );
         //n_vals = values.size( );
 
-        cudaError_t err = cudaMalloc( (void**) &device_row_offsets, (n_rows + 1) * sizeof( int ) );
+        cudaError_t err = cudaMalloc( (void**) &device_row_offsets, (n_rows + 1) * sizeof( clsparseIdx_t ) );
         CUDA_V_THROW( err, "cudaMalloc device_row_offsets" );
 
-        err = cudaMalloc( (void**) &device_col_indices, n_vals * sizeof( int ) );
+        err = cudaMalloc( (void**) &device_col_indices, n_vals * sizeof( clsparseIdx_t ) );
         CUDA_V_THROW( err, "cudaMalloc device_col_indices" );
 
         err = cudaMalloc( (void**) &device_values, n_vals * sizeof( T ) );
@@ -120,10 +121,10 @@ public:
 
     void initialize_gpu_buffer( )
     {
-        cudaError_t err = cudaMemcpy( device_row_offsets, &row_offsets[ 0 ], row_offsets.size( ) * sizeof( int ), cudaMemcpyHostToDevice );
+        cudaError_t err = cudaMemcpy( device_row_offsets, &row_offsets[ 0 ], row_offsets.size( ) * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice );
         CUDA_V_THROW( err, "cudaMalloc device_row_offsets" );
 
-        err = cudaMemcpy( device_col_indices, &col_indices[ 0 ], col_indices.size( ) * sizeof( int ), cudaMemcpyHostToDevice );
+        err = cudaMemcpy( device_col_indices, &col_indices[ 0 ], col_indices.size( ) * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice );
         CUDA_V_THROW( err, "cudaMalloc device_col_indices" );
 
         err = cudaMemcpy( device_values, &values[ 0 ], values.size( ) * sizeof( T ), cudaMemcpyHostToDevice );
@@ -167,21 +168,21 @@ private:
     void xCsr2Dense_Function( bool flush );
 
     //host matrix definition
-    std::vector< int > row_offsets;
-    std::vector< int > col_indices;
+    std::vector< clsparseIdx_t > row_offsets;
+    std::vector< clsparseIdx_t > col_indices;
     std::vector< T > values;
 
-    int  n_rows; // number of rows
-    int  n_cols; // number of cols
-    int  n_vals; // number of Non-Zero Values (nnz)
+    clsparseIdx_t  n_rows; // number of rows
+    clsparseIdx_t  n_cols; // number of cols
+    clsparseIdx_t  n_vals; // number of Non-Zero Values (nnz)
 
     bool explicit_zeroes;
 
     cusparseMatDescr_t descrA;
 
     // device CUDA pointers
-    int* device_row_offsets;
-    int* device_col_indices;
+    clsparseIdx_t* device_row_offsets;
+    clsparseIdx_t* device_col_indices;
     T* device_values;
     T* device_A;
 

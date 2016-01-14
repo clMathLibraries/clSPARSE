@@ -85,7 +85,8 @@ TEST( clsparseInit, control )
 
     clsparseSetup( );
 
-    auto control = clsparseCreateControl( queue, NULL );
+    clsparseCreateResult createResult = clsparseCreateControl( queue );
+    auto control = ( createResult.status == clsparseSuccess ) ? createResult.control : nullptr;
 
     clsparseReleaseControl( control );
     clsparseTeardown( );
@@ -167,8 +168,8 @@ TEST( clsparseInit, cpp_interface )
 
 
     // Create clsparseControl object
-    clsparseControl control = clsparseCreateControl( queue( ), &status );
-    if( status != CL_SUCCESS )
+    clsparseCreateResult createResult = clsparseCreateControl( queue( ) );
+    if( createResult.status != CL_SUCCESS )
     {
         std::cout << "Problem with creating clSPARSE control object"
             << " error [" << status << "]" << std::endl;
@@ -176,7 +177,7 @@ TEST( clsparseInit, cpp_interface )
     }
 
     //cleanup;
-    status = clsparseReleaseControl( control );
+    status = clsparseReleaseControl( createResult.control );
     ASSERT_EQ( clsparseSuccess, status );
 
 

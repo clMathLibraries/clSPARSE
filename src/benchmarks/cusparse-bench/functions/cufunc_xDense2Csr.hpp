@@ -19,6 +19,7 @@
 
 #include "cufunc_common.hpp"
 #include "include/io-exception.hpp"
+#include "include/cufunc_sparse-xx.h"
 
 template <typename T>
 class xDense2Csr : public cusparseFunc
@@ -99,10 +100,10 @@ public:
             throw clsparse::io_exception( "Could not read matrix market from disk: " + path);
         }
 
-        cudaError_t err = cudaMalloc((void**)&device_row_offsets, (n_rows + 1) * sizeof(int));
+        cudaError_t err = cudaMalloc((void**)&device_row_offsets, (n_rows + 1) * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMalloc device_row_offsets");
 
-        err = cudaMalloc((void**)&device_col_indices, n_vals * sizeof(int));
+        err = cudaMalloc((void**)&device_col_indices, n_vals * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMalloc device_col_indices");
 
         err = cudaMalloc((void**)&device_values, n_vals * sizeof(T));
@@ -112,17 +113,17 @@ public:
         CUDA_V_THROW(err, "cudaMalloc device_A");
 
         // Output CSR
-        err = cudaMalloc((void**)&devRowOffsets, (n_rows + 1) * sizeof(int));
+        err = cudaMalloc((void**)&devRowOffsets, (n_rows + 1) * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMalloc devRowOffsets");
 
-        err = cudaMalloc((void**)&devColIndices, n_vals * sizeof(int));
+        err = cudaMalloc((void**)&devColIndices, n_vals * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMalloc devColIndices");
 
         err = cudaMalloc((void**)&devValues, n_vals * sizeof(T));
         CUDA_V_THROW(err, "cudaMalloc devValues");
 
         // Allocate memory for nnzPerRow
-        err = cudaMalloc((void**)&nnzPerRow, n_rows * sizeof(int));
+        err = cudaMalloc((void**)&nnzPerRow, n_rows * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMalloc nnzPerRow");
 
     }// end
@@ -133,10 +134,10 @@ public:
 
     void initialize_gpu_buffer()
     {
-        cudaError_t err = cudaMemcpy(device_row_offsets, &row_offsets[0], row_offsets.size() * sizeof(int), cudaMemcpyHostToDevice);
+        cudaError_t err = cudaMemcpy(device_row_offsets, &row_offsets[0], row_offsets.size() * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice);
         CUDA_V_THROW(err, "cudaMalloc device_row_offsets");
 
-        err = cudaMemcpy(device_col_indices, &col_indices[0], col_indices.size() * sizeof(int), cudaMemcpyHostToDevice);
+        err = cudaMemcpy(device_col_indices, &col_indices[0], col_indices.size() * sizeof( clsparseIdx_t ), cudaMemcpyHostToDevice);
         CUDA_V_THROW(err, "cudaMalloc device_col_indices");
 
         err = cudaMemcpy(device_values, &values[0], values.size() * sizeof(T), cudaMemcpyHostToDevice);
@@ -195,10 +196,10 @@ public:
 
     void reset_gpu_write_buffer()
     {
-        cudaError_t err = cudaMemset(devRowOffsets, 0x0, (n_rows + 1) * sizeof(int));
+        cudaError_t err = cudaMemset(devRowOffsets, 0x0, (n_rows + 1) * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMemset reset_gpu_write_buffer: devRowOffsets");
 
-        err = cudaMemset(devColIndices, 0x0, n_vals * sizeof(int));
+        err = cudaMemset(devColIndices, 0x0, n_vals * sizeof( clsparseIdx_t ));
         CUDA_V_THROW(err, "cudaMemset reset_gpu_write_buffer: devColIndices");
 
         err = cudaMemset(devValues, 0x0, n_vals * sizeof(T));
@@ -236,29 +237,29 @@ private:
     void csr2dense_Function(bool flush); // to get input in dense format
 
     //host matrix definition in csr format
-    std::vector< int > row_offsets;
-    std::vector< int > col_indices;
+    std::vector< clsparseIdx_t > row_offsets;
+    std::vector< clsparseIdx_t > col_indices;
     std::vector< T > values;
 
-    int  n_rows; // number of rows
-    int  n_cols; // number of cols
-    int  n_vals; // number of Non-Zero Values (nnz)
+    clsparseIdx_t  n_rows; // number of rows
+    clsparseIdx_t  n_cols; // number of cols
+    clsparseIdx_t  n_vals; // number of Non-Zero Values (nnz)
 
     bool explicit_zeroes;
 
     cusparseMatDescr_t descrA;
 
     // device CUDA pointers
-    int* device_row_offsets;
-    int* device_col_indices;
+    clsparseIdx_t* device_row_offsets;
+    clsparseIdx_t* device_col_indices;
     T* device_values;
     // Dense format: output - >input
     T* device_A;
-    int* nnzPerRow; // Number of non-zero elements per row
+    clsparseIdx_t* nnzPerRow; // Number of non-zero elements per row
 
     // Output devie CUDA pointers:csr format
-    int* devRowOffsets;
-    int* devColIndices;
+    clsparseIdx_t* devRowOffsets;
+    clsparseIdx_t* devColIndices;
     T* devValues;
 
 

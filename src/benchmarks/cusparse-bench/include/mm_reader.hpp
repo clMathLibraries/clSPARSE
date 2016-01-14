@@ -19,15 +19,16 @@
 #define CUBLAS_BENCHMARK_MM_READER_HXX__
 
 #include <vector>
+#include "cufunc_sparse-xx.h"
 
-int sparseHeaderfromFile( int* nnz, int* rows, int* cols, const char* filePath );
+int sparseHeaderfromFile(clsparseIdx_t* nnz, clsparseIdx_t* rows, clsparseIdx_t* cols, const char* filePath);
 
 template< class T > int
-cooMatrixfromFile( std::vector< int >& row_indices, std::vector< int >& col_indices,
+cooMatrixfromFile(std::vector< clsparseIdx_t >& row_indices, std::vector< clsparseIdx_t >& col_indices,
 std::vector< T >& values, const char* filePath, bool read_explicit_zeroes = true );
 
 template< class T > int
-csrMatrixfromFile( std::vector< int >& row_offsets, std::vector< int >& col_indices,
+csrMatrixfromFile(std::vector< clsparseIdx_t >& row_offsets, std::vector< clsparseIdx_t >& col_indices,
 std::vector< T >& values, const char* filePath, bool read_explicit_zeroes = true );
 
 #endif

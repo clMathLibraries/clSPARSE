@@ -33,15 +33,16 @@ csrmv (const clsparseScalarPrivate *pAlpha,
        cldenseVectorPrivate *pY,
        clsparseControl control)
 {
-    if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
+    if( pCsrMatx->meta == nullptr )
     {
         return csrmv_vector<T>(pAlpha, pCsrMatx, pX, pBeta, pY, control);
     }
     else
     {
-        if( ( pCsrMatx->rowBlocks == nullptr ) || ( pCsrMatx->rowBlockSize == 0 ) )
+        const matrix_meta* meta_ptr = static_cast< const matrix_meta* >( pCsrMatx->meta );
+        if( meta_ptr->rowBlockSize == 0 )
         {
-            // rowBlockSize varible is not zero but no pointer
+            // rowBlockSize variable is not zero but no pointer
             return clsparseStructInvalid;
         }
 
@@ -67,15 +68,16 @@ csrmv (const clsparse::array_base<T>& pAlpha,
        clsparse::array_base<T>& pY,
        clsparseControl control)
 {
-    if( (pCsrMatx->rowBlocks == nullptr) && (pCsrMatx->rowBlockSize == 0) )
+    if( pCsrMatx->meta == nullptr )
     {
         return csrmv_vector<T>(pAlpha, pCsrMatx, pX, pBeta, pY, control);
     }
     else
     {
-        if( ( pCsrMatx->rowBlocks == nullptr ) || ( pCsrMatx->rowBlockSize == 0 ) )
+        const matrix_meta* meta_ptr = static_cast< const matrix_meta* >( pCsrMatx->meta );
+        if( meta_ptr->rowBlockSize == 0 )
         {
-            // rowBlockSize varible is not zero but no pointer
+            // rowBlockSize variable is not zero but no pointer
             return clsparseStructInvalid;
         }
 

@@ -66,7 +66,7 @@ void transform (const SIZE_TYPE size,
                 __global const VALUE_TYPE* pX,
                 __global const VALUE_TYPE* pY)
 {
-    const int index = get_global_id(0);
+    const SIZE_TYPE index = get_global_id(0);
 
     if (index >= size) return;
 

@@ -17,7 +17,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <clSPARSE.h>
+#include "clSPARSE.h"
+#include "clSPARSE-error.h"
 
 /*! \file
 * \brief Simple demonstration code for calculating Norm1 from within 'C' host code
@@ -34,7 +35,7 @@
  * 5. Shutdown clSPARSE library & OpenCL
  *
  * UNIX Hint: Before allocating more than 3GB of VRAM define GPU_FORCE_64BIT_PTR=1
- * in your system environment to enable 64bit addresing;
+ * in your system environment to enable 64bit addressing;
  */
 int main( int argc, char* argv[ ] )
 {
@@ -55,7 +56,7 @@ int main( int argc, char* argv[ ] )
 
     if (num_platforms == 0)
     {
-        printf ("No OpenCL platforms found. Exitting.\n");
+        printf ("No OpenCL platforms found. Exiting.\n");
         return 0;
     }
 
@@ -67,7 +68,7 @@ int main( int argc, char* argv[ ] )
 
     if (cl_status != CL_SUCCESS)
     {
-        printf("Poblem with getting platform IDs. Err: %d\n", cl_status);
+        printf("Problem with getting platform IDs. Err: %d\n", cl_status);
         free(platforms);
         return -1;
     }
@@ -78,7 +79,7 @@ int main( int argc, char* argv[ ] )
 
     if (num_devices == 0)
     {
-        printf("No OpenCL GPU devices found on platform 0. Exitting\n");
+        printf("No OpenCL GPU devices found on platform 0. Exiting\n");
         free(platforms);
         return -2;
     }
@@ -91,7 +92,7 @@ int main( int argc, char* argv[ ] )
 
     if (cl_status != CL_SUCCESS)
     {
-        printf("Problem with getting device id from platform. Exitting\n");
+        printf("Problem with getting device id from platform. Exiting\n");
         free(devices);
         free(platforms);
         return -3;
@@ -134,9 +135,10 @@ int main( int argc, char* argv[ ] )
     }
 
     // Create clSPARSE control object it require queue for kernel execution
-    clsparseControl control = clsparseCreateControl(queue, &status);
+    clsparseCreateResult createResult = clsparseCreateControl( queue );
+    CLSPARSE_V( createResult.status, "Failed to create clsparse control" );
 
-    status = cldenseSnrm1(&norm_x, &x, control);
+    status = cldenseSnrm1(&norm_x, &x, createResult.control );
 
     // Read  result
     float* host_norm_x =
@@ -148,7 +150,7 @@ int main( int argc, char* argv[ ] )
     cl_status = clEnqueueUnmapMemObject(queue, norm_x.value, host_norm_x,
                                         0, NULL, NULL);
 
-    status = clsparseReleaseControl(control);
+    status = clsparseReleaseControl( createResult.control );
 
     status = clsparseTeardown();
     if (status != clsparseSuccess)

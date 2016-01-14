@@ -243,6 +243,11 @@ set( clSPARSE_LIBRARY_TYPE "SHARED" CACHE STRING "Build the clSPARSE library as 
 set_property( CACHE clSPARSE_LIBRARY_TYPE PROPERTY STRINGS SHARED STATIC )
 message( STATUS "clSPARSE will build as a '${clSPARSE_LIBRARY_TYPE}' library" )
 
+# Query the user for which version of OpenCL they wish to build the library for
+set( clSPARSE_INDEX_SIZEOF "4" CACHE STRING "Compile the library to assume this index byte size (64-bit indices not implemented yet)" )
+set_property( CACHE clSPARSE_INDEX_SIZEOF PROPERTY STRINGS 4 )
+message( STATUS "clSPARSE will build with '${clSPARSE_INDEX_SIZEOF}' index bitness" )
+
 add_compiler_export_flags( )
 add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   ${clSPARSE.source.cpp}
@@ -263,15 +268,13 @@ add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   ${clSPARSE.source.cl}
   )
 
-# PRIVATE linking prevents transitive library linking of the clBLAS libraries
+# PRIVATE linking prevents transitive library linking of dependent libraries
 target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${CMAKE_DL_LIBS} ) #${clBLAS_LIBRARIES} )
-
-# Package that helps me set visibility for function names exported from shared library
-GENERATE_EXPORT_HEADER( clSPARSE )
 
 set_target_properties( clSPARSE PROPERTIES VERSION ${clSPARSE_VERSION} SOVERSION ${clSPARSE_SOVERSION} )
 set_target_properties( clSPARSE PROPERTIES DEBUG_POSTFIX d )
 set_target_properties( clSPARSE PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+target_compile_definitions( clSPARSE PUBLIC CLSPARSE_INDEX_SIZEOF=${clSPARSE_INDEX_SIZEOF} )
 
 # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
 if( ${clSPARSE_LIBRARY_TYPE} STREQUAL "STATIC" )
@@ -298,15 +301,6 @@ endif( )
 #                   VERBATIM
 #                   )
 
-# CPack configuration; include the executable into the package
-install( TARGETS clSPARSE
-  EXPORT clSPARSE-Targets
-  RUNTIME DESTINATION bin${SUFFIX_BIN}
-  LIBRARY DESTINATION lib${SUFFIX_LIB}
-  ARCHIVE DESTINATION lib${SUFFIX_LIB}
-  INCLUDES DESTINATION include
-)
-
 # The following is cmake code to generate a config file package for clSPARSE
 include( CMakePackageConfigHelpers )
 
@@ -327,11 +321,16 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
-# The following installs the basic files of the library
-install( FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/clsparse_export.h
-  DESTINATION
-    include
+# Package that helps me set visibility for function names exported from shared library
+GENERATE_EXPORT_HEADER( clSPARSE )
+
+# CPack configuration; include the executable into the package
+install( TARGETS clSPARSE
+  EXPORT clSPARSE-Targets
+  RUNTIME DESTINATION bin${SUFFIX_BIN}
+  LIBRARY DESTINATION lib${SUFFIX_LIB}
+  ARCHIVE DESTINATION lib${SUFFIX_LIB}
+  INCLUDES DESTINATION include
 )
 
 # This generates the files that defines the import targets
@@ -346,3 +345,11 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/clSPARSEConfigVersion.cmake
   DESTINATION
     ${ConfigPackageLocation} )
+
+# The following installs the export definitions of the library, so the library may be properly
+# dynamically linked
+install( FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/clsparse_export.h
+  DESTINATION
+    include
+)

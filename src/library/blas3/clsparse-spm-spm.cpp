@@ -64,15 +64,14 @@ clsparseStatus compute_nnzCt(int _m, cl_mem csrRowPtrA, cl_mem csrColIndA, cl_me
      const std::string params = std::string() +
                "-DINDEX_TYPE=" + OclTypeTraits<cl_int>::type
             + " -DVALUE_TYPE=" + OclTypeTraits<cl_float>::type;
-    
-    
+        
     cl::Kernel kernel = KernelCache::get(control->queue,"SpGEMM_computeNnzCt_kernels", "compute_nnzCt_kernel", params);
     
     size_t szLocalWorkSize[1];
     size_t szGlobalWorkSize[1];
 
     int num_threads = GROUPSIZE_256;
-    int num_blocks = ceil((double)_m / (double)num_threads);
+    size_t num_blocks = ceil((double)_m / (double)num_threads);
 
     szLocalWorkSize[0]  = num_threads;
     szGlobalWorkSize[0] = num_blocks * szLocalWorkSize[0];
@@ -466,21 +465,21 @@ clsparseStatus compute_nnzC_Ct_opencl(int *_h_counter_one, cl_mem queue_one, cl_
             if (j == 0)
             {
                 int num_threads = GROUPSIZE_256;
-                int num_blocks = ceil((double)counter / (double)num_threads);
+                size_t num_blocks = ceil((double)counter / (double)num_threads);
 
                 run_status = compute_nnzC_Ct_0(num_threads, num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrC, control);
             }
             else if (j == 1)
             {
                 int num_threads = GROUPSIZE_256;
-                int num_blocks = ceil((double)counter / (double)num_threads);
+                size_t num_blocks = ceil((double)counter / (double)num_threads);
 
                 run_status = compute_nnzC_Ct_1(num_threads, num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, *csrColIndCt, *csrValCt, control);
             }
             else if (j > 1 && j <= 32)
             {
               int num_threads = 64; //WARPSIZE_NV_2HEAP;
-                int num_blocks = ceil((double)counter / (double)num_threads);
+              size_t num_blocks = ceil((double)counter / (double)num_threads);
                 run_status = compute_nnzC_Ct_2heap_noncoalesced_local(num_threads, num_blocks, j, counter, _h_counter_one[j], queue_one, csrRowPtrA, csrColIndA, csrValA, csrRowPtrB, csrColIndB, csrValB, csrRowPtrC, csrRowPtrCt, *csrColIndCt, *csrValCt, control);
             }
             else if (j > 32 && j <= 64)
@@ -676,7 +675,7 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
             if (j == 1)
             {
                 int num_threads = GROUPSIZE_256;
-                int num_blocks  = ceil((double)counter / (double)num_threads);
+                size_t num_blocks = ceil((double)counter / (double)num_threads);
                 run_status = copy_Ct_to_C_Single( num_threads, num_blocks, counter, counter_one[j], csrValC, csrRowPtrC, csrColIndC, csrValCt, csrRowPtrCt, csrColIndCt, queue_one, control);
             }
             else if (j > 1 && j <= 32)
@@ -729,12 +728,12 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     const clsparseCsrMatrixPrivate* matB = static_cast<const clsparseCsrMatrixPrivate*>(sparseMatB);
     clsparseCsrMatrixPrivate* matC = static_cast<clsparseCsrMatrixPrivate*>(sparseMatC);
 
-    int m  = matA->num_rows;
-    int k1 = matA->num_cols;
-    int k2 = matB->num_rows;
-    int n  = matB->num_cols;
-    int nnzA = matA->num_nonzeros;
-    int nnzB = matB->num_nonzeros;
+    size_t m = matA->num_rows;
+    size_t k1 = matA->num_cols;
+    size_t k2 = matB->num_rows;
+    size_t n  = matB->num_cols;
+    size_t nnzA = matA->num_nonzeros;
+    size_t nnzB = matB->num_nonzeros;
     
     if(k1 != k2)
     {
@@ -742,21 +741,21 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
         return clsparseInvalidKernelExecution;
     }  
     
-    cl_mem csrRowPtrA = matA->rowOffsets;
-    cl_mem csrColIndA = matA->colIndices;
+    cl_mem csrRowPtrA = matA->row_pointer;
+    cl_mem csrColIndA = matA->col_indices;
     cl_mem csrValA    = matA->values;
-    cl_mem csrRowPtrB = matB->rowOffsets;
-    cl_mem csrColIndB = matB->colIndices;
+    cl_mem csrRowPtrB = matB->row_pointer;
+    cl_mem csrColIndB = matB->col_indices;
     cl_mem csrValB    = matB->values;
     
     cl::Context cxt = control->getContext();
     
-    matC->rowOffsets = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, (m + 1) * sizeof( cl_int ), NULL, &run_status );
+    matC->row_pointer = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, (m + 1) * sizeof( cl_int ), NULL, &run_status );
     
     int pattern = 0;
-    clEnqueueFillBuffer(control->queue(), matC->rowOffsets, &pattern, sizeof(cl_int), 0, (m + 1)*sizeof(cl_int), 0, NULL, NULL);
+    clEnqueueFillBuffer(control->queue(), matC->row_pointer, &pattern, sizeof(cl_int), 0, (m + 1)*sizeof(cl_int), 0, NULL, NULL);
                         
-    cl_mem csrRowPtrC = matC->rowOffsets;
+    cl_mem csrRowPtrC = matC->row_pointer;
 
     std::vector<int> csrRowPtrC_h(m + 1, 0);
 
@@ -836,10 +835,10 @@ int copy_Ct_to_C_opencl(int *counter_one, cl_mem csrValC, cl_mem csrRowPtrC, cl_
     int nnzC = csrRowPtrC_h[m];
     //std::cout << "nnzC = " << nnzC << std::endl;
     
-    matC->colIndices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_int ), NULL, &run_status );
+    matC->col_indices = ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_int ), NULL, &run_status );
     matC->values =     ::clCreateBuffer( cxt(), CL_MEM_READ_WRITE, nnzC * sizeof( cl_float ), NULL, &run_status );
     
-    cl_mem csrColIndC = matC->colIndices;
+    cl_mem csrColIndC = matC->col_indices;
     cl_mem csrValC    = matC->values;
 
     run_status = clEnqueueWriteBuffer(control->queue(),
