@@ -246,7 +246,7 @@ csrmv_batched( global const FPTYPE * restrict sparseVals,
             // This causes a minor performance loss because this is the last workgroup
             // to be launched, and this loop can't be unrolled.
             int max_to_load = sparseRowPtrs[ stop_row ] - sparseRowPtrs[ row ];
-            for( int i = 0; i < max_to_load; i += 256 )
+            for(int i = 0; i < ((int)max_to_load-(int)localID); i += 256)
             {
                 partialSums[ localID + i ] = sparseVals[ col + i ] * denseB[ sparseCols[ col + i ] * ldB ];
             }
