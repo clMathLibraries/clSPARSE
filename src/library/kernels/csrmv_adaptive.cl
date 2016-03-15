@@ -423,7 +423,7 @@ csrmv_adaptive(__global const VALUE_TYPE * restrict const vals,
           // This causes a minor performance loss because this is the last workgroup
           // to be launched, and this loop can't be unrolled.
           const unsigned int max_to_load = rowPtrs[stop_row] - rowPtrs[row];
-          for(int i = 0; i < max_to_load; i += WG_SIZE)
+          for(int i = 0; i < ((int)max_to_load-(int)lid); i += WG_SIZE)
               partialSums[lid + i] = alpha * vals[col + i] * vec[cols[col + i]];
       }
       barrier(CLK_LOCAL_MEM_FENCE);
