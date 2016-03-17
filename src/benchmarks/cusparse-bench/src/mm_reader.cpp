@@ -501,16 +501,16 @@ std::vector< T >& values, const char* filePath, bool read_explicit_zeroes )
     if( mm_reader.MMReadFormat( filePath, read_explicit_zeroes ) )
         return 2;
 
-    clsparseIdx_t m = mm_reader.GetNumRows( );
-    clsparseIdx_t n = mm_reader.GetNumCols( );
+    clsparseIdx_t num_rows = mm_reader.GetNumRows( );
+    clsparseIdx_t num_cols = mm_reader.GetNumCols( );
     clsparseIdx_t nnz = mm_reader.GetNumNonZeroes( );
 
     row_offsets.clear( );
     col_indices.clear( );
     values.clear( );
-    row_offsets.reserve( m );
-    col_indices.reserve( n );
-    values.reserve( nnz );
+    row_offsets.reserve( num_rows );
+    col_indices.reserve( nnz );
+	values.reserve( nnz );
 
     Coordinate< T >* coords = mm_reader.GetUnsymCoordinates( );
 
@@ -523,13 +523,18 @@ std::vector< T >& values, const char* filePath, bool read_explicit_zeroes )
         col_indices.push_back( coords[ i ].y );
         values.push_back( coords[ i ].val );
 
-        if( coords[ i ].x >= current_row )
+        while( coords[ i ].x >= current_row )
         {
             row_offsets.push_back( i );
             ++current_row;
         }
     }
     row_offsets.push_back( nnz );
+    while (current_row <= nnz)
+    {
+        row_offsets.push_back( nnz );
+        ++current_row;
+    }
 
     return 0;
 }// end
