@@ -22,7 +22,7 @@ R"(
 
 __kernel
 __attribute__((reqd_work_group_size(WG_SIZE,1,1)))
-void control(void)
+void control( const int bogus )
 {
     return;
 }

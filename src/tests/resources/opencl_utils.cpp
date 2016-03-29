@@ -81,20 +81,17 @@ cl::Device getDevice( cl_platform_type pID, cl_uint dID )
     assert( platforms.size( ) > 0 );
 
     std::map<std::string, int> pNames;
+
     //search for AMD or NVIDIA
     cl_int pIndex = -1;
     for( const auto& p : platforms )
     {
-        //When using CL.1.1 the p.getInfo returns null terminated char* in
-        // strange format "blabla\000" I don't know how to get rid of it :/
-        std::string name;
-#if defined(CL_VERSION_1_2)
-        name = p.getInfo<CL_PLATFORM_NAME>( );
-#else
+        // getInfo<CL_PLATFORM_NAME> can return strings on Nvidia platforms (352.79) that
+        // return null terminated char* in strange format "blabla\000"
+        // I don't know how to properly trim the string, but we can truncate platform to the first word
         std::string pName = p.getInfo<CL_PLATFORM_NAME>( );
-        name = pName.substr( 0, pName.size( ) - 1 );
-#endif
-        pNames.insert( std::make_pair( name, ++pIndex ) );
+        size_t first_word_boundary = pName.find_first_of( " \t\r\n" );
+        pNames.insert( std::make_pair( pName.substr( 0, first_word_boundary ), ++pIndex ) );
     }
 
     //get index of desired platform;
