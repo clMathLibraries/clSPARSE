@@ -80,7 +80,7 @@ else( )
     endif( )
   endif( )
 
-  list( APPEND ext.gMock.cmake_args -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+  list( APPEND ext.gMock.cmake_args -DCMAKE_BUILD_TYPE=Release )
   message( STATUS "ExternalGmock using ( " ${Cores} " ) cores to build with" )
 endif( )
 

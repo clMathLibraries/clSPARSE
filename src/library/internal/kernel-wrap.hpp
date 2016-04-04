@@ -132,24 +132,24 @@ private:
 
 #elif (BUILD_CLVERSION == 120)
 
+// This string.compare gets around malformed null-terminating strings returned on Nvidia platforms
 #define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
         template<> inline KernelWrap& \
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
         { \
             assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
-            assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter) \
-                                                         == TYPE_STRING); \
+            assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter).compare( 0, sizeof(TYPE_STRING)-1, TYPE_STRING, 0, sizeof(TYPE_STRING)-1 ) == 0 ); \
             kernel.setArg(argCounter++, arg); \
             return *this; \
         }
 #else // (BUILD_CLVERSION == 200)
+// This string.compare gets around malformed null-terminating strings returned on Nvidia platforms
 #define KERNEL_ARG_BASE_TYPE(TYPE, TYPE_STRING) \
         template<> inline KernelWrap& \
         KernelWrap::operator<< <TYPE>(const TYPE& arg) \
         { \
             assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>()); \
-            assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter) \
-                                                         == TYPE_STRING); \
+            assert(kernel.getArgInfo<CL_KERNEL_ARG_TYPE_NAME>(argCounter).compare( 0, sizeof(TYPE_STRING)-1, TYPE_STRING, 0, sizeof(TYPE_STRING)-1 ) == 0 ); \
             int status =  clSetKernelArgSVMPointer(kernel(), \
                           argCounter++, \
                           (void *)(&arg)); \
