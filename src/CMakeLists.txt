@@ -179,6 +179,8 @@ install( FILES
 option( BUILD_TESTS "Build clSPARSE unit tests; requires Boost & googletest" ON )
 option( BUILD_BENCHMARKS "Build clSPARSE benchmarks" ON )
 
+include(BuildCL2HPP)
+
 add_subdirectory( library )
 add_subdirectory( clsparseTimer )
 

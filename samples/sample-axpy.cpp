@@ -22,11 +22,10 @@
 #include <iostream>
 #include <vector>
 
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl.hpp>
-#else
-#include <CL/cl.hpp>
-#endif
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_MINIMUM_OPENCL_VERSION BUILD_CLVERSION
+#define CL_HPP_TARGET_OPENCL_VERSION BUILD_CLVERSION
+#include <CL/cl2.hpp>
 
 #include "clSPARSE.h"
 #include "clSPARSE-error.h"

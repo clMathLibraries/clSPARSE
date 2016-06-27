@@ -48,6 +48,7 @@ set( clSPARSE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include )
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
+  ${CL2HPP_INCLUDE_DIRECTORY}
   ${clSPARSE_INCLUDE_DIRS}
 # ${clBLAS_INCLUDE_DIRS}
   ${OPENCL_INCLUDE_DIRS}
@@ -267,6 +268,8 @@ add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   ${clSPARSE.Headers.transform}
   ${clSPARSE.source.cl}
   )
+
+add_dependencies(clSPARSE cl2hpp)
 
 # PRIVATE linking prevents transitive library linking of dependent libraries
 target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${CMAKE_DL_LIBS} ) #${clBLAS_LIBRARIES} )

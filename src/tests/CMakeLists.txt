@@ -46,6 +46,14 @@ endif( )
 # A standard FindOpenCL.cmake module ships with cmake 3.1, buy we supply our own until 3.1 becomes more prevalent
 find_package( OpenCL REQUIRED )
 
+if( BUILD_CLVERSION VERSION_EQUAL "2.0" )
+    add_definitions( -DBUILD_CLVERSION=200 )
+elseif( BUILD_CLVERSION VERSION_EQUAL "1.2" )
+    add_definitions( -DBUILD_CLVERSION=120 )
+elseif( BUILD_CLVERSION VERSION_EQUAL "1.1" )
+    add_definitions( -DBUILD_CLVERSION=110 )
+endif( )
+
 #add_definitions(-D__CL_ENABLE_EXCEPTIONS)
 
 include_directories(
@@ -57,6 +65,7 @@ include_directories(
   ${GTEST_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${OPENCL_INCLUDE_DIRS}
+  ${CL2HPP_INCLUDE_DIRECTORY}
   )
 
 set( TESTS_CPP
@@ -104,6 +113,7 @@ foreach( test ${TESTS_CPP} )
   set_target_properties( ${test} PROPERTIES VERSION ${clSPARSE_VERSION} )
   set_target_properties( ${test} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
   set_property( TARGET ${test} PROPERTY FOLDER "Tests" )
+  add_dependencies(${test} cl2hpp)
 endforeach( )
 
 foreach( test ${TESTS_C} )
@@ -115,4 +125,5 @@ foreach( test ${TESTS_C} )
   set_target_properties( ${test} PROPERTIES VERSION ${clSPARSE_VERSION} )
   set_target_properties( ${test} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
   set_property( TARGET ${test} PROPERTY FOLDER "Tests" )
+  add_dependencies(${test} cl2hpp)
 endforeach( )

@@ -41,7 +41,19 @@ message( STATUS "clSPARSE samples are building using CL interface ='${BUILD_CLVE
 find_package( OpenCL ${BUILD_CLVERSION} REQUIRED )
 message( STATUS "OPENCL_INCLUDE_DIRS = ${OPENCL_INCLUDE_DIRS}")
 
-include_directories( ${OPENCL_INCLUDE_DIRS} )
+if( BUILD_CLVERSION VERSION_EQUAL "2.0" )
+    add_definitions( -DBUILD_CLVERSION=200 )
+elseif( BUILD_CLVERSION VERSION_EQUAL "1.2" )
+    add_definitions( -DBUILD_CLVERSION=120 )
+elseif( BUILD_CLVERSION VERSION_EQUAL "1.1" )
+    add_definitions( -DBUILD_CLVERSION=110 )
+endif( )
+
+include(BuildCL2HPP)
+include_directories(
+    ${OPENCL_INCLUDE_DIRS}
+    ${CL2HPP_INCLUDE_DIRECTORY}
+    )
 
 # No we are ready to generate the samples
 
@@ -70,6 +82,7 @@ foreach( sample ${SAMPLES_CPP} )
   set_property( TARGET ${sample} PROPERTY FOLDER "Samples" )
   # collect targets for installation
   list(APPEND EXAMPLE_TARGETS ${sample})
+  add_dependencies(${sample} cl2hpp)
 endforeach( )
 
 foreach( sample ${SAMPLES_C} )
@@ -80,6 +93,7 @@ foreach( sample ${SAMPLES_C} )
   set_property( TARGET ${sample} PROPERTY FOLDER "Samples" )
 # collect targets for installation
   list(APPEND EXAMPLE_TARGETS ${sample})
+  add_dependencies(${sample} cl2hpp)
 endforeach( )
 
 #Installation step

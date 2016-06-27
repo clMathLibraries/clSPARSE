@@ -52,6 +52,8 @@ set_target_properties( clsparse-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PRO
 set_target_properties( clsparse-bench PROPERTIES VERSION ${clSPARSE_VERSION} )
 set_property( TARGET clsparse-bench PROPERTY FOLDER "Benchmarks")
 
+add_dependencies(clsparse-bench cl2hpp)
+
 # CPack configuration; include the executable into the package
 # install( TARGETS clsparse.bench
 #   RUNTIME DESTINATION bin${SUFFIX_BIN}

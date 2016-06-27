@@ -18,11 +18,12 @@
 #ifndef _KERNEL_CAHCE_HPP_
 #define _KERNEL_CAHCE_HPP_
 
-#if defined(__APPLE__) || defined(__MACOSX)
-    #include <OpenCL/cl.hpp>
-#else
-    #include <CL/cl.hpp>
-#endif
+#define CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_MINIMUM_OPENCL_VERSION BUILD_CLVERSION
+#define CL_HPP_TARGET_OPENCL_VERSION BUILD_CLVERSION
+
+#include <CL/cl2.hpp>
 
 #include <string>
 #include <map>

@@ -42,9 +42,18 @@ if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
   add_definitions( -std=c++11 )
 endif( )
 
+if( BUILD_CLVERSION VERSION_EQUAL "2.0" )
+    add_definitions( -DBUILD_CLVERSION=200 )
+elseif( BUILD_CLVERSION VERSION_EQUAL "1.2" )
+    add_definitions( -DBUILD_CLVERSION=120 )
+elseif( BUILD_CLVERSION VERSION_EQUAL "1.1" )
+    add_definitions( -DBUILD_CLVERSION=110 )
+endif( )
+
 # Include standard OpenCL headers
 include_directories(
 	${OPENCL_INCLUDE_DIRS}
+    ${CL2HPP_INCLUDE_DIRECTORY}
 	${PROJECT_BINARY_DIR}/include
 	${PROJECT_BINARY_DIR}/library
 	${PROJECT_BINARY_DIR}/clsparseTimer
@@ -57,6 +66,8 @@ set_target_properties( clsparseTimer PROPERTIES VERSION ${clSPARSE_VERSION} )
 set_target_properties( clsparseTimer PROPERTIES SOVERSION ${clSPARSE_SOVERSION} )
 set_target_properties( clsparseTimer PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 target_link_libraries( clsparseTimer ${OPENCL_LIBRARIES} )
+
+add_dependencies(clsparseTimer cl2hpp)
 
 # Package that helps me set visibility for function names exported from shared library
 GENERATE_EXPORT_HEADER( clsparseTimer )

@@ -15,12 +15,6 @@
  * ************************************************************************ */
 
 #include "clSPARSE.h"
-#if defined(__APPLE__) || defined(__MACOSX)
-    #include <OpenCL/cl.hpp>
-#else
-    #include <CL/cl.hpp>
-#endif
-
 #include "solver-control.hpp"
 
 clsparseCreateSolverResult
