@@ -60,7 +60,9 @@ include_directories(
 	../include
 	)
 
-add_compiler_export_flags( )
+if(${UNIX})
+    ADD_DEFINITIONS(-fvisibility=hidden)
+endif(${UNIX})
 add_library( clsparseTimer SHARED ${clsparseTimer.Files} )
 set_target_properties( clsparseTimer PROPERTIES VERSION ${clSPARSE_VERSION} )
 set_target_properties( clsparseTimer PROPERTIES SOVERSION ${clSPARSE_SOVERSION} )

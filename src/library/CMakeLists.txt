@@ -249,7 +249,9 @@ set( clSPARSE_INDEX_SIZEOF "4" CACHE STRING "Compile the library to assume this 
 set_property( CACHE clSPARSE_INDEX_SIZEOF PROPERTY STRINGS 4 )
 message( STATUS "clSPARSE will build with '${clSPARSE_INDEX_SIZEOF}' index bitness" )
 
-add_compiler_export_flags( )
+if(${UNIX})
+    ADD_DEFINITIONS(-fvisibility=hidden)
+endif(${UNIX})
 add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   ${clSPARSE.source.cpp}
   ${clSPARSE.source.internal}
