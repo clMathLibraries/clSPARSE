@@ -269,7 +269,9 @@ add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   ${clSPARSE.source.cl}
   )
 
-add_dependencies(clSPARSE cl2hpp)
+if(NOT USE_SYSTEM_CL2HPP)
+    add_dependencies(clSPARSE cl2hpp)
+endif(NOT USE_SYSTEM_CL2HPP)
 
 # PRIVATE linking prevents transitive library linking of dependent libraries
 target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${CMAKE_DL_LIBS} ) #${clBLAS_LIBRARIES} )

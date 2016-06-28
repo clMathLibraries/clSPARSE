@@ -67,7 +67,9 @@ set_target_properties( clsparseTimer PROPERTIES SOVERSION ${clSPARSE_SOVERSION} 
 set_target_properties( clsparseTimer PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 target_link_libraries( clsparseTimer ${OPENCL_LIBRARIES} )
 
-add_dependencies(clsparseTimer cl2hpp)
+if(NOT USE_SYSTEM_CL2HPP)
+    add_dependencies(clsparseTimer cl2hpp)
+endif(NOT USE_SYSTEM_CL2HPP)
 
 # Package that helps me set visibility for function names exported from shared library
 GENERATE_EXPORT_HEADER( clsparseTimer )

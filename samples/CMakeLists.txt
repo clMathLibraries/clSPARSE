@@ -49,7 +49,10 @@ elseif( BUILD_CLVERSION VERSION_EQUAL "1.1" )
     add_definitions( -DBUILD_CLVERSION=110 )
 endif( )
 
-include(BuildCL2HPP)
+if(not USE_SYSTEM_CL2HPP)
+    include(BuildCL2HPP)
+endif(not USE_SYSTEM_CL2HPP)
+
 include_directories(
     ${OPENCL_INCLUDE_DIRS}
     ${CL2HPP_INCLUDE_DIRECTORY}
@@ -82,7 +85,9 @@ foreach( sample ${SAMPLES_CPP} )
   set_property( TARGET ${sample} PROPERTY FOLDER "Samples" )
   # collect targets for installation
   list(APPEND EXAMPLE_TARGETS ${sample})
-  add_dependencies(${sample} cl2hpp)
+  if(not USE_SYSTEM_CL2HPP)
+      add_dependencies(${sample} cl2hpp)
+  endif(not USE_SYSTEM_CL2HPP)
 endforeach( )
 
 foreach( sample ${SAMPLES_C} )
@@ -93,10 +98,12 @@ foreach( sample ${SAMPLES_C} )
   set_property( TARGET ${sample} PROPERTY FOLDER "Samples" )
 # collect targets for installation
   list(APPEND EXAMPLE_TARGETS ${sample})
-  add_dependencies(${sample} cl2hpp)
+  if(not USE_SYSTEM_CL2HPP)
+      add_dependencies(${sample} cl2hpp)
+  endif(not USE_SYSTEM_CL2HPP)
 endforeach( )
 
 #Installation step
-message (STATUS "DEST ${CMAKE_PREFIX_PATH}/Samples")
-message (STATUS "TARGETS ${EXAMPLE_TARGETS}")
+message(STATUS "DEST ${CMAKE_PREFIX_PATH}/Samples")
+message(STATUS "TARGETS ${EXAMPLE_TARGETS}")
 install(TARGETS ${EXAMPLE_TARGETS} DESTINATION  ${CMAKE_PREFIX_PATH}/Samples)
