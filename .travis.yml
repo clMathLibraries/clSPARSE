@@ -14,6 +14,9 @@ os:
   - linux
   - osx
 
+# forces osx to be version 10.11 instead of default 10.9.5
+osx_image: xcode8
+
 # sudo: false instructs travis to build our project in a docker VM (faster),
 # but we cannot yet install fglrx packages with 'false'
 sudo: required # false
