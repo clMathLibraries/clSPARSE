@@ -29,6 +29,3 @@
 
 # CMake
 *.txt.user
-
-# temp build file locations
-build/
