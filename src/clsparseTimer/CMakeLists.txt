@@ -60,13 +60,12 @@ include_directories(
 	../include
 	)
 
-if(${UNIX})
-    ADD_DEFINITIONS(-fvisibility=hidden)
-endif(${UNIX})
 add_library( clsparseTimer SHARED ${clsparseTimer.Files} )
 set_target_properties( clsparseTimer PROPERTIES VERSION ${clSPARSE_VERSION} )
 set_target_properties( clsparseTimer PROPERTIES SOVERSION ${clSPARSE_SOVERSION} )
 set_target_properties( clsparseTimer PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+set_target_properties( clsparseTimer PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties( clsparseTimer PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
 target_link_libraries( clsparseTimer ${OPENCL_LIBRARIES} )
 
 if(NOT USE_SYSTEM_CL2HPP)

@@ -249,9 +249,6 @@ set( clSPARSE_INDEX_SIZEOF "4" CACHE STRING "Compile the library to assume this 
 set_property( CACHE clSPARSE_INDEX_SIZEOF PROPERTY STRINGS 4 )
 message( STATUS "clSPARSE will build with '${clSPARSE_INDEX_SIZEOF}' index bitness" )
 
-if(${UNIX})
-    ADD_DEFINITIONS(-fvisibility=hidden)
-endif(${UNIX})
 add_library( clSPARSE ${clSPARSE_LIBRARY_TYPE}
   ${clSPARSE.source.cpp}
   ${clSPARSE.source.internal}
@@ -281,6 +278,8 @@ target_link_libraries( clSPARSE PRIVATE ${OPENCL_LIBRARIES} ${CMAKE_DL_LIBS} ) #
 set_target_properties( clSPARSE PROPERTIES VERSION ${clSPARSE_VERSION} SOVERSION ${clSPARSE_SOVERSION} )
 set_target_properties( clSPARSE PROPERTIES DEBUG_POSTFIX d )
 set_target_properties( clSPARSE PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+set_target_properties( clSPARSE PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties( clSPARSE PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
 target_compile_definitions( clSPARSE PUBLIC CLSPARSE_INDEX_SIZEOF=${clSPARSE_INDEX_SIZEOF} )
 
 # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
