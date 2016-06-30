@@ -41,7 +41,22 @@ message( STATUS "clSPARSE samples are building using CL interface ='${BUILD_CLVE
 find_package( OpenCL ${BUILD_CLVERSION} REQUIRED )
 message( STATUS "OPENCL_INCLUDE_DIRS = ${OPENCL_INCLUDE_DIRS}")
 
-include_directories( ${OPENCL_INCLUDE_DIRS} )
+if( BUILD_CLVERSION VERSION_EQUAL "2.0" )
+    add_definitions( -DBUILD_CLVERSION=200 )
+elseif( BUILD_CLVERSION VERSION_EQUAL "1.2" )
+    add_definitions( -DBUILD_CLVERSION=120 )
+elseif( BUILD_CLVERSION VERSION_EQUAL "1.1" )
+    add_definitions( -DBUILD_CLVERSION=110 )
+endif( )
+
+if(NOT USE_SYSTEM_CL2HPP)
+    include(BuildCL2HPP)
+endif(NOT USE_SYSTEM_CL2HPP)
+
+include_directories(
+    ${OPENCL_INCLUDE_DIRS}
+    ${CL2HPP_INCLUDE_DIRECTORY}
+    )
 
 # No we are ready to generate the samples
 
@@ -70,6 +85,9 @@ foreach( sample ${SAMPLES_CPP} )
   set_property( TARGET ${sample} PROPERTY FOLDER "Samples" )
   # collect targets for installation
   list(APPEND EXAMPLE_TARGETS ${sample})
+  if(NOT USE_SYSTEM_CL2HPP)
+      add_dependencies(${sample} cl2hpp)
+  endif(NOT USE_SYSTEM_CL2HPP)
 endforeach( )
 
 foreach( sample ${SAMPLES_C} )
@@ -80,9 +98,12 @@ foreach( sample ${SAMPLES_C} )
   set_property( TARGET ${sample} PROPERTY FOLDER "Samples" )
 # collect targets for installation
   list(APPEND EXAMPLE_TARGETS ${sample})
+  if(NOT USE_SYSTEM_CL2HPP)
+      add_dependencies(${sample} cl2hpp)
+  endif(NOT USE_SYSTEM_CL2HPP)
 endforeach( )
 
 #Installation step
-message (STATUS "DEST ${CMAKE_PREFIX_PATH}/Samples")
-message (STATUS "TARGETS ${EXAMPLE_TARGETS}")
+message(STATUS "DEST ${CMAKE_PREFIX_PATH}/Samples")
+message(STATUS "TARGETS ${EXAMPLE_TARGETS}")
 install(TARGETS ${EXAMPLE_TARGETS} DESTINATION  ${CMAKE_PREFIX_PATH}/Samples)

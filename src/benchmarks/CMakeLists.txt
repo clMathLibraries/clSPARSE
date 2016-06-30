@@ -45,6 +45,7 @@ if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
 endif( )
 
 include_directories(
+  ${CL2HPP_INCLUDE_DIRECTORY}
   ${Boost_INCLUDE_DIRS}
 )
 

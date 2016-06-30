@@ -18,11 +18,11 @@
 #ifndef _KERNEL_WRAP_HPP_
 #define _KERNEL_WRAP_HPP_
 
-#if defined(__APPLE__) || defined(__MACOSX)
-    #include <OpenCL/cl.hpp>
-#else
-    #include <CL/cl.hpp>
-#endif
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_MINIMUM_OPENCL_VERSION BUILD_CLVERSION
+#define CL_HPP_TARGET_OPENCL_VERSION BUILD_CLVERSION
+
+#include <CL/cl2.hpp>
 
 #include <iostream>
 #include <cassert>
@@ -78,7 +78,7 @@ public:
         assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>());
 
         cl_int status = 0;
-        status = kernel.setArg(argCounter++, val);
+        status = kernel.setArg(argCounter++, sizeof(cl_mem), (const void*)val);
 
 
         return *this;

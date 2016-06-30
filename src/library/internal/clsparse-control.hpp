@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2015 Advanced Micro Devices, Inc.
  * Copyright 2015 Vratis, Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,12 +21,11 @@
 #include "clSPARSE.h"
 #include "../clsparseTimer/clsparseTimer-device.hpp"
 
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl.hpp>
-#else
-#include <CL/cl.hpp>
-#endif
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_MINIMUM_OPENCL_VERSION BUILD_CLVERSION
+#define CL_HPP_TARGET_OPENCL_VERSION BUILD_CLVERSION
 
+#include <CL/cl2.hpp>
 
 struct _clsparseControl
 {

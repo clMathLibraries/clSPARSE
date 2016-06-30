@@ -88,6 +88,7 @@ option( BUILD_gMock "Install googleMock as an external dependency" ON )
 #option( BUILD_clBLAS "Install clBLAS as an external dependency" ON )
 option( BUILD_MTX "Download sparse matrix files for bench/test" OFF )
 option( BUILD_SAMPLES "Build sample program using clSPARSE lib" OFF )
+option( USE_SYSTEM_CL2HPP "Use cl2.hpp installed on system" OFF)
 # Query the user for which version of OpenCL they wish to build the library for
 set( BUILD_CLVERSION "1.2" CACHE STRING "The version of OpenCL we wish to compile the library against" )
 set_property( CACHE BUILD_CLVERSION PROPERTY STRINGS 2.0 1.2 1.1 )
@@ -184,7 +185,9 @@ if( BUILD_clSPARSE OR BUILD_SAMPLES )
         SOURCE_DIR ${PROJECT_SOURCE_DIR}/src
         BINARY_DIR clSPARSE-build
         INSTALL_DIR clSPARSE-package
-        CMAKE_ARGS ${clSPARSE.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION} -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+        CMAKE_ARGS ${clSPARSE.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DBUILD_CLVERSION=${BUILD_CLVERSION} -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+        -DUSE_SYSTEM_CL2HPP:BOOL=${USE_SYSTEM_CL2HPP}
       )
     else( )
       # If the user does not want to build samples, then build clSPARSE but don't automatically
@@ -194,7 +197,8 @@ if( BUILD_clSPARSE OR BUILD_SAMPLES )
         DEPENDS ${clSPARSE.Dependencies}
         SOURCE_DIR ${PROJECT_SOURCE_DIR}/src
         BINARY_DIR clSPARSE-build
-        CMAKE_ARGS ${clSPARSE.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION}
+        CMAKE_ARGS ${clSPARSE.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DBUILD_CLVERSION=${BUILD_CLVERSION} -DUSE_SYSTEM_CL2HPP:BOOL=${USE_SYSTEM_CL2HPP}
         INSTALL_COMMAND ""
       )
     endif( )
@@ -213,7 +217,9 @@ if( BUILD_clSPARSE OR BUILD_SAMPLES )
       DEPENDS clSPARSE
       SOURCE_DIR ${PROJECT_SOURCE_DIR}/samples
       BINARY_DIR clSPARSE-samples-build
-      CMAKE_ARGS ${clSPARSE.Samples.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_CLVERSION=${BUILD_CLVERSION} -DBUILD64=${BUILD64} -DCMAKE_PREFIX_PATH=${install_dir}
+      CMAKE_ARGS ${clSPARSE.Samples.Cmake.Args} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+      -DBUILD_CLVERSION=${BUILD_CLVERSION} -DBUILD64=${BUILD64} -DCMAKE_PREFIX_PATH=${install_dir}
+      -DUSE_SYSTEM_CL2HPP:BOOL=${USE_SYSTEM_CL2HPP}
       EXCLUDE_FROM_ALL 1
       INSTALL_COMMAND ""
     )

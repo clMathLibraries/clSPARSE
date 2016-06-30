@@ -24,12 +24,10 @@
 #endif
 
 #include "clSPARSE.h"
-
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <OpenCL/cl.hpp>
-#else
-#include <CL/cl.hpp>
-#endif
+#define CL_HPP_ENABLE_EXCEPTIONS
+#define CL_HPP_MINIMUM_OPENCL_VERSION BUILD_CLVERSION
+#define CL_HPP_TARGET_OPENCL_VERSION BUILD_CLVERSION
+#include <CL/cl2.hpp>
 
 // Include appropriate data type definitions appropriate to the cl version supported
 #if( BUILD_CLVERSION < 200 )

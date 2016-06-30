@@ -118,7 +118,7 @@ public:
 
         clsparseInitCsrMatrix(&csrMatrixC);
     }// end
-    
+
     void checkrow_pointer(std::vector<clsparseIdx_t>& amdRowPtr)
     {
         for (clsparseIdx_t i = 0; i < amdRowPtr.size(); i++)
@@ -158,7 +158,7 @@ public:
 
         bool brelativeErrorFlag = false;
         bool babsErrorFlag = false;
-        
+
         for (clsparseIdx_t i = 0; i < csrMatrixC.num_rows; i++)
         {
             for (clsparseIdx_t j = 0; j < csrMatrixC.num_cols; j++)
@@ -226,7 +226,7 @@ TYPED_TEST(TestCSRSpGeMM, square)
     using SPER = CSRSparseEnvironment;
     using CLSE = ClSparseEnvironment;
     typedef typename uBLAS::compressed_matrix<float, uBLAS::row_major, 0, uBLAS::unbounded_array<clsparseIdx_t> > uBlasCSRM;
- 
+
     clsparseEnableAsync(CLSE::control, true);
 
 #ifdef TEST_LONG
@@ -239,7 +239,7 @@ TYPED_TEST(TestCSRSpGeMM, square)
 
     clsparseEventResult sparseEvent = clsparseGetEvent( CLSE::control );
     EXPECT_EQ(clsparseSuccess, sparseEvent.status );
-    cl::Event event = sparseEvent.event;
+    cl::Event event(sparseEvent.event);
     event.wait();
 
     //std::cout << "nrows =" << (this->csrMatrixC).num_rows << std::endl;
@@ -256,17 +256,17 @@ TYPED_TEST(TestCSRSpGeMM, square)
         this->csrMatrixC.values, CL_TRUE, 0,
         (this->csrMatrixC).num_nonzeros *sizeof(TypeParam),
         resultVals.data(), 0, NULL, NULL);
-    
+
     EXPECT_EQ(CL_SUCCESS, cl_status);
 
-    
+
     cl_status = clEnqueueReadBuffer(CLSE::queue,
         this->csrMatrixC.col_indices, CL_TRUE, 0,
         (this->csrMatrixC).num_nonzeros * sizeof(clsparseIdx_t), resultcol_indices.data(), 0, NULL, NULL);
-    
+
     EXPECT_EQ(CL_SUCCESS, cl_status);
 
-    
+
     cl_status = clEnqueueReadBuffer(CLSE::queue,
         this->csrMatrixC.row_pointer, CL_TRUE, 0,
         ((this->csrMatrixC).num_rows + 1)  * sizeof(clsparseIdx_t), resultRowPtr.data(), 0, NULL, NULL);
@@ -275,7 +275,7 @@ TYPED_TEST(TestCSRSpGeMM, square)
 
     std::cout << "Done with GPU" << std::endl;
 
-#ifdef TEST_LONG 
+#ifdef TEST_LONG
     // Generate referencee result from ublas
     if (typeid(TypeParam) == typeid(float))
     {
@@ -288,7 +288,7 @@ TYPED_TEST(TestCSRSpGeMM, square)
     }
 
 #endif
-    
+
     /*
     if (typeid(TypeParam) == typeid(double))
     {
@@ -319,7 +319,7 @@ TYPED_TEST(TestCSRSpGeMM, square)
         /* Check Values */
         for (clsparseIdx_t i = 0; i < resultVals.size(); i++)
         {
-            //TODO: how to define the tolerance 
+            //TODO: how to define the tolerance
             ASSERT_NEAR(resultVals[i], this->C.value_data()[i], 0.1);
         }
 
@@ -363,7 +363,7 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
     {
         SPER::ublasSCsr.value_data()[i] = tmpArray[i];
     }
-    
+
     // Copy host to the device
     cl_int cl_status = clEnqueueWriteBuffer(CLSE::queue, SPER::csrSMatrix.values, CL_TRUE, 0, sizeof(float)* tmpArray.size(),
                                                  tmpArray.data(), 0, nullptr, nullptr);
@@ -376,7 +376,7 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
 
     clsparseEventResult sparseEvent = clsparseGetEvent( CLSE::control );
     EXPECT_EQ( clsparseSuccess, sparseEvent.status );
-    cl::Event event = sparseEvent.event;
+    cl::Event event(sparseEvent.event);
     event.wait( );
 
 
@@ -434,7 +434,7 @@ TYPED_TEST(TestCSRSpGeMM, Powersof2)
         /* Check Values */
         for (clsparseIdx_t i = 0; i < resultVals.size(); i++)
         {
-            //TODO: how to define the tolerance 
+            //TODO: how to define the tolerance
             ASSERT_NEAR(resultVals[i], this->C.value_data()[i], 0.0);
         }
 
@@ -596,7 +596,7 @@ TYPED_TEST(TestCSRMM, multiply)
 
     clsparseEventResult sparseEvent = clsparseGetEvent( CLSE::control );
     EXPECT_EQ( clsparseSuccess, sparseEvent.status );
-    cl::Event event = sparseEvent.event;
+    cl::Event event(sparseEvent.event);
     event.wait( );
 
     std::vector<TypeParam> result(this->C.data().size());
@@ -738,7 +738,7 @@ int main (int argc, char* argv[])
         std::cout << "SpMSpM Testing \n";
         ::testing::GTEST_FLAG(filter) = "*TestCSRSpGeMM*" ;
         //::testing::GTEST_FLAG(list_tests) = true;
-        
+
         ::testing::InitGoogleTest(&argc, argv);
 
         ::testing::AddGlobalTestEnvironment(new CLSE(pID, dID));
@@ -758,6 +758,6 @@ int main (int argc, char* argv[])
         std::cerr << " unknown Level3 function" << std::endl;
         return -1;
     }
-    
+
     return RUN_ALL_TESTS();
 }// end
