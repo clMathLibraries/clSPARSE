@@ -70,6 +70,7 @@ before_install:
     fi
   - if [ ${TRAVIS_OS_NAME} == "osx" ]; then
       brew update;
+      brew install cmake;
       brew outdated boost || brew upgrade boost;
       brew outdated cmake || brew upgrade cmake;
       export BUILD_BOOST="OFF";
