@@ -146,6 +146,7 @@ endif( )
 # If we asked for OpenCL 1.2, and we found a version installed greater than that, pass the 'use deprecated' flag
 if( (OpenCL_FIND_VERSION VERSION_LESS "2.0") AND (OpenCL_VERSION VERSION_GREATER OpenCL_FIND_VERSION) )
     add_definitions( -DCL_USE_DEPRECATED_OPENCL_2_0_APIS )
+    add_definitions( -DCL_USE_DEPRECATED_OPENCL_1_2_APIS )
 
     # If we asked for OpenCL 1.1, and we found a version installed greater than that, pass the 'use deprecated' flag
     if( (OpenCL_FIND_VERSION VERSION_LESS "1.2") AND (OpenCL_VERSION VERSION_GREATER OpenCL_FIND_VERSION) )
