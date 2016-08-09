@@ -11,27 +11,14 @@ an OpenCL&trade; library implementing Sparse linear algebra routines.  This proj
 a collaboration between [AMD Inc.](http://www.amd.com/) and
 [Vratis Ltd.](http://www.vratis.com/).
 
-### What's new in clSPARSE **v0.10**
-**This release introduces breaking API changes from the prior version**.  clSPARSE is still in a beta phase, and we may need to change the API at times to increase maintainability or fix design issues.  A few changes are introduced to more closely follow the recently published [Cpp Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines.html), a strong candidate to be the coding guidelines to be used in clSPARSE.  Changes are noted below.
-- The API to create meta data for a csr encoded sparse matrix has changed.  This is an attempt to hide the implementation details of how meta data is stored from the user.  This allows the library freedom to change and iterate meta data without breaking clients.
-  - `clsparseCsrMetaCompute()` renamed to `clsparseCsrMetaCreate()`, to more intuitively pair with the
-  - New API `clsparseCsrMetaDelete()`
-- A few routines changed pure 'out' parameters to be returned on the stack as structs<sup>[1](#return-tuple)</sup>
-  - `clsparseCreateControl()`
-  - `clsparseGetEvent()`
-  - `clsparseCreateSolverControl()`
-  - `clsparseCsrMetaSize()`
-- A new index type has been introduced `clsparseIdx_t` to abstract the size of an index from the library interface; the only choice currently is 4 bytes.  If users use this datatype for indices in their code, changing to 8-byte indices in the future should only be a recompile.
-- The names of member variables in our public structs have been renamed for consistency.  Before, our member variables was not consistent with camel case and underscore naming.  Member variables are now standardized to use underscores, but we keep camel casing for function and struct names<sup>[2](#consistent-naming)</sup>
-  - `colIndices` to `col_indices`
-  - `rowIndices` to `row_indices`
-  - `rowOffsets` to `row_pointer` (renamed to pointer to remove confusion with buffer offsets for cl1.2)
-  - `offValues` to `off_values`
-  - `offColInd` to `off_col_indices`
-  - `offRowOff` to `off_row_pointer`
-  - `offValues` to `off_values`
-- All samples have been changed to compile with the above changes.
-
+### What's new in clSPARSE **v0.10.1**
+- bug fix release
+  - Fixes for travis builds
+  - Fix to the matrix market reader in the cuSPARSE benchmark to synchronize with the regular MM reader
+  - Replace cl.hpp with cl2.hpp (thanks to arrayfire)
+  - Fixes for the Nvidia platform; tested 352.79
+    - Fixed buffer overruns in CSR-Adaptive kernels
+    - Fix invalid memory access on Nvidia GPUs in CSR-Adaptive SpMV kernel
 
 ## clSPARSE features
 -  Sparse Matrix - dense Vector multiply (SpM-dV)
