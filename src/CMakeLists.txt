@@ -163,6 +163,15 @@ message( STATUS "CMAKE_CXX_COMPILER release flags: " ${CMAKE_CXX_FLAGS_RELEASE} 
 message( STATUS "CMAKE_CXX_COMPILER relwithdebinfo flags: " ${CMAKE_CXX_FLAGS_RELWITHDEBINFO} )
 message( STATUS "CMAKE_EXE_LINKER link flags: " ${CMAKE_EXE_LINKER_FLAGS} )
 
+# Query the user for which version of OpenCL they wish to build the library for
+set( BUILD_CLVERSION "1.2" CACHE STRING "The version of OpenCL we wish to compile the library against" )
+set_property( CACHE BUILD_CLVERSION PROPERTY STRINGS 2.0 1.2 1.1 )
+message( STATUS "clSPARSE is building using CL interface ='${BUILD_CLVERSION}'" )
+
+# clSPARSE library requires OpenCL
+# A standard FindOpenCL.cmake module ships with cmake 3.1, but we supply our own until 3.1 becomes more $
+find_package( OpenCL ${BUILD_CLVERSION} REQUIRED )
+
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
 message( STATUS "PROJECT SRC DIR = ${PROJECT_SOURCE_DIR}")
 configure_file( "${PROJECT_SOURCE_DIR}/include/clSPARSE-version.h.in" "${PROJECT_BINARY_DIR}/include/clSPARSE-version.h" )

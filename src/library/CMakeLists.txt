@@ -17,15 +17,6 @@
 
 include( GenerateExportHeader )
 
-# Query the user for which version of OpenCL they wish to build the library for
-set( BUILD_CLVERSION "1.2" CACHE STRING "The version of OpenCL we wish to compile the library against" )
-set_property( CACHE BUILD_CLVERSION PROPERTY STRINGS 2.0 1.2 1.1 )
-message( STATUS "clSPARSE is building using CL interface ='${BUILD_CLVERSION}'" )
-
-# clSPARSE library requires OpenCL
-# A standard FindOpenCL.cmake module ships with cmake 3.1, but we supply our own until 3.1 becomes more prevalent
-find_package( OpenCL ${BUILD_CLVERSION} REQUIRED )
-
 # clSPARSE library requires clBLAS
 # find_package( clBLAS REQUIRED )
 
