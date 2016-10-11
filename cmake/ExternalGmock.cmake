@@ -25,7 +25,7 @@ message( STATUS "ext.gMock_Version: " ${ext.gMock_Version} )
 if( DEFINED ENV{GMOCK_URL} )
   set( ext.gMock_URL "$ENV{GMOCK_URL}" CACHE STRING "URL to download gMock from" )
 else( )
-  set( ext.gMock_URL "https://googlemock.googlecode.com/files/gmock-${ext.gMock_Version}.zip" CACHE STRING "URL to download gMock from" )
+  set( ext.gMock_URL "https://github.com/google/googletest/archive/release-${ext.gMock_Version}.zip" CACHE STRING "URL to download gMock from" )
 endif( )
 mark_as_advanced( ext.gMock_URL )
 
@@ -91,7 +91,7 @@ endif( )
 ExternalProject_Add(
   gMock
   URL ${ext.gMock_URL}
-  URL_MD5 073b984d8798ea1594f5e44d85b20d66
+  URL_MD5 ef5e700c8a0f3ee123e2e0209b8b4961
   CMAKE_ARGS ${ext.gMock.cmake_args} -DCMAKE_DEBUG_POSTFIX=d
   BUILD_COMMAND ${ext.gMock.Make}
   INSTALL_COMMAND ""

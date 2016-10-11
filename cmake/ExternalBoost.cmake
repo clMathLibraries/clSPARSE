@@ -91,11 +91,11 @@ elseif( MSVC14 )
   list( APPEND Boost.Command toolset=msvc-14.0 )
 elseif( XCODE_VERSION )
   list( APPEND Boost.Command toolset=clang )
-elseif( DEFINED ENV{CC} )
+elseif( ENV{CC} )
   # CMake apprarently puts the full path of the compiler into CC
   # The user might specify a non-default gcc compiler through ENV
   message( STATUS "ENV{CC}=$ENV{CC}" )
-  get_filename_component( gccToolset $ENV{CC} NAME )
+  get_filename_component( gccToolset "$ENV{CC}" NAME )
 
   # see: https://svn.boost.org/trac/boost/ticket/5917
   string( TOLOWER ${gccToolset} gccToolset )
