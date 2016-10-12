@@ -38,7 +38,7 @@ endif()
 if( POLICY CMP0048 )
   cmake_policy( SET CMP0048 NEW )
 
-  project( SuperBuild.clSPARSE VERSION 0.11.1.0 )
+  project( SuperBuild.clSPARSE VERSION 0.10.2.0 )
 else( )
   project( SuperBuild.clSPARSE )
 
@@ -48,11 +48,11 @@ else( )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_MINOR )
-    set( SuperBuild.clSPARSE_VERSION_MINOR 11 )
+    set( SuperBuild.clSPARSE_VERSION_MINOR 10 )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_PATCH )
-    set( SuperBuild.clSPARSE_VERSION_PATCH 1 )
+    set( SuperBuild.clSPARSE_VERSION_PATCH 2 )
   endif( )
 
   if( NOT DEFINED SuperBuild.clSPARSE_VERSION_TWEAK )
