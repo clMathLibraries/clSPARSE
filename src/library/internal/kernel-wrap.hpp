@@ -78,9 +78,7 @@ public:
         assert(argCounter < kernel.getInfo<CL_KERNEL_NUM_ARGS>());
 
         cl_int status = 0;
-        status = kernel.setArg(argCounter++, sizeof(cl_mem), (const void*)val);
-
-
+        status = kernel.setArg(argCounter++, sizeof(cl_mem), (const void*)&val);
         return *this;
     }
 
