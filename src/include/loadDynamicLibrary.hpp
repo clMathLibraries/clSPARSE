@@ -51,7 +51,7 @@ inline void* LoadSharedLibrary( const std::string& libPrefix, std::string librar
 
     //	HMODULE is actually the load address; function returns NULL if it cannot find the shared library
     HMODULE fileHandle = ::LoadLibraryExA(libraryName.c_str(), NULL, NULL);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__GNU__) || (defined(__FreeBSD_kernel__) && defined(__GLIBC__))
     std::string linuxName = libPrefix;
     linuxName += libraryName += ".so";
     void* fileHandle = ::dlopen( linuxName.c_str( ), RTLD_NOW );
