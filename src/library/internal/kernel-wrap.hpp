@@ -22,6 +22,12 @@
 #define CL_HPP_MINIMUM_OPENCL_VERSION BUILD_CLVERSION
 #define CL_HPP_TARGET_OPENCL_VERSION BUILD_CLVERSION
 
+#ifdef __ALTIVEC__
+#include <altivec.h>
+#undef bool
+#undef vector
+#endif
+
 #include <CL/cl2.hpp>
 
 #include <iostream>
