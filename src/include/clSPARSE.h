@@ -24,6 +24,12 @@
 #ifndef _CL_SPARSE_H_
 #define _CL_SPARSE_H_
 
+#ifdef __ALTIVEC__
+#include <altivec.h>
+#undef bool
+#undef vector
+#endif
+
 // CMake-generated file to define export related preprocessor macros
 #include "clsparse_export.h"
 

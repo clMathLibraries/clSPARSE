@@ -17,6 +17,12 @@
 #ifndef OCL_TYPE_TRAITS_HPP_
 #define OCL_TYPE_TRAITS_HPP_
 
+#ifdef __ALTIVEC__
+#include <altivec.h>
+#undef bool
+#undef vector
+#endif
+
 #include <type_traits>
 
 #if defined(__APPLE__) || defined(__MACOSX)

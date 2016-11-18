@@ -23,6 +23,11 @@
 #ifndef _CLSPARSE_ERROR_H_
 #define _CLSPARSE_ERROR_H_
 
+#ifdef __ALTIVEC__
+#undef bool
+#undef vector
+#endif
+
 #if defined(__APPLE__) || defined(__MACOSX)
 #   include <OpenCL/cl.h>
 #else
