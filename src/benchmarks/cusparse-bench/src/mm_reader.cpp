@@ -103,11 +103,6 @@ public:
         return isSymmetric;
     }
 
-    char &GetTypecode( )
-    {
-        return Typecode;
-    }
-
     Coordinate<FloatType> *GetUnsymCoordinates( )
     {
         return unsym_coords;
