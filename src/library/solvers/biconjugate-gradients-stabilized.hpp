@@ -265,6 +265,7 @@ bicgStab(cldenseVectorPrivate *pX,
         solverControl->print();
     }
 
+    return clsparseSuccess;
 }
 
 #endif //SOLVER_BICGSTAB_HPP_
